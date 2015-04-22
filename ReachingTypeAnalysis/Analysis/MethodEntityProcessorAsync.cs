@@ -1,0 +1,442 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+using OrleansGrains;
+using OrleansInterfaces;
+using ReachingTypeAnalysis.Communication;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ReachingTypeAnalysis.Analysis
+{
+    internal class EntityFactory
+    {
+        internal static IEntityDescriptor Create(AnalysisMethod method)
+        {
+            //return new MethodEntityDescriptor<M>(method);
+            var result = new OrleansEntityDescriptor(System.Guid.NewGuid());
+            Contract.Assert(method is AnalysisMethod);
+            result.MethodDescriptor = method.MethodDescriptor;
+            Contract.Assert(result.MethodDescriptor != null);
+
+            return result;
+        }
+
+        internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor)
+        {
+			var result = new MethodEntityGrain();
+            result.SetMethodEntity(methodEntity).Wait();
+            result.SetDescriptor((IOrleansEntityDescriptor)descriptor).Wait();
+
+            return result;
+        }
+    }
+
+	/// <summary>
+	/// This class is in charge of processing a method entity
+	/// In particular, in performing the propagation of types 
+	/// and communnicating with the callees and caller entities when the propagation 
+	/// reaches the boundary of the method
+	/// 
+	/// THIS CLASS COULD BE MADE STATIC. 
+	/// It just hold a reference to the method enitty being processed and modified 
+	/// It can be passed as a parameter. T
+	/// </summary>
+	/// <typeparam name="E"></typeparam>
+	/// <typeparam name="T"></typeparam>
+	/// <typeparam name="M"></typeparam>
+	internal partial class MethodEntityProcessor : EntityProcessor
+	{
+		/// <summary>
+		/// Asynv version of ProcessMessage
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public async override Task ProcessMessageAsync(IEntityDescriptor source, IMessage message)
+		{
+			//lock (this.Entity)
+			{
+				if (message is CallerMessage)
+				{
+					await ProcessCallMessageAsync(message as CallerMessage);
+				}
+				else
+				if (message is ReturnMessage)
+				{
+					await ProcessReturnMessageAsync(message as ReturnMessage);
+				}
+				else
+				{
+					Contract.Assert(false, "Unexpected message: " + message);
+				}
+			}
+		}
+
+		private async Task ProcessCallMessageAsync(CallerMessage callerMesssage)
+		{
+			Debug.WriteLine(string.Format("ProcessCallMessage: {0}", callerMesssage));
+			// Propagate this to the callee (RTA)
+			this.MethodEntity.InstantiatedTypes.UnionWith(
+				Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
+			// "Event" handler: Do the propagation of caller info
+			await HandleCallEventAsync(callerMesssage.CallMessageInfo);
+		}
+
+		private async Task ProcessReturnMessageAsync(ReturnMessage returnMesssage)
+		{
+			var retMsgInfo = returnMesssage.ReturnMessageInfo;
+			// Propagate types from the callee (RTA)
+			this.MethodEntity.InstantiatedTypes
+				.UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
+			// "Event" handler: Do the propagation of callee info
+			await HandleReturnEventAsync(retMsgInfo);
+		}
+
+		#region Propagation of Constraints
+		public override Task DoAnalysisAsync()
+		{
+			return PropagateAsync();
+		}
+
+		private async Task ProcessOutputInfoAsync(bool retValueHasChanged)
+		{
+			if (retValueHasChanged)
+			{
+				await ProcessReturnNodeAsync(PropagationKind.ADD_TYPES);
+			}
+		}
+
+		private async Task PropagateAsync()
+		{
+			if (this.Verbose)
+			{
+				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.Method.ToString()));
+			}
+			var callsAndRets = this.MethodEntity.PropGraph.Propagate();
+			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
+			var retValueHasChanged = callsAndRets.RetValueChange;
+			//ProcessOutputInfoAsync(retValueHasChanged).Start();
+			await EndOfPropagationEventAsync(PropagationKind.ADD_TYPES, retValueHasChanged);
+		}
+
+		private async Task PropagateDeleteAsync()
+		{
+			var callsAndRets = this.MethodEntity.PropGraph.PropagateDeletionOfNodes();
+			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.REMOVE_TYPES);
+			this.MethodEntity.PropGraph.RemoveDeletedTypes();
+			await EndOfPropagationEventAsync(PropagationKind.REMOVE_TYPES, callsAndRets.RetValueChange);
+		}
+		#endregion
+
+		#region Event Triggering and Handling
+		private async Task ProcessCalleesAffectedByPropagationAsync(IEnumerable<AnalysisInvocationExpession> callInvocationInfoForCalls, PropagationKind propKind)
+		{
+			/// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
+			if (callInvocationInfoForCalls.Count() > 0)
+			{
+				this.MethodEntity.InvalidateCaches();
+			}
+			// I made a new list to avoid a concurrent modification exception we received in some tests
+			var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
+			var continuations = new List<Task>();
+
+			foreach (var invocationInfo in invocationsToProcess)
+			{
+				//  Add instanciated types! 
+				/// Diego: Ben. This may not work well in parallel... 
+				/// We need a different way to update this info
+				invocationInfo.InstatiatedTypes = this.MethodEntity.InstantiatedTypes;
+				// I hate to do this. Need to Refactor!
+				if (invocationInfo is CallInfo)
+				{
+					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
+					continuations.Add(t);
+				}
+				if (invocationInfo is DelegateCallInfo)
+				{
+					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
+					continuations.Add(t);
+				}
+			}
+			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
+			await Task.WhenAll(continuations);
+		}
+
+		/// <summary>
+		/// Async veprsion
+		/// </summary>
+		/// <param name="callInfo"></param>
+		/// <param name="propKind"></param>
+		/// <returns></returns>
+		private async Task DispatchCallMessageAsync(CallInfo callInfo, PropagationKind propKind)
+		{
+			if (!callInfo.IsStatic && callInfo.Receiver != null)
+			{
+				// I need to computes all the calless
+				// In case of a deletion we can discar the deleted callee
+				//var types = GetTypes(callNode.Receiver, propKind); 
+				var types = GetTypes(callInfo.Receiver);
+
+				// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
+				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
+				{
+					var instTypes = new HashSet<AnalysisType>();
+					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
+						.Where(iType => iType.IsSubtype(callInfo.Receiver.AnalysisType)));
+					foreach (var t in instTypes)
+					{
+						types.Add(t);
+					}
+					// TO-DO: SHould I fix the node in the receiver to show that is not loaded. Ideally I should use the declared type. 
+					// Here I will use the already instantiated types
+					this.MethodEntity.PropGraph.Add(callInfo.Receiver, types);
+					//var declaredType = callInfo.Receiver.AType;
+					//this.PropGraph.Add(callInfo.Receiver, declaredType);
+				}
+				if (types.Count() > 0)
+				{
+					var continuations = new List<Task>();
+					Parallel.ForEach(types, (receiverType) =>
+					{
+						// Given a method m and T find the most accurate implementation wrt to T
+						// it can be T.m or the first super class implementing m
+						var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+						var t = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
+						continuations.Add(t);
+						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
+					});
+					await Task.WhenAll(continuations);
+				}
+				// This is not good: One reason is that loads like b = this.f are not working
+				// in a meth m a after  call r.m() because only the value of r is passed and not all its structure
+				else
+				{
+					await CreateAndSendCallMessageAsync(callInfo, callInfo.Callee, callInfo.Callee.ContainerType, propKind);
+				}
+			}
+			else
+			{
+				await CreateAndSendCallMessageAsync(callInfo, callInfo.Callee, callInfo.Callee.ContainerType, propKind);
+			}
+		}
+
+		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, AnalysisMethod realCallee, AnalysisType receiverType, PropagationKind propKind)
+		{
+			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
+			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
+			var destination = EntityFactory.Create(realCallee);
+
+			await this.SendMessageAsync(destination, callerMessage);
+		}
+
+		private async Task DispatchCallMessageForDelegateAsync(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
+		{
+			var continuations = new List<Task>();
+			Parallel.ForEach(GetDelegateCallees(delegateCallInfo.CalleeDelegate), (callee) =>
+			{
+				var t = CreateAndSendCallMessageAsync(delegateCallInfo, callee, callee.ContainerType, propKind);
+				continuations.Add(t);
+			});
+			await Task.WhenAll(continuations);
+		}
+
+		/// <summary>
+		/// When the method returns I should inform the computed return value to all its caller
+		/// It may also propagate other info from out parameters and escaping objects (not implemented)
+		/// </summary>
+		private async Task ProcessReturnNodeAsync(PropagationKind propKind)
+		{
+			if (this.MethodEntity.ReturnVariable != null)
+			{
+				// A test to try to force only one simultaneous entity 
+				// We should use a Queue instead
+				//while (this.MethodEntity.CurrentContext == null)
+				//{
+				//    Debug.WriteLine(string.Format("Waiting: {0} to start before return...", this.Method));
+				//    Thread.Sleep(10);
+				//}
+				//CallConext<M, E> callContext=null;
+				//lock(this.MethodEntity)
+				//{
+				//    callContext = this.MethodEntity.CurrentContext;
+				//    this.MethodEntity.CurrentContext = null;
+				//}
+				//var ret = this.MethodEntity.ReturnVariable;
+				//if (callContext.Invocation != null)
+				//{
+				//    var task = DispachReturnMessageAsync(callContext, ret, propKind);
+				//    if (task != null) task.RunSynchronously();
+				//}
+
+				var continuations = new List<Task>();
+				Parallel.ForEach(this.MethodEntity.Callers, (callerContex) =>
+				//foreach (var callerContex in this.MethodEntity.Callers)
+				{
+					var ret = this.MethodEntity.ReturnVariable;
+					var t = DispachReturnMessageAsync(callerContex, ret, propKind);
+					continuations.Add(t);
+				});
+				await Task.WhenAll(continuations);
+			}
+		}
+
+		/// <summary>
+		/// Async versions of DispachReturnMessage
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="returnVariable"></param>
+		/// <param name="propKind"></param>
+		/// <returns></returns>
+		public async Task DispachReturnMessageAsync(CallContext context, AnalysisNode returnVariable, PropagationKind propKind)
+		{
+			var caller = context.Caller;
+			var lhs = context.CallLHS;
+			var types = returnVariable != null ?
+				GetTypes(returnVariable, propKind) : new HashSet<AnalysisType>();
+			// Diego TO-DO, different treatment for adding and removal
+			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
+			{
+				var instTypes = new HashSet<AnalysisType>();
+				instTypes.UnionWith(
+					this.MethodEntity.InstantiatedTypes
+						.Where(iType => iType.IsSubtype(returnVariable.AnalysisType)));
+				foreach (var t in instTypes)
+				{
+					types.Add(t);
+				}
+			}
+
+			// Jump to caller
+			var destination = EntityFactory.Create(caller);
+			var retMessageInfo = new ReturnMessageInfo(
+				lhs,
+				types,
+				propKind, this.MethodEntity.InstantiatedTypes,
+				context.Invocation);
+			var returnMessage = new ReturnMessage(this.MethodEntity.EntityDescriptor, retMessageInfo);
+			//if (lhs != null)
+			{
+				await this.SendMessageAsync(destination, returnMessage);
+			}
+			//else
+			//{
+			//    return new Task(() => { });
+			//}
+		}
+
+		public async Task EndOfPropagationEventAsync(PropagationKind propKind, bool retValueChange)
+		{
+			// Should do something more clever
+			if (retValueChange)
+			{
+				await ProcessReturnNodeAsync(propKind);
+			}
+		}
+
+		private async Task HandleCallEventAsync(CallMessageInfo callMessage)
+		{
+			Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
+
+			if (this.Verbose)
+			{
+				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.Method.ToString()));
+			}
+			var caller = Demarshaler.Demarshal(callMessage.Caller);
+			// This is the node in the caller where info of ret-value should go
+			var lhs = callMessage.LHS;
+			// Save caller info
+			var callContext = new CallContext(
+				Demarshaler.Demarshal(callMessage.Caller),
+				Demarshaler.Demarshal(callMessage.LHS),
+				Demarshaler.Demarshal(callMessage.CallNode));
+			/// Loop detected due to recursion
+			//if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
+			//if (MethodEntity.NodesProcessing.Contains(callContext))
+			//{
+			//    if (this.Verbose)
+			//    {
+			//        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
+			//    }
+			//    //lock (this.MethodEntity)
+			//    //{
+			//    //    MethodEntity.NodesProcessing.Remove(callContext);
+			//    //    //MethodEntity.NodesProcessing.Remove(callMessage.CallNode);
+			//    //}
+			//    //EndOfPropagationEventAsync(callMessage.PropagationKind);
+			//    return new Task(() => { });
+			//}
+
+			// Just a test to try to block the Entity to a single simultaneous caller 
+			//while (this.MethodEntity.CurrentContext != null)
+			//{
+			//    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
+			//    Thread.Sleep(10);
+			//}
+
+			lock (this.MethodEntity)
+			{
+				//this.MethodEntity.CurrentContext = callContext;
+
+				// Here is when I register the caller
+				this.MethodEntity.AddToCallers(callContext);
+
+				if (this.MethodEntity.ThisRef != null)
+				{
+					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+				}
+				var pairIterator = new PairIterator<AnalysisNode, ISet<TypeDescriptor>>
+					(this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+				foreach (var pair in pairIterator)
+				{
+					var parameterNode = pair.Item1;
+					//PropGraph.Add(pn, argumentValues[i]);
+					if (parameterNode != null)
+					{
+						this.MethodEntity.PropGraph.DiffProp(
+							Demarshaler.Demarshal(pair.Item2),
+							parameterNode, callMessage.PropagationKind);
+					}
+				}
+			}
+
+			switch (callMessage.PropagationKind)
+			{
+				case PropagationKind.ADD_TYPES:
+					await PropagateAsync();
+					break;
+				case PropagationKind.REMOVE_TYPES:
+					await PropagateDeleteAsync();
+					break;
+			}
+		}
+
+
+		private async Task HandleReturnEventAsync(ReturnMessageInfo retMessageInfo)
+		{
+			if (retMessageInfo.LHS != null)
+			{
+				lock (this.MethodEntity)
+				{
+					this.MethodEntity.PropGraph.DiffProp(
+						Demarshaler.Demarshal(retMessageInfo.RVs),
+						Demarshaler.Demarshal(retMessageInfo.LHS),
+						retMessageInfo.PropagationKind);
+					// This should be Async
+				}
+
+				switch (retMessageInfo.PropagationKind)
+				{
+					case PropagationKind.ADD_TYPES:
+						await PropagateAsync();
+						break;
+					case PropagationKind.REMOVE_TYPES:
+						await PropagateDeleteAsync();
+						break;
+				}
+			}
+		}
+		#endregion
+	}
+}

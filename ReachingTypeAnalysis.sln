@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22310.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{04E0B563-E9D4-4271-9B4E-C0A6D258C2E7}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallGraphGeneration", "CallGraphGeneration\CallGraphGeneration.csproj", "{AFA3D4E1-8DB8-4BC4-A72B-A89283417639}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1290F004-9357-40C3-A5EF-E371C9D8C47A}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansInterfaces", "OrleansInterfaces\OrleansInterfaces.csproj", "{B6126696-692E-4728-8210-922848F297AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansGrains", "OrleansGrains\OrleansGrains.csproj", "{7EDBC025-77C7-481B-8DFA-675A0B670F85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{2930867F-55B9-4FB2-830E-DD1F4D79448A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31E6307F-30AF-46D4-B9B5-195C54408204}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31E6307F-30AF-46D4-B9B5-195C54408204}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31E6307F-30AF-46D4-B9B5-195C54408204}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31E6307F-30AF-46D4-B9B5-195C54408204}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA3D4E1-8DB8-4BC4-A72B-A89283417639}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA3D4E1-8DB8-4BC4-A72B-A89283417639}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA3D4E1-8DB8-4BC4-A72B-A89283417639}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA3D4E1-8DB8-4BC4-A72B-A89283417639}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6126696-692E-4728-8210-922848F297AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6126696-692E-4728-8210-922848F297AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6126696-692E-4728-8210-922848F297AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6126696-692E-4728-8210-922848F297AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EDBC025-77C7-481B-8DFA-675A0B670F85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EDBC025-77C7-481B-8DFA-675A0B670F85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EDBC025-77C7-481B-8DFA-675A0B670F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EDBC025-77C7-481B-8DFA-675A0B670F85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 6
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://garbervetsky.visualstudio.com/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ReachingTypeAnalysis\\ReachingTypeAnalysis.csproj
+		SccProjectName1 = ReachingTypeAnalysis
+		SccLocalPath1 = ReachingTypeAnalysis
+		SccProjectUniqueName2 = CallGraphGeneration\\CallGraphGeneration.csproj
+		SccProjectName2 = CallGraphGeneration
+		SccLocalPath2 = CallGraphGeneration
+		SccProjectUniqueName3 = OrleansInterfaces\\OrleansInterfaces.csproj
+		SccProjectName3 = OrleansInterfaces
+		SccLocalPath3 = OrleansInterfaces
+		SccProjectUniqueName4 = OrleansGrains\\OrleansGrains.csproj
+		SccProjectName4 = OrleansGrains
+		SccLocalPath4 = OrleansGrains
+		SccProjectUniqueName5 = Common\\Common.csproj
+		SccProjectName5 = Common
+		SccLocalPath5 = Common
+	EndGlobalSection
+EndGlobal
