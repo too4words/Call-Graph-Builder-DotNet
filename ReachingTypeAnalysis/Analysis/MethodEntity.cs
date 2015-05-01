@@ -28,7 +28,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// This is for having a RTA like set of instantiated types 
 		/// We need this give type to  unsupported expression using the declaredType instead of the concrete type 
 		/// </summary>
-		public ISet<AnalysisType> InstantiatedTypes { get; private set; }
+		public ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
 
 		/// This is for the propagation of removal of concrete types
 		/// It is currently not used. 
@@ -73,14 +73,14 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// The next properties obtains info from MethodDataInterface
 		/// </summary>
-		public AnalysisNode ThisRef
+		public VariableDescriptor ThisRef
 		{
 			get { return MethodInterfaceData.ThisRef; }
 		}
 		/// <summary>
 		/// These are the node correspoding to the parameters
 		/// </summary>
-		public IEnumerable<AnalysisNode> ParameterNodes
+		public IEnumerable<VariableDescriptor> ParameterNodes
 		{
 			get { return MethodInterfaceData.Parameters; }
 
@@ -88,7 +88,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// Return the node rerpesenting the ret value
 		/// </summary>
-		public AnalysisNode ReturnVariable
+		public VariableDescriptor ReturnVariable
 		{
 			get { return MethodInterfaceData.ReturnVariable; }
 		}
@@ -257,11 +257,16 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
-		public ISet<AnalysisType> GetTypes(AnalysisNode n)
+		public ISet<TypeDescriptor> GetTypes(VariableDescriptor n)
 		{
 			if (n != null)
+			{
 				return this.PropGraph.GetTypes(n);
-			else return new HashSet<AnalysisType>();
+			}
+			else
+			{
+				return new HashSet<TypeDescriptor>();
+			}
 		}
 
 		/// <summary>
@@ -269,14 +274,14 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
-		internal ISet<AnalysisMethod> GetDelegates(AnalysisNode n)
+		internal ISet<MethodDescriptor> GetDelegates(VariableDescriptor n)
 		{
 			return this.PropGraph.GetDelegates(n);
 		}
 
-		internal ISet<AnalysisType> GetPotentialTypes(AnalysisNode n)
+		internal ISet<TypeDescriptor> GetPotentialTypes(VariableDescriptor n)
 		{
-			var result = new HashSet<AnalysisType>();
+			var result = new HashSet<TypeDescriptor>();
 			foreach (var t in PropGraph.GetTypes(n))
 			{
 				if (t.IsConcreteType)
@@ -340,17 +345,18 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		internal MethodInterfaceData()
 		{
-			this.InputData = new Dictionary<string, AnalysisNode>();
-			this.OutputData = new Dictionary<string, AnalysisNode>();
+			this.InputData = new Dictionary<string, VariableDescriptor>();
+			this.OutputData = new Dictionary<string, VariableDescriptor>();
 		}
-		public AnalysisNode ThisRef { get; internal set; }
 
-		public IEnumerable<AnalysisNode> Parameters { get; internal set; }
+		public VariableDescriptor ThisRef { get; internal set; }
 
-		public AnalysisNode ReturnVariable { get; internal set; }
+		public IEnumerable<VariableDescriptor> Parameters { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> OutputData { get; internal set; }
+		public VariableDescriptor ReturnVariable { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> InputData { get; internal set; }
+		public IDictionary<string, VariableDescriptor> OutputData { get; internal set; }
+
+		public IDictionary<string, VariableDescriptor> InputData { get; internal set; }
 	}
 }

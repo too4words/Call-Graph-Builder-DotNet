@@ -12,66 +12,40 @@ namespace ReachingTypeAnalysis
 	/// Currently they conrtain information about the corresponding Roslyn symbol they represent 
 	/// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
 	/// </summary>
-	public class AnalysisNode
+	public abstract class AnalysisNode
 	{
 		// For debugging
 		public static bool UseType;
 		public static bool UseSymbol;
 		public static bool UseExpression;
 		//
-		private string name;
+		public string Name { get; private set; }
 
-		internal static ExpressionSyntax declaredTypeExpression = SyntaxFactory.ParseExpression("*DT*");
+		//internal static ExpressionSyntax declaredTypeExpression = SyntaxFactory.ParseExpression("*DT*");
 		internal AnalysisLocation locationRef;
 
-		protected AnalysisNode(ITypeSymbol declaredType)
-		{
-			if (declaredType != null)
-			{
-				this.name = declaredType.Name.ToString();
-			}
-			else
-			{
-				this.name = "Dummy";
-			}
-			this.DeclaredType = declaredType;
-		}
-
-		protected AnalysisNode(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression)
+		protected AnalysisNode(TypeDescriptor declaredType, string name)
 		{
 			this.DeclaredType = declaredType;
-			this.Expression = syntaxExpression;
-		}
-		protected AnalysisNode(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol)
-		{
-			this.DeclaredType = declaredType;
-			this.Expression = syntaxExpression;
-			this.Symbol = symbol;
+			this.Name = name;
 		}
 
-		public static AnalysisNode Define(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol)
-		{
-			if (Utils.IsTypeForAnalysis(declaredType))
-				return new AnalysisNode(declaredType, syntaxExpression, symbol);
-			return null;
-		}
+		//public static AnalysisNode Define(TypeDescriptor declaredType)
+		//{
+		//	if (Utils.IsTypeForAnalysis(declaredType))
+		//	{
+		//		return new AnalysisNode(declaredType);
+		//	}
+		//	else
+		//	{
+		//		return null;
+		//	}
+		//}
 
-		public static AnalysisNode DeclaredUnsupportedTypedExpression(ITypeSymbol dt)
-		{
-			if (Utils.IsTypeForAnalysis(dt))
-			{
-				var an = new AnalysisNode(dt, declaredTypeExpression);
-				//an.ana = new DeclaredType(dt);
-				return an;
-			}
-			return new AnalysisNode(null);
-		}
+		//internal SyntaxNodeOrToken Expression { get; private set; }
+		//internal VariableDescriptor Symbol { get; private set; }
 
-		internal SyntaxNodeOrToken Expression { get; private set; }
-
-		internal ISymbol Symbol { get; private set; }
-
-		internal ITypeSymbol DeclaredType { get; private set; }
+		internal TypeDescriptor DeclaredType { get; private set; }
 
 		internal AnalysisLocation LocationReference
 		{
@@ -84,19 +58,6 @@ namespace ReachingTypeAnalysis
 				}
 
 				return locationRef;
-			}
-		}
-
-		private AnalysisType analysisType;
-		internal AnalysisType AnalysisType
-		{
-			get
-			{
-				if (analysisType == null)
-				{
-					analysisType = new ConcreteType(this.DeclaredType);
-				}
-				return analysisType;
 			}
 		}
 
@@ -138,7 +99,7 @@ namespace ReachingTypeAnalysis
 		{
 			string tString = "Dummy";
 			if (this.DeclaredType != null)
-				tString = this.DeclaredType.Name.ToString();
+				tString = this.DeclaredType.TypeName;
 			string lString = "";
 			if (this.LocationReference != null)
 				lString = "@" + this.LocationReference.ToString();
@@ -156,7 +117,8 @@ namespace ReachingTypeAnalysis
 	internal class ParameterNode : AnalysisNode
 	{
 		public int Position { get; private set; }
-		public ParameterNode(int position, ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol) : base(declaredType, syntaxExpression, symbol)
+		public ParameterNode(int position, TypeDescriptor declaredType) : 
+			base(declaredType, "parameter_" + position)
 		{
 			this.Position = position;
 		}
@@ -164,24 +126,36 @@ namespace ReachingTypeAnalysis
 
 	internal class ThisNode : AnalysisNode
 	{
-		public ThisNode(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol) : base(declaredType, syntaxExpression, symbol)
+		public ThisNode(TypeDescriptor declaredType) : 
+			base(declaredType, "this")
 		{
+
+		}
+	}
+
+	internal class UnsupportedNode : AnalysisNode
+	{
+		public UnsupportedNode(TypeDescriptor declaredType) :
+			base(declaredType, "unsupported")
+		{
+
 		}
 	}
 
 	internal class ReturnNode : AnalysisNode
 	{
-		public ReturnNode(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol) : base(declaredType, syntaxExpression, symbol)
+		public ReturnNode(TypeDescriptor declaredType) :
+			base(declaredType, "return")
 		{
 		}
 	}
 
 	internal class VariableNode : AnalysisNode
 	{
-		public string VarName { get; private set; }
-		public VariableNode(string name, ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol) : base(declaredType, syntaxExpression, symbol)
+		public VariableNode(string name, TypeDescriptor declaredType) : 
+			base(declaredType, name)
 		{
-			this.VarName = name;
+
 		}
 	}
 
@@ -189,43 +163,30 @@ namespace ReachingTypeAnalysis
 	{
 		public string ClassName { get; private set; }
 		public string Field { get; private set; }
-		public FieldNode(string className, string fname, ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression, ISymbol symbol)
-			: base(declaredType, syntaxExpression, symbol)
+		public FieldNode(string className, string fieldName, TypeDescriptor declaredType)
+			: base(declaredType, string.Format("{0}.{1}", className, fieldName))
 		{
 			this.ClassName = className;
-			this.Field = fname;
+			this.Field = fieldName;
 		}
 	}
 
 	internal class DelegateNode : AnalysisNode
 	{
-		protected DelegateNode(ITypeSymbol declaredType, SyntaxNodeOrToken ex)
-			: base(declaredType, ex)
+		internal DelegateNode(TypeDescriptor declaredType, string name)
+			: base(declaredType, string.Format("delegate {0}", name))
 		{ }
-
-		public static DelegateNode Define(ITypeSymbol declaredType, SyntaxNodeOrToken ex)
-		{
-			if (declaredType.TypeKind.Equals(TypeKind.Delegate))
-			{
-				return new DelegateNode(declaredType, ex);
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		public virtual bool IsDelegate
-		{
-			get { return true; }
-		}
 	}
 
 	internal class AnalysisCallNode : AnalysisNode
 	{
-		public AnalysisCallNode(ITypeSymbol declaredType, SyntaxNodeOrToken syntaxExpression)
-			: base(declaredType, syntaxExpression)
-		{ }
+		public LocationDescriptor Location { get; private set; }
+
+		public AnalysisCallNode(TypeDescriptor declaredType, LocationDescriptor location)
+			: base(declaredType, string.Format("call {0}", location.ToString()))
+		{
+			this.Location = location;
+        }
 
 		/// <summary>
 		/// The idea is to use the same hash and equals than ANode but also locations
@@ -256,6 +217,7 @@ namespace ReachingTypeAnalysis
 	//    bool IsDelegate { get;  }
 	//}
 
+/*		
 	internal abstract class AnalysisType
 	{
 		protected bool concrete = true;
@@ -306,10 +268,10 @@ namespace ReachingTypeAnalysis
 			get { return concrete; }
 		}
 
-		public virtual bool IsDelegate
-		{
-			get { return RoslynType != null && RoslynType.TypeKind == TypeKind.Delegate; }
-		}
+		//public virtual bool IsDelegate
+		//{
+		//	get { return RoslynType != null && RoslynType.TypeKind == TypeKind.Delegate; }
+		//}
 
 		internal void SetDeclaredType()
 		{
@@ -341,6 +303,7 @@ namespace ReachingTypeAnalysis
 	//    AnalysisType ContainerType { get; }
 	//    MethodDescriptor MethodDescriptor { get; }
 	//}
+*/
 
 	internal class AnalysisMethod
 	{

@@ -96,11 +96,18 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class TypeDescriptor 
     {
-        public string TypeName { get; private set; }
-        public TypeDescriptor(ITypeSymbol type)
-        {
-            this.TypeName = type.ToDisplayString();
-        }
+		public bool IsReferenceType { get; private set; }
+		public TypeKind Kind { get; private set; }
+		public string TypeName { get; private set; }
+		public bool IsConcrete { get; private set; }
+
+		public TypeDescriptor(ITypeSymbol type, bool isConcrete = true)
+		{
+			this.TypeName = type.ToDisplayString();
+			this.IsReferenceType = type.IsReferenceType;
+			this.Kind = type.TypeKind;
+			this.IsConcrete = IsConcrete;
+		}
 
         public override int GetHashCode()
         {
@@ -113,27 +120,29 @@ namespace ReachingTypeAnalysis
         }
     }
 
+	public interface INodeDescriptor { }
+
+
 	[Serializable]
-	public class VariableDescriptor
+	public class VariableDescriptor : INodeDescriptor
 	{
+		public string Name { get; private set; }
+		public TypeDescriptor Type { get; private set; }
 
-		public string VariableName { get; private set; }
-		public VariableDescriptor(ISymbol variable)
+		public VariableDescriptor(string name, TypeDescriptor type)
 		{
-			this.VariableName = variable.ToDisplayString();
-		}
-
-		public VariableDescriptor(object lhs)
-		{
-
+			this.Name = name;
+			this.Type = type;
 		}
 	}
 
 	[Serializable]
-	public class LocationDescriptor {
+	public class LocationDescriptor : INodeDescriptor
+	{
 		public Location Location { get; private set; }
 
-		public LocationDescriptor(Location location) {
+		public LocationDescriptor(Location location)
+		{
 			Contract.Assert(location != null);
 
 			this.Location = location;

@@ -6,11 +6,11 @@ namespace ReachingTypeAnalysis
 {
 	internal class CallContext
 	{
-		internal AnalysisMethod Caller { get; private set; }
-		internal AnalysisNode CallLHS { get; private set; }
-		internal AnalysisNode Invocation { get; private set; }
+		internal MethodDescriptor Caller { get; private set; }
+		internal VariableDescriptor CallLHS { get; private set; }
+		internal LocationDescriptor Invocation { get; private set; }
 
-		internal CallContext(AnalysisMethod caller, AnalysisNode lhs, AnalysisNode inv)
+		internal CallContext(MethodDescriptor caller, VariableDescriptor lhs, LocationDescriptor inv)
 		{
 			this.Caller = caller;
 			this.CallLHS = lhs;
@@ -34,16 +34,15 @@ namespace ReachingTypeAnalysis
 	{
 		// t-digarb: Should I include context information?
 		private ISet<CallContext> callers = new HashSet<CallContext>();
-		internal AnalysisMethod Method { get; private set; }
+		internal MethodDescriptor Method { get; private set; }
 		internal AnalysisNode ThisRef { get; private set; }
 		internal IEnumerable<AnalysisNode> ParameterNodes { get; private set; }
 		internal AnalysisNode ReturnVariable { get; private set; }
 		internal PropagationGraph PropagationGraph { get; private set; }
-		internal ISet<AnalysisType> InstantiatedTypes { get; private set; }
-		internal ISet<AnalysisType> RemovedTypes { get; private set; }
+		internal ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
+		internal ISet<TypeDescriptor> RemovedTypes { get; private set; }
 
-		//public StatementProcessor(M m, E rv, E thisRef, IList<E> parameters, MethodEntity<E, T, M> containerEntity)
-		public StatementProcessor(AnalysisMethod m,
+		public StatementProcessor(MethodDescriptor m,
 			AnalysisNode rv, AnalysisNode thisRef,
 			IEnumerable<AnalysisNode> parameters)
 		{
@@ -52,10 +51,9 @@ namespace ReachingTypeAnalysis
 			this.Method = m;
 			this.ParameterNodes = parameters;
 			this.ThisRef = thisRef;
-
 			this.PropagationGraph = new PropagationGraph();
-			this.InstantiatedTypes = new HashSet<AnalysisType>();
-			this.RemovedTypes = new HashSet<AnalysisType>();
+			this.InstantiatedTypes = new HashSet<TypeDescriptor>();
+			this.RemovedTypes = new HashSet<TypeDescriptor>();
 
 			if (rv != null)
 			{
@@ -80,8 +78,8 @@ namespace ReachingTypeAnalysis
 		///  In the incremental analysis we want to use this commands over an existing propagation graph
 		/// </summary>
 		/// <param name="propagationGraph"></param>
-		public StatementProcessor(AnalysisMethod method, AnalysisNode rv,
-			AnalysisNode thisRef, IList<AnalysisNode> parameters,
+		public StatementProcessor(MethodDescriptor method, VariableDescriptor rv,
+			VariableDescriptor thisRef, IList<VariableDescriptor> parameters,
 			PropagationGraph propagationGraph)
 		{
 			this.PropagationGraph = propagationGraph;
@@ -90,19 +88,19 @@ namespace ReachingTypeAnalysis
 			this.ParameterNodes = parameters;
 			this.ThisRef = thisRef;
 
-			this.InstantiatedTypes = new HashSet<AnalysisType>();
-			this.RemovedTypes = new HashSet<AnalysisType>();
+			this.InstantiatedTypes = new HashSet<TypeDescriptor>();
+			this.RemovedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		public void RegisterAssignment(AnalysisNode lhs, AnalysisNode rhs)
+		public void RegisterAssignment(VariableDescriptor lhs, VariableDescriptor rhs)
 		{
 			if (lhs != null && rhs != null)
 			{
 				PropagationGraph.AddEdge(rhs, lhs);
 
-				if (!rhs.AnalysisType.IsConcreteType)
+				if (!rhs.Type.IsConcreteType)
 				{
-					PropagationGraph.Add(rhs, rhs.AnalysisType);
+					PropagationGraph.Add(rhs, rhs.Type);
 					PropagationGraph.AddToWorkList(rhs);
 				}
 			}
@@ -113,7 +111,7 @@ namespace ReachingTypeAnalysis
 			PropagationGraph.Add(v);
 		}
 
-		public void RegisterNewExpressionAssignment(AnalysisNode lhs, AnalysisType t)
+		public void RegisterNewExpressionAssignment(VariableDescriptor lhs, TypeDescriptor t)
 		{
 			if (lhs != null)
 			{
@@ -124,7 +122,7 @@ namespace ReachingTypeAnalysis
 		}
 
 		#region Call management (calls, delegates, constructors, properties)
-		public void RegisterConstructorCall(AnalysisMethod callee, IList<AnalysisNode> arguments, AnalysisNode lhs, AnalysisNode callNode)
+		public void RegisterConstructorCall(MethodDescriptor callee, IList<VariableDescriptor> arguments, VariableDescriptor lhs, VariableDescriptor callNode)
 		{
 			Contract.Requires(callee != null);
 			Contract.Requires(callNode != null);
@@ -144,14 +142,14 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		internal void RegisterDelegateAssignment(AnalysisNode lhs, AnalysisMethod m)
+		internal void RegisterDelegateAssignment(VariableDescriptor lhs, MethodDescriptor m)
 		{
 			PropagationGraph.AddDelegate(lhs, m);
 			PropagationGraph.AddToWorkList(lhs);
 		}
 
-		public void RegisterStaticCall(AnalysisMethod callee, IList<AnalysisNode> arguments,
-			AnalysisNode lhs, AnalysisNode callNode)
+		public void RegisterStaticCall(AnalysisMethod callee, IList<VariableDescriptor> arguments,
+			VariableDescriptor lhs, VariableDescriptor callNode)
 		{
 			Contract.Requires(callee != null);
 			Contract.Requires(callNode != null);
@@ -163,8 +161,8 @@ namespace ReachingTypeAnalysis
 
 		}
 
-		public void RegisterVirtualCall(AnalysisMethod callee, AnalysisNode receiver,
-			IList<AnalysisNode> arguments, AnalysisNode lhs, AnalysisNode callNode)
+		public void RegisterVirtualCall(AnalysisMethod callee, VariableDescriptor receiver,
+			IList<VariableDescriptor> arguments, VariableDescriptor lhs, LocationDescriptor callNode)
 		{
 			Contract.Requires(receiver != null);
 			Contract.Requires(callee != null);
@@ -193,7 +191,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void RegisterStaticDelegateCall(AnalysisMethod callee, IList<AnalysisNode> arguments, AnalysisNode lhs, AnalysisNode delegateNode, AnalysisNode callNode)
+		public void RegisterStaticDelegateCall(MethodDescriptor callee, IList<VariableDescriptor> arguments, VariableDescriptor lhs, VariableDescriptor delegateNode, LocationDescriptor callNode)
 		{
 			Contract.Requires(delegateNode != null);
 			Contract.Requires(arguments != null);
@@ -205,7 +203,7 @@ namespace ReachingTypeAnalysis
 			RegisterInvocation(arguments, callNode, callExp);
 		}
 
-		public void RegisterVirtualDelegateCall(AnalysisMethod callee, AnalysisNode receiver, IList<AnalysisNode> arguments, AnalysisNode lhs, AnalysisNode delegateNode)
+		public void RegisterVirtualDelegateCall(MethodDescriptor callee, VariableDescriptor receiver, IList<VariableDescriptor> arguments, VariableDescriptor lhs, VariableDescriptor delegateNode)
 		{
 			Contract.Requires(receiver != null);
 			Contract.Requires(arguments != null);
@@ -220,7 +218,7 @@ namespace ReachingTypeAnalysis
 		}
 
 
-		private void RegisterInvocation(IList<AnalysisNode> arguments, AnalysisNode invocationNode, AnalysisInvocationExpession callExp)
+		private void RegisterInvocation(IList<VariableDescriptor> arguments, LocationDescriptor invocationNode, AnalysisInvocationExpession callExp)
 		{
 			Contract.Requires(callExp != null);
 			Contract.Requires(arguments != null);
@@ -238,7 +236,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void RegisterCallLHS(AnalysisNode callNode, AnalysisNode lhs)
+		public void RegisterCallLHS(AnalysisInvocationExpession callNode, AnalysisNode lhs)
 		{
 			var callExp = PropagationGraph.GetInvocationInfo(callNode);
 			callExp.LHS = lhs;

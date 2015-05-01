@@ -80,16 +80,16 @@ namespace ReachingTypeAnalysis.Communication
 
 		internal VariableDescriptor InvocationNode { get; private set; }
 
-        internal ReturnMessageInfo(AnalysisNode lhs, 
-			ISet<AnalysisType> rvs, PropagationKind propKind, 
-			ISet<AnalysisType> instantiatedTypes, AnalysisNode invocatioNode)
+        internal ReturnMessageInfo(VariableDescriptor lhs, 
+			ISet<TypeDescriptor> rvs, PropagationKind propKind, 
+			ISet<TypeDescriptor> instantiatedTypes, VariableDescriptor invocationNode)
         {
             //ISet<Type> rvs = rv != null ? worker.GetTypes(rv, propKind) : new HashSet<Type>();
-            this.RVs = Marshal.ToTypeDescriptors(rvs);
-            this.LHS = new VariableDescriptor(lhs);
+            this.RVs = rvs;
+            this.LHS = lhs;
             this.PropagationKind = propKind;
-			this.InstatiatedTypes = Marshal.ToTypeDescriptors(instantiatedTypes);
-            this.InvocationNode = new VariableDescriptor(invocatioNode);
+			this.InstatiatedTypes = instantiatedTypes;
+            this.InvocationNode = invocationNode;
         }
 
         public override string ToString()

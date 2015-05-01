@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace ReachingTypeAnalysis
@@ -16,11 +17,20 @@ namespace ReachingTypeAnalysis
 			var type = model.GetTypeInfo(node).Type;
 			return type != null && IsTypeForAnalysis(type);
 		}
+
 		internal static bool IsTypeForAnalysis(AnalysisType analysisType)
 		{
 			var res = IsTypeForAnalysis(analysisType.RoslynType);
 			return res;
 		}
+
+		internal static bool IsTypeForAnalysis(TypeDescriptor t)
+		{
+			Contract.Assert(t != null);
+
+			return (t.IsReferenceType || t.Kind == TypeKind.TypeParameter);
+		}
+	
 		internal static bool IsTypeForAnalysis(ITypeSymbol t)
 		{
 			var res = t != null && (t.IsReferenceType || t.TypeKind == TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);

@@ -40,7 +40,6 @@ namespace ReachingTypeAnalysis
 
         public StatementProcessor StatementProcessor { get; private set; }
 
-
         // Roslyn solution related
         public IMethodSymbol RoslynMethod { get; protected set; }
         // Communication
@@ -59,9 +58,9 @@ namespace ReachingTypeAnalysis
             this.AnalysisMethod = new AnalysisMethod(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
             // The statement processor generates the Prpagagation Graph
-            this.StatementProcessor = new StatementProcessor(this.AnalysisMethod, this.RetVar, 
-                                                                                    this.ThisRef, 
-																					this.Parameters);
+            this.StatementProcessor = new StatementProcessor(
+				this.AnalysisMethod.MethodDescriptor, 
+				this.RetVar, this.ThisRef, this.Parameters);
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace ReachingTypeAnalysis
             get { return this.StatementProcessor.PropagationGraph; }
         }
 
-        public IEnumerable<AnalysisType> InstantiatedTypes
+        public IEnumerable<TypeDescriptor> InstantiatedTypes
         {
             get { return this.StatementProcessor.InstantiatedTypes; }
         }
@@ -94,18 +93,18 @@ namespace ReachingTypeAnalysis
 			var outputs = new Dictionary<string, AnalysisNode>();
 			if (!symbol.ReturnsVoid && Utils.IsTypeForAnalysis(symbol.ReturnType))
 			{
-				retVar = CreateNodeRetValueExpression(symbol.ReturnType, symbol);
+				retVar = new ReturnNode(new TypeDescriptor(symbol.ReturnType));
 				outputs["retVar"] = retVar;
 			}
 			if (!symbol.IsStatic)
 			{
-				thisRef = CreateNodeForThisExpression(symbol.ReceiverType, symbol);
+				thisRef = new ThisNode(new TypeDescriptor(symbol.ReceiverType));
 			}
 			parameters = new List<AnalysisNode>();
 			for (int i = 0; i < symbol.Parameters.Count(); i++)
 			{
 				var p = symbol.Parameters[i];
-				var pNode = CreateNodeForParameter(p.Type, p, i);
+				var pNode = new ParameterNode(i, new TypeDescriptor(p.Type));
 				parameters.Add(pNode);
 				if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
 				{
@@ -156,27 +155,17 @@ namespace ReachingTypeAnalysis
         //    return node;
         //}
 
-
-        private AnalysisNode CreateNodeForThisExpression(ITypeSymbol type, ISymbol containerMethodSymbol)
-        {
-            var thisExp = SyntaxFactory.ParseExpression("this");
-            return AnalysisNode.Define(type, thisExp, containerMethodSymbol);
-        }
-        private AnalysisNode CreateNodeRetValueExpression(ITypeSymbol type, ISymbol containerMethodSymbol)
-        {
-            var retExp = SyntaxFactory.ParseExpression("ret_value");
-            return AnalysisNode.Define(type, retExp, containerMethodSymbol);
-        }
-        private AnalysisNode CreateNodeForParameter(ITypeSymbol type, IParameterSymbol parameterSymbol,int i)
-        {
-            var paramExp = SyntaxFactory.ParseExpression("parameter" + i);
-            if (parameterSymbol != null)
-            {
-                paramExp = SyntaxFactory.IdentifierName(parameterSymbol.Name);
-                /// parameterSymbol.DeclaringSyntaxReferences.First();
-            }
-            return AnalysisNode.Define(type, paramExp, parameterSymbol);
-        }
+        //private AnalysisNode CreateNodeForParameter(ITypeSymbol type, IParameterSymbol parameterSymbol,int i)
+        //{
+        //    var paramExp = SyntaxFactory.ParseExpression("parameter" + i);
+        //    if (parameterSymbol != null)
+        //    {
+        //        paramExp = SyntaxFactory.IdentifierName(parameterSymbol.Name);
+        //        /// parameterSymbol.DeclaringSyntaxReferences.First();
+        //    }
+			
+        //    return new Parameter(type, paramExp, parameterSymbol);
+        //}
     }
 
     /// <summary>
@@ -485,22 +474,23 @@ namespace ReachingTypeAnalysis
             return RegisterVariable(v, s.Type, s);
         }
 
-        internal AnalysisNode RegisterVariable(SyntaxNodeOrToken v, ITypeSymbol t, ISymbol s)
+        internal AnalysisNode RegisterVariable(SyntaxNodeOrToken v, ITypeSymbol type, ISymbol s)
         {
 
             AnalysisNode lhs;
-            if (t.TypeKind.Equals(TypeKind.Delegate))
+            if (type.TypeKind.Equals(TypeKind.Delegate))
             {
-                lhs = DelegateNode.Define(t, v);
+				lhs = new DelegateNode(new TypeDescriptor(type), v.ToString());
             }
             else
             {
-                lhs = CreateNodeForExpression(t, v, s);
+                lhs = CreateNodeForExpression(type, v, s);
                 //lhs = ANode.Define(t, v);
             }
             if (lhs != null) this.StatementProcessor.RegisterLocalVariable(lhs);
             return lhs;
         }
+
         internal void RegisterAssignment(AnalysisExpression lhs, AnalysisExpression rhs)
         {
             Contract.Assert(lhs is Field || lhs is Identifier);
@@ -509,6 +499,7 @@ namespace ReachingTypeAnalysis
                 this.RegisterAssignment(lhs.GetAnalysisNode(), rhs);
             }
         }
+
         internal void RegisterAssignment(AnalysisNode lhsNode, AnalysisExpression rhs)
         {
             if (lhsNode != null && rhs != null && Utils.IsTypeForAnalysis(rhs.GetAnalysisType()))
@@ -516,6 +507,7 @@ namespace ReachingTypeAnalysis
                 this.StatementProcessor.RegisterAssignment(lhsNode, rhs.GetAnalysisNode());
             }
         }
+
         internal void RegisterNewExpressionAssignment(AnalysisNode lhsNode, AnalysisType aType)
         {
             this.StatementProcessor.RegisterNewExpressionAssignment(lhsNode, aType);
@@ -526,6 +518,7 @@ namespace ReachingTypeAnalysis
             var callNode = rhsExpression.GetAnalysisNode() as AnalysisCallNode;
             this.StatementProcessor.RegisterCallLHS(callNode, lhsNode);
         }
+
         internal void RegisterDelegate(AnalysisNode lhsNode, IMethodSymbol delegateMethod)
         {
             this.StatementProcessor.RegisterDelegateAssignment(lhsNode, new AnalysisMethod(delegateMethod));

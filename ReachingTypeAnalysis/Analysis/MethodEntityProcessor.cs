@@ -191,12 +191,12 @@ namespace ReachingTypeAnalysis.Analysis
                 /// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
                 if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)
                 {
-                    var instTypes = new HashSet<AnalysisType>();
+                    var instantiatedTypes = new HashSet<AnalysisType>();
                     /// We get the instantiated type that are compatible with the receiver type
-                    instTypes.UnionWith(
+                    instantiatedTypes.UnionWith(
 						this.MethodEntity.InstantiatedTypes
-							.Where(type => type.IsSubtype(callInfo.Receiver.AnalysisType)));
-					foreach (var type in instTypes)
+							.Where(type => type.IsSubtype(callInfo.Receiver.Type)));
+					foreach (var type in instantiatedTypes)
 					{
 						types.Add(type);
 					}
@@ -228,7 +228,9 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                CreateAndSendCallMessage(callInfo, callInfo.Callee, callInfo.Callee.ContainerType, propKind);
+                CreateAndSendCallMessage(callInfo, 
+					callInfo.Callee, 
+					callInfo.Callee.ContainerType, propKind);
             }
         }
 
@@ -243,9 +245,9 @@ namespace ReachingTypeAnalysis.Analysis
             this.SendMessage(destination, callerMessage);
         }
 
-        private IEnumerable<AnalysisMethod> GetDelegateCallees(AnalysisNode delegateNode)
+        private IEnumerable<MethodDescriptor> GetDelegateCallees(VariableDescriptor delegateNode)
         {
-            var callees = new HashSet<AnalysisMethod>();
+            var callees = new HashSet<MethodDescriptor>();
             var types = GetTypes(delegateNode);
             foreach (var delegateInstance in GetDelegates(delegateNode))
             {
@@ -293,7 +295,9 @@ namespace ReachingTypeAnalysis.Analysis
 
             var argumentValues = callInfo.Arguments
 				.Select(a => a != null ? 
-				GetTypes(a, propKind) : new HashSet<AnalysisType>());
+				GetTypes(a, propKind) : 
+				new HashSet<TypeDescriptor>());
+
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
             AnalysisMethod am = (AnalysisMethod)actuallCallee;
             //Contract.Assert(argumentValues.Count() == ((AMethod)am).RoslynMethod.Parameters.Count() );
@@ -325,18 +329,20 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="context"></param>
         /// <param name="returnVariable"></param>
         /// <param name="propKind"></param>
-        public void DispachReturnMessage(CallContext context, AnalysisNode returnVariable, PropagationKind propKind)
+        public void DispachReturnMessage(CallContext context, VariableDescriptor returnVariable, PropagationKind propKind)
         {
             var caller = context.Caller;
             var lhs = context.CallLHS;
             var types = returnVariable != null ? 
-				GetTypes(returnVariable, propKind) : new HashSet<AnalysisType>();
+				GetTypes(returnVariable, propKind) : 
+				new HashSet<TypeDescriptor>();
+
             // Diego TO-DO, different treatment for adding and removal
             if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
             {
-                var instTypes = new HashSet<AnalysisType>();
+                var instTypes = new HashSet<TypeDescriptor>();
                 instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-						.Where(type => type.IsSubtype(returnVariable.AnalysisType)));
+						.Where(type => type.IsSubtype(returnVariable.Type)));
                 foreach (var type in instTypes)
                 {
                     types.Add(type);
@@ -377,9 +383,6 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.Method.ToString()));
             }
-			var caller = Demarshaler.Demarshal(callMessage.Caller);
-            // This is the node in the caller where info of ret-value should go
-            var lhs = Demarshaler.Demarshal(callMessage.LHS);
 
 			// This tries to check that the invocation is repeated (didn't work: need to check)
 			//if (MethodEntity.Callers.Where(cs => cs.Invocation.Equals(callMessage.CallNode)).Count()>0)
@@ -396,7 +399,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
             // Save caller info
-            var context = new CallContext(caller, lhs, Demarshaler.Demarshal(callMessage.CallNode));
+            var context = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
             this.MethodEntity.AddToCallers(context);
 
             // Propagate type info in method 
@@ -452,7 +455,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-		internal ISet<AnalysisType> GetTypes(AnalysisNode node, PropagationKind prop)
+		internal ISet<TypeDescriptor> GetTypes(VariableDescriptor node, PropagationKind prop)
         {
             switch (prop)
             {
@@ -465,7 +468,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        internal ISet<AnalysisType> GetTypes(AnalysisNode node)
+        internal ISet<TypeDescriptor> GetTypes(VariableDescriptor node)
         {
             if (node != null)
             {
@@ -473,11 +476,11 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                return new HashSet<AnalysisType>();
+                return new HashSet<TypeDescriptor>();
             }
         }
 
-        internal ISet<AnalysisType> GetDeletedTypes(AnalysisNode node)
+        internal ISet<TypeDescriptor> GetDeletedTypes(VariableDescriptor node)
         {
             if (node != null)
             {
@@ -485,7 +488,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                return new HashSet<AnalysisType>();
+                return new HashSet<TypeDescriptor>();
             }
         }
 
@@ -496,7 +499,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        internal ISet<AnalysisMethod> GetDelegates(AnalysisNode node)
+        internal ISet<MethodDescriptor> GetDelegates(VariableDescriptor node)
         {
             return this.MethodEntity.PropGraph.GetDelegates(node);
         }
