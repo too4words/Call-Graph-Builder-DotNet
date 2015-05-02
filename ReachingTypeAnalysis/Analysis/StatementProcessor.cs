@@ -35,16 +35,16 @@ namespace ReachingTypeAnalysis
 		// t-digarb: Should I include context information?
 		private ISet<CallContext> callers = new HashSet<CallContext>();
 		internal MethodDescriptor Method { get; private set; }
-		internal AnalysisNode ThisRef { get; private set; }
-		internal IEnumerable<AnalysisNode> ParameterNodes { get; private set; }
-		internal AnalysisNode ReturnVariable { get; private set; }
+		internal PropGraphNodeDescriptor ThisRef { get; private set; }
+		internal IEnumerable<PropGraphNodeDescriptor> ParameterNodes { get; private set; }
+		internal PropGraphNodeDescriptor ReturnVariable { get; private set; }
 		internal PropagationGraph PropagationGraph { get; private set; }
 		internal ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
 		internal ISet<TypeDescriptor> RemovedTypes { get; private set; }
 
 		public StatementProcessor(MethodDescriptor m,
-			AnalysisNode rv, AnalysisNode thisRef,
-			IEnumerable<AnalysisNode> parameters)
+			PropGraphNodeDescriptor rv, PropGraphNodeDescriptor thisRef,
+			IEnumerable<PropGraphNodeDescriptor> parameters)
 		{
 			// this.containerEntity = containerEntity;
 			this.ReturnVariable = rv;
@@ -79,7 +79,7 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		/// <param name="propagationGraph"></param>
 		public StatementProcessor(MethodDescriptor method, VariableNode rv,
-                			VariableNode thisRef, IList<AnalysisNode> parameters,
+                			VariableNode thisRef, IList<PropGraphNodeDescriptor> parameters,
 			PropagationGraph propagationGraph)
 		{
 			this.PropagationGraph = propagationGraph;
@@ -92,7 +92,7 @@ namespace ReachingTypeAnalysis
 			this.RemovedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		public void RegisterAssignment(AnalysisNode lhs, AnalysisNode rhs)
+		public void RegisterAssignment(PropGraphNodeDescriptor lhs, PropGraphNodeDescriptor rhs)
 		{
 			if (lhs != null && rhs != null)
 			{
@@ -106,12 +106,12 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void RegisterLocalVariable(AnalysisNode v)
+		public void RegisterLocalVariable(PropGraphNodeDescriptor v)
 		{
 			PropagationGraph.Add(v);
 		}
 
-		public void RegisterNewExpressionAssignment(AnalysisNode lhs, TypeDescriptor t)
+		public void RegisterNewExpressionAssignment(PropGraphNodeDescriptor lhs, TypeDescriptor t)
 		{
 			if (lhs != null)
 			{
@@ -122,7 +122,7 @@ namespace ReachingTypeAnalysis
 		}
 
 		#region Call management (calls, delegates, constructors, properties)
-		public void RegisterConstructorCall(MethodDescriptor callee, IList<AnalysisNode> arguments, 
+		public void RegisterConstructorCall(MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments, 
                                             VariableNode lhs, AnalysisCallNode callNode)
 		{
 			Contract.Requires(callee != null);
@@ -149,7 +149,7 @@ namespace ReachingTypeAnalysis
 			PropagationGraph.AddToWorkList(lhs);
 		}
 
-		public void RegisterStaticCall(MethodDescriptor callee, IList<AnalysisNode> arguments,
+		public void RegisterStaticCall(MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments,
 			VariableNode lhs, AnalysisCallNode callNode)
 		{
 			Contract.Requires(callee != null);
@@ -163,7 +163,7 @@ namespace ReachingTypeAnalysis
 		}
 
 		public void RegisterVirtualCall(MethodDescriptor callee, VariableNode receiver,
-			IList<AnalysisNode> arguments, VariableNode lhs, AnalysisCallNode callNode)
+			IList<PropGraphNodeDescriptor> arguments, VariableNode lhs, AnalysisCallNode callNode)
 		{
 			Contract.Requires(receiver != null);
 			Contract.Requires(callee != null);
@@ -179,7 +179,7 @@ namespace ReachingTypeAnalysis
 
 		}
 
-		public void RegisterPropertyCall(MethodDescriptor callee, AnalysisNode receiver, IList<AnalysisNode> arguments, 
+		public void RegisterPropertyCall(MethodDescriptor callee, PropGraphNodeDescriptor receiver, IList<PropGraphNodeDescriptor> arguments, 
                                         VariableNode lhs, AnalysisCallNode callNode)
 		{
 			Contract.Requires(callNode != null);
@@ -193,7 +193,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void RegisterStaticDelegateCall(MethodDescriptor callee, IList<AnalysisNode> arguments, 
+		public void RegisterStaticDelegateCall(MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments, 
                         VariableNode lhs, DelegateVariableNode delegateNode, AnalysisCallNode callNode)
 		{
 			Contract.Requires(delegateNode != null);
@@ -223,7 +223,7 @@ namespace ReachingTypeAnalysis
         //}
 
 
-		private void RegisterInvocation(IList<AnalysisNode> arguments, AnalysisCallNode invocationNode, 
+		private void RegisterInvocation(IList<PropGraphNodeDescriptor> arguments, AnalysisCallNode invocationNode, 
                                         AnalysisInvocationExpession callExp)
 		{
 			Contract.Requires(callExp != null);
@@ -250,7 +250,7 @@ namespace ReachingTypeAnalysis
 		#endregion
 
 		#region Incremental analysis - Removal of types
-		public void RegisterRemoveNewExpressionAssignment(AnalysisNode lhs)
+		public void RegisterRemoveNewExpressionAssignment(PropGraphNodeDescriptor lhs)
 		{
 			if (lhs != null)
 			{
@@ -263,7 +263,7 @@ namespace ReachingTypeAnalysis
 
 			}
 		}
-		public void RegisterRemoveType(AnalysisNode lhs, TypeDescriptor type)
+		public void RegisterRemoveType(PropGraphNodeDescriptor lhs, TypeDescriptor type)
 		{
 			if (lhs != null)
 			{
@@ -277,7 +277,7 @@ namespace ReachingTypeAnalysis
 
 			}
 		}
-		public void RegisterRemoveTypes(AnalysisNode lhs, IEnumerable<TypeDescriptor> types)
+		public void RegisterRemoveTypes(PropGraphNodeDescriptor lhs, IEnumerable<TypeDescriptor> types)
 		{
 			if (lhs != null)
 			{
@@ -289,7 +289,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void RegisterRemoveAssignment(AnalysisNode lhs, AnalysisNode rhs)
+		public void RegisterRemoveAssignment(PropGraphNodeDescriptor lhs, PropGraphNodeDescriptor rhs)
 		{
 			if (lhs != null && rhs != null)
 			{
@@ -300,7 +300,7 @@ namespace ReachingTypeAnalysis
 		}
 		#endregion
 
-		public void RegisterRet(AnalysisNode rn)
+		public void RegisterRet(PropGraphNodeDescriptor rn)
 		{
 			PropagationGraph.AddEdge(rn, this.ReturnVariable);
 		}

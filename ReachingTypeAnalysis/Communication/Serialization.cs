@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Communication
 			throw new NotImplementedException();
 		}
 
-		internal static AnalysisNode Demarshal(LocationDescriptor locationDescriptor)
+		internal static PropGraphNodeDescriptor Demarshal(LocationDescriptor locationDescriptor)
 		{
 			throw new NotImplementedException();
 		}

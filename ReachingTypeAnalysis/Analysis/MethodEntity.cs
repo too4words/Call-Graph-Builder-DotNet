@@ -97,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
-		private IDictionary<AnalysisNode, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<AnalysisNode, ISet<MethodDescriptor>>();
+		private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
 		public MethodEntityProcessor EntityProcessor { get; private set; }
 
 		//public ISet<E> NodesProcessing = new HashSet<E>();
@@ -192,7 +192,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="node"></param>
 		/// <returns></returns>
-		public ISet<MethodDescriptor> Callees(AnalysisNode node)
+		public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
 		{
 			ISet<MethodDescriptor> result;
 
@@ -258,7 +258,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
-		public ISet<TypeDescriptor> GetTypes(AnalysisNode n)
+		public ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor n)
 		{
 			if (n != null)
 			{
@@ -280,7 +280,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.PropGraph.GetDelegates(n);
 		}
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(AnalysisNode analysisNode)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor analysisNode)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in PropGraph.GetTypes(analysisNode))
@@ -347,8 +347,8 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		internal MethodInterfaceData()
 		{
-			this.InputData = new Dictionary<string, AnalysisNode>();
-			this.OutputData = new Dictionary<string, AnalysisNode>();
+			this.InputData = new Dictionary<string, PropGraphNodeDescriptor>();
+			this.OutputData = new Dictionary<string, PropGraphNodeDescriptor>();
 		}
 
 		public VariableNode ThisRef { get; internal set; }
@@ -357,8 +357,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public VariableNode ReturnVariable { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> OutputData { get; internal set; }
+		public IDictionary<string, PropGraphNodeDescriptor> OutputData { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> InputData { get; internal set; }
+		public IDictionary<string, PropGraphNodeDescriptor> InputData { get; internal set; }
 	}
 }

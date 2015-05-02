@@ -23,13 +23,13 @@ namespace ReachingTypeAnalysis
 		/// <summary>
 		/// The work list used during the propagation
 		/// </summary>
-		private ISet<AnalysisNode> workList = new HashSet<AnalysisNode>();
+		private ISet<PropGraphNodeDescriptor> workList = new HashSet<PropGraphNodeDescriptor>();
 		//private IImmutableSet<N> workList = ImmutableHashSet<N>.Empty;
 
 		/// <summary>
 		/// Simirlar to the worklist but for the propagation of a removal of a concrete type
 		/// </summary>
-		private ISet<AnalysisNode> deletionWorkList = new HashSet<AnalysisNode>();
+		private ISet<PropGraphNodeDescriptor> deletionWorkList = new HashSet<PropGraphNodeDescriptor>();
 		/// <summary>
 		/// The graph itself. We use Nuri Yeralan library (Tachyon)
 		/// </summary>
@@ -37,7 +37,7 @@ namespace ReachingTypeAnalysis
 		/// <summary>
 		/// A map to relate vertices with expressions in the program
 		/// </summary>
-		private IDictionary<AnalysisNode, int> vIndex;
+		private IDictionary<PropGraphNodeDescriptor, int> vIndex;
 		/// <summary>
 		/// This is the set of invocations made by the method
 		/// </summary>
@@ -52,16 +52,16 @@ namespace ReachingTypeAnalysis
 		internal PropagationGraph()
 		{
 			graph = new Graph();
-			vIndex = new Dictionary<AnalysisNode, int>();
+			vIndex = new Dictionary<PropGraphNodeDescriptor, int>();
 			callNodes = new HashSet<AnalysisCallNode>();
 		}
 
-		private ICollection<AnalysisNode> Nodes
+		private ICollection<PropGraphNodeDescriptor> Nodes
 		{
 			get { return vIndex.Keys; }
 		}
 
-		private Vertex AddVertex(AnalysisNode analysisNode)
+		private Vertex AddVertex(PropGraphNodeDescriptor analysisNode)
 		{
 			int index;
 			Vertex v = null;
@@ -95,12 +95,12 @@ namespace ReachingTypeAnalysis
 			return (GraphAnnotationData)v["N"];
 		}
 
-		public void Add(AnalysisNode analysisNode)
+		public void Add(PropGraphNodeDescriptor analysisNode)
 		{
 			Vertex v = AddVertex(analysisNode);
 		}
 
-		internal void Add(AnalysisNode n, TypeDescriptor t)
+		internal void Add(PropGraphNodeDescriptor n, TypeDescriptor t)
 		{
 			Vertex v = AddVertex(n);
 			var data = GetData(v);
@@ -132,7 +132,7 @@ namespace ReachingTypeAnalysis
 		//    callNodes.Add(callNode);
 		//}
 
-		internal void AddRet(AnalysisNode rv)
+		internal void AddRet(PropGraphNodeDescriptor rv)
 		{
 			var v = AddVertex(rv);
 			//v["Ret"] = true;
@@ -141,7 +141,7 @@ namespace ReachingTypeAnalysis
 			data.HasRetValue = true;
 		}
 
-		public AnalysisInvocationExpession GetInvocationInfo(AnalysisNode callNode)
+		public AnalysisInvocationExpession GetInvocationInfo(PropGraphNodeDescriptor callNode)
 		{
             Contract.Requires(IsCallNode(callNode) || IsDelegateCallNode(callNode));
 			int index;
@@ -153,7 +153,7 @@ namespace ReachingTypeAnalysis
 			}
 			return null;
 		}
-		public bool IsCallNode(AnalysisNode n)
+		public bool IsCallNode(PropGraphNodeDescriptor n)
 		{
 			int index = vIndex[n];
 			Vertex v = graph.GetVertex(index);
@@ -161,7 +161,7 @@ namespace ReachingTypeAnalysis
 			return GetData(v).CallNode != null && GetData(v).CallNode is CallInfo;
 		}
 
-		bool IsRetNode(AnalysisNode n)
+		bool IsRetNode(PropGraphNodeDescriptor n)
 		{
 			int index = vIndex[n];
 			Vertex v = graph.GetVertex(index);
@@ -169,7 +169,7 @@ namespace ReachingTypeAnalysis
 			return GetData(v).HasRetValue;
 		}
 
-		public bool IsDelegateCallNode(AnalysisNode n)
+		public bool IsDelegateCallNode(PropGraphNodeDescriptor n)
 		{
 			int index = vIndex[n];
 			Vertex v = graph.GetVertex(index);
@@ -179,26 +179,26 @@ namespace ReachingTypeAnalysis
 
 		}
 
-		internal void Add(AnalysisNode n, IEnumerable<TypeDescriptor> ts)
+		internal void Add(PropGraphNodeDescriptor n, IEnumerable<TypeDescriptor> ts)
 		{
 			Vertex v = AddVertex(n);
 			GetData(v).Elems.UnionWith(ts);
 			//((ISet<T>)v["Elems"]).UnionWith(ts);
 		}
 
-		internal void RemoveTypes(AnalysisNode n, IEnumerable<TypeDescriptor> ts)
+		internal void RemoveTypes(PropGraphNodeDescriptor n, IEnumerable<TypeDescriptor> ts)
 		{
 			Vertex v = AddVertex(n);
 			GetData(v).DeletedElems.UnionWith(ts);
 			//((ISet<T>)v["DeletedElems"]).UnionWith(ts);
 		}
 
-		internal AnalysisNode GetAnalysisNode(Vertex v)
+		internal PropGraphNodeDescriptor GetAnalysisNode(Vertex v)
 		{
 			return GetData(v).Node;
 			//return (N)v["N"];
 		}
-		public void AddEdge(AnalysisNode n1, AnalysisNode n2)
+		public void AddEdge(PropGraphNodeDescriptor n1, PropGraphNodeDescriptor n2)
 		{
 			Add(n1);
 			Add(n2);
@@ -208,7 +208,7 @@ namespace ReachingTypeAnalysis
 			e["Types"] = new HashSet<TypeDescriptor>();
 		}
 
-		internal ISet<TypeDescriptor> TypesInEdge(AnalysisNode n1, AnalysisNode n2)
+		internal ISet<TypeDescriptor> TypesInEdge(PropGraphNodeDescriptor n1, PropGraphNodeDescriptor n2)
 		{
 			int iN1, iN2;
 			if (vIndex.TryGetValue(n1, out iN1) && vIndex.TryGetValue(n2, out iN2))
@@ -223,7 +223,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		public void ReplaceNode(AnalysisNode nOld, AnalysisNode nNew)
+		public void ReplaceNode(PropGraphNodeDescriptor nOld, PropGraphNodeDescriptor nNew)
 		{
 			int index;
 			if (vIndex.TryGetValue(nOld, out index))
@@ -235,7 +235,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		internal Bag<TypeDescriptor> GetTypesMS(AnalysisNode analysisNode)
+		internal Bag<TypeDescriptor> GetTypesMS(PropGraphNodeDescriptor analysisNode)
 		{
 			var result = new Bag<TypeDescriptor>();
 			int index;
@@ -248,7 +248,7 @@ namespace ReachingTypeAnalysis
 			return result;
 		}
 
-		internal ISet<TypeDescriptor> GetTypes(AnalysisNode analysisNode)
+		internal ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor analysisNode)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			int index;
@@ -261,7 +261,7 @@ namespace ReachingTypeAnalysis
 			return result;
 		}
 
-		public ISet<MethodDescriptor> GetDelegates(AnalysisNode analysisNode)
+		public ISet<MethodDescriptor> GetDelegates(PropGraphNodeDescriptor analysisNode)
 		{
 			var result = new HashSet<MethodDescriptor>();
 			int index;
@@ -273,7 +273,7 @@ namespace ReachingTypeAnalysis
 			return result;
 		}
 
-		internal ISet<TypeDescriptor> GetDeletedTypes(AnalysisNode m)
+		internal ISet<TypeDescriptor> GetDeletedTypes(PropGraphNodeDescriptor m)
 		{
 			var res = new HashSet<TypeDescriptor>();
 			int index;
@@ -297,7 +297,7 @@ namespace ReachingTypeAnalysis
 		//    return false;
 		//}
 
-		internal bool DiffProp(IEnumerable<TypeDescriptor> src, AnalysisNode n, PropagationKind propKind)
+		internal bool DiffProp(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
 		{
 			if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)
 			{
@@ -309,7 +309,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		internal bool DiffProp(IEnumerable<TypeDescriptor> src, AnalysisNode n)
+		internal bool DiffProp(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n)
 		{
 			var ts = GetTypesMS(n);
 			int c = ts.Count;
@@ -322,7 +322,7 @@ namespace ReachingTypeAnalysis
 			return false;
 		}
 
-		internal bool IsAssignable(TypeDescriptor t1, AnalysisNode analysisNode)
+		internal bool IsAssignable(TypeDescriptor t1, PropGraphNodeDescriptor analysisNode)
 		{
 			var res = true;
 			// Ugly
@@ -351,7 +351,7 @@ namespace ReachingTypeAnalysis
 			return res;
 		}
 
-		internal bool DiffDelProp(IEnumerable<TypeDescriptor> src, AnalysisNode n)
+		internal bool DiffDelProp(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n)
 		{
 			var delTypes = GetDeletedTypes(n);
 			if (delTypes.IsSupersetOf(src))
@@ -369,7 +369,7 @@ namespace ReachingTypeAnalysis
 			return false;
 		}
 
-		public bool DiffPropDelegates(IEnumerable<MethodDescriptor> src, AnalysisNode analysisNode)
+		public bool DiffPropDelegates(IEnumerable<MethodDescriptor> src, PropGraphNodeDescriptor analysisNode)
 		{
 			var ts = GetDelegates(analysisNode);
 			int c = ts.Count;
@@ -424,24 +424,24 @@ namespace ReachingTypeAnalysis
 		//}
 		#endregion
 
-		private Vertex GetVertex(AnalysisNode n)
+		private Vertex GetVertex(PropGraphNodeDescriptor n)
 		{
 			return graph.GetVertex(vIndex[n]);
 		}
 
-		public void AddToWorkList(AnalysisNode n)
+		public void AddToWorkList(PropGraphNodeDescriptor n)
 		{
 			workList.Add(n);
 			//workList = workList.Add(n);
 		}
 
-		public void RemoveFromWorkList(AnalysisNode n)
+		public void RemoveFromWorkList(PropGraphNodeDescriptor n)
 		{
 			workList.Remove(n);
 			//workList = workList.Remove(n);
 		}
 
-		public void AddToDeletionWorkList(AnalysisNode n)
+		public void AddToDeletionWorkList(PropGraphNodeDescriptor n)
 		{
 			deletionWorkList.Add(n);
 		}
@@ -560,12 +560,12 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		/// <param name="text"></param>
 		/// <returns></returns>
-		internal AnalysisNode FindNodeInPropationGraph(string text)
+		internal PropGraphNodeDescriptor FindNodeInPropationGraph(string text)
 		{
 
 			var nodes = this.Nodes.Where(n => n.ToString().Substring(0, text.Length).Equals(text));
 			if (nodes.Count() > 0)
-				return (AnalysisNode)nodes.First();
+				return (PropGraphNodeDescriptor)nodes.First();
 			return null;
 		}
 	}

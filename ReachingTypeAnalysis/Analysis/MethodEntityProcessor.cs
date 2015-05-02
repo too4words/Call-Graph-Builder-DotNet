@@ -416,7 +416,7 @@ namespace ReachingTypeAnalysis.Analysis
                 this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
             }
 
-			var pairEnumerable = new PairIterator<AnalysisNode, ISet<TypeDescriptor>>(
+			var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(
 				this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
             foreach (var pair in pairEnumerable)
             {
@@ -462,7 +462,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-		internal ISet<TypeDescriptor> GetTypes(AnalysisNode node, PropagationKind prop)
+		internal ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor node, PropagationKind prop)
         {
             switch (prop)
             {
@@ -475,7 +475,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        internal ISet<TypeDescriptor> GetTypes(AnalysisNode analysisNode)
+        internal ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor analysisNode)
         {
             if (analysisNode != null)
             {
@@ -487,7 +487,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        internal ISet<TypeDescriptor> GetDeletedTypes(AnalysisNode node)
+        internal ISet<TypeDescriptor> GetDeletedTypes(PropGraphNodeDescriptor node)
         {
             if (node != null)
             {

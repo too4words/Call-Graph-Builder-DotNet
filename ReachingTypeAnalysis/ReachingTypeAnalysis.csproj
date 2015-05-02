@@ -239,8 +239,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysis\AnalysisTypes.cs" />
     <Compile Include="Analysis\AnalysisMessages.cs" />
+    <Compile Include="Analysis\AnalysisTypes.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
     <Compile Include="Analysis\Graph\PropagationEffects.cs" />
     <Compile Include="Analysis\MethodEntity.cs" />

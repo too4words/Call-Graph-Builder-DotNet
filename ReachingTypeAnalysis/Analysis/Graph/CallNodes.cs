@@ -10,8 +10,8 @@ namespace ReachingTypeAnalysis
 	internal abstract class AnalysisInvocationExpession
 	{
 		internal AnalysisInvocationExpession(MethodDescriptor caller, AnalysisCallNode callNode, 
-                        AnalysisNode reciever, 
-                        IList<AnalysisNode> arguments, VariableNode lhs)
+                        PropGraphNodeDescriptor reciever, 
+                        IList<PropGraphNodeDescriptor> arguments, VariableNode lhs)
 		{
 			Caller = caller;
 			Arguments = arguments;
@@ -21,7 +21,7 @@ namespace ReachingTypeAnalysis
 			CallNode = callNode;
 		}
 		internal AnalysisInvocationExpession(MethodDescriptor caller, 
-                        AnalysisCallNode callNode, IList<AnalysisNode> arguments, VariableNode lhs)
+                        AnalysisCallNode callNode, IList<PropGraphNodeDescriptor> arguments, VariableNode lhs)
 		{
 			Caller = caller;
 			Arguments = arguments;
@@ -32,7 +32,7 @@ namespace ReachingTypeAnalysis
 
 		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph);
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(AnalysisNode n, PropagationGraph propGraph)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in propGraph.GetTypes(n))
@@ -58,8 +58,8 @@ namespace ReachingTypeAnalysis
 		internal bool IsConstructor { get; set; }
 		// public M Callee;
 		internal MethodDescriptor Caller { get; set; }
-		internal IList<AnalysisNode> Arguments { get; set; }
-		internal AnalysisNode Receiver { get; set; }
+		internal IList<PropGraphNodeDescriptor> Arguments { get; set; }
+		internal PropGraphNodeDescriptor Receiver { get; set; }
 		internal VariableNode LHS { get; set; }
 		internal ISet<TypeDescriptor> InstatiatedTypes { get; set; }
 		internal AnalysisCallNode CallNode { get; set; }
@@ -68,7 +68,7 @@ namespace ReachingTypeAnalysis
 	internal class CallInfo : AnalysisInvocationExpession
 	{
 		internal CallInfo(MethodDescriptor caller, AnalysisCallNode callNode, MethodDescriptor callee, 
-                    AnalysisNode reciever, IList<AnalysisNode> arguments, 
+                    PropGraphNodeDescriptor reciever, IList<PropGraphNodeDescriptor> arguments, 
                     VariableNode lhs, bool isConstructor)
 			: base(caller, callNode, reciever, arguments, lhs)
 		{
@@ -82,7 +82,7 @@ namespace ReachingTypeAnalysis
 		}
 
 		internal CallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
-                    MethodDescriptor callee, IList<AnalysisNode> arguments, 
+                    MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments, 
                     VariableNode lhs, bool isConstructor)
 			: base(caller, callNode, arguments, lhs)
 		{
@@ -121,7 +121,7 @@ namespace ReachingTypeAnalysis
 	internal class DelegateCallInfo : AnalysisInvocationExpession
 	{
         internal DelegateCallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
-                DelegateVariableNode calleeDelegate, IList<AnalysisNode> arguments, VariableNode lhs)
+                DelegateVariableNode calleeDelegate, IList<PropGraphNodeDescriptor> arguments, VariableNode lhs)
 			: base(caller, callNode, arguments, lhs)
 		{
 			Caller = caller;
@@ -131,8 +131,8 @@ namespace ReachingTypeAnalysis
 		}
 
 		internal DelegateCallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
-                    DelegateVariableNode calleeDelegate, AnalysisNode receiver, 
-                    IList<AnalysisNode> arguments, VariableNode lhs)
+                    DelegateVariableNode calleeDelegate, PropGraphNodeDescriptor receiver, 
+                    IList<PropGraphNodeDescriptor> arguments, VariableNode lhs)
 			: base(caller, callNode, arguments, lhs)
 		{
 			Caller = caller;

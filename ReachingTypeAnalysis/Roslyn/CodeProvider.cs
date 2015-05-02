@@ -171,9 +171,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return null;
 		}
-        internal static bool IsSubtype(TypeDescriptor type1, TypeDescriptor type2)
+        internal static bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDesscriptor2)
         {
             throw new NotImplementedException();
+            // The problem is I need a compilation :-)
+            //var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, compilation);
+            //var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, compilation);
+            //TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 
 		/*

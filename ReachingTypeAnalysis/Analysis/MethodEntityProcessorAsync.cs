@@ -390,7 +390,7 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
 				}
-				var pairIterator = new PairIterator<AnalysisNode, ISet<TypeDescriptor>>
+				var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
 					(this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
 				foreach (var pair in pairIterator)
 				{

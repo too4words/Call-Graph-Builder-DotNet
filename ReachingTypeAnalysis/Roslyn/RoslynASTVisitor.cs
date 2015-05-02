@@ -28,12 +28,12 @@ namespace ReachingTypeAnalysis
             get { return MethodInterfaceData.ReturnVariable; }
         }
 
-        public IEnumerable<AnalysisNode> Parameters
+        public IEnumerable<PropGraphNodeDescriptor> Parameters
         {
             get { return MethodInterfaceData.Parameters; }
         }
 
-        public AnalysisNode ThisRef
+        public PropGraphNodeDescriptor ThisRef
         {
             get { return MethodInterfaceData.ThisRef; }
         }
@@ -88,8 +88,8 @@ namespace ReachingTypeAnalysis
 			ReturnNode retVar = null;
 			VariableNode thisRef = null;
 			IList<ParameterNode> parameters;
-			var inputs = new Dictionary<string, AnalysisNode>();
-			var outputs = new Dictionary<string, AnalysisNode>();
+			var inputs = new Dictionary<string, PropGraphNodeDescriptor>();
+			var outputs = new Dictionary<string, PropGraphNodeDescriptor>();
 			if (!symbol.ReturnsVoid && Utils.IsTypeForAnalysis(symbol.ReturnType))
 			{
 				retVar = new ReturnNode(new TypeDescriptor(symbol.ReturnType));
@@ -123,7 +123,7 @@ namespace ReachingTypeAnalysis
 			return methodInterfaceData;
 		}
 
-        internal IDictionary<SyntaxNodeOrToken, AnalysisNode> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, AnalysisNode>();
+        internal IDictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor>();
         //internal ANode CreateNodeForExpression(SyntaxNode ex)
         //{
         //    var type = semanticModel.GetTypeInfo(ex).Type;
@@ -223,16 +223,16 @@ namespace ReachingTypeAnalysis
         public MethodDescriptor MethodDescriptor { get; private set; }
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
 
-        internal AnalysisNode RetVar
+        internal PropGraphNodeDescriptor RetVar
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
-        internal AnalysisNode ThisRef
+        internal PropGraphNodeDescriptor ThisRef
         {
             get { return MethodInterfaceData.ThisRef; }
         }
 
-        internal IEnumerable<AnalysisNode> Parameters
+        internal IEnumerable<PropGraphNodeDescriptor> Parameters
         {
             get { return MethodInterfaceData.Parameters; }
         }
@@ -471,7 +471,7 @@ namespace ReachingTypeAnalysis
             return lhs;
         }
 
-        internal AnalysisNode RegisterVariable(SyntaxNodeOrToken v, ILocalSymbol s)
+        internal PropGraphNodeDescriptor RegisterVariable(SyntaxNodeOrToken v, ILocalSymbol s)
         {
             return RegisterVariable(v, s.Type, s);
         }
@@ -501,7 +501,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        internal void RegisterAssignment(AnalysisNode lhsNode, AnalysisExpression rhs)
+        internal void RegisterAssignment(PropGraphNodeDescriptor lhsNode, AnalysisExpression rhs)
         {
             if (lhsNode != null && rhs != null && Utils.IsTypeForAnalysis(rhs.GetAnalysisType()))
             {
@@ -509,7 +509,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        internal void RegisterNewExpressionAssignment(AnalysisNode lhsNode, TypeDescriptor typeDescriptor)
+        internal void RegisterNewExpressionAssignment(PropGraphNodeDescriptor lhsNode, TypeDescriptor typeDescriptor)
         {
             this.StatementProcessor.RegisterNewExpressionAssignment(lhsNode, typeDescriptor);
         }
@@ -522,7 +522,7 @@ namespace ReachingTypeAnalysis
             this.StatementProcessor.RegisterCallLHS(callNode, lhsNode);
         }
 
-        internal void RegisterDelegate(AnalysisNode lhsNode, IMethodSymbol delegateMethod)
+        internal void RegisterDelegate(PropGraphNodeDescriptor lhsNode, IMethodSymbol delegateMethod)
         {
             Contract.Assert(lhsNode is DelegateVariableNode);
             this.StatementProcessor.RegisterDelegateAssignment((DelegateVariableNode)lhsNode, new MethodDescriptor(delegateMethod));
@@ -539,7 +539,7 @@ namespace ReachingTypeAnalysis
         //    return node;
         //}
 
-        internal IDictionary<SyntaxNodeOrToken, AnalysisNode> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, AnalysisNode>();
+        internal IDictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor>();
      
         #endregion
     }
