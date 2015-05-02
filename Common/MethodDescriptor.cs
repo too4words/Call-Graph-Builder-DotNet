@@ -9,6 +9,7 @@ namespace ReachingTypeAnalysis
 	/// This is a string represenation of a method designed to be 
 	/// put as keys in Dictionaries and used for comparison.
 	/// </summary>
+    [Serializable]
 	public class MethodDescriptor 
     {
         public string ClassName {get ; private set;}
@@ -16,6 +17,7 @@ namespace ReachingTypeAnalysis
         public string NamespaceName { get; private set; }
 
         private string name;
+        private TypeDescriptor containerType;
 
         public string Name
         {
@@ -29,6 +31,17 @@ namespace ReachingTypeAnalysis
                     }
                 }
                 return name; 
+            }
+        }
+
+        public TypeDescriptor ContainerType 
+        {
+            get {
+                if(containerType==null)
+                {
+                    containerType = new TypeDescriptor(this.NamespaceName, this.ClassName);
+                }
+                return containerType;
             }
         }
 
@@ -54,23 +67,24 @@ namespace ReachingTypeAnalysis
             this.MethodName = method.Name;
             this.ClassName = method.ContainingType.Name;
             this.NamespaceName = method.ContainingNamespace.Name;
+            this.containerType = new TypeDescriptor(method.ContainingType);
         }
 
-        public bool SameAsMethodSymbol(IMethodSymbol method)
-        {
-            if (method == null)
-            {
-                return false;
-            }
-            else
-            {
-                bool result = method.Name.Equals(this.MethodName);
-                result = result && method.ContainingType.Name.Equals(this.ClassName);
-                result = result & (this.NamespaceName == null || method.ContainingNamespace.Name.Equals(this.NamespaceName));
+        //public bool SameAsMethodSymbol(IMethodSymbol method)
+        //{
+        //    if (method == null)
+        //    {
+        //        return false;
+        //    }
+        //    else
+        //    {
+        //        bool result = method.Name.Equals(this.MethodName);
+        //        result = result && method.ContainingType.Name.Equals(this.ClassName);
+        //        result = result & (this.NamespaceName == null || method.ContainingNamespace.Name.Equals(this.NamespaceName));
 
-                return result;
-            }
-        }
+        //        return result;
+        //    }
+        //}
 
         public override bool Equals(object obj)
         {
@@ -91,6 +105,8 @@ namespace ReachingTypeAnalysis
         {
             return this.Name;
         }
+
+
     }
 
     [Serializable]
@@ -99,24 +115,54 @@ namespace ReachingTypeAnalysis
 		public bool IsReferenceType { get; private set; }
 		public TypeKind Kind { get; private set; }
 		public string TypeName { get; private set; }
-		public bool IsConcrete { get; private set; }
+		public bool IsConcreteType { get; private set; }
 
 		public TypeDescriptor(ITypeSymbol type, bool isConcrete = true)
 		{
 			this.TypeName = type.ToDisplayString();
 			this.IsReferenceType = type.IsReferenceType;
 			this.Kind = type.TypeKind;
-			this.IsConcrete = IsConcrete;
+			this.IsConcreteType = IsConcreteType;
 		}
+        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
+        {
+            this.TypeName = nameSpaceName+'.'+className;
+            this.IsReferenceType = IsReferenceType;
+            this.Kind = TypeKind.Class;
+            this.IsConcreteType = isConcrete;
+        }
+        public TypeDescriptor(TypeDescriptor typeDescriptor, bool isConcrete = true)
+        {
+            this.TypeName = typeDescriptor.TypeName;
+            this.IsReferenceType = typeDescriptor.IsReferenceType;
+            this.Kind = typeDescriptor.Kind;
+            this.IsConcreteType = isConcrete;
+        }
 
+        public override bool Equals(object obj)
+        {
+            TypeDescriptor typeDescriptor = (TypeDescriptor)obj;
+            return this.TypeName.Equals(typeDescriptor.TypeName)
+                    && this.IsReferenceType == typeDescriptor.IsReferenceType
+                    && this.IsConcreteType == typeDescriptor.IsConcreteType
+                    && this.Kind.Equals(typeDescriptor.Kind);
+        }
         public override int GetHashCode()
         {
-            return this.TypeName.GetHashCode();
+            return this.TypeName.GetHashCode()+this.Kind.GetHashCode();
         }
 
         public override string ToString()
         {
             return this.TypeName.ToString();
+        }
+
+        public bool IsDelegate
+        {
+            get 
+            { 
+                return this.Kind.Equals(TypeKind.Delegate);  
+            }
         }
     }
 
@@ -137,16 +183,22 @@ namespace ReachingTypeAnalysis
 	}
 
 	[Serializable]
-	public class LocationDescriptor : INodeDescriptor
+	public class InvocationDescriptor : INodeDescriptor
 	{
 		public Location Location { get; private set; }
-
-		public LocationDescriptor(Location location)
+        public int InMethodOrder { get; private set; }
+		public InvocationDescriptor(Location location)
 		{
 			Contract.Assert(location != null);
-
 			this.Location = location;
-		}
+            InMethodOrder = 0; // need to search for the statement # in that location
+ 		}
+
+        public InvocationDescriptor(int inMethodOrder)
+        {
+            this.InMethodOrder = inMethodOrder;
+        }
+
 		public override string ToString()
 		{
 			return this.Location.ToString();

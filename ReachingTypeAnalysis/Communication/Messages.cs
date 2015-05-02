@@ -36,26 +36,27 @@ namespace ReachingTypeAnalysis.Communication
 	internal class CallMessageInfo
     {
         public CallMessageInfo() { }
-        internal CallMessageInfo(AnalysisMethod caller, AnalysisMethod callee, AnalysisNode callNode, ISet<AnalysisType> receivers, IEnumerable<ISet<AnalysisType>> argumentValues,
-            AnalysisNode lhs, ISet<AnalysisType> instantiatedTypes, PropagationKind propKind)
+        internal CallMessageInfo(MethodDescriptor caller, MethodDescriptor callee, AnalysisCallNode callNode, 
+            ISet<TypeDescriptor> receivers, IEnumerable<ISet<TypeDescriptor>> argumentValues,
+            VariableNode lhs, ISet<TypeDescriptor> instantiatedTypes, PropagationKind propKind)
         {
-            this.Caller = caller.MethodDescriptor;
-            this.Callee = callee.MethodDescriptor;
+            this.Caller = caller;
+            this.Callee = callee;
             this.ArgumentValues = Marshal.ToTypeDescriptorList(argumentValues);
             this.Receivers = Marshal.ToTypeDescriptors(receivers);
-            this.LHS = new VariableDescriptor(lhs);
+            this.LHS = lhs;
             this.InstantiatedTypes = Marshal.ToTypeDescriptors(instantiatedTypes);
             this.PropagationKind = propKind;
-            this.CallNode = new LocationDescriptor((callNode as AnalysisNode).LocationReference.Location);
+            this.CallNode = callNode;
         }
 
 		//private bool isStatic;
 		internal readonly MethodDescriptor Callee;
 		internal readonly MethodDescriptor Caller;
-		internal readonly LocationDescriptor CallNode;
+		internal readonly AnalysisCallNode CallNode;
 		internal readonly IEnumerable<ISet<TypeDescriptor>> ArgumentValues;
 		internal readonly ISet<TypeDescriptor> Receivers;
-		internal readonly VariableDescriptor LHS;
+		internal readonly VariableNode LHS;
 		internal readonly ISet<TypeDescriptor> InstantiatedTypes;
 		internal readonly PropagationKind PropagationKind;
 
@@ -74,15 +75,14 @@ namespace ReachingTypeAnalysis.Communication
     internal class ReturnMessageInfo 
     {
 		internal ISet<TypeDescriptor> RVs { get; private set; }
-		internal VariableDescriptor LHS { get; private set; }
+		internal VariableNode LHS { get; private set; }
 		internal ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
 		internal PropagationKind PropagationKind { get; private set; }
+		internal AnalysisCallNode InvocationNode { get; private set; }
 
-		internal VariableDescriptor InvocationNode { get; private set; }
-
-        internal ReturnMessageInfo(VariableDescriptor lhs, 
+        internal ReturnMessageInfo(VariableNode lhs, 
 			ISet<TypeDescriptor> rvs, PropagationKind propKind, 
-			ISet<TypeDescriptor> instantiatedTypes, VariableDescriptor invocationNode)
+			ISet<TypeDescriptor> instantiatedTypes, AnalysisCallNode invocationNode)
         {
             //ISet<Type> rvs = rv != null ? worker.GetTypes(rv, propKind) : new HashSet<Type>();
             this.RVs = rvs;

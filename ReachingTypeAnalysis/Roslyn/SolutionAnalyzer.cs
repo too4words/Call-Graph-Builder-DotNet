@@ -266,10 +266,10 @@ namespace ReachingTypeAnalysis
 						this.Dispatcher);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
-					var mainMethod = new AnalysisMethod(mainSymbol);
-					var mainMethodDescriptor = EntityFactory.Create(mainMethod);
+					var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
+					var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
 					var mainEntityProcessor = (MethodEntityProcessor)
-						this.Dispatcher.GetEntityWithProcessorAsync(mainMethodDescriptor).Result ;
+						this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
 					//mainEntity.PropGraph.AddToWorkList(mainMethod);
 
 					// Just a test
@@ -321,10 +321,10 @@ namespace ReachingTypeAnalysis
 					provider, this.Dispatcher);
 
 				var mainMethodEntity = methodVisitor.ParseMethod();
-				var mainMethod = new AnalysisMethod(mainSymbol);
-				var mainMethodDescriptor = EntityFactory.Create(mainMethod);
+				var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
+				var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
 				var mainEntityProcessor = (MethodEntityProcessor)
-					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodDescriptor);
+					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
 				await mainEntityProcessor.DoAnalysisAsync();
 
 				Debug.WriteLine("--- Done with propagation ---");
@@ -342,7 +342,7 @@ namespace ReachingTypeAnalysis
             {
 				var methodEntity = e as MethodEntity;
                 // Updates the callGraph
-                var method = methodEntity.Method.RoslynMethod;
+                var method = methodEntity.MethodDescriptor;
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
@@ -351,7 +351,8 @@ namespace ReachingTypeAnalysis
                     if (invExp is CallInfo)
                     {
 						var callInfo = invExp as CallInfo;
-                        var calleeReferences = SymbolFinder.FindImplementationsAsync(callInfo.Callee.RoslynMethod, solution).Result;
+                        var calleeRoslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(solution, callInfo.Callee);
+                        var calleeReferences = SymbolFinder.FindImplementationsAsync(calleeRoslynMethod, solution).Result;
                         var roslynCount = calleeReferences.Count();
                         writer.WriteLine("{0}; {1}; {2}; {3}; {4}; {5}", method.ToString(), callInfo.Callee.ToString(), countCG,roslynCount ,roslynCount-countCG, countCG-roslynCount );
                         max = Math.Max(max, roslynCount-countCG);
@@ -379,22 +380,24 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		/// <param name="methodDescriptor"></param>
 		/// <returns></returns>
-		internal bool IsReachable(MethodDescriptor methodDescriptor, CallGraph<MethodDescriptor, AnalysisLocation> callgraph)
+		internal bool IsReachable(MethodDescriptor methodDescriptor, CallGraph<MethodDescriptor, InvocationDescriptor> callgraph)
         {  
             //var method = FindMethodSymbolInSolution(methodDescriptor).Method;
             //return method != null && Callgraph.GetReachableMethods().Contains(method); // ,new Compare());
             return callgraph.GetReachableMethods().Contains(methodDescriptor); 
         }
-        internal ISet<MethodDescriptor> GetReachableMethods(CallGraph<MethodDescriptor, AnalysisLocation> callgraph)
+        internal ISet<MethodDescriptor> GetReachableMethods(CallGraph<MethodDescriptor, InvocationDescriptor> callgraph)
         {
             return callgraph.GetReachableMethods();
         }
-		internal bool IsCalled(MethodDescriptor methodDescriptor, MethodDescriptor calleeDescriptor, CallGraph<MethodDescriptor, AnalysisLocation> callgraph)
+		internal bool IsCalled(MethodDescriptor methodDescriptor, MethodDescriptor calleeDescriptor, 
+                        CallGraph<MethodDescriptor, InvocationDescriptor> callgraph)
         {
             return callgraph.GetCallees(methodDescriptor).Contains(calleeDescriptor);
         }
 
-		internal bool IsCaller(MethodDescriptor callerDescriptor, MethodDescriptor calleeDescriptor, CallGraph<MethodDescriptor, AnalysisLocation> callgraph)
+		internal bool IsCaller(MethodDescriptor callerDescriptor, MethodDescriptor calleeDescriptor, 
+                        CallGraph<MethodDescriptor, InvocationDescriptor> callgraph)
         {
             return callgraph.GetCallers(calleeDescriptor).Select(kp => kp.Value).Contains(callerDescriptor);
         }
@@ -592,31 +595,32 @@ namespace ReachingTypeAnalysis
 */
 
         #region Callgraph
-        private static void UpdateCallGraph(MethodEntity methodEntity, CallGraph<MethodDescriptor, AnalysisLocation> callgraph)
+        private static void UpdateCallGraph(MethodEntity methodEntity, 
+                                            CallGraph<MethodDescriptor, InvocationDescriptor> callgraph)
         {
             Contract.Assert(methodEntity != null);
-            Contract.Assert(methodEntity.Method != null);
-            var callerMethod = methodEntity.Method.MethodDescriptor;
+            Contract.Assert(methodEntity.MethodDescriptor != null);
+            var callerMethod = methodEntity.MethodDescriptor;
             var callSitesForMethod = methodEntity.GetCalleesInfo();
             foreach (var callSiteNode in callSitesForMethod.Keys)
             {
                 foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
                 {
                     //var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
-                    var callee = calleeAMethod.MethodDescriptor;
+                    var callee = calleeAMethod;
                     Debug.WriteLine(string.Format("\t-> {0}", callee));
-                    callgraph.AddCallAtLocation(((AnalysisNode)callSiteNode).LocationReference, callerMethod, callee);
+                    callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
                 }
             }
         }
 
-        public CallGraph<MethodDescriptor, AnalysisLocation> GenerateCallGraph()
+        public CallGraph<MethodDescriptor, InvocationDescriptor> GenerateCallGraph()
         {
             var roots = CodeProvider.GetMainMethods(this.Solution);
             Contract.Assert(this.Dispatcher != null);
             //Contract.Assert(this.Dispatcher.GetAllEntites() != null);
 
-            var callgraph = new CallGraph<MethodDescriptor, AnalysisLocation>();
+            var callgraph = new CallGraph<MethodDescriptor, InvocationDescriptor>();
             callgraph.AddRootMethods(roots);
             var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
             foreach (var entity in allEntities)
@@ -631,16 +635,16 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        private static CallGraph<MethodDescriptor, AnalysisLocation> ReBuildCallGraph(Dispatcher dispatcher)
+        private static CallGraph<MethodDescriptor, InvocationDescriptor> ReBuildCallGraph(Dispatcher dispatcher)
         {
-            var callgraph = new CallGraph<MethodDescriptor, AnalysisLocation>();
+            var callgraph = new CallGraph<MethodDescriptor, InvocationDescriptor>();
             // pg.PropagateDeletionOfNodes();
             foreach (var e in dispatcher.GetAllEntites())
             {
                 var methodEntity = e as MethodEntity;
-                if (methodEntity.Method.ToString().Contains("Main"))
+                if (methodEntity.MethodDescriptor.ToString().Contains("Main"))
                 {
-                    callgraph.AddRootMethod(methodEntity.Method.MethodDescriptor);
+                    callgraph.AddRootMethod(methodEntity.MethodDescriptor);
                 }
                 // Updates the callGraph
                 UpdateCallGraph(methodEntity, callgraph);

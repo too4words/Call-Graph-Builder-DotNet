@@ -52,6 +52,11 @@ namespace ReachingTypeAnalysis.Roslyn
         private static IMethodSymbol FindMethodSymbolInProject(MethodDescriptor methodDescriptor, Project project)
         {
             var compilation = project.GetCompilationAsync().Result;
+            return FindMethodInCompilation(methodDescriptor, compilation);
+        }
+
+        public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
+        {
             var type = compilation.GetTypeByMetadataName(methodDescriptor.ClassName);
             // Another way to access the info
             if (type == null)

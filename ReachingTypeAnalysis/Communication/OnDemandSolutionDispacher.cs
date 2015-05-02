@@ -24,19 +24,22 @@ namespace ReachingTypeAnalysis.Communication
             IEntity entity = await base.GetEntity(entityDesc);
             if (entity == null)
             {
-				var ed = (MethodEntityDescriptor<AnalysisMethod>)entityDesc;
-                var codeProvider = await CodeProvider.GetAsync(ed.Method.MethodDescriptor);
+				var ed = (MethodEntityDescriptor)entityDesc;
+                var codeProvider = await CodeProvider.GetAsync(ed.MethodDescriptor);
 				if (codeProvider != null)
 				{
-					var methodEntityGenerator = new MethodSyntaxProcessor(ed.Method.RoslynMethod, codeProvider, this);
+                    var roslynMethod = codeProvider.FindMethod(ed.MethodDescriptor);
+					var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
 					entity = methodEntityGenerator.ParseMethod();
 					//var node = Utils.FindMethodImplementation(ed.Method.RoslynMethod);
 				}
 				else
 				{
-					var libraryMethodVisitor = new LibraryMethodProcessor(ed.Method.RoslynMethod, this);
-					entity = libraryMethodVisitor.ParseLibraryMethod();
-					base.RegisterEntity(entityDesc, entity);
+                    // I need a Roslyn Method. I could to this with a solution but I cant without it
+                    throw new NotImplementedException();
+                    //var libraryMethodVisitor = new LibraryMethodProcessor(roslynMethod, this);
+                    //entity = libraryMethodVisitor.ParseLibraryMethod();
+                    //base.RegisterEntity(entityDesc, entity);
 				}
             }
 

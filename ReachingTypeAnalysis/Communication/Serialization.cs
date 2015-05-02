@@ -16,35 +16,36 @@ namespace ReachingTypeAnalysis.Communication
 			return default(AnalysisMethod);
 		}
 
-		internal static ISet<AnalysisType> Demarshal(ISet<TypeDescriptor> typeDescriptors)
+		internal static ISet<TypeDescriptor> Demarshal(ISet<TypeDescriptor> typeDescriptors)
 		{
 			throw new NotImplementedException();
 		}
 
-		internal static AnalysisNode Demarshal(VariableDescriptor variableDescriptor)
+		internal static AnalysisNode Demarshal(VariableNode variableDescriptor)
 		{
 			throw new NotImplementedException();
 		}
 
-		internal static AnalysisNode Demarshal(LocationDescriptor locationDescriptor)
+		internal static AnalysisNode Demarshal(InvocationDescriptor locationDescriptor)
 		{
 			throw new NotImplementedException();
 		}
 	}
 
 	internal static class Marshal {
-		internal static ISet<TypeDescriptor> ToTypeDescriptors(IEnumerable<AnalysisType> instantiatedTypes)
+		internal static ISet<TypeDescriptor> ToTypeDescriptors(IEnumerable<TypeDescriptor> instantiatedTypes)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var type in instantiatedTypes)
 			{
-				result.Add(new TypeDescriptor(type.RoslynType));
+                result.Add(new TypeDescriptor(type));
+				//result.Add(new TypeDescriptor(type.RoslynType));
 			}
 
 			return result;
 		}
 
-		internal static IEnumerable<ISet<TypeDescriptor>> ToTypeDescriptorList(IEnumerable<ISet<AnalysisType>> argumentValues)
+		internal static IEnumerable<ISet<TypeDescriptor>> ToTypeDescriptorList(IEnumerable<ISet<TypeDescriptor>> argumentValues)
 		{
 			return argumentValues.Select(hash => ToTypeDescriptors(hash));
 		}

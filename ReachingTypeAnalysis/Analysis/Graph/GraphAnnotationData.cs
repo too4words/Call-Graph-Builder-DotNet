@@ -19,11 +19,11 @@ namespace ReachingTypeAnalysis
 		//public ISet<T> Elems = new HashSet<T>();
 		internal ISet<TypeDescriptor> DeletedElems { get; private set; }
 		internal ISet<MethodDescriptor> Delegates { get; set; }
-		internal VariableDescriptor Node { get; set; }
+		internal AnalysisNode Node { get; set; }
 		internal AnalysisInvocationExpession CallNode { get; set; }
 		internal bool HasRetValue { get; set; }
 
-		internal GraphAnnotationData(VariableDescriptor m)
+		internal GraphAnnotationData(AnalysisNode m)
 		{
 			this.DeletedElems = new HashSet<TypeDescriptor>();
 			this.Delegates = new HashSet<MethodDescriptor>();

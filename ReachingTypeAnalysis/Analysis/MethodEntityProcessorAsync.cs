@@ -2,6 +2,7 @@
 using OrleansGrains;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -12,12 +13,10 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal class EntityFactory
     {
-        internal static IEntityDescriptor Create(AnalysisMethod method)
+        internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor)
         {
-            //return new MethodEntityDescriptor<M>(method);
             var result = new OrleansEntityDescriptor(System.Guid.NewGuid());
-            Contract.Assert(method is AnalysisMethod);
-            result.MethodDescriptor = method.MethodDescriptor;
+            result.MethodDescriptor = methodDescriptor;
             Contract.Assert(result.MethodDescriptor != null);
 
             return result;
@@ -112,7 +111,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.Method.ToString()));
+				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
 			}
 			var callsAndRets = this.MethodEntity.PropGraph.Propagate();
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
@@ -182,9 +181,10 @@ namespace ReachingTypeAnalysis.Analysis
 				// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
 				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
 				{
-					var instTypes = new HashSet<AnalysisType>();
+					var instTypes = new HashSet<TypeDescriptor>();
 					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-						.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
+                        .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
+						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
 						types.Add(t);
@@ -202,9 +202,10 @@ namespace ReachingTypeAnalysis.Analysis
 					{
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
-						var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-						var t = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
-						continuations.Add(t);
+						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+                        var realCallee = Utils.FindMethodDescriptorForType(callInfo.Callee, receiverType);
+						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
+						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
 					});
 					await Task.WhenAll(continuations);
@@ -223,7 +224,8 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
-		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, AnalysisMethod realCallee, AnalysisType receiverType, PropagationKind propKind)
+		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, 
+                            MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
 		{
 			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
 			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
@@ -292,7 +294,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <param name="returnVariable"></param>
 		/// <param name="propKind"></param>
 		/// <returns></returns>
-		public async Task DispachReturnMessageAsync(CallContext context, VariableDescriptor returnVariable, PropagationKind propKind)
+		public async Task DispachReturnMessageAsync(CallContext context, VariableNode returnVariable, PropagationKind propKind)
 		{
 			var caller = context.Caller;
 			var lhs = context.CallLHS;
@@ -303,10 +305,11 @@ namespace ReachingTypeAnalysis.Analysis
 			// Diego TO-DO, different treatment for adding and removal
 			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
 			{
-				var instTypes = new HashSet<AnalysisType>();
+				var instTypes = new HashSet<TypeDescriptor>();
 				instTypes.UnionWith(
 					this.MethodEntity.InstantiatedTypes
-						.Where(iType => iType.IsSubtype(returnVariable.Type)));
+                        .Where(iType => CodeProvider.IsSubtype(iType,returnVariable.Type)));
+                        //.Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{
 					types.Add(t);
@@ -346,7 +349,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.Method.ToString()));
+				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
 			}
 			var caller = Demarshaler.Demarshal(callMessage.Caller);
 			// This is the node in the caller where info of ret-value should go

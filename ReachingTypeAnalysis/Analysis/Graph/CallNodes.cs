@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Microsoft.CodeAnalysis;
+using ReachingTypeAnalysis.Roslyn;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +9,9 @@ namespace ReachingTypeAnalysis
 {
 	internal abstract class AnalysisInvocationExpession
 	{
-		internal AnalysisInvocationExpession(MethodDescriptor caller, LocationDescriptor callNode, VariableDescriptor reciever, IList<VariableDescriptor> arguments, VariableDescriptor lhs)
+		internal AnalysisInvocationExpession(MethodDescriptor caller, AnalysisCallNode callNode, 
+                        AnalysisNode reciever, 
+                        IList<AnalysisNode> arguments, VariableNode lhs)
 		{
 			Caller = caller;
 			Arguments = arguments;
@@ -16,7 +20,8 @@ namespace ReachingTypeAnalysis
 			IsStatic = false;
 			CallNode = callNode;
 		}
-		internal AnalysisInvocationExpession(MethodDescriptor caller, LocationDescriptor callNode, IList<VariableDescriptor> arguments, VariableDescriptor lhs)
+		internal AnalysisInvocationExpession(MethodDescriptor caller, 
+                        AnalysisCallNode callNode, IList<AnalysisNode> arguments, VariableNode lhs)
 		{
 			Caller = caller;
 			Arguments = arguments;
@@ -27,19 +32,23 @@ namespace ReachingTypeAnalysis
 
 		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph);
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(VariableDescriptor n, PropagationGraph propGraph)
+		internal ISet<TypeDescriptor> GetPotentialTypes(AnalysisNode n, PropagationGraph propGraph)
 		{
 			var result = new HashSet<TypeDescriptor>();
-			foreach (var type in propGraph.GetTypes(n))
+			foreach (var typeDescriptor in propGraph.GetTypes(n))
 			{
 				// TO-DO fix by adding a where T: AnalysisType
-				if (type.IsConcreteType)
+				if (typeDescriptor.IsConcreteType)
 				{
-					result.Add(type);
+					result.Add(typeDescriptor);
 				}
 				else
 				{
-					result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(type)));
+                    // If it is a declaredTyped it means we were not able to compute a concrete type
+                    // Therefore, we instantiate all compatible types for the set of instantiated types
+					//result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
+                    result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor 
+                                            => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
 				}
 			}
 			return result;
@@ -49,16 +58,18 @@ namespace ReachingTypeAnalysis
 		internal bool IsConstructor { get; set; }
 		// public M Callee;
 		internal MethodDescriptor Caller { get; set; }
-		internal IList<VariableDescriptor> Arguments { get; set; }
-		internal VariableDescriptor Receiver { get; set; }
-		internal VariableDescriptor LHS { get; set; }
+		internal IList<AnalysisNode> Arguments { get; set; }
+		internal AnalysisNode Receiver { get; set; }
+		internal VariableNode LHS { get; set; }
 		internal ISet<TypeDescriptor> InstatiatedTypes { get; set; }
-		internal LocationDescriptor CallNode { get; set; }
+		internal AnalysisCallNode CallNode { get; set; }
 	}
 
 	internal class CallInfo : AnalysisInvocationExpession
 	{
-		internal CallInfo(MethodDescriptor caller, LocationDescriptor callNode, MethodDescriptor callee, VariableDescriptor reciever, IList<VariableDescriptor> arguments, VariableDescriptor lhs, bool isConstructor)
+		internal CallInfo(MethodDescriptor caller, AnalysisCallNode callNode, MethodDescriptor callee, 
+                    AnalysisNode reciever, IList<AnalysisNode> arguments, 
+                    VariableNode lhs, bool isConstructor)
 			: base(caller, callNode, reciever, arguments, lhs)
 		{
 			Caller = caller;
@@ -70,14 +81,16 @@ namespace ReachingTypeAnalysis
 			IsConstructor = isConstructor;
 		}
 
-		internal CallInfo(MethodDescriptor caller, LocationDescriptor callNode, MethodDescriptor callee, IList<VariableDescriptor> arguments, VariableDescriptor lhs, bool isConstructor)
+		internal CallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
+                    MethodDescriptor callee, IList<AnalysisNode> arguments, 
+                    VariableNode lhs, bool isConstructor)
 			: base(caller, callNode, arguments, lhs)
 		{
 			Caller = caller;
 			Callee = callee;
 			Arguments = arguments;
 			LHS = lhs;
-			Receiver = default(VariableDescriptor);
+			Receiver = default(VariableNode);
 			IsStatic = true;
 			IsConstructor = isConstructor;
 		}
@@ -87,9 +100,11 @@ namespace ReachingTypeAnalysis
 			var calleesForNode = new HashSet<MethodDescriptor>();
 			if (this.Receiver != null)
 			{
-				var callees = GetPotentialTypes(this.Receiver, propGraph)
-					.Select(t => this.Callee.FindMethodImplementation(t));
-				//var callees = PropGraph.GetTypes(cn.Receiver).Select(t => cn.Callee.FindMethodImplementation(t));
+                // I replaced the invocation for a local call to mark that functionality is missing
+                //var callees = GetPotentialTypes(this.Receiver, propGraph)
+                //    .Select(t => this.Callee.FindMethodImplementation(t));
+                var callees = GetPotentialTypes(this.Receiver, propGraph)
+                        .Select(t => Utils.FindMethodDescriptorForType(this.Callee,t));
 				calleesForNode.UnionWith(callees);
 			}
 			else
@@ -99,12 +114,14 @@ namespace ReachingTypeAnalysis
 			return calleesForNode;
 		}
 
+
 		public MethodDescriptor Callee { get; private set; }
 	}
 
 	internal class DelegateCallInfo : AnalysisInvocationExpession
 	{
-        internal DelegateCallInfo(MethodDescriptor caller, LocationDescriptor callNode, VariableDescriptor calleeDelegate, IList<VariableDescriptor> arguments, VariableDescriptor lhs)
+        internal DelegateCallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
+                DelegateVariableNode calleeDelegate, IList<AnalysisNode> arguments, VariableNode lhs)
 			: base(caller, callNode, arguments, lhs)
 		{
 			Caller = caller;
@@ -113,7 +130,9 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 		}
 
-		internal DelegateCallInfo(MethodDescriptor caller, LocationDescriptor callNode, VariableDescriptor calleeDelegate, VariableDescriptor receiver, IList<VariableDescriptor> arguments, VariableDescriptor lhs)
+		internal DelegateCallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 
+                    DelegateVariableNode calleeDelegate, AnalysisNode receiver, 
+                    IList<AnalysisNode> arguments, VariableNode lhs)
 			: base(caller, callNode, arguments, lhs)
 		{
 			Caller = caller;
@@ -128,19 +147,20 @@ namespace ReachingTypeAnalysis
 			return GetDelegateCallees(this.CalleeDelegate, propGraph);
 		}
 
-		private ISet<MethodDescriptor> GetDelegateCallees(VariableDescriptor delegateNode, PropagationGraph propGraph)
+		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph)
 		{
 			var callees = new HashSet<MethodDescriptor>();
-			var types = propGraph.GetTypes(delegateNode);
+			var typeDescriptors = propGraph.GetTypes(delegateNode);
 			foreach (var delegateInstance in propGraph.GetDelegates(delegateNode))
 			{
-				if (types.Count() > 0)
+				if (typeDescriptors.Count() > 0)
 				{
-					foreach (var type in types)
+					foreach (var typeDescriptor in typeDescriptors)
 					{
 						// TO-DO!!!
 						// Ugly: I'll fix it
-						var aMethod = delegateInstance.FindMethodImplementation(type);
+						//var aMethod = delegateInstance.FindMethodImplementation(type);
+                        var aMethod = Utils.FindMethodDescriptorForType(delegateInstance,typeDescriptor);
 						callees.Add(aMethod);
 					}
 				}
@@ -154,6 +174,6 @@ namespace ReachingTypeAnalysis
 			return callees;
 		}
 
-		internal VariableDescriptor CalleeDelegate { get; private set; }
+		internal DelegateVariableNode CalleeDelegate { get; private set; }
 	}
 }

@@ -2,190 +2,172 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis
 {
-	/// <summary>
+    /// <summary>
 	/// This is essentially a node in the propagation graph 
 	/// It represents either a variable, field, parameter or even a method invocation (that are specials)
 	/// Currently they conrtain information about the corresponding Roslyn symbol they represent 
 	/// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
-	/// </summary>
-	public abstract class AnalysisNode
+	/// </summary> 
+	internal abstract class AnalysisNode
 	{
-		// For debugging
-		public static bool UseType;
-		public static bool UseSymbol;
-		public static bool UseExpression;
-		//
 		public string Name { get; private set; }
+		internal TypeDescriptor Type { get; private set; }
 
-		//internal static ExpressionSyntax declaredTypeExpression = SyntaxFactory.ParseExpression("*DT*");
-		internal AnalysisLocation locationRef;
-
-		protected AnalysisNode(TypeDescriptor declaredType, string name)
+        protected AnalysisNode(string name, TypeDescriptor declaredType)
 		{
-			this.DeclaredType = declaredType;
+			this.Type = declaredType;
 			this.Name = name;
 		}
 
-		//public static AnalysisNode Define(TypeDescriptor declaredType)
-		//{
-		//	if (Utils.IsTypeForAnalysis(declaredType))
-		//	{
-		//		return new AnalysisNode(declaredType);
-		//	}
-		//	else
-		//	{
-		//		return null;
-		//	}
-		//}
-
-		//internal SyntaxNodeOrToken Expression { get; private set; }
-		//internal VariableDescriptor Symbol { get; private set; }
-
-		internal TypeDescriptor DeclaredType { get; private set; }
-
-		internal AnalysisLocation LocationReference
-		{
-			//get { return new ALocation(this.expression.GetLocation()); }
-			get
-			{
-				if (locationRef == null)
-				{
-					locationRef = new AnalysisLocation(this.Expression);
-				}
-
-				return locationRef;
-			}
-		}
-
-		/// <summary>
-		///  To Do: Fix this. 
-		///  I was playing with different notions of equality due to the use in roslyn of IDs
-		///  This last attempt use locations
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public override bool Equals(object obj)
-		{
-			var node = (obj as AnalysisNode);
-			return //((symbol == null || n.symbol == null) && this.Symbol.ToString() == this.SymbolToString())
-				this.Expression.ToString() == node.Expression.ToString()
-				 // this.expression.GetLocation().ToString() == n.expression.GetLocation().ToString()
-				 && ((this.DeclaredType == null || node.DeclaredType == null) || this.DeclaredType.ToString() == node.DeclaredType.ToString());
-			/*
-            bool equalType = (declaredTyped == null || n.declaredTyped == null) || n.declaredTyped.Equals(declaredTyped);
-            bool equalSymbol = (symbol == null || n.symbol == null) || n.symbol.Equals(symbol);
-            bool equalExp = (expression == null || n.expression == null) || n.expression.ToString().Equals(expression.ToString());
-            return equalType && equalSymbol && equalExp;
-             */
-		}
-
+        public override bool Equals(object obj)
+        {
+            var analysisNode = (obj as AnalysisNode);
+            return (analysisNode != null && analysisNode.Name.Equals(this.Name) 
+                    && analysisNode.Type.Equals(this.Type));
+        }
+ 
 		public override int GetHashCode()
 		{
-			int hashType = this.DeclaredType == null ? 1 : this.DeclaredType.ToString().GetHashCode();
-
-			return this.Expression.ToString().GetHashCode() + hashType;
-			//return this.expression.GetLocation().ToString().GetHashCode() +hashType;
-			//int hashType = declaredTyped == null ? 1 : this.DeclaredTyped.GetHashCode();
-			//int hasSymbol = symbol == null ? 1 : this.Symbol.GetHashCode();
-			//int hasE = expression == null ? 1 : this.Expression.ToString().GetHashCode();
-			//return hashType + hasSymbol +hasE;
+            return this.Name.GetHashCode()+this.Type.GetHashCode();
 		}
 
 		public override string ToString()
 		{
-			string tString = "Dummy";
-			if (this.DeclaredType != null)
-				tString = this.DeclaredType.TypeName;
-			string lString = "";
-			if (this.LocationReference != null)
-				lString = "@" + this.LocationReference.ToString();
-			string eString = "";
-			if (this.Expression != null)
-				eString = this.Expression.ToString();
-			string eSymbol = "";
-			if (this.Symbol != null && (this.Symbol.Kind == SymbolKind.Field))
-				eSymbol = this.Symbol.ContainingType.Name.ToString() + ".";
+            return string.Format("{0}:{1}", this.Name, this.Type);
+            //string tString = "Dummy";
+            //if (this.DeclaredType != null)
+            //    tString = this.DeclaredType.TypeName;
+            //string lString = "";
+            //if (this.LocationReference != null)
+            //    lString = "@" + this.LocationReference.ToString();
+            //string eString = "";
+            //if (this.Expression != null)
+            //    eString = this.Expression.ToString();
+            //string eSymbol = "";
+            //if (this.Symbol != null && (this.Symbol.Kind == SymbolKind.Field))
+            //    eSymbol = this.Symbol.ContainingType.Name.ToString() + ".";
 
-			return eSymbol + eString + lString + ":" + tString;
+            //return eSymbol + eString + lString + ":" + tString;
 		}
+
+        //public static AnalysisNode Define(TypeDescriptor declaredType)
+        //{
+        //	if (Utils.IsTypeForAnalysis(declaredType))
+        //	{
+        //		return new AnalysisNode(declaredType);
+        //	}
+        //	else
+        //	{
+        //		return null;
+        //	}
+        //}
+
+        //internal SyntaxNodeOrToken Expression { get; private set; }
+        //internal VariableDescriptor Symbol { get; private set; }
+
+
+        //internal AnalysisLocation LocationReference
+        //{
+        //    //get { return new ALocation(this.expression.GetLocation()); }
+        //    get
+        //    {
+        //        if (locationRef == null)
+        //        {
+        //            locationRef = new AnalysisLocation(this.Expression);
+        //        }
+
+        //        return locationRef;
+        //    }
+        //}
+
 	}
 
-	internal class ParameterNode : AnalysisNode
+    [Serializable]
+	internal class ParameterNode : VariableNode
 	{
 		public int Position { get; private set; }
-		public ParameterNode(int position, TypeDescriptor declaredType) : 
-			base(declaredType, "parameter_" + position)
+		public ParameterNode(string name, int position, TypeDescriptor declaredType) :
+            base(name + "_" + position, declaredType)
 		{
 			this.Position = position;
 		}
 	}
 
-	internal class ThisNode : AnalysisNode
+    [Serializable]
+	internal class ThisNode : VariableNode
 	{
-		public ThisNode(TypeDescriptor declaredType) : 
-			base(declaredType, "this")
+		public ThisNode(TypeDescriptor declaredType) :
+            base("this", declaredType)
 		{
 
 		}
 	}
 
+    [Serializable]
 	internal class UnsupportedNode : AnalysisNode
 	{
 		public UnsupportedNode(TypeDescriptor declaredType) :
-			base(declaredType, "unsupported")
+            base("unsupported", declaredType)
 		{
 
 		}
 	}
 
-	internal class ReturnNode : AnalysisNode
+    [Serializable]
+	internal class ReturnNode : VariableNode
 	{
 		public ReturnNode(TypeDescriptor declaredType) :
-			base(declaredType, "return")
+            base("return", declaredType)
 		{
 		}
 	}
 
+    [Serializable]
 	internal class VariableNode : AnalysisNode
 	{
-		public VariableNode(string name, TypeDescriptor declaredType) : 
-			base(declaredType, name)
+		public VariableNode(string name, TypeDescriptor declaredType) :
+            base(name, declaredType)
 		{
 
 		}
 	}
-
+        
+    [Serializable]
 	internal class FieldNode : AnalysisNode
 	{
 		public string ClassName { get; private set; }
 		public string Field { get; private set; }
 		public FieldNode(string className, string fieldName, TypeDescriptor declaredType)
-			: base(declaredType, string.Format("{0}.{1}", className, fieldName))
+            : base(string.Format("{0}.{1}", className, fieldName), declaredType)
 		{
 			this.ClassName = className;
 			this.Field = fieldName;
 		}
 	}
 
-	internal class DelegateNode : AnalysisNode
+    [Serializable]
+	internal class DelegateVariableNode : VariableNode
 	{
-		internal DelegateNode(TypeDescriptor declaredType, string name)
-			: base(declaredType, string.Format("delegate {0}", name))
+		internal DelegateVariableNode(string name,TypeDescriptor declaredType)
+			: base(string.Format("delegate {0}", name),declaredType)
 		{ }
 	}
 
+    [Serializable]
 	internal class AnalysisCallNode : AnalysisNode
 	{
-		public LocationDescriptor Location { get; private set; }
-
-		public AnalysisCallNode(TypeDescriptor declaredType, LocationDescriptor location)
-			: base(declaredType, string.Format("call {0}", location.ToString()))
+		public InvocationDescriptor LocationDescriptor { get; private set; }
+        public int InMethodOrder { get; private set; }
+		public AnalysisCallNode(TypeDescriptor declaredType, InvocationDescriptor location)
+            : base(string.Format("call {0}", location.ToString()), declaredType)
 		{
-			this.Location = location;
+			this.LocationDescriptor = location;
+            this.InMethodOrder = location.InMethodOrder;
         }
 
 		/// <summary>
@@ -195,28 +177,54 @@ namespace ReachingTypeAnalysis
 		/// <returns></returns>
 		public override bool Equals(object obj)
 		{
-			var eqLoc = (obj as AnalysisCallNode).LocationReference.Equals(this.LocationReference);
-			return base.Equals(obj) && eqLoc;
+			AnalysisCallNode analysisCallNode = (obj as AnalysisCallNode);
+            return analysisCallNode!=null && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
 		}
 		public override int GetHashCode()
 		{
-			return base.GetHashCode() + this.LocationReference.GetHashCode();
-		}
-
-		private static SyntaxNodeOrToken AddAnnotation(SyntaxNodeOrToken syntaxExpression)
-		{
-			var annotation = new SyntaxAnnotation(syntaxExpression.ToString());
-			return syntaxExpression.WithAdditionalAnnotations(annotation);
+			return base.GetHashCode() + this.LocationDescriptor.GetHashCode();
 		}
 	}
+/*
+    internal abstract class AnalysisType
+    {
+        internal TypeDescriptor TypeDescriptor { get; private set; }
 
-	//public interface AnalysisType
-	//{
-	//    bool IsSubtype(AnalysisType t);
-	//    bool IsConcreteType { get; }
-	//    bool IsDelegate { get;  }
-	//}
-
+        internal AnalysisType(TypeDescriptor typeDescriptor)
+        {
+            this.TypeDescriptor = typeDescriptor;
+        }
+        internal abstract bool IsConcrete();
+        public bool IsSubtype(AnalysisType analysisType)
+        {
+            throw new NotImplementedException();
+            //var res = TypeHelper.InheritsByName(this.RoslynType, at.RoslynType);
+            //return res;
+        }
+    }
+    internal class ConcreteType: AnalysisType
+    {
+        public ConcreteType(TypeDescriptor typeDescriptor)
+            :base(typeDescriptor)
+        { 
+        }
+        internal override bool IsConcrete()
+        {
+            return true;
+        }
+    }
+    internal class DeclaredType : AnalysisType
+    {
+        public DeclaredType(TypeDescriptor typeDescriptor)
+            : base(typeDescriptor)
+        {
+        }
+        internal override bool IsConcrete()
+        {
+            return false;
+        }
+    } 
+ */
 /*		
 	internal abstract class AnalysisType
 	{
@@ -307,92 +315,85 @@ namespace ReachingTypeAnalysis
 
 	internal class AnalysisMethod
 	{
-		private IMethodSymbol method;
+        internal MethodDescriptor MethodDescriptor { get; private set; }
+        internal TypeDescriptor ContainerType { get; private set; }
+        //private IMethodSymbol method;
+        //internal IMethodSymbol RoslynMethod
+        //{
+        //    get { return method; }
+        //    private set { method = value; }
+        //}
+        //internal AnalysisMethod(IMethodSymbol method)
+        //{
+        //    this.method = method;
+        //}
+        //internal AnalysisMethod(IPropertySymbol property)
+        //{
+        //    this.method = property.GetMethod;
+        //}
+        //internal MethodDescriptor MethodDescriptor
+        //{
+        //    get { return new MethodDescriptor(this.RoslynMethod); }
+        //}
 
-		internal IMethodSymbol RoslynMethod
-		{
-			get { return method; }
-			private set { method = value; }
-		}
-		internal AnalysisMethod(IMethodSymbol method)
-		{
-			this.method = method;
-		}
-
-		internal AnalysisMethod(IPropertySymbol property)
-		{
-			this.method = property.GetMethod;
-		}
+        internal AnalysisMethod(MethodDescriptor methodDescriptor, TypeDescriptor containerType)
+        {
+            this.MethodDescriptor = methodDescriptor;
+            this.ContainerType = containerType;
+        }
 
 		public override bool Equals(object obj)
 		{
-			AnalysisMethod m = obj as AnalysisMethod;
-			return m != null && method.ToString().Equals(m.method.ToString());
+            //AnalysisMethod m = obj as AnalysisMethod;
+            //return m != null && method.ToString().Equals(m.method.ToString());
+            AnalysisMethod analysisMethod = (AnalysisMethod)obj;
+            return this.ContainerType.Equals(analysisMethod.ContainerType)
+                    && this.MethodDescriptor.Equals(analysisMethod.MethodDescriptor);
 		}
 
 		public override int GetHashCode()
 		{
-			return method.ToString().GetHashCode();
+			return this.MethodDescriptor.GetHashCode()+this.ContainerType.GetHashCode();
 		}
 
 		public override string ToString()
 		{
-			return method.ToString();
+			return MethodDescriptor.ToString();
 		}
 
-		internal AnalysisType ContainerType
-		{
-			// It is concrete or declared?
-			get { return new ConcreteType(method.ContainingType); }
-		}
+        //internal AnalysisMethod FindMethodImplementation(AnalysisType t)
+        //{
+        //    throw new NotImplementedException();
 
-		internal AnalysisMethod FindMethodImplementation(AnalysisType t)
-		{
-			AnalysisType aType = t as AnalysisType;
-			var realCallee = Utils.FindMethodImplementation(this.RoslynMethod, aType.RoslynType);
-			if (realCallee != null)
-			{
-				return new AnalysisMethod(realCallee);
-			}
-			return this;
-		}
+        //    //AnalysisType aType = t as AnalysisType;
+        //    //var realCallee = Utils.FindMethodImplementation(this.RoslynMethod, aType.RoslynType);
+        //    //if (realCallee != null)
+        //    //{
+        //    //    return new AnalysisMethod(realCallee);
+        //    //}
+        //    //return this;
+        //}
 
-		internal MethodDescriptor MethodDescriptor
-		{
-			get { return new MethodDescriptor(this.RoslynMethod); }
-		}
 	}
 
 	public class AnalysisLocation
 	{
-		private SyntaxNodeOrToken expression;
-		private int relativeNumber;
 		public Location Location { get; private set; }
 		internal AnalysisLocation(Location location)
 		{
 			this.Location = location;
 		}
-
-		internal AnalysisLocation(SyntaxNodeOrToken syntax)
-		{
-			this.Location = syntax.GetLocation();
-			this.expression = syntax;
-		}
-
+ 
 		public override bool Equals(object obj)
 		{
-			var loc = obj as AnalysisLocation;
-			//return obj != null && expression.ToString().Equals(loc.expression.ToString());
-			//return obj != null && Location.GetLineSpan().Equals(loc.Location.GetLineSpan());
-			return obj != null && (Location == null && loc.Location == null) || Location.SourceSpan.Start.Equals(loc.Location.SourceSpan.Start);
+			AnalysisLocation analysisLocation = obj as AnalysisLocation;
+			return obj != null && (this.Location == null && analysisLocation.Location == null) 
+                || this.Location.SourceSpan.Start.Equals(analysisLocation.Location.SourceSpan.Start);
 		}
 
 		public override int GetHashCode()
 		{
-			//return Location.SourceSpan.GetHashCode()+ Location.SourceSpan.Start;
-			//return Location.GetHashCode();
-			//return expression.ToString().GetHashCode();
-			return Location != null ? Location.GetLineSpan().GetHashCode() : 1;
+			return this.Location != null ? this.Location.GetLineSpan().GetHashCode() : 1;
 		}
 	}
 }

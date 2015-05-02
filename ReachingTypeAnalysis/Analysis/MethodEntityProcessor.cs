@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Collections;
+using ReachingTypeAnalysis.Roslyn;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -96,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (this.Verbose)
             {
-                Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.Method.ToString()));
+                Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
             }
             // Propagation of concrete types
             var callsAndRets = this.MethodEntity.PropGraph.Propagate();
@@ -191,11 +192,12 @@ namespace ReachingTypeAnalysis.Analysis
                 /// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
                 if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)
                 {
-                    var instantiatedTypes = new HashSet<AnalysisType>();
+                    var instantiatedTypes = new HashSet<TypeDescriptor>();
                     /// We get the instantiated type that are compatible with the receiver type
                     instantiatedTypes.UnionWith(
 						this.MethodEntity.InstantiatedTypes
-							.Where(type => type.IsSubtype(callInfo.Receiver.Type)));
+							.Where(type => CodeProvider.IsSubtype(type,callInfo.Receiver.Type)));
+                        // .Where(type => type.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var type in instantiatedTypes)
 					{
 						types.Add(type);
@@ -214,7 +216,8 @@ namespace ReachingTypeAnalysis.Analysis
                     {
                         // Given a method m and T find the most accurate implementation wrt to T
                         // it can be T.m or the first super class implementing m
-                        var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+                        //var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+                        var realCallee = Utils.FindMethodDescriptorForType(callInfo.Callee,receiverType);
                         CreateAndSendCallMessage(
 							callInfo, realCallee, receiverType, propKind);
                     }
@@ -234,7 +237,8 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        private void CreateAndSendCallMessage(AnalysisInvocationExpession callInfo, AnalysisMethod realCallee, AnalysisType receiverType, PropagationKind propKind)
+        private void CreateAndSendCallMessage(AnalysisInvocationExpession callInfo, MethodDescriptor realCallee, 
+                                            TypeDescriptor receiverType, PropagationKind propKind)
         {
             /// Here I have all the necessary info to update the callgraph
             /// 
@@ -245,18 +249,19 @@ namespace ReachingTypeAnalysis.Analysis
             this.SendMessage(destination, callerMessage);
         }
 
-        private IEnumerable<MethodDescriptor> GetDelegateCallees(VariableDescriptor delegateNode)
+        private IEnumerable<MethodDescriptor> GetDelegateCallees(DelegateVariableNode delegateVariableNode)
         {
             var callees = new HashSet<MethodDescriptor>();
-            var types = GetTypes(delegateNode);
-            foreach (var delegateInstance in GetDelegates(delegateNode))
+            var types = GetTypes(delegateVariableNode);
+            foreach (var delegateInstance in GetDelegates(delegateVariableNode))
             {
                 if (types.Count() > 0)
                 {
                     foreach (var t in types)
                     {
-                        var aMethod = delegateInstance.FindMethodImplementation(t);
-                        callees.Add(aMethod);
+                        //var aMethod = delegateInstance.FindMethodImplementation(t);
+                        var methodDescriptor = Utils.FindMethodDescriptorForType(delegateInstance, t);
+                        callees.Add(methodDescriptor);
                     }
                 }
                 else
@@ -272,24 +277,27 @@ namespace ReachingTypeAnalysis.Analysis
         {
             foreach (var callee in GetDelegateCallees(delegateCallInfo.CalleeDelegate))
             {
-                CreateAndSendCallMessage(delegateCallInfo, (AnalysisMethod)callee, callee.ContainerType, propKind);
+                CreateAndSendCallMessage(delegateCallInfo, callee, callee.ContainerType, propKind);
             }
         }
 
         private CallMessageInfo CreateCallMessage(AnalysisInvocationExpession callInfo,
-                                                            AnalysisMethod actuallCallee,
-                                                            AnalysisType computedReceiverType,
+                                                            MethodDescriptor actuallCallee,
+                                                            TypeDescriptor computedReceiverType,
                                                             PropagationKind propKind)
         {
-            var calleType = (AnalysisType)actuallCallee.ContainerType;
-            ISet<AnalysisType> potentialReceivers = new HashSet<AnalysisType>();
+            // var calleType = (TypeDescriptor)actuallCallee.ContainerType;
+            var calleType = computedReceiverType;
+            ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
 
             if (callInfo.Receiver != null)
             {
                 // Instead of copying all types with use the type we use to compute the callee
-                //potentialReceivers.UnionWith(GetTypes(callInfo.Receiver, propKind).Where(t => t.Equals(computedReceiverType)));
                 potentialReceivers.UnionWith(
-					GetTypes(callInfo.Receiver, propKind).Where(t => t.IsSubtype(calleType)));
+				    	GetTypes(callInfo.Receiver, propKind)
+                        .Where(t => CodeProvider.IsSubtype(t,calleType)));
+                        //.Where(t => t.IsSubtype(calleType)));
+
                 // potentialReceivers.Add((AnalysisType)calleType);
             }
 
@@ -299,11 +307,9 @@ namespace ReachingTypeAnalysis.Analysis
 				new HashSet<TypeDescriptor>());
 
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
-            AnalysisMethod am = (AnalysisMethod)actuallCallee;
-            //Contract.Assert(argumentValues.Count() == ((AMethod)am).RoslynMethod.Parameters.Count() );
 
             return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
-                                                potentialReceivers, new List<ISet<AnalysisType>>(argumentValues),
+                                                potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
                                                 callInfo.LHS, callInfo.InstatiatedTypes, propKind);
         }
 
@@ -329,7 +335,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="context"></param>
         /// <param name="returnVariable"></param>
         /// <param name="propKind"></param>
-        public void DispachReturnMessage(CallContext context, VariableDescriptor returnVariable, PropagationKind propKind)
+        public void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
         {
             var caller = context.Caller;
             var lhs = context.CallLHS;
@@ -342,7 +348,8 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var instTypes = new HashSet<TypeDescriptor>();
                 instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-						.Where(type => type.IsSubtype(returnVariable.Type)));
+                          .Where(type => CodeProvider.IsSubtype(type,returnVariable.Type)));
+						//.Where(type => type.IsSubtype(returnVariable.Type)));
                 foreach (var type in instTypes)
                 {
                     types.Add(type);
@@ -381,7 +388,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
             if (this.Verbose)
             {
-                Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.Method.ToString()));
+                Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
             }
 
 			// This tries to check that the invocation is repeated (didn't work: need to check)
@@ -391,7 +398,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				if (this.Verbose)
 				{
-					Debug.WriteLine(string.Format("Recursion loop {0} ", this.MethodEntity.Method.ToString()));
+					Debug.WriteLine(string.Format("Recursion loop {0} ", this.MethodEntity.MethodDescriptor.ToString()));
 				}
 				EndOfPropagationEvent(callMessage.PropagationKind, false);
 
@@ -455,7 +462,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-		internal ISet<TypeDescriptor> GetTypes(VariableDescriptor node, PropagationKind prop)
+		internal ISet<TypeDescriptor> GetTypes(AnalysisNode node, PropagationKind prop)
         {
             switch (prop)
             {
@@ -468,11 +475,11 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        internal ISet<TypeDescriptor> GetTypes(VariableDescriptor node)
+        internal ISet<TypeDescriptor> GetTypes(AnalysisNode analysisNode)
         {
-            if (node != null)
+            if (analysisNode != null)
             {
-                return this.MethodEntity.PropGraph.GetTypes(node);
+                return this.MethodEntity.PropGraph.GetTypes(analysisNode);
             }
             else
             {
@@ -480,7 +487,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        internal ISet<TypeDescriptor> GetDeletedTypes(VariableDescriptor node)
+        internal ISet<TypeDescriptor> GetDeletedTypes(AnalysisNode node)
         {
             if (node != null)
             {
@@ -499,7 +506,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        internal ISet<MethodDescriptor> GetDelegates(VariableDescriptor node)
+        internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode node)
         {
             return this.MethodEntity.PropGraph.GetDelegates(node);
         }

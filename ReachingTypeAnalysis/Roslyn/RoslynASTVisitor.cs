@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis
         /// <summary>
         /// The next 3 properties are shortcuts for elements in MethodInterfaceData
         /// </summary>
-        public AnalysisNode RetVar
+        public VariableNode RetVar
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis
         public IDispatcher Dispatcher { get; private set; }
         //private AMethod analysisMethod;
 
-        public AnalysisMethod AnalysisMethod { get; private set; }
+        public MethodDescriptor MethodDescriptor { get; private set; }
 
         public GeneralRoslynMethodProcessor(IMethodSymbol roslynMethod, IDispatcher dispatcher)
         {
@@ -55,12 +55,11 @@ namespace ReachingTypeAnalysis
 
 			this.Dispatcher = dispatcher;
             this.RoslynMethod = roslynMethod;
-            this.AnalysisMethod = new AnalysisMethod(roslynMethod);
+            this.MethodDescriptor = new MethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
             // The statement processor generates the Prpagagation Graph
-            this.StatementProcessor = new StatementProcessor(
-				this.AnalysisMethod.MethodDescriptor, 
-				this.RetVar, this.ThisRef, this.Parameters);
+            this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
+				                            this.RetVar, this.ThisRef, this.Parameters);
         }
 
         /// <summary>
@@ -86,9 +85,9 @@ namespace ReachingTypeAnalysis
 		{
 			Contract.Assert(symbol != null);
 
-			AnalysisNode retVar = null;
-			AnalysisNode thisRef = null;
-			IList<AnalysisNode> parameters;
+			ReturnNode retVar = null;
+			VariableNode thisRef = null;
+			IList<ParameterNode> parameters;
 			var inputs = new Dictionary<string, AnalysisNode>();
 			var outputs = new Dictionary<string, AnalysisNode>();
 			if (!symbol.ReturnsVoid && Utils.IsTypeForAnalysis(symbol.ReturnType))
@@ -100,17 +99,17 @@ namespace ReachingTypeAnalysis
 			{
 				thisRef = new ThisNode(new TypeDescriptor(symbol.ReceiverType));
 			}
-			parameters = new List<AnalysisNode>();
+			parameters = new List<ParameterNode>();
 			for (int i = 0; i < symbol.Parameters.Count(); i++)
 			{
 				var p = symbol.Parameters[i];
-				var pNode = new ParameterNode(i, new TypeDescriptor(p.Type));
-				parameters.Add(pNode);
+				var parameterNode = new ParameterNode(symbol.Parameters[i].Name, i, new TypeDescriptor(p.Type));
+				parameters.Add(parameterNode);
 				if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
 				{
-					outputs[p.Name] = pNode;
+					outputs[p.Name] = parameterNode;
 				}
-				inputs[p.Name] = pNode;
+				inputs[p.Name] = parameterNode;
 			}
 
 			var methodInterfaceData = new MethodInterfaceData()
@@ -205,9 +204,9 @@ namespace ReachingTypeAnalysis
             var propGraphGenerator = new MethodSyntaxVisitor(codeProvider, methodNode, this);
             propGraphGenerator.Visit(methodNode);
 
-            var descriptor = EntityFactory.Create(this.AnalysisMethod);
+            var descriptor = EntityFactory.Create(this.MethodDescriptor);
             var methodEntity = EntityFactory.CreateEntity(
-                                        new MethodEntity(propGraphGenerator.AnalysisMethod,
+                                        new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph,
                                                                     propGraphGenerator.InstantiatedTypes), descriptor);
@@ -219,8 +218,9 @@ namespace ReachingTypeAnalysis
     internal class MethodSyntaxVisitor : CSharpSyntaxVisitor<object>
     {
         protected IMethodSymbol roslynMethod;
+        internal int InvocationOrder { get; set; }
 
-        public AnalysisMethod AnalysisMethod { get; private set; }
+        public MethodDescriptor MethodDescriptor { get; private set; }
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
 
         internal AnalysisNode RetVar
@@ -238,7 +238,7 @@ namespace ReachingTypeAnalysis
         }
 
         // var mw1 = new MethodWorker<Expr, Type, String>("m1", rv1, thisRefm1, paramsm1);
-        //MethodWorker<ANode, AType, IMethodSymbol> worker;
+        //MethodWorker<ANode, typeDescriptor, IMethodSymbol> worker;
 
         private CodeProvider codeProvider;
         private SyntaxNode methodNode;
@@ -254,7 +254,7 @@ namespace ReachingTypeAnalysis
             get { return this.StatementProcessor.PropagationGraph; }
         }
 
-        public IEnumerable<AnalysisType> InstantiatedTypes
+        public IEnumerable<TypeDescriptor> InstantiatedTypes
         {
             get { return this.StatementProcessor.InstantiatedTypes; }
         }
@@ -268,9 +268,11 @@ namespace ReachingTypeAnalysis
             this.roslynMethodProcessor = roslynMethodProcessor;
 
             this.MethodInterfaceData = roslynMethodProcessor.MethodInterfaceData;
-            this.AnalysisMethod = roslynMethodProcessor.AnalysisMethod;
+            this.MethodDescriptor = roslynMethodProcessor.MethodDescriptor;
+            this.roslynMethod = codeProvider.FindMethod(this.MethodDescriptor);
 
             this.expressionsVisitor = new ExpressionVisitor(codeProvider, this.StatementProcessor, this);
+            this.InvocationOrder = 0;
         }
 
 		
@@ -460,7 +462,7 @@ namespace ReachingTypeAnalysis
         }
 
         #region Helpers to connect with statement processor
-        internal AnalysisNode RegisterVariable(ExpressionSyntax v)
+        internal VariableNode RegisterVariable(ExpressionSyntax v)
         {
             var tVar = codeProvider.SemanticModel.GetTypeInfo(v);
             var s = codeProvider.SemanticModel.GetSymbolInfo(v).Symbol;
@@ -474,17 +476,16 @@ namespace ReachingTypeAnalysis
             return RegisterVariable(v, s.Type, s);
         }
 
-        internal AnalysisNode RegisterVariable(SyntaxNodeOrToken v, ITypeSymbol type, ISymbol s)
+        internal VariableNode RegisterVariable(SyntaxNodeOrToken v, ITypeSymbol type, ISymbol s)
         {
-
-            AnalysisNode lhs;
+            VariableNode lhs;
             if (type.TypeKind.Equals(TypeKind.Delegate))
             {
-				lhs = new DelegateNode(new TypeDescriptor(type), v.ToString());
+				lhs = new DelegateVariableNode(v.ToString(), new TypeDescriptor(type));
             }
             else
             {
-                lhs = CreateNodeForExpression(type, v, s);
+                lhs = new VariableNode(v.ToString(), new TypeDescriptor(type));
                 //lhs = ANode.Define(t, v);
             }
             if (lhs != null) this.StatementProcessor.RegisterLocalVariable(lhs);
@@ -508,20 +509,23 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        internal void RegisterNewExpressionAssignment(AnalysisNode lhsNode, AnalysisType aType)
+        internal void RegisterNewExpressionAssignment(AnalysisNode lhsNode, TypeDescriptor typeDescriptor)
         {
-            this.StatementProcessor.RegisterNewExpressionAssignment(lhsNode, aType);
+            this.StatementProcessor.RegisterNewExpressionAssignment(lhsNode, typeDescriptor);
         }
 
-        internal void RegisterCallLHS(AnalysisNode lhsNode, AnalysisExpression rhsExpression)
+        internal void RegisterCallLHS(VariableNode lhsNode, AnalysisExpression rhsExpression)
         {
-            var callNode = rhsExpression.GetAnalysisNode() as AnalysisCallNode;
+            Contract.Assert(rhsExpression.GetAnalysisNode() is AnalysisCallNode);
+
+            var callNode = (AnalysisCallNode)rhsExpression.GetAnalysisNode();
             this.StatementProcessor.RegisterCallLHS(callNode, lhsNode);
         }
 
         internal void RegisterDelegate(AnalysisNode lhsNode, IMethodSymbol delegateMethod)
         {
-            this.StatementProcessor.RegisterDelegateAssignment(lhsNode, new AnalysisMethod(delegateMethod));
+            Contract.Assert(lhsNode is DelegateVariableNode);
+            this.StatementProcessor.RegisterDelegateAssignment((DelegateVariableNode)lhsNode, new MethodDescriptor(delegateMethod));
         }
 
         //public ANode RegisterExpression(ExpressionSyntax lhs)
@@ -536,36 +540,7 @@ namespace ReachingTypeAnalysis
         //}
 
         internal IDictionary<SyntaxNodeOrToken, AnalysisNode> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, AnalysisNode>();
-        internal AnalysisNode CreateNodeForExpression(SyntaxNode ex)
-        {
-            var type = codeProvider.SemanticModel.GetTypeInfo(ex).Type;
-            return CreateNodeForExpression(type, ex);
-        }
-        internal AnalysisNode CreateNodeForExpression(ITypeSymbol type, SyntaxNode ex)
-        {
-            AnalysisNode node;
-            if (!expressionNodeCache.TryGetValue(ex, out node))
-            {
-                ISymbol s = codeProvider.SemanticModel.GetSymbolInfo(ex).Symbol;
-                node = AnalysisNode.Define(type, ex, s);
-                expressionNodeCache[ex] = node;
-            }
-            return node;
-        }
-        internal AnalysisNode CreateNodeForExpression(ITypeSymbol type, SyntaxNodeOrToken ex, ISymbol s)
-        {
-            AnalysisNode node = null;
-            if (Utils.IsTypeForAnalysis(type))
-            {
-                if (!expressionNodeCache.TryGetValue(ex, out node))
-                {
-                    node = AnalysisNode.Define(type, ex, s);
-                    expressionNodeCache[ex] = node;
-                }
-            }
-            return node;
-        }
-
+     
         #endregion
     }
 

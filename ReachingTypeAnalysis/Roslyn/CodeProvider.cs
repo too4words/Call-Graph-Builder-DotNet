@@ -50,6 +50,10 @@ namespace ReachingTypeAnalysis.Roslyn
 				}
 			}
 		}
+        public IMethodSymbol FindMethod(MethodDescriptor methodDescriptor)
+        {
+            return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+        }
 
 		public async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(MethodDescriptor method)
 		{
@@ -167,6 +171,10 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return null;
 		}
+        internal static bool IsSubtype(TypeDescriptor type1, TypeDescriptor type2)
+        {
+            throw new NotImplementedException();
+        }
 
 		/*
 		var cancellationToken = new System.Threading.CancellationToken();

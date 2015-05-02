@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -56,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// The method being analyzed
 		/// </summary>
-		public AnalysisMethod Method { get; private set; }
+		public MethodDescriptor MethodDescriptor { get; private set; }
 
 		/// <summary>
 		/// This is the important part of the this class 
@@ -73,14 +74,14 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// The next properties obtains info from MethodDataInterface
 		/// </summary>
-		public VariableDescriptor ThisRef
+		public VariableNode ThisRef
 		{
 			get { return MethodInterfaceData.ThisRef; }
 		}
 		/// <summary>
 		/// These are the node correspoding to the parameters
 		/// </summary>
-		public IEnumerable<VariableDescriptor> ParameterNodes
+		public IEnumerable<VariableNode> ParameterNodes
 		{
 			get { return MethodInterfaceData.Parameters; }
 
@@ -88,7 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// Return the node rerpesenting the ret value
 		/// </summary>
-		public VariableDescriptor ReturnVariable
+		public VariableNode ReturnVariable
 		{
 			get { return MethodInterfaceData.ReturnVariable; }
 		}
@@ -96,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
-		private IDictionary<AnalysisNode, ISet<AnalysisMethod>> calleesMappingCache = new Dictionary<AnalysisNode, ISet<AnalysisMethod>>();
+		private IDictionary<AnalysisNode, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<AnalysisNode, ISet<MethodDescriptor>>();
 		public MethodEntityProcessor EntityProcessor { get; private set; }
 
 		//public ISet<E> NodesProcessing = new HashSet<E>();
@@ -106,22 +107,22 @@ namespace ReachingTypeAnalysis.Analysis
 		/// A method entity is built using the methods interface (params, return) and the propagation graph that is 
 		/// initially populated with the variables, parameters and calls of the method 
 		/// </summary>
-		/// <param name="method"></param>
+		/// <param name="methodDescriptor"></param>
 		/// <param name="mid"></param>
 		/// <param name="propGraph"></param>
 		/// <param name="instantiatedTypes"></param>
-		public MethodEntity(AnalysisMethod method,
+		public MethodEntity(MethodDescriptor methodDescriptor,
 			MethodInterfaceData mid,
 			PropagationGraph propGraph,
-			IEnumerable<AnalysisType> instantiatedTypes)
+			IEnumerable<TypeDescriptor> instantiatedTypes)
 			: base()
 		{
-			this.Method = method;
-			this.EntityDescriptor = EntityFactory.Create(method);
+			this.MethodDescriptor = methodDescriptor;
+			this.EntityDescriptor = EntityFactory.Create(methodDescriptor);
 			this.MethodInterfaceData = mid;
 
 			this.PropGraph = propGraph;
-			this.InstantiatedTypes = new HashSet<AnalysisType>(instantiatedTypes);
+			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
 		}
 
 		/// <summary>
@@ -176,9 +177,9 @@ namespace ReachingTypeAnalysis.Analysis
 		/// Compute all the calless of this method entities
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<AnalysisMethod> Callees()
+		public IEnumerable<MethodDescriptor> Callees()
 		{
-			var result = new HashSet<AnalysisMethod>();
+			var result = new HashSet<MethodDescriptor>();
 			foreach (var callNode in PropGraph.CallNodes)
 			{
 				result.UnionWith(Callees(callNode));
@@ -191,14 +192,14 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="node"></param>
 		/// <returns></returns>
-		public ISet<AnalysisMethod> Callees(AnalysisNode node)
+		public ISet<MethodDescriptor> Callees(AnalysisNode node)
 		{
-			ISet<AnalysisMethod> result;
+			ISet<MethodDescriptor> result;
 
 			if (!calleesMappingCache.TryGetValue(node, out result))
 			{
-				var calleesForNode = new HashSet<AnalysisMethod>();
-				var invExp = PropGraph.GetInvocationInfo(node);
+				var calleesForNode = new HashSet<MethodDescriptor>();
+				var invExp = PropGraph.GetInvocationInfo((AnalysisCallNode)node);
 				Contract.Assert(invExp != null);
 
 				calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.PropGraph));
@@ -215,9 +216,9 @@ namespace ReachingTypeAnalysis.Analysis
 		/// This is used for example by the demo to get the caller / callee info
 		/// </summary>
 		/// <returns></returns>
-		public IDictionary<AnalysisNode, ISet<AnalysisMethod>> GetCalleesInfo()
+		public IDictionary<AnalysisCallNode, ISet<MethodDescriptor>> GetCalleesInfo()
 		{
-			var calleesPerEntity = new Dictionary<AnalysisNode, ISet<AnalysisMethod>>();
+			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
 			foreach (var calleeNode in this.PropGraph.CallNodes)
 			{
 				calleesPerEntity[calleeNode] = Callees(calleeNode);
@@ -257,7 +258,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
-		public ISet<TypeDescriptor> GetTypes(VariableDescriptor n)
+		public ISet<TypeDescriptor> GetTypes(AnalysisNode n)
 		{
 			if (n != null)
 			{
@@ -274,25 +275,26 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="n"></param>
 		/// <returns></returns>
-		internal ISet<MethodDescriptor> GetDelegates(VariableDescriptor n)
+		internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode n)
 		{
 			return this.PropGraph.GetDelegates(n);
 		}
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(VariableDescriptor n)
+		internal ISet<TypeDescriptor> GetPotentialTypes(AnalysisNode analysisNode)
 		{
 			var result = new HashSet<TypeDescriptor>();
-			foreach (var t in PropGraph.GetTypes(n))
+			foreach (var typeDescriptor in PropGraph.GetTypes(analysisNode))
 			{
-				if (t.IsConcreteType)
+				if (typeDescriptor.IsConcreteType)
 				{
-					result.Add(t);
+					result.Add(typeDescriptor);
 				}
 				else
 				{
 					result
 						.UnionWith(InstantiatedTypes
-							.Where(iType => iType.IsSubtype(t)));
+                            .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
+//							.Where(iType => iType.IsSubtype(t)));
 				}
 			}
 			return result;
@@ -305,35 +307,35 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override string ToString()
 		{
-			return this.Method.ToString();
+			return this.MethodDescriptor.ToString();
 		}
 	}
 
-	internal class MethodEntityDescriptor<AMethod> : IEntityDescriptor
+	internal class MethodEntityDescriptor : IEntityDescriptor
 	{
-		private AMethod method;
+		private MethodDescriptor methodDescriptor;
 
-		public AMethod Method
+        public MethodDescriptor MethodDescriptor
 		{
-			get { return method; }
-			private set { method = value; }
+			get { return methodDescriptor; }
+			private set { methodDescriptor = value; }
 		}
-		internal MethodEntityDescriptor(AMethod method)
+        internal MethodEntityDescriptor(MethodDescriptor methodDescriptor)
 		{
-			this.method = method;
+			this.methodDescriptor = methodDescriptor;
 		}
 		public override bool Equals(object obj)
 		{
-			MethodEntityDescriptor<AMethod> md = obj as MethodEntityDescriptor<AMethod>;
-			return md != null && method.Equals(md.method);
+			MethodEntityDescriptor md = obj as MethodEntityDescriptor;
+			return md != null && methodDescriptor.Equals(md.methodDescriptor);
 		}
 		public override int GetHashCode()
 		{
-			return method.GetHashCode();
+			return methodDescriptor.GetHashCode();
 		}
 		public override string ToString()
 		{
-			return method.ToString();
+			return methodDescriptor.ToString();
 		}
 	}
 
@@ -345,18 +347,18 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		internal MethodInterfaceData()
 		{
-			this.InputData = new Dictionary<string, VariableDescriptor>();
-			this.OutputData = new Dictionary<string, VariableDescriptor>();
+			this.InputData = new Dictionary<string, AnalysisNode>();
+			this.OutputData = new Dictionary<string, AnalysisNode>();
 		}
 
-		public VariableDescriptor ThisRef { get; internal set; }
+		public VariableNode ThisRef { get; internal set; }
 
-		public IEnumerable<VariableDescriptor> Parameters { get; internal set; }
+		public IEnumerable<VariableNode> Parameters { get; internal set; }
 
-		public VariableDescriptor ReturnVariable { get; internal set; }
+		public VariableNode ReturnVariable { get; internal set; }
 
-		public IDictionary<string, VariableDescriptor> OutputData { get; internal set; }
+		public IDictionary<string, AnalysisNode> OutputData { get; internal set; }
 
-		public IDictionary<string, VariableDescriptor> InputData { get; internal set; }
+		public IDictionary<string, AnalysisNode> InputData { get; internal set; }
 	}
 }

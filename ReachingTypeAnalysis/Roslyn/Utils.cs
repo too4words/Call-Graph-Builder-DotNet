@@ -18,12 +18,6 @@ namespace ReachingTypeAnalysis
 			return type != null && IsTypeForAnalysis(type);
 		}
 
-		internal static bool IsTypeForAnalysis(AnalysisType analysisType)
-		{
-			var res = IsTypeForAnalysis(analysisType.RoslynType);
-			return res;
-		}
-
 		internal static bool IsTypeForAnalysis(TypeDescriptor t)
 		{
 			Contract.Assert(t != null);
@@ -36,6 +30,12 @@ namespace ReachingTypeAnalysis
 			var res = t != null && (t.IsReferenceType || t.TypeKind == TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
+
+        internal static MethodDescriptor FindMethodDescriptorForType(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            throw new NotImplementedException("To implement this method we need type resolution");
+        }
+
 
 		internal static IMethodSymbol FindMethodImplementation(IMethodSymbol method, ITypeSymbol rType)
 		{
