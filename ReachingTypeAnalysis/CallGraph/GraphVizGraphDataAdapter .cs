@@ -48,7 +48,7 @@ namespace SolutionTraversal.Callgraph
 
                 foreach (Edge edge in graph.EnumerateEdges())
                 {
-                    var locationMethod = (KeyValuePair<AnalysisLocation, MethodDescriptor>)edge["L"];
+                    var locationMethod = (KeyValuePair<LocationDescriptor, MethodDescriptor>)edge["L"];
                     var locString = locationMethod.Key.Location != null ? locationMethod.Key.Location.GetLineSpan().StartLinePosition.ToString() : "?";
                     writer.WriteLine(@"{0} [label=""{1}""];", edge, locString);
                     //var locationMethod = (KeyValuePair<Location, IMethodSymbol>)edge["L"];

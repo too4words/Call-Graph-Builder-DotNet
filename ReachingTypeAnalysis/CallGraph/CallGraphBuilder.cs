@@ -113,7 +113,7 @@ namespace ReachingTypeAnalysis
         }
 
 		// Original version using locations
-		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, AnalysisLocation locToFilter)
+		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, LocationDescriptor locToFilter)
         {
             var result = new HashSet<MethodDescriptor>();
             var methodDescriptor = new MethodDescriptor(method);

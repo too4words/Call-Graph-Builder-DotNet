@@ -171,47 +171,7 @@ namespace ReachingTypeAnalysis
 			return base.GetHashCode() + this.LocationDescriptor.GetHashCode();
 		}
 	}
-/*
-    internal abstract class AnalysisType
-    {
-        internal TypeDescriptor TypeDescriptor { get; private set; }
-
-        internal AnalysisType(TypeDescriptor typeDescriptor)
-        {
-            this.TypeDescriptor = typeDescriptor;
-        }
-        internal abstract bool IsConcrete();
-        public bool IsSubtype(AnalysisType analysisType)
-        {
-            throw new NotImplementedException();
-            //var res = TypeHelper.InheritsByName(this.RoslynType, at.RoslynType);
-            //return res;
-        }
-    }
-    internal class ConcreteType: AnalysisType
-    {
-        public ConcreteType(TypeDescriptor typeDescriptor)
-            :base(typeDescriptor)
-        { 
-        }
-        internal override bool IsConcrete()
-        {
-            return true;
-        }
-    }
-    internal class DeclaredType : AnalysisType
-    {
-        public DeclaredType(TypeDescriptor typeDescriptor)
-            : base(typeDescriptor)
-        {
-        }
-        internal override bool IsConcrete()
-        {
-            return false;
-        }
-    } 
- */
-/*		
+/*	REMOVED: AnalysisType	
 	internal abstract class AnalysisType
 	{
 		protected bool concrete = true;
@@ -298,7 +258,7 @@ namespace ReachingTypeAnalysis
 	//    MethodDescriptor MethodDescriptor { get; }
 	//}
 */
-
+/*      REMOVED: AnalysisMethod
 	internal class AnalysisMethod
 	{
         internal MethodDescriptor MethodDescriptor { get; private set; }
@@ -382,4 +342,5 @@ namespace ReachingTypeAnalysis
 			return this.Location != null ? this.Location.GetLineSpan().GetHashCode() : 1;
 		}
 	}
+     */ 
 }
