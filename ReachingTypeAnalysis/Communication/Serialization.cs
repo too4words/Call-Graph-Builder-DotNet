@@ -11,22 +11,18 @@ namespace ReachingTypeAnalysis.Communication
 	/// </summary>
 	internal static class Demarshaler
 	{
-		internal static AnalysisMethod Demarshal(MethodDescriptor methodDescriptor)
-		{
-			return default(AnalysisMethod);
-		}
 
 		internal static ISet<TypeDescriptor> Demarshal(ISet<TypeDescriptor> typeDescriptors)
 		{
 			throw new NotImplementedException();
 		}
 
-		internal static AnalysisNode Demarshal(VariableNode variableDescriptor)
+		internal static VariableNode Demarshal(VariableNode variableDescriptor)
 		{
 			throw new NotImplementedException();
 		}
 
-		internal static AnalysisNode Demarshal(InvocationDescriptor locationDescriptor)
+		internal static AnalysisNode Demarshal(LocationDescriptor locationDescriptor)
 		{
 			throw new NotImplementedException();
 		}

@@ -13,7 +13,8 @@ namespace ReachingTypeAnalysis
 	/// Currently they conrtain information about the corresponding Roslyn symbol they represent 
 	/// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
 	/// </summary> 
-	internal abstract class AnalysisNode
+    [Serializable]
+    internal abstract class AnalysisNode
 	{
 		public string Name { get; private set; }
 		internal TypeDescriptor Type { get; private set; }
@@ -69,21 +70,6 @@ namespace ReachingTypeAnalysis
 
         //internal SyntaxNodeOrToken Expression { get; private set; }
         //internal VariableDescriptor Symbol { get; private set; }
-
-
-        //internal AnalysisLocation LocationReference
-        //{
-        //    //get { return new ALocation(this.expression.GetLocation()); }
-        //    get
-        //    {
-        //        if (locationRef == null)
-        //        {
-        //            locationRef = new AnalysisLocation(this.Expression);
-        //        }
-
-        //        return locationRef;
-        //    }
-        //}
 
 	}
 
@@ -161,9 +147,9 @@ namespace ReachingTypeAnalysis
     [Serializable]
 	internal class AnalysisCallNode : AnalysisNode
 	{
-		public InvocationDescriptor LocationDescriptor { get; private set; }
+		public LocationDescriptor LocationDescriptor { get; private set; }
         public int InMethodOrder { get; private set; }
-		public AnalysisCallNode(TypeDescriptor declaredType, InvocationDescriptor location)
+		public AnalysisCallNode(TypeDescriptor declaredType, LocationDescriptor location)
             : base(string.Format("call {0}", location.ToString()), declaredType)
 		{
 			this.LocationDescriptor = location;

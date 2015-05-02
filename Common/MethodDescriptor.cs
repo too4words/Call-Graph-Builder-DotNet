@@ -105,8 +105,6 @@ namespace ReachingTypeAnalysis
         {
             return this.Name;
         }
-
-
     }
 
     [Serializable]
@@ -166,35 +164,32 @@ namespace ReachingTypeAnalysis
         }
     }
 
-	public interface INodeDescriptor { }
+    //[Serializable]
+    //public class VariableDescriptor : INodeDescriptor
+    //{
+    //    public string Name { get; private set; }
+    //    public TypeDescriptor Type { get; private set; }
 
-
-	[Serializable]
-	public class VariableDescriptor : INodeDescriptor
-	{
-		public string Name { get; private set; }
-		public TypeDescriptor Type { get; private set; }
-
-		public VariableDescriptor(string name, TypeDescriptor type)
-		{
-			this.Name = name;
-			this.Type = type;
-		}
-	}
+    //    public VariableDescriptor(string name, TypeDescriptor type)
+    //    {
+    //        this.Name = name;
+    //        this.Type = type;
+    //    }
+    //}
 
 	[Serializable]
-	public class InvocationDescriptor : INodeDescriptor
+	public class LocationDescriptor 
 	{
 		public Location Location { get; private set; }
         public int InMethodOrder { get; private set; }
-		public InvocationDescriptor(Location location)
+		public LocationDescriptor(Location location)
 		{
 			Contract.Assert(location != null);
 			this.Location = location;
             InMethodOrder = 0; // need to search for the statement # in that location
  		}
 
-        public InvocationDescriptor(int inMethodOrder)
+        public LocationDescriptor(int inMethodOrder)
         {
             this.InMethodOrder = inMethodOrder;
         }

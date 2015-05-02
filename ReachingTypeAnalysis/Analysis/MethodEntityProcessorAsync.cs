@@ -351,7 +351,6 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
 			}
-			var caller = Demarshaler.Demarshal(callMessage.Caller);
 			// This is the node in the caller where info of ret-value should go
 			var lhs = callMessage.LHS;
 			// Save caller info

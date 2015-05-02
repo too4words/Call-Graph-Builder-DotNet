@@ -207,7 +207,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			{
 				return new AnalysisCallNode(
 					new TypeDescriptor(this.Type), 
-					new InvocationDescriptor(this.Expression.GetLocation()));
+					new LocationDescriptor(this.Expression.GetLocation()));
 			}
 			else
 			{
@@ -486,7 +486,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 // Process parameters
                 var callNode = new AnalysisCallNode(
                     new TypeDescriptor(roslynMethod.ReturnType),
-                    new InvocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
+                    new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
                 var methodDescriptor = new MethodDescriptor(roslynMethod);
                 Contract.Assert(!roslynMethod.IsStatic);
@@ -704,7 +704,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					var delegateVarNode = roslynMethodVisitor.RegisterVariable(node.Expression);
 					var callNode = new AnalysisCallNode(
 						new TypeDescriptor(methodInvokedSymbol.ReturnType),
-                        new InvocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
+                        new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
                     statementProcessor.RegisterStaticDelegateCall(methodDescriptor, args, lh, (DelegateVariableNode)delegateVarNode, callNode);
                     result = new DelegateCall(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
@@ -714,7 +714,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				{
 					var callNode = new AnalysisCallNode(
 						new TypeDescriptor(methodInvokedSymbol.ReturnType),
-                        new InvocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
+                        new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
 					VariableNode receiverArg = null;
 					if (!methodInvokedSymbol.IsStatic)
@@ -909,7 +909,7 @@ namespace ReachingTypeAnalysis.Roslyn
             // we treat this as an invocation
             var callNode = new AnalysisCallNode(
 				new TypeDescriptor(roslynMethod.ReturnType),
-                new InvocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
+                new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
             var methodDescriptor = new MethodDescriptor(roslynMethod);
 

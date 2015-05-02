@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis
         /// <param name="solution"></param>
         /// <returns></returns>
         //public static CallGraph<IMethodSymbol,Location> BuildCallGraph(Solution solution)
-        public static CallGraph<MethodDescriptor, InvocationDescriptor> BuildCallGraph(Solution solution)
+        public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             analyzer.Analyze();
@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        public static CallGraph<MethodDescriptor, InvocationDescriptor> BuildCallGraphWithoutAppSettings(Solution solution)
+        public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraphWithoutAppSettings(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             analyzer.AnalyzeWithoutAppSettings();
