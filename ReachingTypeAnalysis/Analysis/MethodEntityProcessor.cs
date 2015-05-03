@@ -26,6 +26,8 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="M"></typeparam>
     internal partial class MethodEntityProcessor: EntityProcessor
     {
+        protected CodeProvider codeProvider;
+
         public MethodEntity MethodEntity { get; private set; }
         public MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
             base(methodEntity, dispatcher)
@@ -34,6 +36,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.MethodEntity = methodEntity;
             this.Verbose = verbose;
+            // It gets a code provider for the method. 
+            this.codeProvider = CodeProvider.GetAsync(methodEntity.MethodDescriptor).Result;
         }
 
         public bool Verbose { get; private set; }
@@ -196,7 +200,7 @@ namespace ReachingTypeAnalysis.Analysis
                     /// We get the instantiated type that are compatible with the receiver type
                     instantiatedTypes.UnionWith(
 						this.MethodEntity.InstantiatedTypes
-							.Where(type => CodeProvider.IsSubtype(type,callInfo.Receiver.Type)));
+							.Where(type => codeProvider.IsSubtype(type,callInfo.Receiver.Type)));
                         // .Where(type => type.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var type in instantiatedTypes)
 					{
@@ -295,7 +299,7 @@ namespace ReachingTypeAnalysis.Analysis
                 // Instead of copying all types with use the type we use to compute the callee
                 potentialReceivers.UnionWith(
 				    	GetTypes(callInfo.Receiver, propKind)
-                        .Where(t => CodeProvider.IsSubtype(t,calleType)));
+                        .Where(t => codeProvider.IsSubtype(t,calleType)));
                         //.Where(t => t.IsSubtype(calleType)));
 
                 // potentialReceivers.Add((AnalysisType)calleType);
@@ -348,7 +352,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var instTypes = new HashSet<TypeDescriptor>();
                 instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                          .Where(type => CodeProvider.IsSubtype(type,returnVariable.Type)));
+                          .Where(type => codeProvider.IsSubtype(type,returnVariable.Type)));
 						//.Where(type => type.IsSubtype(returnVariable.Type)));
                 foreach (var type in instTypes)
                 {

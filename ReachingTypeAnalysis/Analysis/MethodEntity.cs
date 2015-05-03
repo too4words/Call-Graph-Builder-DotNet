@@ -253,52 +253,52 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 		#endregion
 
-		/// <summary>
-		/// Obtains the concrete types that a method expression (e.g, variable, parameter, field) may refer 
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		public ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor n)
-		{
-			if (n != null)
-			{
-				return this.PropGraph.GetTypes(n);
-			}
-			else
-			{
-				return new HashSet<TypeDescriptor>();
-			}
-		}
+//        /// <summary>
+//        /// Obtains the concrete types that a method expression (e.g, variable, parameter, field) may refer 
+//        /// </summary>
+//        /// <param name="n"></param>
+//        /// <returns></returns>
+//        public ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor n)
+//        {
+//            if (n != null)
+//            {
+//                return this.PropGraph.GetTypes(n);
+//            }
+//            else
+//            {
+//                return new HashSet<TypeDescriptor>();
+//            }
+//        }
 
-		/// <summary>
-		/// Obtains the methods a delegate var may refer
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode n)
-		{
-			return this.PropGraph.GetDelegates(n);
-		}
+//        /// <summary>
+//        /// Obtains the methods a delegate var may refer
+//        /// </summary>
+//        /// <param name="n"></param>
+//        /// <returns></returns>
+//        internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode n)
+//        {
+//            return this.PropGraph.GetDelegates(n);
+//        }
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor analysisNode)
-		{
-			var result = new HashSet<TypeDescriptor>();
-			foreach (var typeDescriptor in PropGraph.GetTypes(analysisNode))
-			{
-				if (typeDescriptor.IsConcreteType)
-				{
-					result.Add(typeDescriptor);
-				}
-				else
-				{
-					result
-						.UnionWith(InstantiatedTypes
-                            .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
-//							.Where(iType => iType.IsSubtype(t)));
-				}
-			}
-			return result;
-		}
+//        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor analysisNode)
+//        {
+//            var result = new HashSet<TypeDescriptor>();
+//            foreach (var typeDescriptor in PropGraph.GetTypes(analysisNode))
+//            {
+//                if (typeDescriptor.IsConcreteType)
+//                {
+//                    result.Add(typeDescriptor);
+//                }
+//                else
+//                {
+//                    result
+//                        .UnionWith(InstantiatedTypes
+//                            .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
+////							.Where(iType => iType.IsSubtype(t)));
+//                }
+//            }
+//            return result;
+//        }
 
 		public void Save(string path)
 		{

@@ -47,8 +47,10 @@ namespace ReachingTypeAnalysis
                     // If it is a declaredTyped it means we were not able to compute a concrete type
                     // Therefore, we instantiate all compatible types for the set of instantiated types
 					//result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
+
+                    // Diego: This requires a Code Provider. Now it will simply fail.
                     result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor 
-                                            => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
+                                            => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor,null)));
 				}
 			}
 			return result;

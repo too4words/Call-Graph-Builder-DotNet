@@ -331,7 +331,8 @@ namespace ReachingTypeAnalysis
 			var type2 = analysisNode.Type;
 
 //			if (!type1.IsSubtype(type2))
-            if (CodeProvider.IsSubtype(type1, type2))
+            // Diego: This requires a Code Provider. Now it will simply fail.
+            if (CodeProvider.IsSubtype(type1, type2,null))
             {
                 if (!type2.IsDelegate)
                 {

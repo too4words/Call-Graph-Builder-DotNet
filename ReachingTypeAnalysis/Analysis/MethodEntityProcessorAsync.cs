@@ -183,7 +183,7 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var instTypes = new HashSet<TypeDescriptor>();
 					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                        .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
+                        .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
 						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
@@ -308,7 +308,7 @@ namespace ReachingTypeAnalysis.Analysis
 				var instTypes = new HashSet<TypeDescriptor>();
 				instTypes.UnionWith(
 					this.MethodEntity.InstantiatedTypes
-                        .Where(iType => CodeProvider.IsSubtype(iType,returnVariable.Type)));
+                        .Where(iType => codeProvider.IsSubtype(iType,returnVariable.Type)));
                         //.Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{

@@ -171,13 +171,27 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return null;
 		}
-        internal static bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDesscriptor2)
+        /// <summary>
+        /// This function is currently invoked in 2 places where there is no codeProvider. 6
+        /// </summary>
+        /// <param name="typeDescriptor1"></param>
+        /// <param name="typeDescriptor2"></param>
+        /// <param name="codeProvider"></param>
+        /// <returns></returns>
+        internal static bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2, CodeProvider codeProvider)
         {
             throw new NotImplementedException();
             // The problem is I need a compilation :-)
-            //var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, compilation);
-            //var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, compilation);
+            //var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, codeProvider.Compilation);
+            //var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, codeProvider.Compilation);
             //TypeHelper.InheritsByName(roslynType1, roslynType2);
+        }
+
+        internal bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+            return TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 
 		/*
