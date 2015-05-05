@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿using ReachingTypeAnalysis.Roslyn;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
@@ -44,7 +45,8 @@ namespace ReachingTypeAnalysis
 
 		public StatementProcessor(MethodDescriptor m,
 			PropGraphNodeDescriptor rv, PropGraphNodeDescriptor thisRef,
-			IEnumerable<PropGraphNodeDescriptor> parameters)
+			IEnumerable<PropGraphNodeDescriptor> parameters,
+            CodeProvider codeProvider)
 		{
 			// this.containerEntity = containerEntity;
 			this.ReturnVariable = rv;

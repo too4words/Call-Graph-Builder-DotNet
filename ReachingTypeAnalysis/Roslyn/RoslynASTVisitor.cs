@@ -57,9 +57,11 @@ namespace ReachingTypeAnalysis
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = new MethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
+            var codeProvider = CodeProvider.GetAsync(this.MethodDescriptor).Result; 
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
-				                            this.RetVar, this.ThisRef, this.Parameters);
+				                            this.RetVar, this.ThisRef, this.Parameters,
+                                            codeProvider);
         }
 
         /// <summary>

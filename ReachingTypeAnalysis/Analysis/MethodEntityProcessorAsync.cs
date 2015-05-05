@@ -113,7 +113,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
 			}
-			var callsAndRets = this.MethodEntity.PropGraph.Propagate();
+			var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
 			//ProcessOutputInfoAsync(retValueHasChanged).Start();
@@ -135,7 +135,7 @@ namespace ReachingTypeAnalysis.Analysis
 			/// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
 			if (callInvocationInfoForCalls.Count() > 0)
 			{
-				this.MethodEntity.InvalidateCaches();
+				this.InvalidateCaches();
 			}
 			// I made a new list to avoid a concurrent modification exception we received in some tests
 			var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);

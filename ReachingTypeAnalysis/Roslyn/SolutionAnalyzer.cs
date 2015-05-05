@@ -343,10 +343,11 @@ namespace ReachingTypeAnalysis
 				var methodEntity = e as MethodEntity;
                 // Updates the callGraph
                 var method = methodEntity.MethodDescriptor;
+                var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(this.Dispatcher);
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
-                    int countCG = methodEntity.Callees(callNode).Count();
+                    int countCG = methodEntityProcessor.Callees(callNode).Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
                     if (invExp is CallInfo)
                     {
@@ -601,7 +602,8 @@ namespace ReachingTypeAnalysis
             Contract.Assert(methodEntity != null);
             Contract.Assert(methodEntity.MethodDescriptor != null);
             var callerMethod = methodEntity.MethodDescriptor;
-            var callSitesForMethod = methodEntity.GetCalleesInfo();
+            var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(null);
+            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
             foreach (var callSiteNode in callSitesForMethod.Keys)
             {
                 foreach (var calleeAMethod in callSitesForMethod[callSiteNode])

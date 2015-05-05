@@ -30,9 +30,9 @@ namespace ReachingTypeAnalysis
 			CallNode = callNode;
 		}
 
-		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph);
+		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider);
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, CodeProvider codeProvider)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in propGraph.GetTypes(n))
@@ -50,7 +50,7 @@ namespace ReachingTypeAnalysis
 
                     // Diego: This requires a Code Provider. Now it will simply fail.
                     result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor 
-                                            => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor,null)));
+                                            => codeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
 				}
 			}
 			return result;
@@ -97,7 +97,7 @@ namespace ReachingTypeAnalysis
 			IsConstructor = isConstructor;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider)
 		{
 			var calleesForNode = new HashSet<MethodDescriptor>();
 			if (this.Receiver != null)
@@ -105,7 +105,7 @@ namespace ReachingTypeAnalysis
                 // I replaced the invocation for a local call to mark that functionality is missing
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
-                var callees = GetPotentialTypes(this.Receiver, propGraph)
+                var callees = GetPotentialTypes(this.Receiver, propGraph, codeProvider)
                         .Select(t => Utils.FindMethodDescriptorForType(this.Callee,t));
 				calleesForNode.UnionWith(callees);
 			}
@@ -144,12 +144,12 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider)
 		{
-			return GetDelegateCallees(this.CalleeDelegate, propGraph);
+			return GetDelegateCallees(this.CalleeDelegate, propGraph, codeProvider);
 		}
 
-		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph)
+		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, CodeProvider codeProvider)
 		{
 			var callees = new HashSet<MethodDescriptor>();
 			var typeDescriptors = propGraph.GetTypes(delegateNode);

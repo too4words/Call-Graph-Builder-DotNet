@@ -74,7 +74,7 @@ namespace ReachingTypeAnalysis
             if (!methodEntity.HasBeenPropagated)
                 methodEntityProcessor.DoAnalysis();
 
-            var callSitesForMethod = methodEntity.GetCalleesInfo();
+            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
 
 			// var roslynMethodwithNewId = methodEntity.Method.RoslynMethod;
             var roslynMethodwithNewId = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solutionAnalyzer.Solution, methodDescriptor);
@@ -125,7 +125,7 @@ namespace ReachingTypeAnalysis
             if (!methodEntity.HasBeenPropagated)
                 methodEntityProcessor.DoAnalysis();
             
-            var callSitesForMethod = methodEntity.GetCalleesInfo();
+            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
             // var locToFilter = new ALocation(l);
             foreach(var callSiteNode in callSitesForMethod.Keys)
             {

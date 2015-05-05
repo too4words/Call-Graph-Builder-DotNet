@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Tachyon;
 using Microsoft.CodeAnalysis.Tachyon.DataAdapter;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -48,6 +49,11 @@ namespace ReachingTypeAnalysis
 			get { return callNodes; }
 			//private set { callNodes = value; }
 		}
+
+        // This is not needed to be serialized. Used during propagation.
+        // Can be removed if DiifProp received a codeProvider as parameter
+        [NonSerialized]
+        private CodeProvider codeProvider;
 
 		internal PropagationGraph()
 		{
@@ -324,6 +330,7 @@ namespace ReachingTypeAnalysis
 
 		internal bool IsAssignable(TypeDescriptor t1, PropGraphNodeDescriptor analysisNode)
 		{
+            Contract.Assert(this.codeProvider!=null);
 			var res = true;
 			// Ugly
 			TypeDescriptor type1 = t1;
@@ -332,7 +339,7 @@ namespace ReachingTypeAnalysis
 
 //			if (!type1.IsSubtype(type2))
             // Diego: This requires a Code Provider. Now it will simply fail.
-            if (CodeProvider.IsSubtype(type1, type2,null))
+            if (this.codeProvider.IsSubtype(type1, type2))
             {
                 if (!type2.IsDelegate)
                 {
@@ -447,8 +454,10 @@ namespace ReachingTypeAnalysis
 			deletionWorkList.Add(n);
 		}
 
-		internal PropagationEffects Propagate()
+		internal PropagationEffects Propagate(CodeProvider codeProvider)
 		{
+            this.codeProvider = codeProvider;
+
 			var calls = new HashSet<AnalysisInvocationExpession>();
 			bool retModified = false;
 

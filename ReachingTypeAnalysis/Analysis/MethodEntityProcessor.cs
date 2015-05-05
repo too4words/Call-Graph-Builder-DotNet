@@ -27,6 +27,7 @@ namespace ReachingTypeAnalysis.Analysis
     internal partial class MethodEntityProcessor: EntityProcessor
     {
         protected CodeProvider codeProvider;
+        private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
 
         public MethodEntity MethodEntity { get; private set; }
         public MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
@@ -104,7 +105,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
             }
             // Propagation of concrete types
-            var callsAndRets = this.MethodEntity.PropGraph.Propagate();
+            var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
             var callsThatHasChanged = callsAndRets.Calls;
             var retValueHasChanged = callsAndRets.RetValueChange;
             // This propagates the types in the affected calles
@@ -158,7 +159,7 @@ namespace ReachingTypeAnalysis.Analysis
             /// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
             if (callInvocationInfoForCalls.Count() > 0)
             {
-                this.MethodEntity.InvalidateCaches();
+                this.InvalidateCaches();
             }
             /// I made a new list to avoid a concurrent modification exception we received in some tests
             var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
@@ -534,5 +535,79 @@ namespace ReachingTypeAnalysis.Analysis
       //      return res;
       //  }
         #endregion
+
+        #region Methods that compute caller callees relation
+        public void InvalidateCaches()
+        {
+            calleesMappingCache.Clear();
+        }
+        /// <summary>
+        /// Compute all the calless of this method entities
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<MethodDescriptor> Callees()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            foreach (var callNode in this.MethodEntity.PropGraph.CallNodes)
+            {
+                result.UnionWith(Callees(callNode));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Computes all the potential callees for a particular method invocation
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
+        {
+            ISet<MethodDescriptor> result;
+
+            if (!calleesMappingCache.TryGetValue(node, out result))
+            {
+                var calleesForNode = new HashSet<MethodDescriptor>();
+                var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+                Contract.Assert(invExp != null);
+
+                calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));
+
+                calleesMappingCache[node] = calleesForNode;
+                result = calleesForNode;
+
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Generates a dictionary invocationNode -> potential callees
+        /// This is used for example by the demo to get the caller / callee info
+        /// </summary>
+        /// <returns></returns>
+        public IDictionary<AnalysisCallNode, ISet<MethodDescriptor>> GetCalleesInfo()
+        {
+            var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
+            foreach (var calleeNode in this.MethodEntity.PropGraph.CallNodes)
+            {
+                calleesPerEntity[calleeNode] = Callees(calleeNode);
+            }
+            return calleesPerEntity;
+        }
+
+        //private void GetCallesForCalleeNode(ANode calleeNode)
+        //{
+        //    var res = new HashSet<AMethod>();
+        //    var callInfo = this.PropGraph.GetInvocationInfo(calleeNode);
+        //    res.UnionWith(callInfo.ComputeCalleesForNode(this.PropGraph));
+        //    calleesPerEntityCache[calleeNode] = res;
+        //}
+
+        /// <summary>
+        /// This methods register that there is a new caller for this method
+        /// This is used in to register who calls this method
+        /// </summary>
+        /// <param name="context"></param>
+            #endregion
+
     }
 }

@@ -97,7 +97,6 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
-		private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
 		public MethodEntityProcessor EntityProcessor { get; private set; }
 
 		//public ISet<E> NodesProcessing = new HashSet<E>();
@@ -168,90 +167,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return EntityProcessor;
 		}
 
-		#region Methods that compute caller callees relation 
-		public void InvalidateCaches()
-		{
-			calleesMappingCache.Clear();
-		}
-		/// <summary>
-		/// Compute all the calless of this method entities
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<MethodDescriptor> Callees()
-		{
-			var result = new HashSet<MethodDescriptor>();
-			foreach (var callNode in PropGraph.CallNodes)
-			{
-				result.UnionWith(Callees(callNode));
-			}
-			return result;
-		}
-
-		/// <summary>
-		/// Computes all the potential callees for a particular method invocation
-		/// </summary>
-		/// <param name="node"></param>
-		/// <returns></returns>
-		public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
-		{
-			ISet<MethodDescriptor> result;
-
-			if (!calleesMappingCache.TryGetValue(node, out result))
-			{
-				var calleesForNode = new HashSet<MethodDescriptor>();
-				var invExp = PropGraph.GetInvocationInfo((AnalysisCallNode)node);
-				Contract.Assert(invExp != null);
-
-				calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.PropGraph));
-
-				calleesMappingCache[node] = calleesForNode;
-				result = calleesForNode;
-
-			}
-			return result;
-		}
-
-		/// <summary>
-		/// Generates a dictionary invocationNode -> potential callees
-		/// This is used for example by the demo to get the caller / callee info
-		/// </summary>
-		/// <returns></returns>
-		public IDictionary<AnalysisCallNode, ISet<MethodDescriptor>> GetCalleesInfo()
-		{
-			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
-			foreach (var calleeNode in this.PropGraph.CallNodes)
-			{
-				calleesPerEntity[calleeNode] = Callees(calleeNode);
-			}
-			return calleesPerEntity;
-		}
-
-		//private void GetCallesForCalleeNode(ANode calleeNode)
-		//{
-		//    var res = new HashSet<AMethod>();
-		//    var callInfo = this.PropGraph.GetInvocationInfo(calleeNode);
-		//    res.UnionWith(callInfo.ComputeCalleesForNode(this.PropGraph));
-		//    calleesPerEntityCache[calleeNode] = res;
-		//}
-
-		/// <summary>
-		/// This methods register that there is a new caller for this method
-		/// This is used in to register who calls this method
-		/// </summary>
-		/// <param name="context"></param>
-		public void AddToCallers(CallContext context)
-		{
-			callers = callers.Add(context);
-		}
-		/// <summary>
-		/// This is used by the incremental analysis when a caller is removed of modified
-		/// </summary>
-		/// <param name="context"></param>
-		public void RemoveFromCallers(CallContext context)
-		{
-			callers = callers.Remove(context);
-		}
-		#endregion
+        public void AddToCallers(CallContext context)
+        {
+            callers = callers.Add(context);
+        }
+        /// <summary>
+        /// This is used by the incremental analysis when a caller is removed of modified
+        /// </summary>
+        /// <param name="context"></param>
+        public void RemoveFromCallers(CallContext context)
+        {
+            callers = callers.Remove(context);
+        }
 
 //        /// <summary>
 //        /// Obtains the concrete types that a method expression (e.g, variable, parameter, field) may refer 
