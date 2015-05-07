@@ -125,7 +125,7 @@ namespace ReachingTypeAnalysis
             this.TypeName = type.ToDisplayString();
             this.IsReferenceType = type.IsReferenceType;
             this.Kind = type.TypeKind;
-            this.IsConcreteType = IsConcreteType;
+            this.IsConcreteType = isConcrete;
         }
         public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
         {

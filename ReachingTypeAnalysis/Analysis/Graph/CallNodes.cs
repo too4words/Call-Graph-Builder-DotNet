@@ -19,8 +19,9 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 			Receiver = reciever;
 			IsStatic = false;
-			CallNode = callNode;
-		}
+            CallNode = callNode;
+            InstatiatedTypes = new HashSet<TypeDescriptor>();
+        }
 		internal AnalysisInvocationExpession(MethodDescriptor caller, 
                         AnalysisCallNode callNode, IList<PropGraphNodeDescriptor> arguments, VariableNode lhs)
 		{
@@ -29,6 +30,7 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 			IsStatic = true;
 			CallNode = callNode;
+            InstatiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
 		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider);
