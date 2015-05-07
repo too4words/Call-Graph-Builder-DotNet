@@ -241,7 +241,7 @@ namespace ReachingTypeAnalysis
         public MethodDescriptor MethodDescriptor { get; private set; }
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
 
-        internal PropGraphNodeDescriptor RetVar
+        internal VariableNode RetVar
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
@@ -489,7 +489,7 @@ namespace ReachingTypeAnalysis
             return lhs;
         }
 
-        internal PropGraphNodeDescriptor RegisterVariable(SyntaxNodeOrToken v, ILocalSymbol s)
+        internal VariableNode RegisterVariable(SyntaxNodeOrToken v, ILocalSymbol s)
         {
             return RegisterVariable(v, s.Type, s);
         }
@@ -527,7 +527,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        internal void RegisterNewExpressionAssignment(PropGraphNodeDescriptor lhsNode, TypeDescriptor typeDescriptor)
+        internal void RegisterNewExpressionAssignment(VariableNode lhsNode, TypeDescriptor typeDescriptor)
         {
             this.StatementProcessor.RegisterNewExpressionAssignment(lhsNode, typeDescriptor);
         }
@@ -540,7 +540,7 @@ namespace ReachingTypeAnalysis
             this.StatementProcessor.RegisterCallLHS(callNode, lhsNode);
         }
 
-        internal void RegisterDelegate(PropGraphNodeDescriptor lhsNode, IMethodSymbol delegateMethod)
+        internal void RegisterDelegate(VariableNode lhsNode, IMethodSymbol delegateMethod)
         {
             Contract.Assert(lhsNode is DelegateVariableNode);
             this.StatementProcessor.RegisterDelegateAssignment((DelegateVariableNode)lhsNode, new MethodDescriptor(delegateMethod));

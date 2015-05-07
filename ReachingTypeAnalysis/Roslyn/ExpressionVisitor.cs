@@ -55,7 +55,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return typeDescriptor;
         }
 
-        public virtual void ProcessAssignment(PropGraphNodeDescriptor lhsAnalysisNode,  MethodSyntaxVisitor methodVisitor)
+        public virtual void ProcessAssignment(VariableNode lhsAnalysisNode,  MethodSyntaxVisitor methodVisitor)
         {
             methodVisitor.RegisterAssignment(lhsAnalysisNode, this);
         }
@@ -90,7 +90,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			: base(expression, type)
 		{ }
 
-		public override void ProcessAssignment(PropGraphNodeDescriptor lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
+		public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
 		{
 			var allocType = this.GetAnalysisType();
 			methodVisitor.RegisterNewExpressionAssignment(lhsAnalysisNode, allocType);
@@ -206,10 +206,12 @@ namespace ReachingTypeAnalysis.Roslyn
 			if (this.Field.Kind == SymbolKind.Property)
 			{
                 var order = Utils.GetStatementNumber(this.Expression);
-                return new AnalysisCallNode(
+                var analysisCallNode = new AnalysisCallNode(
                     new TypeDescriptor(this.Type),
                     //new LocationDescriptor(this.Expression.GetLocation()));
                     new LocationDescriptor(order));
+                return new PropertyVariableNode(this.Field.ContainingType.Name + "." + this.Field.Name,
+                    new TypeDescriptor(this.Type), analysisCallNode);
 			}
 			else
 			{
@@ -220,7 +222,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 		}
 
-        public override void ProcessAssignment(PropGraphNodeDescriptor lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
+        public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
         {
             // Check for delegate invocation (ie. x = s.Delegate())
             if (this.NameExpresion is Method)
@@ -298,7 +300,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return this.CallNode;
         }
-        public override void ProcessAssignment(PropGraphNodeDescriptor lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
+        public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
         {
             Contract.Requires(lhsAnalysisNode is VariableNode);
             methodVisitor.RegisterCallLHS((VariableNode)lhsAnalysisNode, this);
@@ -396,7 +398,9 @@ namespace ReachingTypeAnalysis.Roslyn
 				//this.roslynMethodVisitor.RegisterVariable(lhs.GetSynTaxExpression(),
 				//                                          lhs.GetAnalysisType().RoslynType,
 				//                                          lhs.GetRoslynSymbol());
-				rhs.ProcessAssignment(lhs.GetAnalysisNode(), this.roslynMethodVisitor);
+
+                Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
+				rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
 
 				//if (rhs is Allocation)
 				//{

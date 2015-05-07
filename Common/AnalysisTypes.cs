@@ -327,7 +327,7 @@ namespace ReachingTypeAnalysis
 
         
     [Serializable]
-	public class FieldNode : PropGraphNodeDescriptor
+	public class FieldNode : VariableNode
 	{
 		public string ClassName { get; private set; }
 		public string Field { get; private set; }
@@ -343,9 +343,24 @@ namespace ReachingTypeAnalysis
 	public class DelegateVariableNode : VariableNode
 	{
 		public DelegateVariableNode(string name,TypeDescriptor declaredType)
-			: base(string.Format("delegate {0}", name),declaredType)
+			: base(name,declaredType)
 		{ }
+        public override string ToString()
+        {
+ 	         return "Delegate:" + base.ToString();
+        }
 	}
+
+    [Serializable]
+    public class PropertyVariableNode : VariableNode
+    {
+        AnalysisCallNode properyMethod;
+        public PropertyVariableNode(string name, TypeDescriptor declaredType, AnalysisCallNode propertyMethod)
+            : base(string.Format("delegate {0}", name), declaredType)
+        {
+            this.properyMethod = properyMethod;
+        }
+    }
 
     [Serializable]
 	public class AnalysisCallNode : PropGraphNodeDescriptor

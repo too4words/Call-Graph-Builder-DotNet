@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis.Communication
 		internal readonly AnalysisCallNode CallNode;
 		internal readonly IEnumerable<ISet<TypeDescriptor>> ArgumentValues;
 		internal readonly ISet<TypeDescriptor> Receivers;
-		internal readonly VariableNode LHS;
+        internal readonly VariableNode LHS;
 		internal readonly ISet<TypeDescriptor> InstantiatedTypes;
 		internal readonly PropagationKind PropagationKind;
 
@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis.Communication
     internal class ReturnMessageInfo 
     {
 		internal ISet<TypeDescriptor> RVs { get; private set; }
-		internal VariableNode LHS { get; private set; }
+        internal VariableNode LHS { get; private set; }
 		internal ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
 		internal PropagationKind PropagationKind { get; private set; }
 		internal AnalysisCallNode InvocationNode { get; private set; }
