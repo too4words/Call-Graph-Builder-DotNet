@@ -39,6 +39,9 @@ namespace ReachingTypeAnalysis.Analysis
             this.Verbose = verbose;
             // It gets a code provider for the method. 
             this.codeProvider = CodeProvider.GetAsync(methodEntity.MethodDescriptor).Result;
+            // We use the codeProvider for Propagation and HandleCall and ReturnEvents (in the method DiffProp that uses IsAssignable)
+            // We can get rid of this by passing codeProvider as parameter in this 3 methods
+            this.MethodEntity.PropGraph.SetCodeProvider(this.codeProvider);
         }
 
         public bool Verbose { get; private set; }
@@ -105,6 +108,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
             }
             // Propagation of concrete types
+
             var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
             var callsThatHasChanged = callsAndRets.Calls;
             var retValueHasChanged = callsAndRets.RetValueChange;
@@ -423,6 +427,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(
 				this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+
             foreach (var pair in pairEnumerable)
             {
                 var parameterNode = pair.Item1;

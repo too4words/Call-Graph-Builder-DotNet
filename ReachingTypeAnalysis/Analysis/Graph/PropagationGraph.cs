@@ -330,7 +330,12 @@ namespace ReachingTypeAnalysis
 
 		internal bool IsAssignable(TypeDescriptor t1, PropGraphNodeDescriptor analysisNode)
 		{
-            Contract.Assert(this.codeProvider!=null);
+            // Contract.Assert(this.codeProvider!=null);
+            if(codeProvider==null)
+            {
+                return true;
+            }
+
 			var res = true;
 			// Ugly
 			TypeDescriptor type1 = t1;
@@ -453,6 +458,11 @@ namespace ReachingTypeAnalysis
 		{
 			deletionWorkList.Add(n);
 		}
+
+        internal void SetCodeProvider(CodeProvider codeProvider)
+        {
+            this.codeProvider = codeProvider;
+        }
 
 		internal PropagationEffects Propagate(CodeProvider codeProvider)
 		{

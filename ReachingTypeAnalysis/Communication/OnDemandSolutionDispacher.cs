@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿using Microsoft.CodeAnalysis;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Orleans.Runtime.Host;
 using OrleansGrains;
 using ReachingTypeAnalysis.Analysis;
@@ -27,36 +28,42 @@ namespace ReachingTypeAnalysis.Communication
             if (entity == null)
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);
-                try
+                //try
+                //{
+                //    var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
+                //    var roslynMethod = codeProvider.FindMethod(methodDescriptor);
+                //    var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
+                //    entity = methodEntityGenerator.ParseMethod();
+                //}
+                //catch(Exception exception)
+                //{
+                //    //    // I need a Roslyn Method. I could to this with a solution but I cant without it
+                //    //throw new NotImplementedException();
+                //    var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
+                //    entity = libraryMethodVisitor.ParseLibraryMethod();
+                //    base.RegisterEntity(entityDesc, entity);
+                //}
+
+                var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
+
+                if (codeProvider != null)
                 {
-                    var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
                     var roslynMethod = codeProvider.FindMethod(methodDescriptor);
                     var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
                     entity = methodEntityGenerator.ParseMethod();
                 }
-                catch(Exception exception)
+                else
                 {
-                    //    // I need a Roslyn Method. I could to this with a solution but I cant without it
-                    throw new NotImplementedException();
-                    //    //var libraryMethodVisitor = new LibraryMethodProcessor(roslynMethod, this);
-                    //    //entity = libraryMethodVisitor.ParseLibraryMethod();
-                    //    //base.RegisterEntity(entityDesc, entity);
-                  }
-                //if (codeProvider != null)
-                //{
-                //    var roslynMethod = codeProvider.FindMethod(methodDescriptor);
-                //    var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
-                //    entity = methodEntityGenerator.ParseMethod();
-                //    //var node = Utils.FindMethodImplementation(ed.Method.RoslynMethod);
-                //}
-                //else
-                //{
-                //    // I need a Roslyn Method. I could to this with a solution but I cant without it
-                //    throw new NotImplementedException();
-                //    //var libraryMethodVisitor = new LibraryMethodProcessor(roslynMethod, this);
-                //    //entity = libraryMethodVisitor.ParseLibraryMethod();
-                //    //base.RegisterEntity(entityDesc, entity);
-                //}
+                    var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
+                    entity = libraryMethodVisitor.ParseLibraryMethod();
+                    base.RegisterEntity(entityDesc, entity);
+
+                    // I need a Roslyn Method. I could to this with a solution but I cant without it
+                    ///throw new NotImplementedException();
+                    //var libraryMethodVisitor = new LibraryMethodProcessor(roslynMethod, this);
+                    //entity = libraryMethodVisitor.ParseLibraryMethod();
+                    //base.RegisterEntity(entityDesc, entity);
+                }
             }
 
             return entity;

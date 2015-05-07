@@ -33,7 +33,8 @@ namespace ReachingTypeAnalysis
 
         internal static MethodDescriptor FindMethodDescriptorForType(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-            throw new NotImplementedException("To implement this method we need type resolution");
+            return new MethodDescriptor(typeDescriptor.TypeName, methodDescriptor.MethodName);
+            // throw new NotImplementedException("To implement this method we need type resolution");
         }
 
 
@@ -176,7 +177,8 @@ namespace ReachingTypeAnalysis
 
 		public IEnumerator<Tuple<T1, T2>> GetEnumerator()
 		{
-			throw new NotImplementedException();
+            return new MyIEnumerator(this.enumerator1, this.enumerator2);
+			//throw new NotImplementedException();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

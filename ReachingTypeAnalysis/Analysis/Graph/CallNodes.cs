@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace ReachingTypeAnalysis
@@ -47,7 +48,7 @@ namespace ReachingTypeAnalysis
                     // If it is a declaredTyped it means we were not able to compute a concrete type
                     // Therefore, we instantiate all compatible types for the set of instantiated types
 					//result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
-
+                    Contract.Assert(this.InstatiatedTypes != null);
                     // Diego: This requires a Code Provider. Now it will simply fail.
                     result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor 
                                             => codeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));

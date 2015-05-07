@@ -286,10 +286,14 @@ namespace ReachingTypeAnalysis
 	{
 		public int Position { get; private set; }
 		public ParameterNode(string name, int position, TypeDescriptor declaredType) :
-            base(name + "_" + position, declaredType)
+            base(name, declaredType)
 		{
 			this.Position = position;
 		}
+        public override string ToString()
+        {
+            return base.ToString()+"_"+Position.ToString();
+        }
 	}
 
     [Serializable]

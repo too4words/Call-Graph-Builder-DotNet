@@ -280,7 +280,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public VariableNode ThisRef { get; internal set; }
 
-		public IEnumerable<VariableNode> Parameters { get; internal set; }
+		public IEnumerable<ParameterNode> Parameters { get; internal set; }
 
 		public VariableNode ReturnVariable { get; internal set; }
 

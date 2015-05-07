@@ -14,12 +14,14 @@ namespace ReachingTypeAnalysis.Communication
 
 		internal static ISet<TypeDescriptor> Demarshal(ISet<TypeDescriptor> typeDescriptors)
 		{
-			throw new NotImplementedException();
+            return typeDescriptors;
+			//throw new NotImplementedException();
 		}
 
 		internal static VariableNode Demarshal(VariableNode variableDescriptor)
 		{
-			throw new NotImplementedException();
+            return variableDescriptor;
+			//throw new NotImplementedException();
 		}
 
 		internal static PropGraphNodeDescriptor Demarshal(LocationDescriptor locationDescriptor)
