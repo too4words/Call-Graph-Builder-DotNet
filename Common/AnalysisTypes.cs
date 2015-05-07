@@ -196,7 +196,8 @@ namespace ReachingTypeAnalysis
         }
         public override bool Equals(object obj)
         {
-            return this.Location.Equals(obj);
+            LocationDescriptor locRef = (LocationDescriptor)obj;
+            return this.Location.Equals(locRef.Location);
         }
         public override int GetHashCode()
         {
@@ -362,7 +363,8 @@ namespace ReachingTypeAnalysis
 		public override bool Equals(object obj)
 		{
 			AnalysisCallNode analysisCallNode = (obj as AnalysisCallNode);
-            return analysisCallNode!=null && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
+            return analysisCallNode != null && base.Equals(analysisCallNode) 
+                    && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
 		}
 		public override int GetHashCode()
 		{

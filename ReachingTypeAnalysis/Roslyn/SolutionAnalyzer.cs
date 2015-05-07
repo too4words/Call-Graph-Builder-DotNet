@@ -268,8 +268,7 @@ namespace ReachingTypeAnalysis
 					var mainMethodEntity = methodVisitor.ParseMethod();
 					var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
 					var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
-					var mainEntityProcessor = (MethodEntityProcessor)
-						this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
+					var mainEntityProcessor = this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
 					//mainEntity.PropGraph.AddToWorkList(mainMethod);
 
 					// Just a test
@@ -596,13 +595,14 @@ namespace ReachingTypeAnalysis
 */
 
         #region Callgraph
-        private static void UpdateCallGraph(MethodEntity methodEntity, 
+        private static void UpdateCallGraph(IEntityProcessor entityProcessor, 
                                             CallGraph<MethodDescriptor, LocationDescriptor> callgraph)
         {
-            Contract.Assert(methodEntity != null);
+            Contract.Assert(entityProcessor != null);
+            var methodEntity = (MethodEntity)entityProcessor.Entity;
             Contract.Assert(methodEntity.MethodDescriptor != null);
             var callerMethod = methodEntity.MethodDescriptor;
-            var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(null);
+            var methodEntityProcessor = (MethodEntityProcessor)entityProcessor;
             var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
             foreach (var callSiteNode in callSitesForMethod.Keys)
             {
@@ -627,9 +627,9 @@ namespace ReachingTypeAnalysis
             var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
             foreach (var entity in allEntities)
             {
-				var methodEntity = entity as MethodEntity;
+                var entityProcessor = entity.GetEntityProcessor(this.Dispatcher);
                 // Updates the callGraph
-                UpdateCallGraph(methodEntity, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph);
                 // methodEntity.Save(method.ContainingType.Name + "_" + method.Name + ".dot");
             }
             //callgraph.Save("cg.dot");
@@ -643,13 +643,14 @@ namespace ReachingTypeAnalysis
             // pg.PropagateDeletionOfNodes();
             foreach (var e in dispatcher.GetAllEntites())
             {
-                var methodEntity = e as MethodEntity;
+                var entityProcessor = e.GetEntityProcessor(dispatcher);
+                var methodEntity = (MethodEntity)entityProcessor.Entity;
                 if (methodEntity.MethodDescriptor.ToString().Contains("Main"))
                 {
                     callgraph.AddRootMethod(methodEntity.MethodDescriptor);
                 }
                 // Updates the callGraph
-                UpdateCallGraph(methodEntity, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph);
             }
             //callgraph.Save("cg_d.dot");
 

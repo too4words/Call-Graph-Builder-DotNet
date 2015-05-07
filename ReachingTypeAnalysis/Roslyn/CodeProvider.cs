@@ -94,7 +94,9 @@ namespace ReachingTypeAnalysis.Roslyn
 					}
 				}
 			}
-
+            // In some cases (e.g, default constructors or library methods, we are not going to find the code in the solution)
+            // We should not throw an exception. Maybe return a dummy code Provider to let the analysis evolve
+            // or an informative message in order to let the caller continue. We can declare the exception
 			throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
 		}
 
