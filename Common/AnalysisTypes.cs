@@ -172,15 +172,19 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class LocationDescriptor
     {
-        public Location Location { get; private set; }
+        //public Location Location { get; private set; }
         public int InMethodOrder { get; private set; }
-        public LocationDescriptor(Location location)
-        {
-            Contract.Assert(location != null);
-            this.Location = location;
-            InMethodOrder = 0; // need to search for the statement # in that location
-        }
+        //public LocationDescriptor(Location location)
+        //{
+        //    Contract.Assert(location != null);
+        //    this.Location = location;
+        //    InMethodOrder = 0; // need to search for the statement # in that location
+        //}
 
+        public int Location 
+        { 
+            get { return InMethodOrder;  } 
+        } 
         public LocationDescriptor(int inMethodOrder)
         {
             this.InMethodOrder = inMethodOrder;

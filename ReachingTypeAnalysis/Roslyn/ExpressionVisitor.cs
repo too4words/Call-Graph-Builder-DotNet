@@ -205,9 +205,11 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			if (this.Field.Kind == SymbolKind.Property)
 			{
-				return new AnalysisCallNode(
-					new TypeDescriptor(this.Type), 
-					new LocationDescriptor(this.Expression.GetLocation()));
+                var order = Utils.GetStatementNumber(this.Expression);
+                return new AnalysisCallNode(
+                    new TypeDescriptor(this.Type),
+                    //new LocationDescriptor(this.Expression.GetLocation()));
+                    new LocationDescriptor(order));
 			}
 			else
 			{

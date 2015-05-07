@@ -97,20 +97,6 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
-        private int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
-        {
-            // var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
-            var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
-            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
-            var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
-            int count = 0;
-			for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
-			{
-				count++;
-			}
-
-			return count;
-        }
 
 		// Original version using locations
 		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, LocationDescriptor locToFilter)

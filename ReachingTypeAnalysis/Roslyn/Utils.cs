@@ -104,6 +104,35 @@ namespace ReachingTypeAnalysis
 			//else return null;
 		}
 
+        internal static int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
+        {
+            // var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
+            var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
+            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+            var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+            int count = 0;
+            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
+        internal static int GetStatementNumber(SyntaxNodeOrToken expression)
+        {
+            var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MethodDeclarationSyntax>().First();
+            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+            var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+            int count = 0;
+            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(expression.GetLocation()); i++)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
 		private static MetadataReference mscorlib;
 
 		internal static MetadataReference Mscorlib
