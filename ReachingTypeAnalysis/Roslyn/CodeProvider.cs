@@ -55,6 +55,14 @@ namespace ReachingTypeAnalysis.Roslyn
             return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
         }
 
+        public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptoor, TypeDescriptor typeDescriptor)
+        {
+            var roslynMethod = FindMethod(methodDescriptoor);
+            var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
+            var implementedMethod =  Utils.FindMethodImplementation(roslynMethod, roslynType);
+            return new MethodDescriptor(implementedMethod);
+        }
+
 		public async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(MethodDescriptor method)
 		{
 			var root = await this.SyntaxTree.GetRootAsync();

@@ -109,7 +109,7 @@ namespace ReachingTypeAnalysis
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
                 var callees = GetPotentialTypes(this.Receiver, propGraph, codeProvider)
-                        .Select(t => Utils.FindMethodDescriptorForType(this.Callee,t));
+                        .Select(t => codeProvider.FindMethodImplementation(this.Callee,t));
 				calleesForNode.UnionWith(callees);
 			}
 			else
@@ -165,7 +165,7 @@ namespace ReachingTypeAnalysis
 						// TO-DO!!!
 						// Ugly: I'll fix it
 						//var aMethod = delegateInstance.FindMethodImplementation(type);
-                        var aMethod = Utils.FindMethodDescriptorForType(delegateInstance,typeDescriptor);
+                        var aMethod = codeProvider.FindMethodImplementation(delegateInstance,typeDescriptor);
 						callees.Add(aMethod);
 					}
 				}

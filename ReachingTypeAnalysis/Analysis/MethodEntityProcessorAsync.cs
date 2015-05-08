@@ -203,7 +203,7 @@ namespace ReachingTypeAnalysis.Analysis
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = Utils.FindMethodDescriptorForType(callInfo.Callee, receiverType);
+                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
 						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);

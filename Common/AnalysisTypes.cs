@@ -122,7 +122,7 @@ namespace ReachingTypeAnalysis
 
         public TypeDescriptor(ITypeSymbol type, bool isConcrete = true)
         {
-            this.TypeName = type.ToDisplayString();
+            this.TypeName = type.MetadataName;
             this.IsReferenceType = type.IsReferenceType;
             this.Kind = type.TypeKind;
             this.IsConcreteType = isConcrete;

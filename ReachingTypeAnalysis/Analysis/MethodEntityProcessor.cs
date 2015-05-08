@@ -226,7 +226,7 @@ namespace ReachingTypeAnalysis.Analysis
                         // Given a method m and T find the most accurate implementation wrt to T
                         // it can be T.m or the first super class implementing m
                         //var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = Utils.FindMethodDescriptorForType(callInfo.Callee,receiverType);
+                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee,receiverType);
                         CreateAndSendCallMessage(
 							callInfo, realCallee, receiverType, propKind);
                     }
@@ -269,7 +269,8 @@ namespace ReachingTypeAnalysis.Analysis
                     foreach (var t in types)
                     {
                         //var aMethod = delegateInstance.FindMethodImplementation(t);
-                        var methodDescriptor = Utils.FindMethodDescriptorForType(delegateInstance, t);
+                        // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
+                        var methodDescriptor = codeProvider.FindMethodImplementation(delegateInstance, t);
                         callees.Add(methodDescriptor);
                     }
                 }

@@ -37,7 +37,6 @@ namespace ReachingTypeAnalysis
             // throw new NotImplementedException("To implement this method we need type resolution");
         }
 
-
 		internal static IMethodSymbol FindMethodImplementation(IMethodSymbol method, ITypeSymbol rType)
 		{
 			IMethodSymbol result = null;
