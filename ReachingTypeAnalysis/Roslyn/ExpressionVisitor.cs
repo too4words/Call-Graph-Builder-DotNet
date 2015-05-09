@@ -206,7 +206,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			if (this.Field.Kind == SymbolKind.Property)
 			{
                 var order = Utils.GetStatementNumber(this.Expression);
-                var analysisCallNode = new AnalysisCallNode(
+                var analysisCallNode = new AnalysisCallNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     new TypeDescriptor(this.Type),
                     //new LocationDescriptor(this.Expression.GetLocation()));
                     new LocationDescriptor(order));
@@ -490,7 +490,7 @@ namespace ReachingTypeAnalysis.Roslyn
             {
                 IMethodSymbol roslynMethod = symbol as IMethodSymbol;
                 // Process parameters
-                var callNode = new AnalysisCallNode(
+                var callNode = new AnalysisCallNode(roslynMethod.Name,
                     new TypeDescriptor(roslynMethod.ReturnType),
                     new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
@@ -708,7 +708,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				{
 					// Get the delegate variable (SHOULD use a cache!)
 					var delegateVarNode = roslynMethodVisitor.RegisterVariable(node.Expression);
-					var callNode = new AnalysisCallNode(
+					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
 						new TypeDescriptor(methodInvokedSymbol.ReturnType),
                         new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
@@ -718,7 +718,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				// Normal invocation    
 				else
 				{
-					var callNode = new AnalysisCallNode(
+					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
 						new TypeDescriptor(methodInvokedSymbol.ReturnType),
                         new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 
@@ -913,7 +913,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             var roslynMethod = property.RoslynMethod;
             // we treat this as an invocation
-            var callNode = new AnalysisCallNode(
+            var callNode = new AnalysisCallNode(roslynMethod.Name,
 				new TypeDescriptor(roslynMethod.ReturnType),
                 new LocationDescriptor(this.roslynMethodVisitor.InvocationOrder)); //node.GetLocation()
 

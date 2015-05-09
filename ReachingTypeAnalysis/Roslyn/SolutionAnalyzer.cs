@@ -266,10 +266,10 @@ namespace ReachingTypeAnalysis
 						this.Dispatcher);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
-					var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
-					var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
-					var mainEntityProcessor = this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
-					//mainEntity.PropGraph.AddToWorkList(mainMethod);
+                    var mainEntityProcessor = mainMethodEntity.GetEntityProcessor(Dispatcher);
+                    //var mainMethodDescriptor =  new MethodDescriptor(mainSymbol);
+                    //var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
+                    //var mainEntityProcessor = this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
 
 					// Just a test
 					//mainEntityProcessor.MethodEntity.CurrentContext = new CallConext<AMethod, ANode>(mainEntityProcessor.MethodEntity.Method, null, null);

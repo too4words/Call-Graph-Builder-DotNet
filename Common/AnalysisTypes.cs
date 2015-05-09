@@ -354,21 +354,26 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class PropertyVariableNode : VariableNode
     {
-        AnalysisCallNode properyMethod;
-        public PropertyVariableNode(string name, TypeDescriptor declaredType, AnalysisCallNode propertyMethod)
-            : base(string.Format("delegate {0}", name), declaredType)
+        AnalysisCallNode ProperyMethod { get; set; }
+        public PropertyVariableNode(string name, TypeDescriptor declaredType,
+            AnalysisCallNode propertyMethod)
+            : base(name, declaredType)
         {
-            this.properyMethod = properyMethod;
+            this.ProperyMethod = propertyMethod;
+        }
+        public override string ToString()
+        {
+            return "property: " + base.ToString();
         }
     }
 
     [Serializable]
 	public class AnalysisCallNode : PropGraphNodeDescriptor
 	{
-		public LocationDescriptor LocationDescriptor { get; private set; }
+ 		public LocationDescriptor LocationDescriptor { get; private set; }
         public int InMethodOrder { get; private set; }
-		public AnalysisCallNode(TypeDescriptor declaredType, LocationDescriptor location)
-            : base(string.Format("call {0}", location.ToString()), declaredType)
+		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location)
+            : base(methodName, declaredType)
 		{
 			this.LocationDescriptor = location;
             this.InMethodOrder = location.InMethodOrder;
@@ -382,7 +387,8 @@ namespace ReachingTypeAnalysis
 		public override bool Equals(object obj)
 		{
 			AnalysisCallNode analysisCallNode = (obj as AnalysisCallNode);
-            return analysisCallNode != null && base.Equals(analysisCallNode) 
+            return base.Equals(obj) 
+                    && analysisCallNode != null && base.Equals(analysisCallNode) 
                     && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
 		}
 		public override int GetHashCode()
