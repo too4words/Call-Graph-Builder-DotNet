@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace ReachingTypeAnalysis
 {
@@ -21,6 +22,12 @@ namespace ReachingTypeAnalysis
 
         private string name;
         private TypeDescriptor containerType;
+
+        public IList<TypeDescriptor> Parameters { get; private set; }
+        public TypeDescriptor ReturnType { get; private set; }
+
+        public bool IsStatic { get; private set; }
+
 
         public string Name
         {
@@ -50,21 +57,32 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        public MethodDescriptor(string classname, string methodName)
+        public TypeDescriptor ThisType
+        {
+            get
+            {
+                return (!IsStatic)? ContainerType: null;
+            }
+        }
+
+        public MethodDescriptor(string classname, string methodName, bool isStatic = false)
         {
             this.NamespaceName = "";
             this.ClassName = classname;
             this.MethodName = methodName;
             this.name = classname + "." + methodName;
+            this.Parameters = new List<TypeDescriptor>();
+            this.IsStatic = isStatic;
         }
 
-        public MethodDescriptor(string namespaceName, string classname, string methodName)
+        public MethodDescriptor(string namespaceName, string classname, string methodName, bool isStatic = false)
         {
             this.NamespaceName = namespaceName;
             this.ClassName = classname;
             this.MethodName = methodName;
+            this.Parameters = new List<TypeDescriptor>();
+            this.IsStatic = isStatic;
         }
-
         public MethodDescriptor(IMethodSymbol method)
         {
             Contract.Assert(method != null);
@@ -73,6 +91,14 @@ namespace ReachingTypeAnalysis
             this.ClassName = method.ContainingType.Name;
             this.NamespaceName = method.ContainingNamespace.Name;
             this.containerType = new TypeDescriptor(method.ContainingType);
+
+            this.Parameters = new List<TypeDescriptor>(method.Parameters
+                                .Select(parmeter => new TypeDescriptor(parmeter.Type)));
+            if (!method.ReturnsVoid)
+            {
+                this.ReturnType = new TypeDescriptor(method.ReturnType);
+            }
+            this.IsStatic = method.IsStatic;
         }
 
         //public bool SameAsMethodSymbol(IMethodSymbol method)

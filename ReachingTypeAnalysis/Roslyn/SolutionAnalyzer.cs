@@ -630,7 +630,9 @@ namespace ReachingTypeAnalysis
                 var entityProcessor = entity.GetEntityProcessor(this.Dispatcher);
                 // Updates the callGraph
                 UpdateCallGraph(entityProcessor, callgraph);
-                // methodEntity.Save(method.ContainingType.Name + "_" + method.Name + ".dot");
+                MethodEntity methodEntity = (MethodEntity) entityProcessor.Entity;
+                methodEntity.Save("C:\\Temp\\"+ methodEntity.MethodDescriptor.ClassName 
+                                    + "_" + methodEntity.MethodDescriptor.Name + ".dot");
             }
             //callgraph.Save("cg.dot");
 

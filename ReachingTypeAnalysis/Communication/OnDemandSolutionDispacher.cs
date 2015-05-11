@@ -56,7 +56,6 @@ namespace ReachingTypeAnalysis.Communication
                 {
                     var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
                     entity = libraryMethodVisitor.ParseLibraryMethod();
-                    base.RegisterEntity(entityDesc, entity);
 
                     // I need a Roslyn Method. I could to this with a solution but I cant without it
                     ///throw new NotImplementedException();
@@ -64,6 +63,7 @@ namespace ReachingTypeAnalysis.Communication
                     //entity = libraryMethodVisitor.ParseLibraryMethod();
                     //base.RegisterEntity(entityDesc, entity);
                 }
+                base.RegisterEntity(entityDesc, entity);
             }
 
             return entity;

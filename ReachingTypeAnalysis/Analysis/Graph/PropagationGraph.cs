@@ -344,7 +344,7 @@ namespace ReachingTypeAnalysis
 
 //			if (!type1.IsSubtype(type2))
             // Diego: This requires a Code Provider. Now it will simply fail.
-            if (this.codeProvider.IsSubtype(type1, type2))
+            if (!this.codeProvider.IsSubtype(type1, type2))
             {
                 if (!type2.IsDelegate)
                 {

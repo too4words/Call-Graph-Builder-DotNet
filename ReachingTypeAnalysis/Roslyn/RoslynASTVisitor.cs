@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis
 			this.Dispatcher = dispatcher;
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = new MethodDescriptor(roslynMethod);
-            this.MethodInterfaceData = CreateMethodInterfaceData();
+            this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
             var codeProvider = CodeProvider.GetAsync(this.MethodDescriptor).Result; 
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
@@ -70,7 +70,7 @@ namespace ReachingTypeAnalysis
 
             this.Dispatcher = dispatcher;
             this.MethodDescriptor = methodDescriptor;
-            this.MethodInterfaceData = CreateMethodInterfaceData();
+            this.MethodInterfaceData = CreateMethodInterfaceData(methodDescriptor);
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor,
                                             this.RetVar, this.ThisRef, this.Parameters,
                                             null);
@@ -96,10 +96,8 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		/// <param name="symbol"></param>
 		/// <returns></returns>
-		public virtual MethodInterfaceData CreateMethodInterfaceData()
+		public virtual MethodInterfaceData CreateMethodInterfaceData(IMethodSymbol methodSymbol)
 		{
-            var methodSymbol = this.RoslynMethod;
-
             Contract.Assert(methodSymbol != null);
 
 			ReturnNode retVar = null;
@@ -139,6 +137,50 @@ namespace ReachingTypeAnalysis
 			};
 			return methodInterfaceData;
 		}
+
+        public virtual MethodInterfaceData CreateMethodInterfaceData(MethodDescriptor methodDescriptor)
+        {
+            Contract.Assert(methodDescriptor != null);
+
+            ReturnNode retVar = null;
+            VariableNode thisRef = null;
+            IList<ParameterNode> parameters;
+
+            var inputs = new Dictionary<string, PropGraphNodeDescriptor>();
+            var outputs = new Dictionary<string, PropGraphNodeDescriptor>();
+            
+            if (methodDescriptor.ReturnType!=null && Utils.IsTypeForAnalysis(methodDescriptor.ReturnType))
+            {
+                retVar = new ReturnNode(methodDescriptor.ReturnType);
+                outputs["retVar"] = retVar;
+            }
+            if (!methodDescriptor.IsStatic)
+            {
+                thisRef = new ThisNode(methodDescriptor.ThisType);
+            }
+            parameters = new List<ParameterNode>();
+            for (int i = 0; i < methodDescriptor.Parameters.Count(); i++)
+            {
+                var parameterName = "P_" + i;
+                var parameterNode = new ParameterNode(parameterName, i,methodDescriptor.Parameters[i]);
+                parameters.Add(parameterNode);
+                //if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
+                {
+                    outputs[parameterName] = parameterNode;
+                }
+                inputs[parameterName] = parameterNode;
+            }
+
+            var methodInterfaceData = new MethodInterfaceData()
+            {
+                ReturnVariable = retVar,
+                ThisRef = thisRef,
+                Parameters = parameters,
+                InputData = inputs,
+                OutputData = outputs
+            };
+            return methodInterfaceData;
+        }
 
 
         internal IDictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor>();
