@@ -5,7 +5,7 @@ namespace ReachingTypeAnalysis
 {
     public interface IEntityDescriptor
     {
-        
+        //MethodDescriptor MethodDescriptor { get; }
     }
 
     public interface IEntity

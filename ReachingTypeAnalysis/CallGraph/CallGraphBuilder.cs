@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis
         /// <param name="solution"></param>
         /// <returns></returns>
         //public static CallGraph<IMethodSymbol,Location> BuildCallGraph(Solution solution)
-        public static CallGraph<MethodDescriptor, AnalysisLocation> BuildCallGraph(Solution solution)
+        public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             analyzer.Analyze();
@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        public static CallGraph<MethodDescriptor, AnalysisLocation> BuildCallGraphWithoutAppSettings(Solution solution)
+        public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraphWithoutAppSettings(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             analyzer.AnalyzeWithoutAppSettings();
@@ -52,34 +52,44 @@ namespace ReachingTypeAnalysis
             this.solutionAnalyzer.AnalyzeWithoutAppSettings();
         }
 
-		internal async Task<ISet<MethodDescriptor>> GetCallees(IMethodSymbol m, int order)
+        /// <summary>
+        /// This is used by the VS Studio Extension. 
+        /// NEEDS TO BE REEMPLEMENTED because nodes no longer contains AST Expression 
+        /// I used the AST expression of the invocation to recover the (relative) position 
+        /// of an invocation (the use of locations is not good because a change in the file
+        /// affect the position of all the statements) 
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+		internal async Task<ISet<MethodDescriptor>> GetCallees(IMethodSymbol method, int order)
         {
             var result = new HashSet<MethodDescriptor>();
-            var aMethod = new AnalysisMethod(m);
-            var methodDescriptor = aMethod.MethodDescriptor;
-            //var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<AMethod>(aMethod)) as MethodEntity<ANode,AType,AMethod>;
+            var methodDescriptor = new MethodDescriptor(method);
             var methodEntityProcessor = (MethodEntityProcessor)
                 await this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync
-                (EntityFactory.Create(aMethod));
+                (EntityFactory.Create(methodDescriptor));
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
                 methodEntityProcessor.DoAnalysis();
 
-            var callSitesForMethod = methodEntity.GetCalleesInfo();
+            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
 
-			var roslynMethodwithNewId = methodEntity.Method.RoslynMethod;
-			// var locToFilter = new ALocation(l);
+			// var roslynMethodwithNewId = methodEntity.Method.RoslynMethod;
+            var roslynMethodwithNewId = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solutionAnalyzer.Solution, methodDescriptor);
+
 			foreach (var callSiteNode in callSitesForMethod.Keys)
 			{
-				var loc = ((AnalysisNode)callSiteNode).LocationReference;
-				var invocation = ((AnalysisNode)callSiteNode).Expression;
-				int invOrder = GetInvocationNumber(roslynMethodwithNewId, invocation);
+                //var loc = ((AnalysisCallNode)callSiteNode).LocationDescriptor;
+                //var invocation = ((AnalysisCallNode)callSiteNode)..Expression;
+                //int invOrder = GetInvocationNumber(roslynMethodwithNewId, invocation);
+                int invOrder = ((AnalysisCallNode)callSiteNode).InMethodOrder;
 				if (invOrder == order)
 				{
-					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
+					foreach (var calleemethodDescriptor in callSitesForMethod[callSiteNode])
 					{
-						var callee = calleeAMethod.MethodDescriptor;
+						var callee = calleemethodDescriptor;
 						result.Add(callee);
 					}
 				}
@@ -87,45 +97,30 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
-        private int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
-        {
-            // var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
-            var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
-            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
-            var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
-            int count = 0;
-			for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
-			{
-				count++;
-			}
-
-			return count;
-        }
 
 		// Original version using locations
-		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol m, AnalysisLocation locToFilter)
+		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, LocationDescriptor locToFilter)
         {
             var result = new HashSet<MethodDescriptor>();
-            var aMethod = new AnalysisMethod(m);
-            var methodDescriptor = aMethod.MethodDescriptor;
-			//var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<AMethod>(aMethod)) as MethodEntity<ANode,AType,AMethod>;
+            var methodDescriptor = new MethodDescriptor(method);
+			//var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<methodDescriptor>(methodDescriptor)) as MethodEntity<ANode,AType,methodDescriptor>;
 			var methodEntityProcessor = (MethodEntityProcessor)
-				this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(aMethod)).Result;
+				this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(methodDescriptor)).Result;
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
                 methodEntityProcessor.DoAnalysis();
             
-            var callSitesForMethod = methodEntity.GetCalleesInfo();
+            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
             // var locToFilter = new ALocation(l);
             foreach(var callSiteNode in callSitesForMethod.Keys)
             {
-                var loc = ((AnalysisNode)callSiteNode).LocationReference;
+                var loc = ((AnalysisCallNode)callSiteNode).LocationDescriptor;
                 if (loc.Equals(locToFilter))
                 {
-                    foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
+                    foreach (var calleemethodDescriptor in callSitesForMethod[callSiteNode])
                     {
-                        var callee = calleeAMethod.MethodDescriptor;
+                        var callee = calleemethodDescriptor;
                         result.Add(callee);
                     }
                 }
@@ -136,12 +131,12 @@ namespace ReachingTypeAnalysis
 		public async Task<ISet<KeyValuePair<int, MethodDescriptor>>> GetCallersWithOrder(IMethodSymbol m)
 		{
 			var result = new HashSet<KeyValuePair<int, MethodDescriptor>>();
-			var aMethod = new AnalysisMethod(m);
-			var methodDescriptor = aMethod.MethodDescriptor;
-			var methodEntityProcessor = (MethodEntityProcessor)
+			var methodDescriptor = new MethodDescriptor(m);
+
+            var methodEntityProcessor = (MethodEntityProcessor)
 				await this.solutionAnalyzer.
 				Dispatcher.GetEntityWithProcessorAsync(
-					EntityFactory.Create(aMethod));
+					EntityFactory.Create(methodDescriptor));
 			var methodEntity = methodEntityProcessor.MethodEntity;
 			if (!methodEntity.HasBeenPropagated)
 			{
@@ -150,8 +145,9 @@ namespace ReachingTypeAnalysis
 
 			foreach (var callContex in methodEntity.Callers)
 			{
-				int order = GetInvocationNumber(callContex.Caller.RoslynMethod, callContex.Invocation.Expression);
-				result.Add(new KeyValuePair<int, MethodDescriptor>(order, callContex.Caller.MethodDescriptor));
+				//int order = GetInvocationNumber(callContex.Caller.RoslynMethod, callContex.Invocation.Expression);
+                int order = callContex.Invocation.InMethodOrder;
+                result.Add(new KeyValuePair<int, MethodDescriptor>(order, callContex.Caller));
 			}
 			return result;
 		}

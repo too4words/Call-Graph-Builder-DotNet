@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Communication;
+using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -15,20 +16,26 @@ namespace ReachingTypeAnalysis.Roslyn
 			: base(method, dispatcher)
 		{ }
 
+        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
+            : base(methodDescriptor,dispatcher)
+        {
+        }
+
+
         public IEntity ParseLibraryMethod()
         {
             if (this.RetVar != null)
             {
-                this.StatementProcessor.RegisterNewExpressionAssignment(
-					RetVar, new DeclaredType(RetVar.DeclaredType));
+                this.StatementProcessor.RegisterNewExpressionAssignment(RetVar, 
+                                            new TypeDescriptor(RetVar.Type,false));
             }
 
-            var descriptor = EntityFactory.Create(this.AnalysisMethod);
+            var descriptor = EntityFactory.Create(this.MethodDescriptor);
             var methodEntity = EntityFactory.CreateEntity(
-                                    new MethodEntity(this.AnalysisMethod,
-                                                                    this.MethodInterfaceData,
-                                                                    this.PropGraph,
-                                                                    this.InstantiatedTypes), descriptor);
+                                    new MethodEntity(this.MethodDescriptor,
+                                                    this.MethodInterfaceData,
+                                                    this.PropGraph,
+                                                    this.InstantiatedTypes), descriptor);
             this.Dispatcher.RegisterEntity(descriptor, methodEntity);
             return methodEntity;
         }

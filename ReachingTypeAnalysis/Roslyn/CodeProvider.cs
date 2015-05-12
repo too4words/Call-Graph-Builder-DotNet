@@ -50,6 +50,23 @@ namespace ReachingTypeAnalysis.Roslyn
 				}
 			}
 		}
+        public IMethodSymbol FindMethod(MethodDescriptor methodDescriptor)
+        {
+            return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+        }
+
+        public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            var roslynMethod = FindMethod(methodDescriptor);
+            if (roslynMethod != null)
+            {
+                var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
+                var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+                return new MethodDescriptor(implementedMethod);
+            }
+            // If we cannot resolve the method, we return the same method.
+            return methodDescriptor;
+        }
 
 		public async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(MethodDescriptor method)
 		{
@@ -90,8 +107,11 @@ namespace ReachingTypeAnalysis.Roslyn
 					}
 				}
 			}
-
-			throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
+            // In some cases (e.g, default constructors or library methods, we are not going to find the code in the solution)
+            // We should not throw an exception. Maybe return a dummy code Provider to let the analysis evolve
+            // or an informative message in order to let the caller continue. We can declare the exception
+			// throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
+            return null;
 		}
 
 		internal static CodeProvider GetProviderContainingEntryPoint(Compilation compilation, out IMethodSymbol mainSymbol)
@@ -167,6 +187,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return null;
 		}
+
+        internal bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+            return TypeHelper.InheritsByName(roslynType1, roslynType2);
+        }
 
 		/*
 		var cancellationToken = new System.Threading.CancellationToken();

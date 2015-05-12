@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace ReachingTypeAnalysis
@@ -16,16 +17,25 @@ namespace ReachingTypeAnalysis
 			var type = model.GetTypeInfo(node).Type;
 			return type != null && IsTypeForAnalysis(type);
 		}
-		internal static bool IsTypeForAnalysis(AnalysisType analysisType)
+
+		internal static bool IsTypeForAnalysis(TypeDescriptor t)
 		{
-			var res = IsTypeForAnalysis(analysisType.RoslynType);
-			return res;
+			Contract.Assert(t != null);
+
+			return (t.IsReferenceType || t.Kind == TypeKind.TypeParameter);
 		}
+	
 		internal static bool IsTypeForAnalysis(ITypeSymbol t)
 		{
 			var res = t != null && (t.IsReferenceType || t.TypeKind == TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
+
+        internal static MethodDescriptor FindMethodDescriptorForType(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            return new MethodDescriptor(typeDescriptor.TypeName, methodDescriptor.MethodName);
+            // throw new NotImplementedException("To implement this method we need type resolution");
+        }
 
 		internal static IMethodSymbol FindMethodImplementation(IMethodSymbol method, ITypeSymbol rType)
 		{
@@ -94,6 +104,35 @@ namespace ReachingTypeAnalysis
 			//else return null;
 		}
 
+        internal static int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
+        {
+            // var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
+            var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
+            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+            var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+            int count = 0;
+            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
+        internal static int GetStatementNumber(SyntaxNodeOrToken expression)
+        {
+            var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MethodDeclarationSyntax>().First();
+            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+            var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+            int count = 0;
+            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(expression.GetLocation()); i++)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
 		private static MetadataReference mscorlib;
 
 		internal static MetadataReference Mscorlib
@@ -137,7 +176,8 @@ namespace ReachingTypeAnalysis
 
 		public IEnumerator<Tuple<T1, T2>> GetEnumerator()
 		{
-			throw new NotImplementedException();
+            return new MyIEnumerator(this.enumerator1, this.enumerator2);
+			//throw new NotImplementedException();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

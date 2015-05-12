@@ -16,7 +16,7 @@ namespace ReachingTypeAnalysis
     [TestClass]
     public partial class Tests
     {
-        delegate void RunChecks(SolutionAnalyzer s, CallGraph<MethodDescriptor, AnalysisLocation> callgraph);
+        delegate void RunChecks(SolutionAnalyzer s, CallGraph<MethodDescriptor, LocationDescriptor> callgraph);
 
         private static void AnalyzeExample(string source, RunChecks checker, AnalysisStrategy strategy = AnalysisStrategy.NONE)
         {

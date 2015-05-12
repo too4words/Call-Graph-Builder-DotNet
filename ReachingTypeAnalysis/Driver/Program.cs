@@ -63,7 +63,7 @@ namespace ReachingTypeAnalysis
         private static OrleansHostWrapper hostWrapper;
 
 
-        private static CallGraph<MethodDescriptor, AnalysisLocation> GenerateCallGraph(Solution solution)
+        private static CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             var timerLocal = new Stopwatch();

@@ -2,6 +2,7 @@
 using OrleansGrains;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -12,12 +13,10 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal class EntityFactory
     {
-        internal static IEntityDescriptor Create(AnalysisMethod method)
+        internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor)
         {
-            //return new MethodEntityDescriptor<M>(method);
             var result = new OrleansEntityDescriptor(System.Guid.NewGuid());
-            Contract.Assert(method is AnalysisMethod);
-            result.MethodDescriptor = method.MethodDescriptor;
+            result.MethodDescriptor = methodDescriptor;
             Contract.Assert(result.MethodDescriptor != null);
 
             return result;
@@ -112,9 +111,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.Method.ToString()));
+				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
 			}
-			var callsAndRets = this.MethodEntity.PropGraph.Propagate();
+			var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
 			//ProcessOutputInfoAsync(retValueHasChanged).Start();
@@ -136,7 +135,7 @@ namespace ReachingTypeAnalysis.Analysis
 			/// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
 			if (callInvocationInfoForCalls.Count() > 0)
 			{
-				this.MethodEntity.InvalidateCaches();
+				this.InvalidateCaches();
 			}
 			// I made a new list to avoid a concurrent modification exception we received in some tests
 			var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
@@ -182,9 +181,10 @@ namespace ReachingTypeAnalysis.Analysis
 				// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
 				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
 				{
-					var instTypes = new HashSet<AnalysisType>();
+					var instTypes = new HashSet<TypeDescriptor>();
 					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-						.Where(iType => iType.IsSubtype(callInfo.Receiver.AnalysisType)));
+                        .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
+						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
 						types.Add(t);
@@ -202,9 +202,10 @@ namespace ReachingTypeAnalysis.Analysis
 					{
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
-						var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-						var t = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
-						continuations.Add(t);
+						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee, receiverType);
+						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
+						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
 					});
 					await Task.WhenAll(continuations);
@@ -213,7 +214,8 @@ namespace ReachingTypeAnalysis.Analysis
 				// in a meth m a after  call r.m() because only the value of r is passed and not all its structure
 				else
 				{
-					await CreateAndSendCallMessageAsync(callInfo, callInfo.Callee, callInfo.Callee.ContainerType, propKind);
+					await CreateAndSendCallMessageAsync(callInfo, 
+						callInfo.Callee, callInfo.Callee.ContainerType, propKind);
 				}
 			}
 			else
@@ -222,7 +224,8 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
-		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, AnalysisMethod realCallee, AnalysisType receiverType, PropagationKind propKind)
+		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, 
+                            MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
 		{
 			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
 			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
@@ -234,11 +237,13 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task DispatchCallMessageForDelegateAsync(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
 		{
 			var continuations = new List<Task>();
-			Parallel.ForEach(GetDelegateCallees(delegateCallInfo.CalleeDelegate), (callee) =>
+			foreach (var callee in GetDelegateCallees(delegateCallInfo.CalleeDelegate))
 			{
-				var t = CreateAndSendCallMessageAsync(delegateCallInfo, callee, callee.ContainerType, propKind);
-				continuations.Add(t);
-			});
+				var continuation = CreateAndSendCallMessageAsync(delegateCallInfo, 
+					callee, callee.ContainerType, propKind);
+				continuations.Add(continuation);
+			}
+
 			await Task.WhenAll(continuations);
 		}
 
@@ -271,13 +276,13 @@ namespace ReachingTypeAnalysis.Analysis
 				//}
 
 				var continuations = new List<Task>();
-				Parallel.ForEach(this.MethodEntity.Callers, (callerContex) =>
-				//foreach (var callerContex in this.MethodEntity.Callers)
+				foreach (var callerContex in this.MethodEntity.Callers)
 				{
 					var ret = this.MethodEntity.ReturnVariable;
 					var t = DispachReturnMessageAsync(callerContex, ret, propKind);
 					continuations.Add(t);
-				});
+				}
+
 				await Task.WhenAll(continuations);
 			}
 		}
@@ -289,19 +294,22 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <param name="returnVariable"></param>
 		/// <param name="propKind"></param>
 		/// <returns></returns>
-		public async Task DispachReturnMessageAsync(CallContext context, AnalysisNode returnVariable, PropagationKind propKind)
+		public async Task DispachReturnMessageAsync(CallContext context, VariableNode returnVariable, PropagationKind propKind)
 		{
 			var caller = context.Caller;
 			var lhs = context.CallLHS;
 			var types = returnVariable != null ?
-				GetTypes(returnVariable, propKind) : new HashSet<AnalysisType>();
+				GetTypes(returnVariable, propKind) : 
+				new HashSet<TypeDescriptor>();
+
 			// Diego TO-DO, different treatment for adding and removal
 			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
 			{
-				var instTypes = new HashSet<AnalysisType>();
+				var instTypes = new HashSet<TypeDescriptor>();
 				instTypes.UnionWith(
 					this.MethodEntity.InstantiatedTypes
-						.Where(iType => iType.IsSubtype(returnVariable.AnalysisType)));
+                        .Where(iType => codeProvider.IsSubtype(iType,returnVariable.Type)));
+                        //.Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{
 					types.Add(t);
@@ -341,16 +349,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.Method.ToString()));
+				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
 			}
-			var caller = Demarshaler.Demarshal(callMessage.Caller);
 			// This is the node in the caller where info of ret-value should go
 			var lhs = callMessage.LHS;
 			// Save caller info
-			var callContext = new CallContext(
-				Demarshaler.Demarshal(callMessage.Caller),
-				Demarshaler.Demarshal(callMessage.LHS),
-				Demarshaler.Demarshal(callMessage.CallNode));
+			var callContext = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
 			/// Loop detected due to recursion
 			//if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
 			//if (MethodEntity.NodesProcessing.Contains(callContext))
@@ -386,7 +390,7 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
 				}
-				var pairIterator = new PairIterator<AnalysisNode, ISet<TypeDescriptor>>
+				var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
 					(this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
 				foreach (var pair in pairIterator)
 				{

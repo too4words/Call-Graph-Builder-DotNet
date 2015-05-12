@@ -19,5 +19,15 @@ namespace OrleansGrains
         }
 
         public MethodDescriptor MethodDescriptor { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            OrleansEntityDescriptor entityDescriptor = (OrleansEntityDescriptor)obj;
+            return this.MethodDescriptor.Equals(entityDescriptor.MethodDescriptor);
+        }
+        public override int GetHashCode()
+        {
+            return this.MethodDescriptor.GetHashCode();
+        }
     }
 }

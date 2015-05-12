@@ -72,14 +72,16 @@ namespace ReachingTypeAnalysis
 
 				foreach (Edge e in graph.EnumerateEdges())
 				{
-					string elemsStr = ElemsToStr((Bag<AnalysisType>)e["Types"]);
+//					string elemsStr = ElemsToStr((Bag<TypeDescriptor>)e["Types"]);
+                    string elemsStr = ElemsToStr((HashSet<TypeDescriptor>)e["Types"]);
+
 					writer.WriteLine("{0}: [{1}];", e, elemsStr);
 				}
 				writer.WriteLine("}");
 			}
 		}
 
-		private static string ElemsToStr(Bag<AnalysisType> elems)
+		private static string ElemsToStr(Bag<TypeDescriptor> elems)
 		{
 
 			var sb = new StringBuilder();
@@ -90,7 +92,7 @@ namespace ReachingTypeAnalysis
 			}
 			return sb.ToString();
 		}
-		private static string ElemsToStr(ISet<AnalysisType> elems)
+		private static string ElemsToStr(ISet<TypeDescriptor> elems)
 		{
 
 			var sb = new StringBuilder();

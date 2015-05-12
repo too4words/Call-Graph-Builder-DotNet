@@ -52,17 +52,12 @@ namespace ReachingTypeAnalysis.Roslyn
         private static IMethodSymbol FindMethodSymbolInProject(MethodDescriptor methodDescriptor, Project project)
         {
             var compilation = project.GetCompilationAsync().Result;
-            var type = compilation.GetTypeByMetadataName(methodDescriptor.ClassName);
-            // Another way to access the info
-            if (type == null)
-            {
-                Func<string, bool> pred = s => { return s.Equals(methodDescriptor.ClassName); };
-                var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type);
-                if (symbols.Count() > 0)
-                {
-                    type = symbols.First() as INamedTypeSymbol;
-                }
-            }
+            return FindMethodInCompilation(methodDescriptor, compilation);
+        }
+
+        public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
+        {
+            var type = GetTypeByName(methodDescriptor.ClassName, compilation);
             if (type != null)
             {
                 var members = type.GetMembers(methodDescriptor.MethodName);
@@ -75,6 +70,20 @@ namespace ReachingTypeAnalysis.Roslyn
             return null;
         }
 
-
+        public static INamedTypeSymbol GetTypeByName(string className, Compilation compilation)
+        {
+            var type = compilation.GetTypeByMetadataName(className);
+            // Another way to access the info
+            if (type == null)
+            {
+                Func<string, bool> pred = s => { return s.Equals(className); };
+                var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type);
+                if (symbols.Count() > 0)
+                {
+                    type = symbols.First() as INamedTypeSymbol;
+                }
+            }
+            return type;
+        }
     }
 }

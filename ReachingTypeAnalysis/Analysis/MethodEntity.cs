@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// This is for having a RTA like set of instantiated types 
 		/// We need this give type to  unsupported expression using the declaredType instead of the concrete type 
 		/// </summary>
-		public ISet<AnalysisType> InstantiatedTypes { get; private set; }
+		public ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
 
 		/// This is for the propagation of removal of concrete types
 		/// It is currently not used. 
@@ -56,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// The method being analyzed
 		/// </summary>
-		public AnalysisMethod Method { get; private set; }
+		public MethodDescriptor MethodDescriptor { get; private set; }
 
 		/// <summary>
 		/// This is the important part of the this class 
@@ -73,14 +74,14 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// The next properties obtains info from MethodDataInterface
 		/// </summary>
-		public AnalysisNode ThisRef
+		public VariableNode ThisRef
 		{
 			get { return MethodInterfaceData.ThisRef; }
 		}
 		/// <summary>
 		/// These are the node correspoding to the parameters
 		/// </summary>
-		public IEnumerable<AnalysisNode> ParameterNodes
+		public IEnumerable<VariableNode> ParameterNodes
 		{
 			get { return MethodInterfaceData.Parameters; }
 
@@ -88,7 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// Return the node rerpesenting the ret value
 		/// </summary>
-		public AnalysisNode ReturnVariable
+		public VariableNode ReturnVariable
 		{
 			get { return MethodInterfaceData.ReturnVariable; }
 		}
@@ -96,7 +97,6 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
-		private IDictionary<AnalysisNode, ISet<AnalysisMethod>> calleesMappingCache = new Dictionary<AnalysisNode, ISet<AnalysisMethod>>();
 		public MethodEntityProcessor EntityProcessor { get; private set; }
 
 		//public ISet<E> NodesProcessing = new HashSet<E>();
@@ -106,22 +106,22 @@ namespace ReachingTypeAnalysis.Analysis
 		/// A method entity is built using the methods interface (params, return) and the propagation graph that is 
 		/// initially populated with the variables, parameters and calls of the method 
 		/// </summary>
-		/// <param name="method"></param>
+		/// <param name="methodDescriptor"></param>
 		/// <param name="mid"></param>
 		/// <param name="propGraph"></param>
 		/// <param name="instantiatedTypes"></param>
-		public MethodEntity(AnalysisMethod method,
+		public MethodEntity(MethodDescriptor methodDescriptor,
 			MethodInterfaceData mid,
 			PropagationGraph propGraph,
-			IEnumerable<AnalysisType> instantiatedTypes)
+			IEnumerable<TypeDescriptor> instantiatedTypes)
 			: base()
 		{
-			this.Method = method;
-			this.EntityDescriptor = EntityFactory.Create(method);
+			this.MethodDescriptor = methodDescriptor;
+			this.EntityDescriptor = EntityFactory.Create(methodDescriptor);
 			this.MethodInterfaceData = mid;
 
 			this.PropGraph = propGraph;
-			this.InstantiatedTypes = new HashSet<AnalysisType>(instantiatedTypes);
+			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
 		}
 
 		/// <summary>
@@ -167,131 +167,65 @@ namespace ReachingTypeAnalysis.Analysis
 			return EntityProcessor;
 		}
 
-		#region Methods that compute caller callees relation 
-		public void InvalidateCaches()
-		{
-			calleesMappingCache.Clear();
-		}
-		/// <summary>
-		/// Compute all the calless of this method entities
-		/// </summary>
-		/// <returns></returns>
-		public IEnumerable<AnalysisMethod> Callees()
-		{
-			var result = new HashSet<AnalysisMethod>();
-			foreach (var callNode in PropGraph.CallNodes)
-			{
-				result.UnionWith(Callees(callNode));
-			}
-			return result;
-		}
+        public void AddToCallers(CallContext context)
+        {
+            callers = callers.Add(context);
+        }
+        /// <summary>
+        /// This is used by the incremental analysis when a caller is removed of modified
+        /// </summary>
+        /// <param name="context"></param>
+        public void RemoveFromCallers(CallContext context)
+        {
+            callers = callers.Remove(context);
+        }
 
-		/// <summary>
-		/// Computes all the potential callees for a particular method invocation
-		/// </summary>
-		/// <param name="node"></param>
-		/// <returns></returns>
-		public ISet<AnalysisMethod> Callees(AnalysisNode node)
-		{
-			ISet<AnalysisMethod> result;
+//        /// <summary>
+//        /// Obtains the concrete types that a method expression (e.g, variable, parameter, field) may refer 
+//        /// </summary>
+//        /// <param name="n"></param>
+//        /// <returns></returns>
+//        public ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor n)
+//        {
+//            if (n != null)
+//            {
+//                return this.PropGraph.GetTypes(n);
+//            }
+//            else
+//            {
+//                return new HashSet<TypeDescriptor>();
+//            }
+//        }
 
-			if (!calleesMappingCache.TryGetValue(node, out result))
-			{
-				var calleesForNode = new HashSet<AnalysisMethod>();
-				var invExp = PropGraph.GetInvocationInfo(node);
-				Contract.Assert(invExp != null);
+//        /// <summary>
+//        /// Obtains the methods a delegate var may refer
+//        /// </summary>
+//        /// <param name="n"></param>
+//        /// <returns></returns>
+//        internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode n)
+//        {
+//            return this.PropGraph.GetDelegates(n);
+//        }
 
-				calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.PropGraph));
-
-				calleesMappingCache[node] = calleesForNode;
-				result = calleesForNode;
-
-			}
-			return result;
-		}
-
-		/// <summary>
-		/// Generates a dictionary invocationNode -> potential callees
-		/// This is used for example by the demo to get the caller / callee info
-		/// </summary>
-		/// <returns></returns>
-		public IDictionary<AnalysisNode, ISet<AnalysisMethod>> GetCalleesInfo()
-		{
-			var calleesPerEntity = new Dictionary<AnalysisNode, ISet<AnalysisMethod>>();
-			foreach (var calleeNode in this.PropGraph.CallNodes)
-			{
-				calleesPerEntity[calleeNode] = Callees(calleeNode);
-			}
-			return calleesPerEntity;
-		}
-
-		//private void GetCallesForCalleeNode(ANode calleeNode)
-		//{
-		//    var res = new HashSet<AMethod>();
-		//    var callInfo = this.PropGraph.GetInvocationInfo(calleeNode);
-		//    res.UnionWith(callInfo.ComputeCalleesForNode(this.PropGraph));
-		//    calleesPerEntityCache[calleeNode] = res;
-		//}
-
-		/// <summary>
-		/// This methods register that there is a new caller for this method
-		/// This is used in to register who calls this method
-		/// </summary>
-		/// <param name="context"></param>
-		public void AddToCallers(CallContext context)
-		{
-			callers = callers.Add(context);
-		}
-		/// <summary>
-		/// This is used by the incremental analysis when a caller is removed of modified
-		/// </summary>
-		/// <param name="context"></param>
-		public void RemoveFromCallers(CallContext context)
-		{
-			callers = callers.Remove(context);
-		}
-		#endregion
-
-		/// <summary>
-		/// Obtains the concrete types that a method expression (e.g, variable, parameter, field) may refer 
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		public ISet<AnalysisType> GetTypes(AnalysisNode n)
-		{
-			if (n != null)
-				return this.PropGraph.GetTypes(n);
-			else return new HashSet<AnalysisType>();
-		}
-
-		/// <summary>
-		/// Obtains the methods a delegate var may refer
-		/// </summary>
-		/// <param name="n"></param>
-		/// <returns></returns>
-		internal ISet<AnalysisMethod> GetDelegates(AnalysisNode n)
-		{
-			return this.PropGraph.GetDelegates(n);
-		}
-
-		internal ISet<AnalysisType> GetPotentialTypes(AnalysisNode n)
-		{
-			var result = new HashSet<AnalysisType>();
-			foreach (var t in PropGraph.GetTypes(n))
-			{
-				if (t.IsConcreteType)
-				{
-					result.Add(t);
-				}
-				else
-				{
-					result
-						.UnionWith(InstantiatedTypes
-							.Where(iType => iType.IsSubtype(t)));
-				}
-			}
-			return result;
-		}
+//        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor analysisNode)
+//        {
+//            var result = new HashSet<TypeDescriptor>();
+//            foreach (var typeDescriptor in PropGraph.GetTypes(analysisNode))
+//            {
+//                if (typeDescriptor.IsConcreteType)
+//                {
+//                    result.Add(typeDescriptor);
+//                }
+//                else
+//                {
+//                    result
+//                        .UnionWith(InstantiatedTypes
+//                            .Where(candidateTypeDescriptor => CodeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
+////							.Where(iType => iType.IsSubtype(t)));
+//                }
+//            }
+//            return result;
+//        }
 
 		public void Save(string path)
 		{
@@ -300,35 +234,35 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override string ToString()
 		{
-			return this.Method.ToString();
+			return this.MethodDescriptor.ToString();
 		}
 	}
 
-	internal class MethodEntityDescriptor<AMethod> : IEntityDescriptor
+	internal class MethodEntityDescriptor : IEntityDescriptor
 	{
-		private AMethod method;
+		private MethodDescriptor methodDescriptor;
 
-		public AMethod Method
+        public MethodDescriptor MethodDescriptor
 		{
-			get { return method; }
-			private set { method = value; }
+			get { return methodDescriptor; }
+			private set { methodDescriptor = value; }
 		}
-		internal MethodEntityDescriptor(AMethod method)
+        internal MethodEntityDescriptor(MethodDescriptor methodDescriptor)
 		{
-			this.method = method;
+			this.methodDescriptor = methodDescriptor;
 		}
 		public override bool Equals(object obj)
 		{
-			MethodEntityDescriptor<AMethod> md = obj as MethodEntityDescriptor<AMethod>;
-			return md != null && method.Equals(md.method);
+			MethodEntityDescriptor md = obj as MethodEntityDescriptor;
+			return md != null && methodDescriptor.Equals(md.methodDescriptor);
 		}
 		public override int GetHashCode()
 		{
-			return method.GetHashCode();
+			return methodDescriptor.GetHashCode();
 		}
 		public override string ToString()
 		{
-			return method.ToString();
+			return methodDescriptor.ToString();
 		}
 	}
 
@@ -340,17 +274,18 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		internal MethodInterfaceData()
 		{
-			this.InputData = new Dictionary<string, AnalysisNode>();
-			this.OutputData = new Dictionary<string, AnalysisNode>();
+			this.InputData = new Dictionary<string, PropGraphNodeDescriptor>();
+			this.OutputData = new Dictionary<string, PropGraphNodeDescriptor>();
 		}
-		public AnalysisNode ThisRef { get; internal set; }
 
-		public IEnumerable<AnalysisNode> Parameters { get; internal set; }
+		public VariableNode ThisRef { get; internal set; }
 
-		public AnalysisNode ReturnVariable { get; internal set; }
+		public IEnumerable<ParameterNode> Parameters { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> OutputData { get; internal set; }
+		public VariableNode ReturnVariable { get; internal set; }
 
-		public IDictionary<string, AnalysisNode> InputData { get; internal set; }
+		public IDictionary<string, PropGraphNodeDescriptor> OutputData { get; internal set; }
+
+		public IDictionary<string, PropGraphNodeDescriptor> InputData { get; internal set; }
 	}
 }
