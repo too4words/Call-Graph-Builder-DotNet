@@ -158,7 +158,7 @@ class Program
             AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
-            });
+            },strategy);
         }
 
         public void TestCallViaInterface(AnalysisStrategy strategy)
