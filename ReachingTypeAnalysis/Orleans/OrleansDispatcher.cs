@@ -18,6 +18,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public OrleansDispatcher()
 		{
+
 		}
 
 		public void DeliverMessage(IEntityDescriptor destination, IMessage message)

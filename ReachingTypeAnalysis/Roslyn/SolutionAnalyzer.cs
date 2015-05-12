@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Orleans;
 
 namespace ReachingTypeAnalysis
 {
@@ -82,7 +83,31 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
                     {
-                         this.Dispatcher = new OrleansDispatcher();
+
+                        // set up the Orleans silo
+                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null,
+                            new AppDomainSetup
+                            {
+                                AppDomainInitializer = InitSilo,
+                                ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                                AppDomainInitializerArguments = new string[] { },
+                            });
+
+                        var xmlConfig = "DevTestClientConfiguration.xml";
+                        Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
+                        try
+                        {
+                            GrainClient.Initialize(xmlConfig);
+                            Debug.WriteLine("Orleans silo initialized");
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
+                            break;
+                        }
+                        // make a dispatcher
+                        this.Dispatcher = new OrleansDispatcher();
+                        // run
                         AnalyzeOnDemandAsync().Wait();
 
                         break;
@@ -102,7 +127,28 @@ namespace ReachingTypeAnalysis
             }
         }
 
-		private static AnalysisStrategy ConvertToEnum(string strategy)
+        private static OrleansHostWrapper hostWrapper;
+
+        private static void InitSilo(string[] args)
+        {
+            hostWrapper = new OrleansHostWrapper(args);
+
+            if (!hostWrapper.Run())
+            {
+                Console.Error.WriteLine("Failed to initialize Orleans silo");
+            }
+        }
+
+        private static void ShutdownSilo()
+        {
+            if (hostWrapper != null)
+            {
+                hostWrapper.Dispose();
+                GC.SuppressFinalize(hostWrapper);
+            }
+        }
+
+        private static AnalysisStrategy ConvertToEnum(string strategy)
 		{
 			switch (strategy)
 			{
