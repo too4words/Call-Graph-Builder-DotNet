@@ -89,7 +89,6 @@ namespace ReachingTypeAnalysis.Communication
                 return grainDesc.MethodDescriptor;
             }
             throw new NotImplementedException("We shouldn't reach this place");
-            return null;
         }
     }
 

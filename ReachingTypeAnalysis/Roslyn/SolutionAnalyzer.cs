@@ -631,8 +631,9 @@ namespace ReachingTypeAnalysis
                 // Updates the callGraph
                 UpdateCallGraph(entityProcessor, callgraph);
                 MethodEntity methodEntity = (MethodEntity) entityProcessor.Entity;
-                methodEntity.Save("C:\\Temp\\"+ methodEntity.MethodDescriptor.ClassName 
-                                    + "_" + methodEntity.MethodDescriptor.Name + ".dot");
+                
+                methodEntity.Save(Path.Combine(Path.GetTempPath(), 
+                    methodEntity.MethodDescriptor.ClassName + "_" + methodEntity.MethodDescriptor.Name + ".dot"));
             }
             //callgraph.Save("cg.dot");
 
