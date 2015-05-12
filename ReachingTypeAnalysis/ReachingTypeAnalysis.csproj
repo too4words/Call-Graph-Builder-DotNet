@@ -281,6 +281,7 @@
     <Compile Include="Tests\Incremental.cs" />
     <Compile Include="Tests\LongTests.cs" />
     <Compile Include="Tests\SoundnessEntireAsync.cs" />
+    <Compile Include="Tests\SoundnessOnDemandAsyncOrleans.cs" />
     <Compile Include="Tests\SoundnessOnDemandAsync.cs" />
     <Compile Include="Tests\SoundnessEntireSync.cs" />
     <Compile Include="Tests\SoundnessOnDemandSync.cs" />
