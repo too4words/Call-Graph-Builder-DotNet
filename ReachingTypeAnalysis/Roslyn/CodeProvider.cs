@@ -195,7 +195,14 @@ namespace ReachingTypeAnalysis.Roslyn
             return TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 
-		/*
+        internal Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+            return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
+        }
+
+        /*
 		var cancellationToken = new System.Threading.CancellationToken();
 			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects();
 			Project project = null;
@@ -219,5 +226,5 @@ namespace ReachingTypeAnalysis.Roslyn
 			var roslynMainMethod = compilation.GetEntryPoint(cancellationToken);
 	*/
 
-	}
+    }
 }
