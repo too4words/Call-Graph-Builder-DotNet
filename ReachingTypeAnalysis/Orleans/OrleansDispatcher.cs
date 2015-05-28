@@ -26,12 +26,12 @@ namespace ReachingTypeAnalysis.Analysis
 			throw new NotImplementedException();
 		}
 
-		public Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
+		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
-			Contract.Assert(destination is IOrleansEntityDescriptor);
-			var guid = ((IOrleansEntityDescriptor)destination).GetGuid().Result;
+			//Contract.Assert(destination is IOrleansEntityDescriptor);
+			var guid = await ((IOrleansEntityDescriptor)destination).GetGuid();
 			var destinationGrain = GrainFactory.GetGrain<IMethodEntityGrain>(guid);
-			return destinationGrain.ReceiveMessageAsync((IOrleansEntityDescriptor)message.Source, message);
+			/*return*/ destinationGrain.ReceiveMessageAsync((IOrleansEntityDescriptor)message.Source, message);
 			//var processor = destinationGrain.GetEntityProcessor(this);
 			//return processor.ReceiveMessageAsync(message.Source, message);
 		}
@@ -43,23 +43,23 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<IEntity> GetEntity(IEntityDescriptor entityDesc)
 		{
-			Contract.Assert(entityDesc != null);
+			//Contract.Assert(entityDesc != null);
 			var grainDesc = (OrleansEntityDescriptor)entityDesc;
-			Contract.Assert(grainDesc != null);
-			var guid = grainDesc.GetGuid().Result;
+			//Contract.Assert(grainDesc != null);
+			var guid = await grainDesc.GetGuid();
 			MethodEntityGrain result;
 			if (this.orleansGrains.TryGetValue(guid, out result))
 			{
-				Contract.Assert(result != null);
+				//Contract.Assert(result != null);
 
 				return result;
 			}
 			else
 			{
 				// new grain
-				Contract.Assert(grainDesc.MethodDescriptor != null);
+				//Contract.Assert(grainDesc.MethodDescriptor != null);
 				var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
-				Contract.Assert(provider != null);
+				//Contract.Assert(provider != null);
 
 				var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
 				return methodEntityGenerator.ParseMethod();

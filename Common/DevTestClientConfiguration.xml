@@ -7,7 +7,7 @@
   <GatewayProvider ProviderType="Config"/>
   <Gateway Address="localhost" Port="30000"/>
   <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true"/>
-  <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log">
+  <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log">
     <TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
   </Tracing>
 </ClientConfiguration>

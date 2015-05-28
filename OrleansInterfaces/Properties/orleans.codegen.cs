@@ -10,6 +10,8 @@
 #if !EXCLUDE_CODEGEN
 #pragma warning disable 162
 #pragma warning disable 219
+#pragma warning disable 414
+#pragma warning disable 649
 #pragma warning disable 693
 #pragma warning disable 1591
 #pragma warning disable 1998
@@ -27,7 +29,7 @@ namespace OrleansInterfaces
     using ReachingTypeAnalysis;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class OrleansEntityDescriptorFactory
     {
@@ -49,7 +51,7 @@ namespace OrleansInterfaces
                 return OrleansEntityDescriptorReference.Cast(grainRef);
             }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
         [System.SerializableAttribute()]
         [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.IOrleansEntityDescriptor")]
@@ -123,12 +125,12 @@ namespace OrleansInterfaces
             System.Threading.Tasks.Task<System.Guid> OrleansInterfaces.IOrleansEntityDescriptor.GetGuid()
             {
 
-                return base.InvokeMethodAsync<System.Guid>(679340007, new object[] {} );
+                return base.InvokeMethodAsync<System.Guid>(679340007, null );
             }
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.IOrleansEntityDescriptor", 1545344342)]
     internal class OrleansEntityDescriptorMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
@@ -203,7 +205,7 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class MethodEntityGrainFactory
     {
@@ -225,7 +227,7 @@ namespace OrleansInterfaces
                 return MethodEntityGrainReference.Cast(grainRef);
             }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
         [System.SerializableAttribute()]
         [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.IMethodEntityGrain")]
@@ -299,18 +301,18 @@ namespace OrleansInterfaces
             System.Threading.Tasks.Task<OrleansInterfaces.IOrleansEntityDescriptor> OrleansInterfaces.IMethodEntityGrain.GetDescriptor()
             {
 
-                return base.InvokeMethodAsync<OrleansInterfaces.IOrleansEntityDescriptor>(331950094, new object[] {} );
+                return base.InvokeMethodAsync<OrleansInterfaces.IOrleansEntityDescriptor>(331950094, null );
             }
             
             System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ReceiveMessageAsync(OrleansInterfaces.IOrleansEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message)
             {
 
-                return base.InvokeMethodAsync<object>(-1611393113, new object[] {@source is global::Orleans.Grain ? OrleansInterfaces.OrleansEntityDescriptorFactory.Cast(@source.AsReference()) : @source, @message} );
+                return base.InvokeMethodAsync<object>(-1611393113, new object[] {@source is global::Orleans.Grain ? @source.AsReference<OrleansInterfaces.IOrleansEntityDescriptor>() : @source, @message} );
             }
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.IMethodEntityGrain", 898358989)]
     internal class MethodEntityGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
@@ -391,6 +393,8 @@ namespace OrleansInterfaces
 }
 #pragma warning restore 162
 #pragma warning restore 219
+#pragma warning restore 414
+#pragma warning restore 649
 #pragma warning restore 693
 #pragma warning restore 1591
 #pragma warning restore 1998

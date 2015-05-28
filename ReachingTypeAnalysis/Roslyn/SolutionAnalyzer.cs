@@ -83,27 +83,32 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
                     {
-
-                        // set up the Orleans silo
-                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null,
-                            new AppDomainSetup
+                        //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+                        var applicationPath = @"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                        var appDomainSetup = new AppDomainSetup
                             {
                                 AppDomainInitializer = InitSilo,
-                                ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                                //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                                ApplicationBase =applicationPath, 
+                                ApplicationName = "ReachingTypeAnalysis",
                                 AppDomainInitializerArguments = new string[] { },
-                            });
+                                ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
+                            };
+                        // set up the Orleans silo
+                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null,appDomainSetup);
 
                         var xmlConfig = "DevTestClientConfiguration.xml";
                         Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
                         try
-                        {
+                        {                            
                             GrainClient.Initialize(xmlConfig);
                             Debug.WriteLine("Orleans silo initialized");
                         }
                         catch (Exception e)
                         {
                             Debug.WriteLine(e.Message);
-                            break;
+                            throw e;
+                            //break;
                         }
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();

@@ -1,9 +1,26 @@
-﻿using System;
+﻿
+//*********************************************************//
+//    Copyright (c) Microsoft. All rights reserved.
+//    
+//    Apache 2.0 License
+//    
+//    You may obtain a copy of the License at
+//    http://www.apache.org/licenses/LICENSE-2.0
+//    
+//    Unless required by applicable law or agreed to in writing, software 
+//    distributed under the License is distributed on an "AS IS" BASIS, 
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or 
+//    implied. See the License for the specific language governing 
+//    permissions and limitations under the License.
+//
+//*********************************************************
+using System;
 using System.Net;
-using Orleans.Runtime.Host;
 
-namespace ReachingTypeAnalysis.Analysis
+using Orleans.Runtime.Host;
+namespace Common
 {
+        
     internal class OrleansHostWrapper : IDisposable
     {
         public bool Debug
@@ -27,21 +44,23 @@ namespace ReachingTypeAnalysis.Analysis
             try
             {
                 siloHost.InitializeOrleansSilo();
+
                 ok = siloHost.StartOrleansSilo();
 
                 if (ok)
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type));
+                    Console.WriteLine(string.Format("Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type));
                 }
                 else
                 {
                     throw new SystemException(string.Format("Failed to start Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type));
                 }
             }
-            catch (Exception ex)
+            catch (Exception exc)
             {
-                siloHost.ReportStartupError(ex);
-                System.Diagnostics.Debug.WriteLine(string.Format("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace));
+                siloHost.ReportStartupError(exc);
+                var msg = string.Format("{0}:\n{1}\n{2}", exc.GetType().FullName, exc.Message, exc.StackTrace);
+                Console.WriteLine(msg);
             }
 
             return ok;
@@ -55,12 +74,13 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 siloHost.StopOrleansSilo();
 
-                System.Diagnostics.Debug.WriteLine(string.Format("Orleans silo '{0}' shutdown.", siloHost.Name));
+                Console.WriteLine(string.Format("Orleans silo '{0}' shutdown.", siloHost.Name));
             }
-            catch (Exception ex)
+            catch (Exception exc)
             {
-                siloHost.ReportStartupError(ex);
-                System.Diagnostics.Debug.WriteLine(string.Format("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace));
+                siloHost.ReportStartupError(exc);
+                var msg = string.Format("{0}:\n{1}\n{2}", exc.GetType().FullName, exc.Message, exc.StackTrace);
+                Console.WriteLine(msg);
             }
 
             return ok;
@@ -141,9 +161,7 @@ namespace ReachingTypeAnalysis.Analysis
             siloHost = new SiloHost(siloName);
             siloHost.ConfigFileName = configFileName;
             if (deploymentId != null)
-            {
                 siloHost.DeploymentId = deploymentId;
-            }
 
             return true;
         }
@@ -173,3 +191,4 @@ Where:
         }
     }
 }
+

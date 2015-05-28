@@ -302,8 +302,8 @@ namespace ReachingTypeAnalysis.Roslyn
         }
         public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
         {
-            Contract.Requires(lhsAnalysisNode is VariableNode);
-            methodVisitor.RegisterCallLHS((VariableNode)lhsAnalysisNode, this);
+            //Contract.Requires(lhsAnalysisNode is VariableNode);
+            methodVisitor.RegisterCallLHS(lhsAnalysisNode, this);
         }
         public override AnalysisExpression ProcessArgument(ArgumentSyntax argNode, ExpressionVisitor visitor)
         {

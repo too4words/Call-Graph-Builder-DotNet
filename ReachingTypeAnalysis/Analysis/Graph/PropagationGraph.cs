@@ -159,6 +159,7 @@ namespace ReachingTypeAnalysis
 			}
 			return null;
 		}
+        [Pure]
 		public bool IsCallNode(PropGraphNodeDescriptor n)
 		{
 			int index = vIndex[n];
@@ -174,7 +175,7 @@ namespace ReachingTypeAnalysis
 			//return v["Ret"] != null;
 			return GetData(v).HasRetValue;
 		}
-
+        [Pure]
 		public bool IsDelegateCallNode(PropGraphNodeDescriptor n)
 		{
 			int index = vIndex[n];
