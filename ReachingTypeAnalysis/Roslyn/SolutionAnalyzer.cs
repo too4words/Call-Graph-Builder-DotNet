@@ -84,16 +84,19 @@ namespace ReachingTypeAnalysis
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
                     {
                         //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-                        var applicationPath = @"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                        var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
+                            //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                        var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
+
                         var appDomainSetup = new AppDomainSetup
-                            {
-                                AppDomainInitializer = InitSilo,
-                                //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
-                                ApplicationBase =applicationPath, 
-                                ApplicationName = "ReachingTypeAnalysis",
-                                AppDomainInitializerArguments = new string[] { },
-                                ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
-                            };
+                        {
+                            AppDomainInitializer = InitSilo,
+                            //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                            ApplicationBase = applicationPath,
+                            ApplicationName = "ReachingTypeAnalysis",
+                            AppDomainInitializerArguments = new string[] { },
+                            ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
+                        };
                         // set up the Orleans silo
                         var hostDomain = AppDomain.CreateDomain("OrleansHost", null,appDomainSetup);
 
