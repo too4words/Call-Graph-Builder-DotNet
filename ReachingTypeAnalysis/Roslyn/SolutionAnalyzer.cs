@@ -320,7 +320,7 @@ namespace ReachingTypeAnalysis
 						this.Dispatcher);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
-                    var mainEntityProcessor = mainMethodEntity.GetEntityProcessor(Dispatcher);
+                    var mainEntityProcessor = new MethodEntityProcessor((MethodEntity)mainMethodEntity, this.Dispatcher);
                     //var mainMethodDescriptor =  new MethodDescriptor(mainSymbol);
                     //var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
                     //var mainEntityProcessor = this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor).Result ;
@@ -681,7 +681,9 @@ namespace ReachingTypeAnalysis
             var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
             foreach (var entity in allEntities)
             {
-                var entityProcessor = entity.GetEntityProcessor(this.Dispatcher);
+                //  entity.GetEntityProcessor(this.Dispatcher);
+                var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
+                
                 // Updates the callGraph
                 UpdateCallGraph(entityProcessor, callgraph);
                 MethodEntity methodEntity = (MethodEntity) entityProcessor.Entity;
@@ -700,7 +702,7 @@ namespace ReachingTypeAnalysis
             // pg.PropagateDeletionOfNodes();
             foreach (var e in dispatcher.GetAllEntites())
             {
-                var entityProcessor = e.GetEntityProcessor(dispatcher);
+                var entityProcessor = new MethodEntityProcessor((MethodEntity)e, dispatcher);// e.GetEntityProcessor(dispatcher);
                 var methodEntity = (MethodEntity)entityProcessor.Entity;
                 if (methodEntity.MethodDescriptor.ToString().Contains("Main"))
                 {

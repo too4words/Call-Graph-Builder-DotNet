@@ -309,6 +309,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<object>(-1611393113, new object[] {@source is global::Orleans.Grain ? @source.AsReference<OrleansInterfaces.IOrleansEntityDescriptor>() : @source, @message} );
             }
+            
+            System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
+            {
+
+                return base.InvokeMethodAsync<System.Boolean>(-1831544886, null );
+            }
         }
     }
     
@@ -340,6 +346,8 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).GetDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1611393113: 
                                 return ((IMethodEntityGrain)grain).ReceiveMessageAsync((IOrleansEntityDescriptor)arguments[0], (IMessage)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -1831544886: 
+                                return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1097320095:  // IGrainWithGuidKey
@@ -373,6 +381,8 @@ namespace OrleansInterfaces
                             return "GetDescriptor";
                     case -1611393113:
                             return "ReceiveMessageAsync";
+                    case -1831544886:
+                            return "IsInitialized";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);

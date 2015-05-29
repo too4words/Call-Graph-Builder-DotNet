@@ -24,28 +24,38 @@ namespace ReachingTypeAnalysis.Analysis
 
         internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor)
         {
-			var result = new MethodEntityGrain();
-            result.SetMethodEntity(methodEntity).Wait();
-            result.SetDescriptor((IOrleansEntityDescriptor)descriptor).Wait();
+            if (descriptor is IOrleansEntityDescriptor)
+            {
+                var orleansDescriptor = (IOrleansEntityDescriptor)descriptor;
+                var guid = orleansDescriptor.GetGuid().Result;
+                return MethodEntityGrainFactory.GetGrain(guid);
+            }
+            else
+            {
+                //var result = methodEntity;
+                //result.SetMethodEntity(methodEntity).Wait();
+                //result.SetDescriptor((IOrleansEntityDescriptor)descriptor).Wait();
 
-            return result;
+                //return result;
+                return methodEntity;
+            }
         }
     }
 
-	/// <summary>
-	/// This class is in charge of processing a method entity
-	/// In particular, in performing the propagation of types 
-	/// and communnicating with the callees and caller entities when the propagation 
-	/// reaches the boundary of the method
-	/// 
-	/// THIS CLASS COULD BE MADE STATIC. 
-	/// It just hold a reference to the method enitty being processed and modified 
-	/// It can be passed as a parameter. T
-	/// </summary>
-	/// <typeparam name="E"></typeparam>
-	/// <typeparam name="T"></typeparam>
-	/// <typeparam name="M"></typeparam>
-	internal partial class MethodEntityProcessor : EntityProcessor
+    /// <summary>
+    /// This class is in charge of processing a method entity
+    /// In particular, in performing the propagation of types 
+    /// and communnicating with the callees and caller entities when the propagation 
+    /// reaches the boundary of the method
+    /// 
+    /// THIS CLASS COULD BE MADE STATIC. 
+    /// It just hold a reference to the method enitty being processed and modified 
+    /// It can be passed as a parameter. T
+    /// </summary>
+    /// <typeparam name="E"></typeparam>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="M"></typeparam>
+    internal partial class MethodEntityProcessor : EntityProcessor
 	{
 		/// <summary>
 		/// Asynv version of ProcessMessage
@@ -287,14 +297,14 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
-		/// <summary>
-		/// Async versions of DispachReturnMessage
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="returnVariable"></param>
-		/// <param name="propKind"></param>
-		/// <returns></returns>
-		public async Task DispachReturnMessageAsync(CallContext context, VariableNode returnVariable, PropagationKind propKind)
+        /// <summary>
+        /// Async versions of DispachReturnMessage
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="returnVariable"></param>
+        /// <param name="propKind"></param>
+        /// <returns></returns>
+        internal async Task DispachReturnMessageAsync(CallContext context, VariableNode returnVariable, PropagationKind propKind)
 		{
 			var caller = context.Caller;
 			var lhs = context.CallLHS;

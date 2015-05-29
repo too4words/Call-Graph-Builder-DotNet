@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	internal class MethodEntityGrain: Orleans.Grain, IMethodEntityGrain, IEntity
+    internal class MethodEntityGrain : Orleans.Grain, IMethodEntityGrain//, IEntity
     {
         private IOrleansEntityDescriptor descriptor;
         private MethodEntity methodEntity;
@@ -48,13 +48,13 @@ namespace ReachingTypeAnalysis.Analysis
             return TaskDone.Done;
         }
 
-        public IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
-        {
-            Contract.Assert(this.methodEntity != null);
-            Contract.Assert(dispatcher != null);
+        //public IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
+        //{
+        //    Contract.Assert(this.methodEntity != null);
+        //    Contract.Assert(dispatcher != null);
 
-            return new MethodEntityProcessor(this.methodEntity, dispatcher, true);
-        }
+        //    return new MethodEntityProcessor(this.methodEntity, dispatcher, true);
+        //}
 
         internal MethodEntity GetMethodEntity()
         {
@@ -62,12 +62,17 @@ namespace ReachingTypeAnalysis.Analysis
             return this.methodEntity;
         }
 
-		public Task ReceiveMessageAsync(IOrleansEntityDescriptor source, IMessage message)
-		{
-			Contract.Assert(this.methodEntity != null);
-			Contract.Assert(this.methodEntity.EntityProcessor != null);
+        public Task ReceiveMessageAsync(IOrleansEntityDescriptor source, IMessage message)
+        {
+            Contract.Assert(this.methodEntity != null);
+            Contract.Assert(this.methodEntity.EntityProcessor != null);
 
             return this.methodEntity.EntityProcessor.ReceiveMessageAsync(source, message);
         }
-	}
+
+        public Task<bool> IsInitialized()
+        {
+            return Task.FromResult(this.methodEntity.EntityProcessor != null);
+        }
+    }
 }

@@ -10,7 +10,7 @@ namespace ReachingTypeAnalysis
 
     public interface IEntity
     {
-        IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
+        //IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
     }
 
     public interface IEntityProcessor

@@ -26,11 +26,11 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="M"></typeparam>
     internal partial class MethodEntityProcessor: EntityProcessor
     {
-        protected CodeProvider codeProvider;
+        internal CodeProvider codeProvider;
         private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
 
-        public MethodEntity MethodEntity { get; private set; }
-        public MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
+        internal MethodEntity MethodEntity { get; private set; }
+        internal MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
             base(methodEntity, dispatcher)
         {
             Contract.Assert(methodEntity != null);
@@ -345,7 +345,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="context"></param>
         /// <param name="returnVariable"></param>
         /// <param name="propKind"></param>
-        public void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
+        internal void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
         {
             var caller = context.Caller;
             var lhs = context.CallLHS;

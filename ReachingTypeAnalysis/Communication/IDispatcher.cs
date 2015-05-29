@@ -31,10 +31,11 @@ namespace ReachingTypeAnalysis
 
         public async virtual Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
         {
-            var entity = await GetEntity(entityDesc);
+            var entity = (Analysis.MethodEntity)await GetEntity(entityDesc);
             if (entity != null)
             {
-                return entity.GetEntityProcessor(this);
+                return new ReachingTypeAnalysis.Analysis.MethodEntityProcessor(entity, this);
+                //return entity.GetEntityProcessor(this);
             }
             return null;
         }
