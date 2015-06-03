@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Microsoft.CodeAnalysis.Tachyon;
 using Microsoft.CodeAnalysis.Tachyon.DataAdapter;
+using Orleans.CodeGeneration;
+using Orleans.Serialization;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using System;
@@ -19,9 +21,10 @@ namespace ReachingTypeAnalysis
 	/// <typeparam name="N"></typeparam>
 	/// <typeparam name="T"></typeparam>
 	/// <typeparam name="M"></typeparam>
-	internal class PropagationGraph
+	[Serializable]
+    internal class PropagationGraph
 	{
-		/// <summary>
+   		/// <summary>
 		/// The work list used during the propagation
 		/// </summary>
 		private ISet<PropGraphNodeDescriptor> workList = new HashSet<PropGraphNodeDescriptor>();
@@ -34,6 +37,7 @@ namespace ReachingTypeAnalysis
 		/// <summary>
 		/// The graph itself. We use Nuri Yeralan library (Tachyon)
 		/// </summary>
+        //[NonSerialized]
 		private Graph graph;
 		/// <summary>
 		/// A map to relate vertices with expressions in the program

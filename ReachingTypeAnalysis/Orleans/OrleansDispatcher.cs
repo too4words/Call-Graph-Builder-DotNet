@@ -12,13 +12,14 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
 		//private Dictionary<Guid, MethodEntityGrain> orleansGrains = new Dictionary<Guid, MethodEntityGrain>();//
-
+        internal static OrleansDispatcher Instance = null;
 		public OrleansDispatcher()
 		{
-
+            Instance = this;
 		}
 
 		public void DeliverMessage(IEntityDescriptor destination, IMessage message)
@@ -29,9 +30,11 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
 			//Contract.Assert(destination is IOrleansEntityDescriptor);
-			var guid = await ((IOrleansEntityDescriptor)destination).GetGuid();
+			//var guid = await ((OrleansEntityDescriptor)destination).GetGuid();
+            var guid = ((OrleansEntityDescriptor)destination).Guid;
 			var destinationGrain = MethodEntityGrainFactory.GetGrain(guid);
-			/*return*/ destinationGrain.ReceiveMessageAsync((IOrleansEntityDescriptor)message.Source, message);
+			/*return*/ 
+            destinationGrain.ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message);
 			//var processor = destinationGrain.GetEntityProcessor(this);
 			//return processor.ReceiveMessageAsync(message.Source, message);
 		}
@@ -42,12 +45,14 @@ namespace ReachingTypeAnalysis.Analysis
             throw new NotImplementedException();
 		}
 
-        public async Task<IEntity> GetEntity(IEntityDescriptor entityDesc)
+        public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
         {
             //Contract.Assert(entityDesc != null);
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
             //Contract.Assert(grainDesc != null);
-            var guid = await grainDesc.GetGuid();
+            //var guid = await grainDesc.GetGuid();
+            var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
+
             var result = MethodEntityGrainFactory.GetGrain(guid);
             // check if the result is initialized
 
@@ -93,10 +98,10 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
 		{
 			Contract.Assert(entityDesc != null);
-			var entity = (MethodEntityGrain)await GetEntity(entityDesc);
+			var entity = (IMethodEntityGrain)await GetEntityAsync(entityDesc);
 			Contract.Assert(entity != null);
-
-			return new MethodEntityProcessor(entity.GetMethodEntity(), this, true);
+            var methodEntity = (MethodEntity) await entity.GetMethodEntity();
+			return new MethodEntityProcessor(methodEntity, this, true);
 		}
 
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
@@ -106,5 +111,16 @@ namespace ReachingTypeAnalysis.Analysis
 			//Contract.Assert(entity is MethodEntityGrain);
 			//this.orleansGrains.Add(descriptor.GetGuid().Result, (MethodEntityGrain)entity);
 		}
-	}
+
+
+        public IEntity GetEntity(IEntityDescriptor entityDesc)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

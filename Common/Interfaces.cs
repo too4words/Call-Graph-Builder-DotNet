@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
@@ -37,8 +39,10 @@ namespace ReachingTypeAnalysis
         ImmutableHashSet<IEntity> GetAllEntites();
         void DeliverMessage(IEntityDescriptor destination, IMessage message);
         Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
-        Task<IEntity> GetEntity(IEntityDescriptor entityDesc);
+        Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
+        IEntity GetEntity(IEntityDescriptor entityDesc);
         void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
         Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
+        IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);
     }
 }

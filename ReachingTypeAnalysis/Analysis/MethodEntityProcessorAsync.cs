@@ -15,20 +15,28 @@ namespace ReachingTypeAnalysis.Analysis
     {
         internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor)
         {
-            var result = new OrleansEntityDescriptor(System.Guid.NewGuid());
-            result.MethodDescriptor = methodDescriptor;
-            Contract.Assert(result.MethodDescriptor != null);
+            var result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.NewGuid());
+            //var result = new MethodEntityDescriptor(methodDescriptor);
+            //result.MethodDescriptor = methodDescriptor;
+            //Contract.Assert(result.MethodDescriptor != null);
 
             return result;
         }
 
-        internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor)
+        internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
         {
-            if (descriptor is IOrleansEntityDescriptor)
+            if (dispatcher is OrleansDispatcher)
             {
-                var orleansDescriptor = (IOrleansEntityDescriptor)descriptor;
-                var guid = orleansDescriptor.GetGuid().Result;
-                return MethodEntityGrainFactory.GetGrain(guid);
+                var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
+                //var guid = orleansDescriptor..GetGuid().Result;
+                //var result = MethodEntityGrainFactory.GetGrain(guid);
+                var guid = System.Guid.NewGuid();
+                var result = MethodEntityGrainFactory.GetGrain(guid);
+                orleansDescriptor.Guid = guid;
+
+                result.SetMethodEntity(methodEntity,descriptor).Wait();
+                result.SetDescriptor(orleansDescriptor).Wait();
+                return result;
             }
             else
             {

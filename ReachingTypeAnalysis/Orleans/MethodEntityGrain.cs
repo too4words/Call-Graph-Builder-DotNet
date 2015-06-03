@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using Orleans;
-using OrleansGrains;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
 using System;
@@ -12,35 +11,46 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    internal class MethodEntityGrain : Orleans.Grain, IMethodEntityGrain//, IEntity
+    [Serializable]
+    internal class OrleansEntityDescriptor : IEntityDescriptor
     {
-        private IOrleansEntityDescriptor descriptor;
+        public Guid Guid { get;  set; }
+        public MethodDescriptor MethodDescriptor { get; private set; }
+        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
+        {
+            this.Guid = guid;
+            this.MethodDescriptor = methodDescriptor;
+        }
+    }
+    internal class MethodEntityGrain : Orleans.Grain, IMethodEntityGrain
+    {
+        private IEntityDescriptor descriptor;
         private MethodEntity methodEntity;
 
         public override Task OnActivateAsync()
         {
             var guid = this.GetPrimaryKey();
-            this.descriptor = new OrleansEntityDescriptor(guid);
+            //this.descriptor =  new OrleansEntityDescriptor(guid);
 
             return TaskDone.Done;
         }
-        public Task SetMethodEntity(MethodEntity methodEntity)
+        public Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
         {
             Contract.Assert(methodEntity != null);
 
-            this.methodEntity = methodEntity;
-
+            this.methodEntity = (MethodEntity) methodEntity;
+            this.descriptor = descriptor;
             return TaskDone.Done;
         }
 
-        public Task<IOrleansEntityDescriptor> GetDescriptor()
+        public Task<IEntityDescriptor> GetDescriptor()
         {
             Contract.Assert(this.descriptor != null);
 
-            return Task.FromResult<IOrleansEntityDescriptor>(this.descriptor);
+            return Task.FromResult<IEntityDescriptor>(this.descriptor);
         }
 
-        public Task SetDescriptor(IOrleansEntityDescriptor descriptor)
+        public Task SetDescriptor(IEntityDescriptor descriptor)
         {
             Contract.Assert(descriptor != null);
             this.descriptor = descriptor;
@@ -56,23 +66,24 @@ namespace ReachingTypeAnalysis.Analysis
         //    return new MethodEntityProcessor(this.methodEntity, dispatcher, true);
         //}
 
-        internal MethodEntity GetMethodEntity()
+        public  Task<IEntity> GetMethodEntity()
         {
             Contract.Assert(this.methodEntity != null);
-            return this.methodEntity;
+            return Task.FromResult<IEntity>(this.methodEntity);
         }
 
-        public Task ReceiveMessageAsync(IOrleansEntityDescriptor source, IMessage message)
+        public Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message)
         {
             Contract.Assert(this.methodEntity != null);
-            Contract.Assert(this.methodEntity.EntityProcessor != null);
-
-            return this.methodEntity.EntityProcessor.ReceiveMessageAsync(source, message);
+            //Contract.Assert(this.methodEntity.EntityProcessor != null);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, OrleansDispatcher.Instance);
+            // this.methodEntity.GetEntityProcessor(OrleansDispatcher.Instance)
+            return methodEntityProcessor.ReceiveMessageAsync(source, message);
         }
 
         public Task<bool> IsInitialized()
         {
-            return Task.FromResult(this.methodEntity.EntityProcessor != null);
+            return Task.FromResult(this.methodEntity != null);
         }
     }
 }

@@ -21,9 +21,9 @@ namespace ReachingTypeAnalysis.Communication
         /// </summary>
         /// <param name="entityDesc"></param>
         /// <returns></returns>
-        public async override Task<IEntity> GetEntity(IEntityDescriptor entityDesc)
+        public async override Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
         {
-            IEntity entity = await base.GetEntity(entityDesc);
+            IEntity entity = await base.GetEntityAsync(entityDesc);
             if (entity == null)
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);

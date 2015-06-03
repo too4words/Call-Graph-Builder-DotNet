@@ -302,6 +302,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             if (callInfo.Receiver != null)
             {
+                // BUG!!!! I should use simply computedReceiverType
                 // Instead of copying all types with use the type we use to compute the callee
                 potentialReceivers.UnionWith(
 				    	GetTypes(callInfo.Receiver, propKind)

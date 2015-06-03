@@ -31,182 +31,6 @@ namespace OrleansInterfaces
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    public class OrleansEntityDescriptorFactory
-    {
-        
-
-                        public static OrleansInterfaces.IOrleansEntityDescriptor GetGrain(System.Guid primaryKey)
-                        {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IOrleansEntityDescriptor), 1545344342, primaryKey));
-                        }
-
-                        public static OrleansInterfaces.IOrleansEntityDescriptor GetGrain(System.Guid primaryKey, string grainClassNamePrefix)
-                        {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IOrleansEntityDescriptor), 1545344342, primaryKey, grainClassNamePrefix));
-                        }
-
-            public static OrleansInterfaces.IOrleansEntityDescriptor Cast(global::Orleans.Runtime.IAddressable grainRef)
-            {
-                
-                return OrleansEntityDescriptorReference.Cast(grainRef);
-            }
-        
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-        [System.SerializableAttribute()]
-        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.IOrleansEntityDescriptor")]
-        internal class OrleansEntityDescriptorReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.IOrleansEntityDescriptor
-        {
-            
-
-            public static OrleansInterfaces.IOrleansEntityDescriptor Cast(global::Orleans.Runtime.IAddressable grainRef)
-            {
-                
-                return (OrleansInterfaces.IOrleansEntityDescriptor) global::Orleans.Runtime.GrainReference.CastInternal(typeof(OrleansInterfaces.IOrleansEntityDescriptor), (global::Orleans.Runtime.GrainReference gr) => { return new OrleansEntityDescriptorReference(gr);}, grainRef, 1545344342);
-            }
-            
-            protected internal OrleansEntityDescriptorReference(global::Orleans.Runtime.GrainReference reference) : 
-                    base(reference)
-            {
-            }
-            
-            protected internal OrleansEntityDescriptorReference(SerializationInfo info, StreamingContext context) : 
-                    base(info, context)
-            {
-            }
-            
-            protected override int InterfaceId
-            {
-                get
-                {
-                    return 1545344342;
-                }
-            }
-            
-            public override string InterfaceName
-            {
-                get
-                {
-                    return "OrleansInterfaces.OrleansInterfaces.IOrleansEntityDescriptor";
-                }
-            }
-            
-            [global::Orleans.CodeGeneration.CopierMethodAttribute()]
-            public static object _Copier(object original)
-            {
-                OrleansEntityDescriptorReference input = ((OrleansEntityDescriptorReference)(original));
-                return ((OrleansEntityDescriptorReference)(global::Orleans.Runtime.GrainReference.CopyGrainReference(input)));
-            }
-            
-            [global::Orleans.CodeGeneration.SerializerMethodAttribute()]
-            public static void _Serializer(object original, global::Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-            {
-                OrleansEntityDescriptorReference input = ((OrleansEntityDescriptorReference)(original));
-                global::Orleans.Runtime.GrainReference.SerializeGrainReference(input, stream, expected);
-            }
-            
-            [global::Orleans.CodeGeneration.DeserializerMethodAttribute()]
-            public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-            {
-                return OrleansEntityDescriptorReference.Cast(((global::Orleans.Runtime.GrainReference)(global::Orleans.Runtime.GrainReference.DeserializeGrainReference(expected, stream))));
-            }
-            
-            public override bool IsCompatible(int interfaceId)
-            {
-                return ((interfaceId == this.InterfaceId) 
-                            || (interfaceId == -1097320095));
-            }
-            
-            protected override string GetMethodName(int interfaceId, int methodId)
-            {
-                return OrleansEntityDescriptorMethodInvoker.GetMethodName(interfaceId, methodId);
-            }
-            
-            System.Threading.Tasks.Task<System.Guid> OrleansInterfaces.IOrleansEntityDescriptor.GetGuid()
-            {
-
-                return base.InvokeMethodAsync<System.Guid>(679340007, null );
-            }
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.IOrleansEntityDescriptor", 1545344342)]
-    internal class OrleansEntityDescriptorMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
-    {
-        
-        int global::Orleans.CodeGeneration.IGrainMethodInvoker.InterfaceId
-        {
-            get
-            {
-                return 1545344342;
-            }
-        }
-        
-        global::System.Threading.Tasks.Task<object> global::Orleans.CodeGeneration.IGrainMethodInvoker.Invoke(global::Orleans.Runtime.IAddressable grain, int interfaceId, int methodId, object[] arguments)
-        {
-
-            try
-            {                    if (grain == null) throw new System.ArgumentNullException("grain");
-                switch (interfaceId)
-                {
-                    case 1545344342:  // IOrleansEntityDescriptor
-                        switch (methodId)
-                        {
-                            case 679340007: 
-                                return ((IOrleansEntityDescriptor)grain).GetGuid().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                        }case -1097320095:  // IGrainWithGuidKey
-                        switch (methodId)
-                        {
-                            default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                        }
-                    default:
-                        throw new System.InvalidCastException("interfaceId="+interfaceId);
-                }
-            }
-            catch(Exception ex)
-            {
-                var t = new System.Threading.Tasks.TaskCompletionSource<object>();
-                t.SetException(ex);
-                return t.Task;
-            }
-        }
-        
-        public static string GetMethodName(int interfaceId, int methodId)
-        {
-
-            switch (interfaceId)
-            {
-                
-                case 1545344342:  // IOrleansEntityDescriptor
-                    switch (methodId)
-                    {
-                        case 679340007:
-                            return "GetGuid";
-                    
-                        default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                    }
-                case -1097320095:  // IGrainWithGuidKey
-                    switch (methodId)
-                    {
-                        
-                        default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                    }
-
-                default:
-                    throw new System.InvalidCastException("interfaceId="+interfaceId);
-            }
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class MethodEntityGrainFactory
     {
         
@@ -298,22 +122,40 @@ namespace OrleansInterfaces
                 return MethodEntityGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
-            System.Threading.Tasks.Task<OrleansInterfaces.IOrleansEntityDescriptor> OrleansInterfaces.IMethodEntityGrain.GetDescriptor()
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntityDescriptor> OrleansInterfaces.IMethodEntityGrain.GetDescriptor()
             {
 
-                return base.InvokeMethodAsync<OrleansInterfaces.IOrleansEntityDescriptor>(331950094, null );
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityDescriptor>(331950094, null );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ReceiveMessageAsync(OrleansInterfaces.IOrleansEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ReceiveMessageAsync(ReachingTypeAnalysis.IEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message)
             {
 
-                return base.InvokeMethodAsync<object>(-1611393113, new object[] {@source is global::Orleans.Grain ? @source.AsReference<OrleansInterfaces.IOrleansEntityDescriptor>() : @source, @message} );
+                return base.InvokeMethodAsync<object>(-1429416218, new object[] {@source, @message} );
             }
             
             System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
             {
 
                 return base.InvokeMethodAsync<System.Boolean>(-1831544886, null );
+            }
+            
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> OrleansInterfaces.IMethodEntityGrain.GetMethodEntity()
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-538316126, null );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetMethodEntity(ReachingTypeAnalysis.IEntity @methodEntity, ReachingTypeAnalysis.IEntityDescriptor @descriptor)
+            {
+
+                return base.InvokeMethodAsync<object>(-1284597035, new object[] {@methodEntity, @descriptor} );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetDescriptor(ReachingTypeAnalysis.IEntityDescriptor @orleansEntityDescriptor)
+            {
+
+                return base.InvokeMethodAsync<object>(-673288645, new object[] {@orleansEntityDescriptor} );
             }
         }
     }
@@ -344,10 +186,16 @@ namespace OrleansInterfaces
                         {
                             case 331950094: 
                                 return ((IMethodEntityGrain)grain).GetDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -1611393113: 
-                                return ((IMethodEntityGrain)grain).ReceiveMessageAsync((IOrleansEntityDescriptor)arguments[0], (IMessage)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -1429416218: 
+                                return ((IMethodEntityGrain)grain).ReceiveMessageAsync((IEntityDescriptor)arguments[0], (IMessage)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1831544886: 
                                 return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -538316126: 
+                                return ((IMethodEntityGrain)grain).GetMethodEntity().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1284597035: 
+                                return ((IMethodEntityGrain)grain).SetMethodEntity((IEntity)arguments[0], (IEntityDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -673288645: 
+                                return ((IMethodEntityGrain)grain).SetDescriptor((IEntityDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1097320095:  // IGrainWithGuidKey
@@ -379,10 +227,16 @@ namespace OrleansInterfaces
                     {
                         case 331950094:
                             return "GetDescriptor";
-                    case -1611393113:
+                    case -1429416218:
                             return "ReceiveMessageAsync";
                     case -1831544886:
                             return "IsInitialized";
+                    case -538316126:
+                            return "GetMethodEntity";
+                    case -1284597035:
+                            return "SetMethodEntity";
+                    case -673288645:
+                            return "SetDescriptor";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);

@@ -269,7 +269,8 @@ namespace ReachingTypeAnalysis
                                         new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph,
-                                                                    propGraphGenerator.InstantiatedTypes), descriptor);
+                                                                    propGraphGenerator.InstantiatedTypes), 
+                                                                    descriptor, this.Dispatcher);
             this.Dispatcher.RegisterEntity(descriptor, methodEntity);
             return methodEntity;
         }

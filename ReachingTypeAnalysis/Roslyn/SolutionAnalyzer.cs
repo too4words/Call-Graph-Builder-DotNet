@@ -396,7 +396,8 @@ namespace ReachingTypeAnalysis
 				var methodEntity = e as MethodEntity;
                 // Updates the callGraph
                 var method = methodEntity.MethodDescriptor;
-                var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(this.Dispatcher);
+                //var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(this.Dispatcher);
+                var methodEntityProcessor = (MethodEntityProcessor)Dispatcher.GetEntityWithProcessor(methodEntity.EntityDescriptor);
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {

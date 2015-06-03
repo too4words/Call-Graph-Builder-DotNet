@@ -245,7 +245,7 @@ namespace ReachingTypeAnalysis
 		{
 			this.Type = declaredType;
 			this.Name = name;
-		}
+ 		}
 
         public override bool Equals(object obj)
         {

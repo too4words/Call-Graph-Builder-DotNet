@@ -45,8 +45,8 @@ namespace ReachingTypeAnalysis.Analysis
 		/// This is used to compute the Caller of the CG 
 		/// and to know to which method a return message should be send
 		/// </summary>
-		//private ISet<CallConext<M, E>> callers = new HashSet<CallConext<M, E>>();
-		private IImmutableSet<CallContext> callers = ImmutableHashSet<CallContext>.Empty;
+		private ISet<CallContext> callers = new HashSet<CallContext>();
+		//private IImmutableSet<CallContext> callers = ImmutableHashSet<CallContext>.Empty;
 
 		// I need this to yield a copy to avoid problems in recursion
 		public ISet<CallContext> Callers
@@ -59,45 +59,47 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		public MethodDescriptor MethodDescriptor { get; private set; }
 
+        /// <summary>
+        /// This group together all input/out data
+        /// That is: parameters, return, out values
+        /// It will also include potential effects that we need to propagate (like a R/W effect over a field)
+        /// </summary>
+        internal MethodInterfaceData MethodInterfaceData { get; private set; }
+
+        /// <summary>
+        /// The next properties obtains info from MethodDataInterface
+        /// </summary>
+        public VariableNode ThisRef
+        {
+            get { return MethodInterfaceData.ThisRef; }
+        }
+        /// <summary>
+        /// These are the node correspoding to the parameters
+        /// </summary>
+        public IEnumerable<VariableNode> ParameterNodes
+        {
+            get { return MethodInterfaceData.Parameters; }
+
+        }
+        /// <summary>
+        /// Return the node rerpesenting the ret value
+        /// </summary>
+        public VariableNode ReturnVariable
+        {
+            get { return MethodInterfaceData.ReturnVariable; }
+        }
 		/// <summary>
 		/// This is the important part of the this class 
 		/// The propagation graph constains of all information about concrete types that a variable can have
-		/// </summary>
-		public PropagationGraph PropGraph { get; private set; }
-		/// <summary>
-		/// This group together all input/out data
-		/// That is: parameters, return, out values
-		/// It will also include potential effects that we need to propagate (like a R/W effect over a field)
-		/// </summary>
-		internal MethodInterfaceData MethodInterfaceData { get; private set; }
-
-		/// <summary>
-		/// The next properties obtains info from MethodDataInterface
-		/// </summary>
-		public VariableNode ThisRef
-		{
-			get { return MethodInterfaceData.ThisRef; }
-		}
-		/// <summary>
-		/// These are the node correspoding to the parameters
-		/// </summary>
-		public IEnumerable<VariableNode> ParameterNodes
-		{
-			get { return MethodInterfaceData.Parameters; }
-
-		}
-		/// <summary>
-		/// Return the node rerpesenting the ret value
-		/// </summary>
-		public VariableNode ReturnVariable
-		{
-			get { return MethodInterfaceData.ReturnVariable; }
-		}
-
+		/// </summary>       
+        private PropagationGraph propGraph; 
+		///public PropagationGraph PropGraph { get; private set; }
+        public PropagationGraph PropGraph { get { return propGraph; } }
+		
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
-		public MethodEntityProcessor EntityProcessor { get; private set; }
+		//public MethodEntityProcessor EntityProcessor { get; private set; }
 
 		//public ISet<E> NodesProcessing = new HashSet<E>();
 		//public ISet<CallConext<M,E>> NodesProcessing = new HashSet<CallConext<M,E>>();
@@ -120,7 +122,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.EntityDescriptor = EntityFactory.Create(methodDescriptor);
 			this.MethodInterfaceData = mid;
 
-			this.PropGraph = propGraph;
+			this.propGraph = propGraph;
 			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
 		}
 
@@ -158,18 +160,21 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		/// <param name="dispatcher"></param>
 		/// <returns></returns>
-		public override IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
-		{
-			if (this.EntityProcessor == null)
-			{
-				EntityProcessor = new MethodEntityProcessor(this, dispatcher, true);
-			}
-			return EntityProcessor;
-		}
+        //public IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
+        //{
+        //    //if (this.EntityProcessor == null)
+        //    //{
+        //    //    EntityProcessor = new MethodEntityProcessor(this, dispatcher, true);
+        //    //}
+        //    //return EntityProcessor;
+        //    return new MethodEntityProcessor(this, dispatcher, true);
+        //}
 
         public void AddToCallers(CallContext context)
         {
-            callers = callers.Add(context);
+            //callers = callers.Add(context);
+            callers.Add(context);
+
         }
         /// <summary>
         /// This is used by the incremental analysis when a caller is removed of modified
@@ -177,7 +182,9 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="context"></param>
         public void RemoveFromCallers(CallContext context)
         {
-            callers = callers.Remove(context);
+            //callers = callers.Remove(context);
+            callers.Remove(context);
+
         }
 
 //        /// <summary>
@@ -237,7 +244,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.MethodDescriptor.ToString();
 		}
 	}
-
+    [Serializable]
 	internal class MethodEntityDescriptor : IEntityDescriptor
 	{
 		private MethodDescriptor methodDescriptor;
@@ -266,6 +273,7 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 	}
 
+    [Serializable]
 	internal class MethodInterfaceData
 	{
 		/// <summary>

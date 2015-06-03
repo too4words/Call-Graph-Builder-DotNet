@@ -62,12 +62,13 @@ namespace ReachingTypeAnalysis
         /// <param name="method"></param>
         /// <param name="order"></param>
         /// <returns></returns>
-		internal async Task<ISet<MethodDescriptor>> GetCallees(IMethodSymbol method, int order)
+		//internal async Task<ISet<MethodDescriptor>> GetCallees(IMethodSymbol method, int order)
+        internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, int order)
         {
             var result = new HashSet<MethodDescriptor>();
             var methodDescriptor = new MethodDescriptor(method);
             var methodEntityProcessor = (MethodEntityProcessor)
-                await this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync
+                 this.solutionAnalyzer.Dispatcher.GetEntityWithProcessor
                 (EntityFactory.Create(methodDescriptor));
             var methodEntity = methodEntityProcessor.MethodEntity;
 
@@ -96,7 +97,6 @@ namespace ReachingTypeAnalysis
 			}
             return result;
         }
-
 
 		// Original version using locations
 		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, LocationDescriptor locToFilter)
@@ -128,19 +128,21 @@ namespace ReachingTypeAnalysis
             return result;
         }		
 
-		public async Task<ISet<KeyValuePair<int, MethodDescriptor>>> GetCallersWithOrder(IMethodSymbol m)
-		{
+//		public async Task<ISet<KeyValuePair<int, MethodDescriptor>>> GetCallersWithOrder(IMethodSymbol m)
+        public ISet<KeyValuePair<int, MethodDescriptor>> GetCallersWithOrder(IMethodSymbol m)
+        {
 			var result = new HashSet<KeyValuePair<int, MethodDescriptor>>();
 			var methodDescriptor = new MethodDescriptor(m);
 
             var methodEntityProcessor = (MethodEntityProcessor)
-				await this.solutionAnalyzer.
-				Dispatcher.GetEntityWithProcessorAsync(
+				this.solutionAnalyzer.
+				Dispatcher.GetEntityWithProcessor(
 					EntityFactory.Create(methodDescriptor));
 			var methodEntity = methodEntityProcessor.MethodEntity;
 			if (!methodEntity.HasBeenPropagated)
 			{
-				await methodEntityProcessor.DoAnalysisAsync();
+				//await methodEntityProcessor.DoAnalysisAsync();
+                methodEntityProcessor.DoAnalysis();
 			}
 
 			foreach (var callContex in methodEntity.Callers)

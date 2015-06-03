@@ -35,7 +35,8 @@ namespace ReachingTypeAnalysis.Roslyn
                                     new MethodEntity(this.MethodDescriptor,
                                                     this.MethodInterfaceData,
                                                     this.PropGraph,
-                                                    this.InstantiatedTypes), descriptor);
+                                                    this.InstantiatedTypes), 
+                                                    descriptor, this.Dispatcher);
             this.Dispatcher.RegisterEntity(descriptor, methodEntity);
             return methodEntity;
         }

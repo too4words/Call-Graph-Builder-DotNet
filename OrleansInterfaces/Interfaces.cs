@@ -4,17 +4,26 @@ using System.Threading.Tasks;
 
 namespace OrleansInterfaces
 {
+    /*
     public interface IOrleansEntityDescriptor : 
 		Orleans.IGrainWithGuidKey, IEntityDescriptor
     {
         Task<Guid> GetGuid();
     }
+     */
 
     public interface IMethodEntityGrain: 
 		Orleans.IGrainWithGuidKey, IEntity
     {		
-		Task<IOrleansEntityDescriptor> GetDescriptor();
-		Task ReceiveMessageAsync(IOrleansEntityDescriptor source, IMessage message);
+		Task<IEntityDescriptor> GetDescriptor();
+		Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
         Task<bool> IsInitialized();
-	}
+
+        Task<IEntity> GetMethodEntity();
+
+        Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor);
+
+        Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
+
+    }
 }
