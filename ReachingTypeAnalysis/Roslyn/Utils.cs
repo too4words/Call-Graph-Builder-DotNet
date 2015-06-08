@@ -236,11 +236,13 @@ namespace ReachingTypeAnalysis
 	/// Actually we want to keep track of the number of paths with a concrete type leading to a node
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
+	[Serializable]
 	public class Bag<T>
 	{
 		private int count = 0;
 		private IDictionary<T, int> multiset = new Dictionary<T, int>();
 		private HashSet<T> internalSet = new HashSet<T>();
+
 		internal int Add(T e)
 		{
 			int c;

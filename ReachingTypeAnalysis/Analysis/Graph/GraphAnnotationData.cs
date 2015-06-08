@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿using System;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis
@@ -10,25 +11,37 @@ namespace ReachingTypeAnalysis
 	/// Node: is tne node value (the graph from Nuri uses numbers for vertex)
 	/// CallNode: Some node may include information about an invocation (the call nodes)
 	/// </summary>
-	/// <typeparam name="N"></typeparam>
-	/// <typeparam name="T"></typeparam>
-	/// <typeparam name="M"></typeparam>
-	internal class GraphAnnotationData
+	[Serializable]
+	internal class GraphNodeAnnotationData
 	{
-		internal Bag<TypeDescriptor> Elems = new Bag<TypeDescriptor>();
-		//public ISet<T> Elems = new HashSet<T>();
+		internal Bag<TypeDescriptor> Elems { get; private set; }
 		internal ISet<TypeDescriptor> DeletedElems { get; private set; }
 		internal ISet<MethodDescriptor> Delegates { get; set; }
 		internal PropGraphNodeDescriptor Node { get; set; }
 		internal AnalysisInvocationExpession CallNode { get; set; }
 		internal bool HasRetValue { get; set; }
 
-		internal GraphAnnotationData(PropGraphNodeDescriptor m)
+		internal GraphNodeAnnotationData(PropGraphNodeDescriptor node)
 		{
+			this.Node = node;
+			this.Elems = new Bag<TypeDescriptor>();
 			this.DeletedElems = new HashSet<TypeDescriptor>();
-			this.Delegates = new HashSet<MethodDescriptor>();
-			this.Node = m;
+			this.Delegates = new HashSet<MethodDescriptor>();			
 			this.HasRetValue = false;
+		}
+	}
+
+	/// <summary>
+	/// This class represents the data that an edge in the PropGraph can carry
+	/// </summary>
+	[Serializable]
+	internal class GraphEdgeAnnotationData
+	{
+		internal ISet<TypeDescriptor> Types { get; set; }
+
+		internal GraphEdgeAnnotationData()
+		{
+			this.Types = new HashSet<TypeDescriptor>();
 		}
 	}
 }

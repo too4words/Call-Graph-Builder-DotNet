@@ -15,7 +15,7 @@ namespace ReachingTypeAnalysis.Analysis
     {
         internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor)
         {
-            var result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.NewGuid());
+            var result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.Empty); //System.Guid.NewGuid());
             //var result = new MethodEntityDescriptor(methodDescriptor);
             //result.MethodDescriptor = methodDescriptor;
             //Contract.Assert(result.MethodDescriptor != null);

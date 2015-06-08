@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace ReachingTypeAnalysis
 {
+	[Serializable]
 	internal abstract class AnalysisInvocationExpession
 	{
 		internal AnalysisInvocationExpession(MethodDescriptor caller, AnalysisCallNode callNode, 
@@ -70,6 +71,7 @@ namespace ReachingTypeAnalysis
 		internal AnalysisCallNode CallNode { get; set; }
 	}
 
+	[Serializable]
 	internal class CallInfo : AnalysisInvocationExpession
 	{
 		internal CallInfo(MethodDescriptor caller, AnalysisCallNode callNode, MethodDescriptor callee, 
@@ -123,6 +125,7 @@ namespace ReachingTypeAnalysis
 		public MethodDescriptor Callee { get; private set; }
 	}
 
+	[Serializable]
 	internal class DelegateCallInfo : AnalysisInvocationExpession
 	{
         internal DelegateCallInfo(MethodDescriptor caller, AnalysisCallNode callNode, 

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ReachingTypeAnalysis
 {
-	public class GraphvizGraphDataAdapter : IGraphDataAdapter
+	internal class GraphvizGraphDataAdapter
 	{
 		private readonly string outputFile;
 
@@ -17,20 +17,18 @@ namespace ReachingTypeAnalysis
 			this.outputFile = outputFile;
 		}
 
-		public Graph Load() { throw new NotImplementedException(); }
-
-		public void Save(Graph graph)
+		public void Save(IGraph<GraphNodeAnnotationData, GraphEdgeAnnotationData> graph)
 		{
-			using (StreamWriter writer = File.CreateText(outputFile))
+			using (var writer = File.CreateText(outputFile))
 			{
 				writer.WriteLine("digraph G {");
 				writer.WriteLine(@"node [label="""",shape=""point"",style=""filled"",fillcolor=""gray"",width=""0.1""];");
 				writer.WriteLine(@"edge [arrowhead=""none""];");
 
 				//                foreach (Vertex v in graph.EnumerateVertices().Where(vertex => (bool)vertex["IsForwarder"]))
-				foreach (Vertex v in graph.EnumerateVertices())
+				foreach (var v in graph.Nodes)
 				{
-					var data = (GraphAnnotationData)v["N"];
+					var data = v.Value;
 					var node = data.Node;
 					var elems = data.Elems;
 					var invoc = data.CallNode;
@@ -70,10 +68,10 @@ namespace ReachingTypeAnalysis
 
 				}
 
-				foreach (Edge e in graph.EnumerateEdges())
+				foreach (var e in graph.Edges)
 				{
 //					string elemsStr = ElemsToStr((Bag<TypeDescriptor>)e["Types"]);
-                    string elemsStr = ElemsToStr((HashSet<TypeDescriptor>)e["Types"]);
+                    string elemsStr = ElemsToStr(e.Value.Types);
 
 					writer.WriteLine("{0}: [{1}];", e, elemsStr);
 				}

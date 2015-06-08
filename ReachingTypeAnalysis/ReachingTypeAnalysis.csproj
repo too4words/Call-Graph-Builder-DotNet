@@ -241,7 +241,9 @@
     <Compile Include="Analysis\AnalysisTypes.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Analysis\Graph\Graph.cs" />
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
+    <Compile Include="Analysis\Graph\IGraph.cs" />
     <Compile Include="Analysis\Graph\PropagationEffects.cs" />
     <Compile Include="Analysis\MethodEntity.cs" />
     <Compile Include="Analysis\MethodEntityProcessorAsync.cs" />
