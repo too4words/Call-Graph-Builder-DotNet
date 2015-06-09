@@ -69,20 +69,22 @@ namespace ReachingTypeAnalysis.Analysis
             //Contract.Assert(grainDesc != null);
             //var guid = await grainDesc.GetGuid();
             var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-
             var result = MethodEntityGrainFactory.GetGrain(guid);
             // check if the result is initialized
+            var methodEntity = await result.GetMethodEntity();
+            if (methodEntity != null)
+            {
+                //Contract.Assert(grainDesc.MethodDescriptor != null);
+                var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
+                //Contract.Assert(provider != null);
 
-            // check if result is initialized
-
-            
-            //Contract.Assert(grainDesc.MethodDescriptor != null);
-            var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
-            //Contract.Assert(provider != null);
-
-            var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
-            return methodEntityGenerator.ParseMethod();
-
+                var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
+                return methodEntityGenerator.ParseMethod();
+            }
+            else
+            {
+                return result;
+            }
 
             //          var node = Utils.FindMethodDeclaration(grainDesc.Symbol, out symbol);
             //          //var node = Utils.FindMethodImplementation(ed.Method.RoslynMethod);

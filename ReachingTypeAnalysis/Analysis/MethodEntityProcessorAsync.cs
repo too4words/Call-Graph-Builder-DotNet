@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis.Analysis
                 var result = MethodEntityGrainFactory.GetGrain(guid);
                 orleansDescriptor.Guid = guid;
 
-                result.SetMethodEntity(methodEntity,descriptor).Wait();
+                result.SetMethodEntity(methodEntity, descriptor).Wait();
                 result.SetDescriptor(orleansDescriptor).Wait();
                 return result;
             }

@@ -24,6 +24,5 @@ namespace OrleansInterfaces
         Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor);
 
         Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
-
     }
 }

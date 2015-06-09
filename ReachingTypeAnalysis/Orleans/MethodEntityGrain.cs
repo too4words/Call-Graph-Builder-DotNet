@@ -12,49 +12,95 @@ using System.Threading.Tasks;
 namespace ReachingTypeAnalysis.Analysis
 {
     [Serializable]
-    internal class OrleansEntityDescriptor : IEntityDescriptor
+    internal class OrleansEntityDescriptor : IEntityDescriptor, IGrainState
     {
         public Guid Guid { get;  set; }
-        public MethodDescriptor MethodDescriptor { get; private set; }
+        public MethodDescriptor MethodDescriptor { get; set; }
+
+        public string Etag
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
         {
             this.Guid = guid;
             this.MethodDescriptor = methodDescriptor;
         }
+
+        public Task ClearStateAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task WriteStateAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ReadStateAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDictionary<string, object> AsDictionary()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetAll(IDictionary<string, object> values)
+        {
+            throw new NotImplementedException();
+        }
     }
-    internal class MethodEntityGrain : Orleans.Grain, IMethodEntityGrain
+
+    internal class MethodEntityGrain : Orleans.Grain<OrleansEntityDescriptor>, IMethodEntityGrain
     {
-        private IEntityDescriptor descriptor;
         [NonSerialized]
         private MethodEntity methodEntity;
 
         public override Task OnActivateAsync()
         {
-            var guid = this.GetPrimaryKey();
-            //this.descriptor =  new OrleansEntityDescriptor(guid);
+            // TODO: do we need to check and restore methodEntity
+            return OrleansDispatcher.Instance.GetEntityAsync(this.State);
+            //return TaskDone.Done;
+        }
 
+        public override Task OnDeactivateAsync()
+        {
+            this.methodEntity = null;
             return TaskDone.Done;
         }
+
         public Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
         {
             Contract.Assert(methodEntity != null);
 
             this.methodEntity = (MethodEntity) methodEntity;
-            this.descriptor = descriptor;
+            this.State.MethodDescriptor = (MethodDescriptor)descriptor;
+
             return TaskDone.Done;
         }
 
         public Task<IEntityDescriptor> GetDescriptor()
         {
-            Contract.Assert(this.descriptor != null);
+            Contract.Assert(this.State != null);
 
-            return Task.FromResult<IEntityDescriptor>(this.descriptor);
+            return Task.FromResult<IEntityDescriptor>(this.State);
         }
 
         public Task SetDescriptor(IEntityDescriptor descriptor)
         {
             Contract.Assert(descriptor != null);
-            this.descriptor = descriptor;
+            this.State.MethodDescriptor = (MethodDescriptor)descriptor;
 
             return TaskDone.Done;
         }
