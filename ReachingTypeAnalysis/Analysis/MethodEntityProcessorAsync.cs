@@ -18,7 +18,10 @@ namespace ReachingTypeAnalysis.Analysis
             IEntityDescriptor result = null;
             if (dispatcher is OrleansDispatcher)
             {
-                result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.Empty); //System.Guid.NewGuid());
+                var orleanDispatcher = (OrleansDispatcher)dispatcher;
+                var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
+                // I think we should consult the dispatcher about an existing ID for the descriptor
+                result = new OrleansEntityDescriptor(methodDescriptor, guid); //System.Guid.NewGuid());
             }
             else
             {
@@ -33,10 +36,13 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (dispatcher is OrleansDispatcher)
             {
+                var orleanDispatcher = (OrleansDispatcher)dispatcher;
+                var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
+
                 var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
                 //var guid = orleansDescriptor..GetGuid().Result;
                 //var result = MethodEntityGrainFactory.GetGrain(guid);
-                var guid = System.Guid.NewGuid();
+                // var guid = System.Guid.NewGuid();
                 var result = MethodEntityGrainFactory.GetGrain(guid);
                 orleansDescriptor.Guid = guid;
 

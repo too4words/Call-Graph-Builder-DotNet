@@ -15,7 +15,7 @@ namespace ReachingTypeAnalysis.Analysis
     [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
-		//private Dictionary<Guid, MethodEntityGrain> orleansGrains = new Dictionary<Guid, MethodEntityGrain>();//
+        private Dictionary<MethodDescriptor, Guid> orleansGuids = new Dictionary<MethodDescriptor, Guid>();//
         internal static OrleansDispatcher Instance = null;
 		public OrleansDispatcher()
 		{
@@ -106,13 +106,18 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
 		{
-
-			//var descriptor = (IOrleansEntityDescriptor)entityDesc;
-
+			var descriptor = (OrleansEntityDescriptor)entityDesc;
+            this.orleansGuids.Add(descriptor.MethodDescriptor, descriptor.Guid);
 			//Contract.Assert(entity is MethodEntityGrain);
 			//this.orleansGrains.Add(descriptor.GetGuid().Result, (MethodEntityGrain)entity);
 		}
-
+        public Guid GetGuidForMethod(MethodDescriptor methodDescriptor)
+        {
+            Guid result = Guid.Empty; 
+            if (orleansGuids.TryGetValue(methodDescriptor, out result))
+                return result;
+            return Guid.NewGuid();
+        }
 
         public IEntity GetEntity(IEntityDescriptor entityDesc)
         {
