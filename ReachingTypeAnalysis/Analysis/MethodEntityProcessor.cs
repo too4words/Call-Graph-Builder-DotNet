@@ -253,7 +253,7 @@ namespace ReachingTypeAnalysis.Analysis
             /// 
             var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
             var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
-            var destination = EntityFactory.Create(realCallee);
+            var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
             this.SendMessage(destination, callerMessage);
         }
@@ -368,7 +368,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             // Jump to caller
-            var destination = EntityFactory.Create(caller);
+            var destination = EntityFactory.Create(caller, this.dispatcher);
             var retMessageInfo = new ReturnMessageInfo(
 				lhs, 
 				types, 

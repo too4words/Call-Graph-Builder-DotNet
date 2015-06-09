@@ -13,13 +13,19 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal class EntityFactory
     {
-        internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor)
+        internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
         {
-            var result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.Empty); //System.Guid.NewGuid());
-            //var result = new MethodEntityDescriptor(methodDescriptor);
-            //result.MethodDescriptor = methodDescriptor;
-            //Contract.Assert(result.MethodDescriptor != null);
-
+            IEntityDescriptor result = null;
+            if (dispatcher is OrleansDispatcher)
+            {
+                result = new OrleansEntityDescriptor(methodDescriptor, System.Guid.Empty); //System.Guid.NewGuid());
+            }
+            else
+            {
+                result = new MethodEntityDescriptor(methodDescriptor);
+                //result.MethodDescriptor = methodDescriptor;
+                //Contract.Assert(result.MethodDescriptor != null);
+            }
             return result;
         }
 
@@ -247,7 +253,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
 			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
-			var destination = EntityFactory.Create(realCallee);
+			var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
 			await this.SendMessageAsync(destination, callerMessage);
 		}
@@ -335,7 +341,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			// Jump to caller
-			var destination = EntityFactory.Create(caller);
+			var destination = EntityFactory.Create(caller,this.dispatcher);
 			var retMessageInfo = new ReturnMessageInfo(
 				lhs,
 				types,

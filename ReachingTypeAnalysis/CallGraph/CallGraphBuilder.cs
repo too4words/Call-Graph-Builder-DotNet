@@ -69,7 +69,7 @@ namespace ReachingTypeAnalysis
             var methodDescriptor = new MethodDescriptor(method);
             var methodEntityProcessor = (MethodEntityProcessor)
                  this.solutionAnalyzer.Dispatcher.GetEntityWithProcessor
-                (EntityFactory.Create(methodDescriptor));
+                (EntityFactory.Create(methodDescriptor, this.solutionAnalyzer.Dispatcher));
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
@@ -105,7 +105,8 @@ namespace ReachingTypeAnalysis
             var methodDescriptor = new MethodDescriptor(method);
 			//var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<methodDescriptor>(methodDescriptor)) as MethodEntity<ANode,AType,methodDescriptor>;
 			var methodEntityProcessor = (MethodEntityProcessor)
-				this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(methodDescriptor)).Result;
+                this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(methodDescriptor, 
+                                                                                this.solutionAnalyzer.Dispatcher)).Result;
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
@@ -137,7 +138,7 @@ namespace ReachingTypeAnalysis
             var methodEntityProcessor = (MethodEntityProcessor)
 				this.solutionAnalyzer.
 				Dispatcher.GetEntityWithProcessor(
-					EntityFactory.Create(methodDescriptor));
+                    EntityFactory.Create(methodDescriptor, this.solutionAnalyzer.Dispatcher));
 			var methodEntity = methodEntityProcessor.MethodEntity;
 			if (!methodEntity.HasBeenPropagated)
 			{

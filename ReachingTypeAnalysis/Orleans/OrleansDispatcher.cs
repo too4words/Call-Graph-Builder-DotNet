@@ -106,6 +106,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
 		{
+
 			//var descriptor = (IOrleansEntityDescriptor)entityDesc;
 
 			//Contract.Assert(entity is MethodEntityGrain);

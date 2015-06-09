@@ -115,11 +115,12 @@ namespace ReachingTypeAnalysis.Analysis
 		public MethodEntity(MethodDescriptor methodDescriptor,
 			MethodInterfaceData mid,
 			PropagationGraph propGraph,
+            IEntityDescriptor descriptor,
 			IEnumerable<TypeDescriptor> instantiatedTypes)
 			: base()
 		{
 			this.MethodDescriptor = methodDescriptor;
-			this.EntityDescriptor = EntityFactory.Create(methodDescriptor);
+            this.EntityDescriptor = descriptor; // EntityFactory.Create(methodDescriptor);
 			this.MethodInterfaceData = mid;
 
 			this.propGraph = propGraph;
