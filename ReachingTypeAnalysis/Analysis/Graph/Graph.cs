@@ -153,11 +153,11 @@ namespace ReachingTypeAnalysis
 		private ISet<GraphNode<TNodeValue>> nodes;
 		private ISet<GraphEdge<TEdgeValue>> edges;
 
-		[NonSerialized]
+		//[NonSerialized]
 		private IDictionary<long, GraphNode<TNodeValue>> nodesById;
-		[NonSerialized]
+		//[NonSerialized]
 		private IDictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>> sources;
-		[NonSerialized]
+		//[NonSerialized]
 		private IDictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>> targets;
 
 		public SerializableGraph()
@@ -371,27 +371,27 @@ namespace ReachingTypeAnalysis
 		//	}
 		//}
 
-		void IDeserializationCallback.OnDeserialization(object sender)
-		{
-			// We need to reconstruct the node mappings.
-			// The nodes and edges fields should be already initialized.
-			nodesById = new Dictionary<long, GraphNode<TNodeValue>>();
-			sources = new Dictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>>();
-			targets = new Dictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>>();
+        void IDeserializationCallback.OnDeserialization(object sender)
+        {
+        //    // We need to reconstruct the node mappings.
+        //    // The nodes and edges fields should be already initialized.
+        //    nodesById = new Dictionary<long, GraphNode<TNodeValue>>();
+        //    sources = new Dictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>>();
+        //    targets = new Dictionary<long, IDictionary<long, GraphEdge<TEdgeValue>>>();
 
-			foreach (var node in nodes)
-			{
-				nodesById.Add(node.Id, node);
-				sources.Add(node.Id, new Dictionary<long, GraphEdge<TEdgeValue>>());
-				targets.Add(node.Id, new Dictionary<long, GraphEdge<TEdgeValue>>());
-			}
+        //    foreach (var node in nodes)
+        //    {
+        //        nodesById.Add(node.Id, node);
+        //        sources.Add(node.Id, new Dictionary<long, GraphEdge<TEdgeValue>>());
+        //        targets.Add(node.Id, new Dictionary<long, GraphEdge<TEdgeValue>>());
+        //    }
 
-			foreach (var edge in edges)
-			{
-				sources[edge.TargetId].Add(edge.SourceId, edge);
-				targets[edge.SourceId].Add(edge.TargetId, edge);
-			}
-		}
+        //    foreach (var edge in edges)
+        //    {
+        //        sources[edge.TargetId].Add(edge.SourceId, edge);
+        //        targets[edge.SourceId].Add(edge.TargetId, edge);
+        //    }
+        }
 
 		#endregion
 	}

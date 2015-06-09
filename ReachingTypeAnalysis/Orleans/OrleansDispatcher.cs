@@ -15,6 +15,8 @@ namespace ReachingTypeAnalysis.Analysis
     [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
+        // Keeps a mapping between method descriptors and orleans entities Guids
+        // Should be necessary if we are able to build the OrleansDescriptors properly
         private Dictionary<MethodDescriptor, Guid> orleansGuids = new Dictionary<MethodDescriptor, Guid>();//
         internal static OrleansDispatcher Instance = null;
 		public OrleansDispatcher()
@@ -39,10 +41,22 @@ namespace ReachingTypeAnalysis.Analysis
 			//return processor.ReceiveMessageAsync(message.Source, message);
 		}
 
+        /// <summary>
+        ///  
+        /// </summary>
+        /// <returns></returns>
 		public ImmutableHashSet<IEntity> GetAllEntites()
 		{
-            //return this.orleansGrains.Values.ToImmutableHashSet<IEntity>();
-            throw new NotImplementedException();
+            var result = new HashSet<IEntity>();
+            foreach(var methodDescriptor in this.orleansGuids.Keys.ToImmutableList())
+            {
+                var guid = orleansGuids[methodDescriptor];
+                var orleansEnitityDesc = new OrleansEntityDescriptor(methodDescriptor,guid);
+                IMethodEntityGrain entity = (IMethodEntityGrain)GetEntityAsync(orleansEnitityDesc).Result;
+                result.Add(entity.GetMethodEntity().Result);
+            }
+            return result.ToImmutableHashSet<IEntity>();
+           // throw new NotImplementedException();
 		}
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
