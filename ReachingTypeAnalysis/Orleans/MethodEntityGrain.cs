@@ -70,8 +70,8 @@ namespace ReachingTypeAnalysis.Analysis
         public override Task OnActivateAsync()
         {
             // TODO: do we need to check and restore methodEntity
-            return OrleansDispatcher.Instance.GetEntityAsync(this.State);
-            //return TaskDone.Done;
+            this.methodEntity = (MethodEntity)OrleansDispatcher.Instance.GetEntityAsync(this.State).Result;
+            return TaskDone.Done;
         }
 
         public override Task OnDeactivateAsync()
