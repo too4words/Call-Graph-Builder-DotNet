@@ -25,6 +25,7 @@ namespace ReachingTypeAnalysis.Analysis
     internal class MethodEntityGrain : Orleans.Grain, IMethodEntityGrain
     {
         private IEntityDescriptor descriptor;
+        [NonSerialized]
         private MethodEntity methodEntity;
 
         public override Task OnActivateAsync()

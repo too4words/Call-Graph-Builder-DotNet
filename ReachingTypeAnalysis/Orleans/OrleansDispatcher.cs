@@ -33,8 +33,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			//Contract.Assert(destination is IOrleansEntityDescriptor);
 			//var guid = await ((OrleansEntityDescriptor)destination).GetGuid();
-            var guid = ((OrleansEntityDescriptor)destination).Guid;
-			var destinationGrain = MethodEntityGrainFactory.GetGrain(guid);
+            var destinationEntity = await GetEntityAsync(destination);
+            var destinationGrain = (IMethodEntityGrain)destinationEntity;
+          
+            //var guid = ((OrleansEntityDescriptor)destination).Guid;
+            //var destinationGrain = MethodEntityGrainFactory.GetGrain(guid);
 			/*return*/ 
             destinationGrain.ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message);
 			//var processor = destinationGrain.GetEntityProcessor(this);
