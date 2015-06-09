@@ -107,7 +107,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
 		{
 			var descriptor = (OrleansEntityDescriptor)entityDesc;
-            this.orleansGuids.Add(descriptor.MethodDescriptor, descriptor.Guid);
+            this.orleansGuids[descriptor.MethodDescriptor]= descriptor.Guid;
 			//Contract.Assert(entity is MethodEntityGrain);
 			//this.orleansGrains.Add(descriptor.GetGuid().Result, (MethodEntityGrain)entity);
 		}
