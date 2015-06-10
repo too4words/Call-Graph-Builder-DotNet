@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var guid = this.GetPrimaryKey();
             // Shold not be null..
-            if (this.State != null)
+            if (this.State.MethodDescriptor != null)
             {
                 var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);
                 // TODO: do we need to check and restore methodEntity
