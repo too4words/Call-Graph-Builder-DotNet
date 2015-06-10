@@ -61,6 +61,31 @@ namespace ReachingTypeAnalysis.Analysis
             return result.ToImmutableHashSet<IEntity>();
            // throw new NotImplementedException();
 		}
+        public async Task<IEntity> GetMethodEntityAsync(IEntityDescriptor entityDesc)
+        {
+            var grainDesc = (OrleansEntityDescriptor)entityDesc;
+            //Contract.Assert(grainDesc != null);
+            var methodDescriptor = grainDesc.MethodDescriptor;
+
+            //var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
+            //var result = MethodEntityGrainFactory.GetGrain(guid);
+            //// check if the result is initialized
+            //var methodEntity = await result.GetMethodEntity();
+            //if (methodEntity != null)
+            //{
+                Contract.Assert(grainDesc.MethodDescriptor != null);
+                var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
+                Contract.Assert(provider != null);
+
+                var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
+                var methodEntityGrain = (IMethodEntityGrain)methodEntityGenerator.ParseMethod();
+                return await methodEntityGrain.GetMethodEntity();
+            //}
+            //else
+            //{
+            //    return result;
+            //}
+        }
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
         {
@@ -72,14 +97,21 @@ namespace ReachingTypeAnalysis.Analysis
             var result = MethodEntityGrainFactory.GetGrain(guid);
             // check if the result is initialized
             var methodEntity = await result.GetMethodEntity();
-            if (methodEntity != null)
+            if (methodEntity == null)
             {
                 //Contract.Assert(grainDesc.MethodDescriptor != null);
                 var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
                 //Contract.Assert(provider != null);
-
-                var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
-                return methodEntityGenerator.ParseMethod();
+                if (provider != null)
+                {
+                    var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
+                    return methodEntityGenerator.ParseMethod();
+                }
+                else 
+                {
+                    var libraryMethodVisitor = new LibraryMethodProcessor(grainDesc.MethodDescriptor, this);
+                    return libraryMethodVisitor.ParseLibraryMethod();
+                }
             }
             else
             {

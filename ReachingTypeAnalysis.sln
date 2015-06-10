@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
 EndProject
@@ -25,6 +25,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansGrains", "OrleansGrains\OrleansGrains.csproj", "{7EDBC025-77C7-481B-8DFA-675A0B670F85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{2930867F-55B9-4FB2-830E-DD1F4D79448A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.StorageProviders", "StorageProviders\Samples.StorageProviders.csproj", "{82DDC043-35EB-4D2C-88BB-1566114872AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +54,10 @@ Global
 		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2930867F-55B9-4FB2-830E-DD1F4D79448A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82DDC043-35EB-4D2C-88BB-1566114872AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82DDC043-35EB-4D2C-88BB-1566114872AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82DDC043-35EB-4D2C-88BB-1566114872AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82DDC043-35EB-4D2C-88BB-1566114872AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

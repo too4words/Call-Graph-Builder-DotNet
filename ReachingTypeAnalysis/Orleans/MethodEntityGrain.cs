@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using Orleans;
+using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
 using System;
@@ -11,24 +12,19 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    public interface IOrleansEntityState: IGrainState
+    {
+        Guid Guid { get; set; }
+        MethodDescriptor MethodDescriptor { get; set; }
+
+    }
     [Serializable]
-    internal class OrleansEntityDescriptor : IEntityDescriptor, IGrainState
+    internal class OrleansEntityDescriptor :  IEntityDescriptor
     {
         public Guid Guid { get;  set; }
         public MethodDescriptor MethodDescriptor { get; set; }
-
-        public string Etag
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public string Etag { get; set; }
+        
 
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
         {
@@ -36,41 +32,50 @@ namespace ReachingTypeAnalysis.Analysis
             this.MethodDescriptor = methodDescriptor;
         }
 
-        public Task ClearStateAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //public Task ClearStateAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public Task WriteStateAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //public Task WriteStateAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public Task ReadStateAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //public Task ReadStateAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public IDictionary<string, object> AsDictionary()
-        {
-            throw new NotImplementedException();
-        }
+        //public IDictionary<string, object> AsDictionary()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public void SetAll(IDictionary<string, object> values)
-        {
-            throw new NotImplementedException();
-        }
+        //public void SetAll(IDictionary<string, object> values)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 
-    internal class MethodEntityGrain : Orleans.Grain<OrleansEntityDescriptor>, IMethodEntityGrain
+    [StorageProvider(ProviderName = "TestStore")]
+    internal class MethodEntityGrain : Orleans.Grain<IOrleansEntityState>, IMethodEntityGrain
     {
+        private OrleansEntityDescriptor orleansEntityDescriptor;
+        
         [NonSerialized]
         private MethodEntity methodEntity;
 
+
         public override Task OnActivateAsync()
         {
-            // TODO: do we need to check and restore methodEntity
-            this.methodEntity = (MethodEntity)OrleansDispatcher.Instance.GetEntityAsync(this.State).Result;
+            // Shold not be null..
+            if (this.State != null)
+            {
+                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);
+                // TODO: do we need to check and restore methodEntity
+                this.methodEntity = (MethodEntity)OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc).Result;
+            }
             return TaskDone.Done;
         }
 
@@ -83,24 +88,37 @@ namespace ReachingTypeAnalysis.Analysis
         public Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
         {
             Contract.Assert(methodEntity != null);
-
+            this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-            this.State.MethodDescriptor = (MethodDescriptor)descriptor;
-
+            
+            // Should not be null
+            if (this.State != null)
+            {
+                this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
+                return State.WriteStateAsync();
+            }
             return TaskDone.Done;
         }
 
         public Task<IEntityDescriptor> GetDescriptor()
         {
-            Contract.Assert(this.State != null);
-
-            return Task.FromResult<IEntityDescriptor>(this.State);
+            //Contract.Assert(this.State != null);
+            if (this.State != null)
+            {
+                this.orleansEntityDescriptor = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);   
+            }
+            return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
         }
 
         public Task SetDescriptor(IEntityDescriptor descriptor)
         {
-            Contract.Assert(descriptor != null);
-            this.State.MethodDescriptor = (MethodDescriptor)descriptor;
+            var orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
+
+            //Contract.Assert(this.State != null);
+            if (this.State != null)
+            {
+                this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
+            }
 
             return TaskDone.Done;
         }
@@ -115,7 +133,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public  Task<IEntity> GetMethodEntity()
         {
-            Contract.Assert(this.methodEntity != null);
+            // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
 
