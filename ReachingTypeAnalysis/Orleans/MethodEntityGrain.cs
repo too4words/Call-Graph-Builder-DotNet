@@ -16,14 +16,13 @@ namespace ReachingTypeAnalysis.Analysis
     {
         Guid Guid { get; set; }
         MethodDescriptor MethodDescriptor { get; set; }
-
     }
     [Serializable]
     internal class OrleansEntityDescriptor :  IEntityDescriptor
     {
         public Guid Guid { get;  set; }
         public MethodDescriptor MethodDescriptor { get; set; }
-        public string Etag { get; set; }
+        //public string Etag { get; set; }
         
 
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
@@ -31,31 +30,6 @@ namespace ReachingTypeAnalysis.Analysis
             this.Guid = guid;
             this.MethodDescriptor = methodDescriptor;
         }
-
-        //public Task ClearStateAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Task WriteStateAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Task ReadStateAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public IDictionary<string, object> AsDictionary()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public void SetAll(IDictionary<string, object> values)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 
     [StorageProvider(ProviderName = "TestStore")]
@@ -69,6 +43,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override Task OnActivateAsync()
         {
+            var guid = this.GetPrimaryKey();
             // Shold not be null..
             if (this.State != null)
             {
@@ -90,7 +65,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-            
+            var guid = this.GetPrimaryKey();
             // Should not be null
             if (this.State != null)
             {
