@@ -25,8 +25,6 @@ namespace ReachingTypeAnalysis.Analysis
             else
             {
                 result = new MethodEntityDescriptor(methodDescriptor);
-                //result.MethodDescriptor = methodDescriptor;
-                //Contract.Assert(result.MethodDescriptor != null);
             }
             return result;
         }

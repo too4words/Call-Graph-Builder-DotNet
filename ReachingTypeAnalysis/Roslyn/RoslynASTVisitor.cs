@@ -282,20 +282,18 @@ namespace ReachingTypeAnalysis
 
 
 
-        public IEntity ParseMethod()
+        public MethodEntity ParseMethod()
         {
             Contract.Assert(MethodNode != null);
             var propGraphGenerator = new MethodSyntaxVisitor(this.model, MethodNode, this);
             propGraphGenerator.Visit(MethodNode);
 
             var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-            var methodEntity = EntityFactory.CreateEntity(
-                                        new MethodEntity(propGraphGenerator.MethodDescriptor,
+            var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph, descriptor,
-                                                                    propGraphGenerator.InstantiatedTypes), 
-                                                                    descriptor, this.Dispatcher);
-            this.Dispatcher.RegisterEntity(descriptor, methodEntity);
+                                                                    propGraphGenerator.InstantiatedTypes);
+                                                                    
             return methodEntity;
         }
     }

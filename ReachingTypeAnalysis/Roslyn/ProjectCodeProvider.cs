@@ -212,7 +212,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return null;
 		}
 
-        internal bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        internal virtual bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
@@ -220,7 +220,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 
-        internal Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        internal virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
@@ -252,5 +252,18 @@ namespace ReachingTypeAnalysis.Roslyn
 			var roslynMainMethod = compilation.GetEntryPoint(cancellationToken);
 	*/
 
+    }
+    internal class NullCodeProvider : ProjectCodeProvider 
+    {
+
+        internal NullCodeProvider() : base(null, null) { }
+        internal override bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+ 	         return false;
+        }
+        internal override Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            return Task.FromResult<bool>(false);
+        }
     }
 }

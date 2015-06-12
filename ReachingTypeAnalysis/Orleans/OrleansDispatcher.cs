@@ -30,8 +30,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
-			//Contract.Assert(destination is IOrleansEntityDescriptor);
-			//var guid = await ((OrleansEntityDescriptor)destination).GetGuid();
             var destinationEntity = await GetEntityAsync(destination);
             var destinationGrain = (IMethodEntityGrain)destinationEntity;
           
@@ -60,99 +58,61 @@ namespace ReachingTypeAnalysis.Analysis
             return result.ToImmutableHashSet<IEntity>();
            // throw new NotImplementedException();
 		}
-        public async Task<IEntity> GetMethodEntityAsync(IEntityDescriptor entityDesc)
+        public async Task<MethodEntity> GetMethodEntityAsync(IEntityDescriptor entityDesc)
         {
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
             //Contract.Assert(grainDesc != null);
             var methodDescriptor = grainDesc.MethodDescriptor;
 
-            //var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-            //var result = MethodEntityGrainFactory.GetGrain(guid);
-            //// check if the result is initialized
-            //var methodEntity = await result.GetMethodEntity();
-            //if (methodEntity != null)
-            //{
-                Contract.Assert(methodDescriptor != null);
-                var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
-                var provider = pair.Item1;
-                var tree = pair.Item2;
-                var model = provider.Compilation.GetSemanticModel(tree);
-                Contract.Assert(provider != null);
-
-                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor, this);
-                var methodEntityGrain = (IMethodEntityGrain)methodEntityGenerator.ParseMethod();
-                return await methodEntityGrain.GetMethodEntity();
-            //}
-            //else
-            //{
-            //    return result;
-            //}
+            Contract.Assert(methodDescriptor != null);
+            return await CreateMethodEntityAsync(grainDesc);
         }
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
         {
-            //Contract.Assert(entityDesc != null);
+            Contract.Assert(entityDesc != null);
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
-            //Contract.Assert(grainDesc != null);
-            //var guid = await grainDesc.GetGuid();
+            Contract.Assert(grainDesc != null);
+
             var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-            var result = MethodEntityGrainFactory.GetGrain(guid);
+            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(guid);
             // check if the result is initialized
-            var methodEntity = await result.GetMethodEntity();
+            var methodEntity = await methodEntityGrain.GetMethodEntity();
             if (methodEntity == null)
             {
-                //Contract.Assert(grainDesc.MethodDescriptor != null);
-                var pair = await ProjectCodeProvider.GetAsync(grainDesc.MethodDescriptor);
-                if (pair != null)
-                {
-                    var provider = pair.Item1;
-                    var tree = pair.Item2;
-                    var model = provider.Compilation.GetSemanticModel(tree);
-                    //Contract.Assert(provider != null);
-                    if (provider != null)
-                    {
-                        var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, grainDesc.MethodDescriptor, this);
-                        return methodEntityGenerator.ParseMethod();
-                    }
-                    else
-                    {
-                        var libraryMethodVisitor = new LibraryMethodProcessor(grainDesc.MethodDescriptor, this);
-                        return libraryMethodVisitor.ParseLibraryMethod();
-                    }
-                }
-                return result;
+                Contract.Assert(grainDesc.MethodDescriptor != null);
+                methodEntity = await CreateMethodEntityAsync(grainDesc);
+                Contract.Assert(methodEntity != null);
+                methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();
+                methodEntityGrain.SetDescriptor(grainDesc).Wait();
+                return methodEntityGrain;
             }
             else
             {
-                return result;
+                return methodEntityGrain;
             }
+        }
 
-            //          var node = Utils.FindMethodDeclaration(grainDesc.Symbol, out symbol);
-            //          //var node = Utils.FindMethodImplementation(ed.Method.RoslynMethod);
-            //          MethodEntityGrain<ANode,AType,AMethod> methodEntity;
-            //          if (node != null)
-            //          {
-            //              var sm = Utils.SearchSemanticModelForMethods(this.DeliverMessage, node);
-            //              if (sm != null)
-            //              {
-            //                  var methodEntityGenerator = new MethodSyntaxProcessor(symbol, sm, this);
-            //methodEntity = (MethodEntityGrain<ANode, AType, AMethod>)methodEntityGenerator.ParseMethod();
-            //                  //base.RegisterEntity(entityDesc, e);
-            //              }
-            //              else
-            //              {
-            //                  throw new ArgumentException("Cannot find a method for " + entityDesc);
-            //              }
-            //          }
 
-            //else
-            //{
-            //	var libraryMethodVisitor = new LibraryMethodProcessor(symbol, this);
-            //	var methodEntity = (MethodEntityGrain<ANode, AType, AMethod>)libraryMethodVisitor.ParseLibraryMethod();
-            //	return methodEntity;
-            //	//this.RegisterEntity(entityDesc, entity);
-            //}
+        private async Task<MethodEntity> CreateMethodEntityAsync(OrleansEntityDescriptor descriptor)
+        {
+           var pair = await ProjectCodeProvider.GetAsync(descriptor.MethodDescriptor);
+           MethodEntity methodEntity = null;
 
+            if (pair != null)
+            {
+                var provider = pair.Item1;
+                var tree = pair.Item2;
+                var model = provider.Compilation.GetSemanticModel(tree);
+                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, descriptor.MethodDescriptor, this);
+                methodEntity = methodEntityGenerator.ParseMethod();
+            }
+            else
+            {
+                var libraryMethodVisitor = new LibraryMethodProcessor(descriptor.MethodDescriptor, this);
+                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            }
+            return methodEntity;
         }
 
 		public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)

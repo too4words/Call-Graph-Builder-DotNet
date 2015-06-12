@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Roslyn
         }
 
 
-        public IEntity ParseLibraryMethod()
+        public MethodEntity ParseLibraryMethod()
         {
             if (this.RetVar != null)
             {
@@ -31,13 +31,10 @@ namespace ReachingTypeAnalysis.Roslyn
             }
 
             var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-            var methodEntity = EntityFactory.CreateEntity(
-                                    new MethodEntity(this.MethodDescriptor,
+            var methodEntity = new MethodEntity(this.MethodDescriptor,
                                                     this.MethodInterfaceData,
                                                     this.PropGraph, descriptor,
-                                                    this.InstantiatedTypes),
-                                                    descriptor, this.Dispatcher);
-            this.Dispatcher.RegisterEntity(descriptor, methodEntity);
+                                                    this.InstantiatedTypes);
             return methodEntity;
         }
     }
