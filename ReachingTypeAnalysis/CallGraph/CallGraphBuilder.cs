@@ -66,7 +66,7 @@ namespace ReachingTypeAnalysis
         internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, int order)
         {
             var result = new HashSet<MethodDescriptor>();
-            var methodDescriptor = new MethodDescriptor(method);
+            var methodDescriptor = Utils.CreateMethodDescriptor(method);
             var methodEntityProcessor = (MethodEntityProcessor)
                  this.solutionAnalyzer.Dispatcher.GetEntityWithProcessor
                 (EntityFactory.Create(methodDescriptor, this.solutionAnalyzer.Dispatcher));
@@ -102,7 +102,7 @@ namespace ReachingTypeAnalysis
 		internal ISet<MethodDescriptor> GetCallees(IMethodSymbol method, LocationDescriptor locToFilter)
         {
             var result = new HashSet<MethodDescriptor>();
-            var methodDescriptor = new MethodDescriptor(method);
+            var methodDescriptor = Utils.CreateMethodDescriptor(method);
 			//var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<methodDescriptor>(methodDescriptor)) as MethodEntity<ANode,AType,methodDescriptor>;
 			var methodEntityProcessor = (MethodEntityProcessor)
                 this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(methodDescriptor, 
@@ -133,7 +133,7 @@ namespace ReachingTypeAnalysis
         public ISet<KeyValuePair<int, MethodDescriptor>> GetCallersWithOrder(IMethodSymbol m)
         {
 			var result = new HashSet<KeyValuePair<int, MethodDescriptor>>();
-			var methodDescriptor = new MethodDescriptor(m);
+			var methodDescriptor = Utils.CreateMethodDescriptor(m);
 
             var methodEntityProcessor = (MethodEntityProcessor)
 				this.solutionAnalyzer.

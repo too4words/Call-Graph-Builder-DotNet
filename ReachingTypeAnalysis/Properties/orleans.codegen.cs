@@ -94,6 +94,80 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
 }
+namespace ReachingTypeAnalysis
+{
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using Orleans.CodeGeneration;
+    using Orleans;
+    using System.Runtime.InteropServices;
+    using System.Runtime.Serialization;
+    
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [SerializableAttribute()]
+    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.ReachingTypeAnalysis.ProjectCodeProviderGrain")]
+    public class ProjectCodeProviderGrainState : global::Orleans.CodeGeneration.GrainState, ProjectState
+    {
+        
+
+            public String @FullPath { get; set; }
+
+            public override void SetAll(System.Collections.Generic.IDictionary<string,object> values)
+            {   
+                object value;
+                if (values == null) { InitStateFields(); return; }
+                if (values.TryGetValue("FullPath", out value)) @FullPath = (String) value;
+            }
+
+            public override System.String ToString()
+            {
+                return System.String.Format("ProjectCodeProviderGrainState( FullPath={0} )", @FullPath);
+            }
+        
+        public ProjectCodeProviderGrainState() : 
+                base("ReachingTypeAnalysis.ProjectCodeProviderGrain")
+        {
+            this.InitStateFields();
+        }
+        
+        public override System.Collections.Generic.IDictionary<string, object> AsDictionary()
+        {
+            System.Collections.Generic.Dictionary<string, object> result = new System.Collections.Generic.Dictionary<string, object>();
+            result["FullPath"] = this.FullPath;
+            return result;
+        }
+        
+        private void InitStateFields()
+        {
+            this.FullPath = default(String);
+        }
+        
+        [global::Orleans.CodeGeneration.CopierMethodAttribute()]
+        public static object _Copier(object original)
+        {
+            ProjectCodeProviderGrainState input = ((ProjectCodeProviderGrainState)(original));
+            return input.DeepCopy();
+        }
+        
+        [global::Orleans.CodeGeneration.SerializerMethodAttribute()]
+        public static void _Serializer(object original, global::Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ProjectCodeProviderGrainState input = ((ProjectCodeProviderGrainState)(original));
+            input.SerializeTo(stream);
+        }
+        
+        [global::Orleans.CodeGeneration.DeserializerMethodAttribute()]
+        public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ProjectCodeProviderGrainState result = new ProjectCodeProviderGrainState();
+            result.DeserializeFrom(stream);
+            return result;
+        }
+    }
+}
 #pragma warning restore 162
 #pragma warning restore 219
 #pragma warning restore 414

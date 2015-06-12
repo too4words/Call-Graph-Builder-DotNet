@@ -55,7 +55,7 @@ namespace ReachingTypeAnalysis
 
 			this.Dispatcher = dispatcher;
             this.RoslynMethod = roslynMethod;
-            this.MethodDescriptor = new MethodDescriptor(roslynMethod);
+            this.MethodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
             var codeProvider = ProjectCodeProvider.GetAsync(this.MethodDescriptor).Result.Item1; 
             // The statement processor generates the Prpagagation Graph
@@ -108,18 +108,18 @@ namespace ReachingTypeAnalysis
 			var outputs = new Dictionary<string, PropGraphNodeDescriptor>();
 			if (!methodSymbol.ReturnsVoid && Utils.IsTypeForAnalysis(methodSymbol.ReturnType))
 			{
-				retVar = new ReturnNode(new TypeDescriptor(methodSymbol.ReturnType));
+				retVar = new ReturnNode(Utils.CreateTypeDescriptor(methodSymbol.ReturnType));
 				outputs["retVar"] = retVar;
 			}
 			if (!methodSymbol.IsStatic)
 			{
-				thisRef = new ThisNode(new TypeDescriptor(methodSymbol.ReceiverType));
+				thisRef = new ThisNode(Utils.CreateTypeDescriptor(methodSymbol.ReceiverType));
 			}
 			parameters = new List<ParameterNode>();
 			for (int i = 0; i < methodSymbol.Parameters.Count(); i++)
 			{
 				var p = methodSymbol.Parameters[i];
-				var parameterNode = new ParameterNode(methodSymbol.Parameters[i].Name, i, new TypeDescriptor(p.Type));
+				var parameterNode = new ParameterNode(methodSymbol.Parameters[i].Name, i, Utils.CreateTypeDescriptor(p.Type));
 				parameters.Add(parameterNode);
 				if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
 				{
@@ -551,11 +551,11 @@ namespace ReachingTypeAnalysis
             VariableNode lhs;
             if (type.TypeKind.Equals(TypeKind.Delegate))
             {
-				lhs = new DelegateVariableNode(v.ToString(), new TypeDescriptor(type));
+				lhs = new DelegateVariableNode(v.ToString(), Utils.CreateTypeDescriptor(type));
             }
             else
             {
-                lhs = new VariableNode(v.ToString(), new TypeDescriptor(type));
+                lhs = new VariableNode(v.ToString(), Utils.CreateTypeDescriptor(type));
                 //lhs = ANode.Define(t, v);
             }
             if (lhs != null) this.StatementProcessor.RegisterLocalVariable(lhs);
@@ -595,7 +595,9 @@ namespace ReachingTypeAnalysis
         internal void RegisterDelegate(VariableNode lhsNode, IMethodSymbol delegateMethod)
         {
             Contract.Assert(lhsNode is DelegateVariableNode);
-            this.StatementProcessor.RegisterDelegateAssignment((DelegateVariableNode)lhsNode, new MethodDescriptor(delegateMethod));
+            this.StatementProcessor.RegisterDelegateAssignment(
+                (DelegateVariableNode)lhsNode, 
+                Utils.CreateMethodDescriptor(delegateMethod));
         }
 
         //public ANode RegisterExpression(ExpressionSyntax lhs)
@@ -670,7 +672,7 @@ namespace ReachingTypeAnalysis
 			Contract.Assert(symbol != null);
 			Contract.Assert(semanticModel != null);
 
-			this.MethodDescriptor = new MethodDescriptor(symbol);
+			this.MethodDescriptor = Utils.CreateMethodDescriptor(symbol);
 			this.SemanticModel = semanticModel;
 		}
 		//public override object VisitCompilationUnit(CompilationUnitSyntax node)
@@ -700,7 +702,7 @@ namespace ReachingTypeAnalysis
 					{
 						var node = (MethodDeclarationSyntax)syntax;
 						var symbol = this.SemanticModel.GetDeclaredSymbol(node);
-						var thisDescriptor = new MethodDescriptor(symbol);
+						var thisDescriptor = Utils.CreateMethodDescriptor(symbol);
 						if (thisDescriptor.Equals(this.MethodDescriptor))
 						{
 							// found it!
@@ -712,7 +714,7 @@ namespace ReachingTypeAnalysis
 					{
 						var node = (ConstructorDeclarationSyntax)syntax;
 						var symbol = this.SemanticModel.GetDeclaredSymbol(node);
-						var thisDescriptor = new MethodDescriptor(symbol);
+						var thisDescriptor = Utils.CreateMethodDescriptor(symbol);
 						if (thisDescriptor.Equals(this.MethodDescriptor))
 						{
 							// found it!

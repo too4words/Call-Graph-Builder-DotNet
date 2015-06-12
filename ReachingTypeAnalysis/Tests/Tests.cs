@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis
 
                 var roslynMethod = RoslynSymbolFactory.FindMethodSymbolAndProjectInSolution(solution, new MethodDescriptor("Test", "CallBar")).Method;
                 Assert.IsTrue(roslynMethod != null);
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor(roslynMethod), callgraph)); // ConsoleApplication1
+                Assert.IsTrue(s.IsReachable(Utils.CreateMethodDescriptor(roslynMethod), callgraph)); // ConsoleApplication1
             });
         }
 

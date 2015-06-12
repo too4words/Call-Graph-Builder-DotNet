@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        public MethodDescriptor(string classname, string methodName, bool isStatic = false)
+        public MethodDescriptor(string classname, string methodName, bool isStatic = false, TypeDescriptor containingType = null, List<TypeDescriptor> parameters = null, TypeDescriptor returnType = null)
         {
             this.NamespaceName = "";
             this.ClassName = classname;
@@ -71,6 +71,7 @@ namespace ReachingTypeAnalysis
             this.name = classname + "." + methodName;
             this.Parameters = new List<TypeDescriptor>();
             this.IsStatic = isStatic;
+            this.ReturnType = returnType;
         }
 
         public MethodDescriptor(string namespaceName, string classname, string methodName, bool isStatic = false)
@@ -80,24 +81,7 @@ namespace ReachingTypeAnalysis
             this.MethodName = methodName;
             this.Parameters = new List<TypeDescriptor>();
             this.IsStatic = isStatic;
-        }
-        public MethodDescriptor(IMethodSymbol method)
-        {
-            Contract.Assert(method != null);
-
-            this.MethodName = method.Name;
-            this.ClassName = method.ContainingType.Name;
-            this.NamespaceName = method.ContainingNamespace.Name;
-            this.containerType = new TypeDescriptor(method.ContainingType);
-
-            this.Parameters = new List<TypeDescriptor>(method.Parameters
-                                .Select(parmeter => new TypeDescriptor(parmeter.Type)));
-            if (!method.ReturnsVoid)
-            {
-                this.ReturnType = new TypeDescriptor(method.ReturnType);
-            }
-            this.IsStatic = method.IsStatic;
-        }
+        }    
 
         //public bool SameAsMethodSymbol(IMethodSymbol method)
         //{
@@ -137,6 +121,15 @@ namespace ReachingTypeAnalysis
     }
 
     [Serializable]
+    public enum TypeKind
+    {
+        Class,
+        Interface,
+        Delegate,
+        TypeParameter,
+    }
+
+    [Serializable]
     public class TypeDescriptor
     {
         public bool IsReferenceType { get; private set; }
@@ -144,20 +137,22 @@ namespace ReachingTypeAnalysis
         public string TypeName { get; private set; }
         public bool IsConcreteType { get; private set; }
 
-        public TypeDescriptor(ITypeSymbol type, bool isConcrete = true)
-        {
-            this.TypeName = type.MetadataName;
-            this.IsReferenceType = type.IsReferenceType;
-            this.Kind = type.TypeKind;
-            this.IsConcreteType = isConcrete;
-        }
-        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
+        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, TypeKind kind = TypeKind.Class, bool isConcrete = true)
         {
             this.TypeName = nameSpaceName + '.' + className;
-            this.IsReferenceType = IsReferenceType;
-            this.Kind = TypeKind.Class;
+            this.IsReferenceType = isReferenceType;
+            this.Kind = kind;
             this.IsConcreteType = isConcrete;
         }
+
+        public TypeDescriptor(string typeName, bool isReferenceType = true, TypeKind kind = TypeKind.Class, bool isConcrete = true)
+        {
+            this.TypeName = typeName;
+            this.IsReferenceType = isReferenceType;
+            this.Kind = kind;
+            this.IsConcreteType = isConcrete;
+        }
+
         public TypeDescriptor(TypeDescriptor typeDescriptor, bool isConcrete = true)
         {
             this.TypeName = typeDescriptor.TypeName;

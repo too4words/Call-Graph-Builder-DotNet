@@ -6,21 +6,37 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
+using OrleansInterfaces;
+using Orleans;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-	internal class ProjectCodeProvider
-	{
-		internal Compilation Compilation { get; private set; }
-		internal Project Project { get; private set; }
-		//public SemanticModel SemanticModel { get; private set; }
-		public static Solution Solution { get; internal set; }
+    internal class ProjectCodeProvider
+    {
+        internal Compilation Compilation { get; private set; }
+        internal Project Project { get; private set; }
+        //public SemanticModel SemanticModel { get; private set; }
+        public static Solution Solution { get; internal set; }
 
-		internal ProjectCodeProvider(Project project, Compilation compilation)
-		{
-			this.Project = project;	
-			this.Compilation = project.GetCompilationAsync().Result;
-		}
+        internal ProjectCodeProvider(Project project, Compilation compilation)
+        {
+            this.Project = project;
+            this.Compilation = project.GetCompilationAsync().Result;
+        }
+
+        async internal static Task<ProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
+        {
+            foreach (var id in Solution.ProjectIds)
+            {
+                var project = Solution.GetProject(id);
+                if (project.FilePath.Equals(fullPath))
+                {
+                    return new ProjectCodeProvider(project, await project.GetCompilationAsync());
+                }
+            }
+            Contract.Assert(false, "Can't find path = " + fullPath);
+            return null;
+        }
 
         /*
 		public static BaseMethodDeclarationSyntax FindMethodSyntax(SemanticModel model, SyntaxTree tree, MethodDescriptor method, out IMethodSymbol symbol)
@@ -35,7 +51,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return visitor.Result;
 		}*/
 
-		public static IEnumerable<MethodDescriptor> GetMainMethods(Solution solution)
+        public static IEnumerable<MethodDescriptor> GetMainMethods(Solution solution)
 		{
 			var cancellationToken = new System.Threading.CancellationToken();
 			foreach (var project in solution.Projects)
@@ -45,7 +61,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				if (mainMethod != null)
 				{
 					// only return if there's a main method
-					yield return new MethodDescriptor(mainMethod);
+					yield return Utils.CreateMethodDescriptor(mainMethod);
 				}
 			}
 		}
@@ -62,7 +78,7 @@ namespace ReachingTypeAnalysis.Roslyn
             {
                 var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
                 var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
-                return new MethodDescriptor(implementedMethod);
+                return Utils.CreateMethodDescriptor(implementedMethod);
             }
             // If we cannot resolve the method, we return the same method.
             return methodDescriptor;
@@ -200,6 +216,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+
             return TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 

@@ -1,27 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis.Tachyon;
-using Microsoft.CodeAnalysis.Tachyon.DataAdapter;
-using Orleans.CodeGeneration;
-using Orleans.Serialization;
-using ReachingTypeAnalysis.Communication;
-using ReachingTypeAnalysis.Roslyn;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Microsoft.CodeAnalysis.Tachyon;
+using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
 
 namespace ReachingTypeAnalysis
 {
-	/// <summary>
-	/// Propagation graph: is the main data structure of the algorithm
-	/// The basic idea is that concrete types flow from the graph nodes which represent proggram expressions (variables, fields, invocaitons)
-	/// The invocations are dummy nodes. Their role is to trigger the propagation of data to the callees. When a type reach an invocation 
-	/// it is marked to be processesd later
-	/// </summary>
-	/// <typeparam name="N"></typeparam>
-	/// <typeparam name="T"></typeparam>
-	/// <typeparam name="M"></typeparam>
-	[Serializable]
+    /// <summary>
+    /// Propagation graph: is the main data structure of the algorithm
+    /// The basic idea is that concrete types flow from the graph nodes which represent proggram expressions (variables, fields, invocaitons)
+    /// The invocations are dummy nodes. Their role is to trigger the propagation of data to the callees. When a type reach an invocation 
+    /// it is marked to be processesd later
+    /// </summary>
+    /// <typeparam name="N"></typeparam>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="M"></typeparam>
+    [Serializable]
     internal class PropagationGraph
 	{
    		/// <summary>

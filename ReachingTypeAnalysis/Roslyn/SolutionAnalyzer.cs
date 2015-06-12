@@ -379,7 +379,7 @@ namespace ReachingTypeAnalysis
 				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
 
 				var mainMethodEntity = methodVisitor.ParseMethod();
-				var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
+				var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
 				var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor,this.Dispatcher);
 				var mainEntityProcessor = (MethodEntityProcessor)
 					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);

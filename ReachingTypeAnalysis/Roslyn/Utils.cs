@@ -1,18 +1,50 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ReachingTypeAnalysis
 {
-	public class Utils
+    public class Utils
 	{
-		internal static bool IsTypeForAnalysis(SemanticModel model, ExpressionSyntax node)
+        public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
+        {
+            Contract.Assert(method != null);
+
+            return new MethodDescriptor(
+                method.ContainingType.Name, method.Name, method.IsStatic, 
+                Utils.CreateTypeDescriptor(method.ContainingType),
+                new List<TypeDescriptor>(method.Parameters
+                                .Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type))),
+                Utils.CreateTypeDescriptor(method.ReturnType)
+                );            
+        }
+
+        public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
+        {
+            //public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
+            return new TypeDescriptor(
+                type.MetadataName, type.IsReferenceType, Convert(type.TypeKind), isConcrete);
+        }
+
+        private static TypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {
+            switch (kind)
+            {
+                case Microsoft.CodeAnalysis.TypeKind.Class: return TypeKind.Class;
+                case Microsoft.CodeAnalysis.TypeKind.Interface: return TypeKind.Interface;
+                case Microsoft.CodeAnalysis.TypeKind.Delegate: return TypeKind.Delegate;
+                case Microsoft.CodeAnalysis.TypeKind.TypeParameter: return TypeKind.TypeParameter;
+                default: throw new ArgumentException("Can't convert " + kind);
+            }
+        }
+
+        internal static bool IsTypeForAnalysis(SemanticModel model, ExpressionSyntax node)
 		{
 			var type = model.GetTypeInfo(node).Type;
 			return type != null && IsTypeForAnalysis(type);
@@ -25,9 +57,11 @@ namespace ReachingTypeAnalysis
 			return (t.IsReferenceType || t.Kind == TypeKind.TypeParameter);
 		}
 	
-		internal static bool IsTypeForAnalysis(ITypeSymbol t)
+		internal static bool IsTypeForAnalysis(ITypeSymbol type)
 		{
-			var res = t != null && (t.IsReferenceType || t.TypeKind == TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
+			var res = type != null && 
+                (type.IsReferenceType || 
+                    type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
 
@@ -339,7 +373,7 @@ namespace ReachingTypeAnalysis
 
 			switch (possibleBase.TypeKind)
 			{
-				case TypeKind.Class:
+				case Microsoft.CodeAnalysis.TypeKind.Class:
 					for (ITypeSymbol t = type.BaseType; t != null; t = t.BaseType)
 					{
 						if (t.ToString().Equals(possibleBase.ToString()))
@@ -350,7 +384,7 @@ namespace ReachingTypeAnalysis
 
 					return false;
 
-				case TypeKind.Interface:
+				case Microsoft.CodeAnalysis.TypeKind.Interface:
 					foreach (var i in type.AllInterfaces)
 					{
 						if (i.ToString().Equals(possibleBase.ToString()))
@@ -380,7 +414,7 @@ namespace ReachingTypeAnalysis
 
 			switch (possibleBase.TypeKind)
 			{
-				case TypeKind.Class:
+				case Microsoft.CodeAnalysis.TypeKind.Class:
 					for (ITypeSymbol t = type.BaseType; t != null; t = t.BaseType)
 					{
 						if (t.Equals(possibleBase))
@@ -391,7 +425,7 @@ namespace ReachingTypeAnalysis
 
 					return false;
 
-				case TypeKind.Interface:
+				case Microsoft.CodeAnalysis.TypeKind.Interface:
 					foreach (var i in type.AllInterfaces)
 					{
 						if (i.Equals(possibleBase))
