@@ -18,6 +18,7 @@ namespace ReachingTypeAnalysis
             Contract.Assert(method != null);
 
             return new MethodDescriptor(
+                method.ContainingNamespace.Name,
                 method.ContainingType.Name, method.Name, method.IsStatic, 
                 Utils.CreateTypeDescriptor(method.ContainingType),
                 new List<TypeDescriptor>(method.Parameters
@@ -33,13 +34,15 @@ namespace ReachingTypeAnalysis
                 type.MetadataName, type.IsReferenceType, Convert(type.TypeKind), isConcrete);
         }
 
-        private static TypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {
+        private static SerializableTypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {
             switch (kind)
             {
-                case Microsoft.CodeAnalysis.TypeKind.Class: return TypeKind.Class;
-                case Microsoft.CodeAnalysis.TypeKind.Interface: return TypeKind.Interface;
-                case Microsoft.CodeAnalysis.TypeKind.Delegate: return TypeKind.Delegate;
-                case Microsoft.CodeAnalysis.TypeKind.TypeParameter: return TypeKind.TypeParameter;
+                case Microsoft.CodeAnalysis.TypeKind.Class: return SerializableTypeKind.Class;
+                case Microsoft.CodeAnalysis.TypeKind.Interface: return SerializableTypeKind.Interface;
+                case Microsoft.CodeAnalysis.TypeKind.Delegate: return SerializableTypeKind.Delegate;
+                case Microsoft.CodeAnalysis.TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
+                case Microsoft.CodeAnalysis.TypeKind.Array: return SerializableTypeKind.Array;
+                case Microsoft.CodeAnalysis.TypeKind.Struct: return SerializableTypeKind.Struct;
                 default: throw new ArgumentException("Can't convert " + kind);
             }
         }
@@ -54,7 +57,7 @@ namespace ReachingTypeAnalysis
 		{
 			Contract.Assert(t != null);
 
-			return (t.IsReferenceType || t.Kind == TypeKind.TypeParameter);
+			return (t.IsReferenceType || t.Kind == SerializableTypeKind.TypeParameter);
 		}
 	
 		internal static bool IsTypeForAnalysis(ITypeSymbol type)

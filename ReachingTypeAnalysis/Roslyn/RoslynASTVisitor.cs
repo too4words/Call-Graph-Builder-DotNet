@@ -64,6 +64,20 @@ namespace ReachingTypeAnalysis
                                             codeProvider);
         }
 
+        public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, ProjectCodeProvider codeProvider, IDispatcher dispatcher)
+        {
+			Contract.Assert(methodDescriptor != null);
+			Contract.Assert(dispatcher != null);
+
+			this.Dispatcher = dispatcher;
+            this.RoslynMethod = codeProvider.FindMethod(methodDescriptor);
+            this.MethodDescriptor = methodDescriptor;
+            this.MethodInterfaceData = CreateMethodInterfaceData(this.RoslynMethod);
+            // The statement processor generates the Prpagagation Graph
+            this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
+				                            this.RetVar, this.ThisRef, this.Parameters,
+                                            codeProvider);
+        }
         public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
         {
             Contract.Assert(methodDescriptor != null);
@@ -71,7 +85,7 @@ namespace ReachingTypeAnalysis
 
             this.Dispatcher = dispatcher;
             this.MethodDescriptor = methodDescriptor;
-            this.MethodInterfaceData = CreateMethodInterfaceData(methodDescriptor);
+            this.MethodInterfaceData = CreateMethodInterfaceDataForNonAnalyzableMethod(methodDescriptor);
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor,
                                             this.RetVar, this.ThisRef, this.Parameters,
                                             null);
@@ -139,7 +153,7 @@ namespace ReachingTypeAnalysis
 			return methodInterfaceData;
 		}
 
-        public virtual MethodInterfaceData CreateMethodInterfaceData(MethodDescriptor methodDescriptor)
+        public virtual MethodInterfaceData CreateMethodInterfaceDataForNonAnalyzableMethod(MethodDescriptor methodDescriptor)
         {
             Contract.Assert(methodDescriptor != null);
 
@@ -254,18 +268,19 @@ namespace ReachingTypeAnalysis
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-        public MethodSyntaxProcessor(SemanticModel model, ProjectCodeProvider provider, SyntaxTree tree, MethodDescriptor method, IDispatcher dispatcher)
-            : base((IMethodSymbol) null, dispatcher)
+        public MethodSyntaxProcessor(SemanticModel model, ProjectCodeProvider codeProvider, SyntaxTree tree, MethodDescriptor methodDescriptor, IDispatcher dispatcher)
+            : base(methodDescriptor, codeProvider, dispatcher)
         {
             this.model = model;
-            var pair = ProjectCodeProvider.FindMethodSyntaxAsync(provider.Compilation.GetSemanticModel(tree), tree, method).Result;
+            var pair = ProjectCodeProvider.FindMethodSyntaxAsync(codeProvider.Compilation.GetSemanticModel(tree), tree, methodDescriptor).Result;
             this.MethodNode = pair.Item1;
             this.Tree = tree;
-            this.RoslynMethod = pair.Item2;
             
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
+
+
 
         public IEntity ParseMethod()
         {

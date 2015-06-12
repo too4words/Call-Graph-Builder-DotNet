@@ -97,8 +97,8 @@ namespace ReachingTypeAnalysis.Analysis
 namespace ReachingTypeAnalysis
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
+    using System.Collections;
     using Orleans.CodeGeneration;
     using Orleans;
     using System.Runtime.InteropServices;

@@ -16,6 +16,7 @@ namespace ReachingTypeAnalysis.Analysis
     {
         Guid Guid { get; set; }
         MethodDescriptor MethodDescriptor { get; set; }
+        // MethodEntity MethodEntity { get; set; }
     }
     [Serializable]
     internal class OrleansEntityDescriptor :  IEntityDescriptor
@@ -41,7 +42,7 @@ namespace ReachingTypeAnalysis.Analysis
         private MethodEntity methodEntity;
 
 
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
             var guid = this.GetPrimaryKey();
             // Shold not be null..
@@ -49,9 +50,9 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);
                 // TODO: do we need to check and restore methodEntity
-                this.methodEntity = (MethodEntity)OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc).Result;
+                this.methodEntity = (MethodEntity) await OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc);
             }
-            return TaskDone.Done;
+            //return TaskDone.Done;
         }
 
         public override Task OnDeactivateAsync()

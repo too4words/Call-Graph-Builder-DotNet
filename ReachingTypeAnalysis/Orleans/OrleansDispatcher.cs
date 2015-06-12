@@ -103,20 +103,24 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 //Contract.Assert(grainDesc.MethodDescriptor != null);
                 var pair = await ProjectCodeProvider.GetAsync(grainDesc.MethodDescriptor);
-                var provider = pair.Item1;
-                var tree = pair.Item2;
-                var model = provider.Compilation.GetSemanticModel(tree);
-                //Contract.Assert(provider != null);
-                if (provider != null)
+                if (pair != null)
                 {
-                    var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, grainDesc.MethodDescriptor, this);
-                    return methodEntityGenerator.ParseMethod();
+                    var provider = pair.Item1;
+                    var tree = pair.Item2;
+                    var model = provider.Compilation.GetSemanticModel(tree);
+                    //Contract.Assert(provider != null);
+                    if (provider != null)
+                    {
+                        var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, grainDesc.MethodDescriptor, this);
+                        return methodEntityGenerator.ParseMethod();
+                    }
+                    else
+                    {
+                        var libraryMethodVisitor = new LibraryMethodProcessor(grainDesc.MethodDescriptor, this);
+                        return libraryMethodVisitor.ParseLibraryMethod();
+                    }
                 }
-                else 
-                {
-                    var libraryMethodVisitor = new LibraryMethodProcessor(grainDesc.MethodDescriptor, this);
-                    return libraryMethodVisitor.ParseLibraryMethod();
-                }
+                return result;
             }
             else
             {
@@ -172,7 +176,8 @@ namespace ReachingTypeAnalysis.Analysis
             Guid result = Guid.Empty; 
             if (orleansGuids.TryGetValue(methodDescriptor, out result))
                 return result;
-            return Guid.NewGuid();
+            orleansGuids[methodDescriptor] = Guid.NewGuid();
+            return orleansGuids[methodDescriptor];
         }
 
         public IEntity GetEntity(IEntityDescriptor entityDesc)

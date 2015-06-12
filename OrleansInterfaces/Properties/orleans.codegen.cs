@@ -483,7 +483,7 @@ namespace OrleansInterfacesSerializers
             ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(untypedInput));
             Orleans.Serialization.SerializationManager.SerializeInner(input.IsConcreteType, stream, typeof(bool));
             Orleans.Serialization.SerializationManager.SerializeInner(input.IsReferenceType, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.TypeKind));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.SerializableTypeKind));
             Orleans.Serialization.SerializationManager.SerializeInner(input.TypeName, stream, typeof(string));
         }
         
@@ -495,7 +495,7 @@ namespace OrleansInterfacesSerializers
             fieldInfo1.SetValue(objResult, temp1);
             object temp2 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
             fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = ((ReachingTypeAnalysis.TypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeKind), stream)));
+            object temp3 = ((ReachingTypeAnalysis.SerializableTypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.SerializableTypeKind), stream)));
             fieldInfo3.SetValue(objResult, temp3);
             object temp4 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             fieldInfo4.SetValue(objResult, temp4);

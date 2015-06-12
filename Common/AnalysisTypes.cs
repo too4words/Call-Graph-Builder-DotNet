@@ -63,6 +63,20 @@ namespace ReachingTypeAnalysis
             }
         }
 
+        public MethodDescriptor(string namespaceName, string classname, string methodName, 
+                                    bool isStatic = false, 
+                                    TypeDescriptor containingType = null, 
+                                    List<TypeDescriptor> parameters = null, 
+                                    TypeDescriptor returnType = null)
+        {
+            this.NamespaceName = namespaceName;
+            this.ClassName = classname;
+            this.MethodName = methodName;
+            this.name = classname + "." + methodName;
+            this.Parameters = new List<TypeDescriptor>();
+            this.IsStatic = isStatic;
+            this.ReturnType = returnType;
+        }
         public MethodDescriptor(string classname, string methodName, bool isStatic = false, TypeDescriptor containingType = null, List<TypeDescriptor> parameters = null, TypeDescriptor returnType = null)
         {
             this.NamespaceName = "";
@@ -73,6 +87,7 @@ namespace ReachingTypeAnalysis
             this.IsStatic = isStatic;
             this.ReturnType = returnType;
         }
+
 
         public MethodDescriptor(string namespaceName, string classname, string methodName, bool isStatic = false)
         {
@@ -121,23 +136,25 @@ namespace ReachingTypeAnalysis
     }
 
     [Serializable]
-    public enum TypeKind
+    public enum SerializableTypeKind
     {
         Class,
         Interface,
         Delegate,
         TypeParameter,
+        Array,
+        Struct
     }
 
     [Serializable]
     public class TypeDescriptor
     {
         public bool IsReferenceType { get; private set; }
-        public TypeKind Kind { get; private set; }
+        public SerializableTypeKind Kind { get; private set; }
         public string TypeName { get; private set; }
         public bool IsConcreteType { get; private set; }
 
-        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, TypeKind kind = TypeKind.Class, bool isConcrete = true)
+        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
         {
             this.TypeName = nameSpaceName + '.' + className;
             this.IsReferenceType = isReferenceType;
@@ -145,7 +162,7 @@ namespace ReachingTypeAnalysis
             this.IsConcreteType = isConcrete;
         }
 
-        public TypeDescriptor(string typeName, bool isReferenceType = true, TypeKind kind = TypeKind.Class, bool isConcrete = true)
+        public TypeDescriptor(string typeName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
         {
             this.TypeName = typeName;
             this.IsReferenceType = isReferenceType;
@@ -183,7 +200,7 @@ namespace ReachingTypeAnalysis
         {
             get
             {
-                return this.Kind.Equals(TypeKind.Delegate);
+                return this.Kind.Equals(SerializableTypeKind.Delegate);
             }
         }
     }
