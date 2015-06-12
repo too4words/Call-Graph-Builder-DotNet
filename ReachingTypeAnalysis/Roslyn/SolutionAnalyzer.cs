@@ -55,7 +55,7 @@ namespace ReachingTypeAnalysis
 				strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
 			}
 			// TOOD: hack -- set the global solution
-			CodeProvider.Solution = this.Solution;
+			ProjectCodeProvider.Solution = this.Solution;
 
 			switch (strategy)
             {
@@ -205,11 +205,12 @@ namespace ReachingTypeAnalysis
 
 				var theAssembly = compilation.Assembly;
 
-				foreach (var st in compilation.SyntaxTrees)
+				foreach (var tree in compilation.SyntaxTrees)
 				{
-					var codeProvider = new CodeProvider(st, compilation);
-					var allMethodsVisitor = new AllMethodsVisitor(codeProvider, this.Dispatcher);
-					allMethodsVisitor.Visit(st.GetRoot());
+                    var model = compilation.GetSemanticModel(tree);
+					var codeProvider = new ProjectCodeProvider(project, compilation);
+					var allMethodsVisitor = new AllMethodsVisitor(model, tree, this.Dispatcher);
+					allMethodsVisitor.Visit(tree.GetRoot());
 				}
 			}
             //if (this.Dispatcher is QueueingDispatcher)
@@ -246,11 +247,12 @@ namespace ReachingTypeAnalysis
 				var theAssembly = compilation.Assembly;
 
 				var continuations = new List<Task>();
-				foreach (var st in compilation.SyntaxTrees)
+				foreach (var tree in compilation.SyntaxTrees)
 				{
-					var provider = new CodeProvider(st, compilation);
-					var allMethodsVisitor = new AllMethodsVisitor(provider, this.Dispatcher);
-					continuations.Add(allMethodsVisitor.Run());
+					var provider = new ProjectCodeProvider(project, compilation);
+                    var model = compilation.GetSemanticModel(tree);
+                    var allMethodsVisitor = new AllMethodsVisitor(model, tree, this.Dispatcher);
+					continuations.Add(allMethodsVisitor.Run(tree));
 				}
 				Task.WhenAll(continuations);
 			}
@@ -305,19 +307,21 @@ namespace ReachingTypeAnalysis
 			Debug.Assert(this.Dispatcher != null);
 			var cancellationToken = new CancellationTokenSource();
 			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken.Token);
-			var continuations = new List<Task<Tuple<CodeProvider, IMethodSymbol>>>();
+			var continuations = new List<Task<Tuple<ProjectCodeProvider, IMethodSymbol>>>();
 			foreach (var projectId in projectIDs)
 			{
 				var project = this.Solution.GetProject(projectId);
 				var compilation = project.GetCompilationAsync().Result;
-				IMethodSymbol mainSymbol;
-				var provider = CodeProvider.GetProviderContainingEntryPoint(compilation, out mainSymbol);
+
+                var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(project, cancellationToken.Token).Result;
+                var provider = triple.Item1;
+                IMethodSymbol mainSymbol = triple.Item2;
+                var tree = triple.Item3;
 				if (provider != null)
 				{
-					cancellationToken.Cancel();	// cancel out outstanding processing tasks
-					var methodVisitor = new MethodSyntaxProcessor(mainSymbol,
-						provider,
-						this.Dispatcher);
+                    var model = provider.Compilation.GetSemanticModel(tree);
+					cancellationToken.Cancel(); // cancel out outstanding processing tasks
+                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
                     var mainEntityProcessor = new MethodEntityProcessor((MethodEntity)mainMethodEntity, this.Dispatcher);
@@ -362,16 +366,17 @@ namespace ReachingTypeAnalysis
 		{
 			Debug.Assert(this.Dispatcher != null);
 			var cancellationSource = new CancellationTokenSource();
-			var pair = await CodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token);
-			if (pair != null)
+			var triple = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token);
+			if (triple != null)
 			{
 				// cancel out outstanding processing tasks
 				//cancellationSource.Cancel();	
 
-				var provider = pair.Item1;
-				var mainSymbol = pair.Item2;
-				var methodVisitor = new MethodSyntaxProcessor(mainSymbol,
-					provider, this.Dispatcher);
+				var provider = triple.Item1;
+				var mainSymbol = triple.Item2;
+                var tree = triple.Item3;
+                var model = provider.Compilation.GetSemanticModel(tree);
+				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
 
 				var mainMethodEntity = methodVisitor.ParseMethod();
 				var mainMethodDescriptor = new MethodDescriptor(mainSymbol);
@@ -673,7 +678,7 @@ namespace ReachingTypeAnalysis
 
         public CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph()
         {
-            var roots = CodeProvider.GetMainMethods(this.Solution);
+            var roots = ProjectCodeProvider.GetMainMethods(this.Solution);
             Contract.Assert(this.Dispatcher != null);
             //Contract.Assert(this.Dispatcher.GetAllEntites() != null);
 

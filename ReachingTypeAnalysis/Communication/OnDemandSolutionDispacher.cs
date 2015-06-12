@@ -43,12 +43,15 @@ namespace ReachingTypeAnalysis.Communication
                 //    base.RegisterEntity(entityDesc, entity);
                 //}
 
-                var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
+                var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
+                var codeProvider = pair.Item1;
+                var tree = pair.Item2;
 
                 if (codeProvider != null)
                 {
                     var roslynMethod = codeProvider.FindMethod(methodDescriptor);
-                    var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
+                    var model = codeProvider.Compilation.GetSemanticModel(tree);
+                    var methodEntityGenerator = new MethodSyntaxProcessor(model, tree, roslynMethod, this);
                     entity = methodEntityGenerator.ParseMethod();
                 }
                 else

@@ -26,8 +26,9 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="M"></typeparam>
     internal partial class MethodEntityProcessor: EntityProcessor
     {
-        internal CodeProvider codeProvider;
+        internal ProjectCodeProvider codeProvider;
         private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
+        private SyntaxTree tree;
 
         internal MethodEntity MethodEntity { get; private set; }
         internal MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
@@ -38,7 +39,9 @@ namespace ReachingTypeAnalysis.Analysis
             this.MethodEntity = methodEntity;
             this.Verbose = verbose;
             // It gets a code provider for the method. 
-            this.codeProvider = CodeProvider.GetAsync(methodEntity.MethodDescriptor).Result;
+            var pair = ProjectCodeProvider.GetAsync(methodEntity.MethodDescriptor).Result;
+            this.codeProvider = pair.Item1;
+            this.tree = pair.Item2;
             // We use the codeProvider for Propagation and HandleCall and ReturnEvents (in the method DiffProp that uses IsAssignable)
             // We can get rid of this by passing codeProvider as parameter in this 3 methods
             this.MethodEntity.PropGraph.SetCodeProvider(this.codeProvider);

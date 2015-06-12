@@ -34,9 +34,9 @@ namespace ReachingTypeAnalysis
             InstatiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider);
+		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider);
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, CodeProvider codeProvider)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in propGraph.GetTypes(n))
@@ -53,8 +53,8 @@ namespace ReachingTypeAnalysis
 					//result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
                     Contract.Assert(this.InstatiatedTypes != null);
                     // Diego: This requires a Code Provider. Now it will simply fail.
-                    result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor 
-                                            => codeProvider.IsSubtype(candidateTypeDescriptor,typeDescriptor)));
+                    result.UnionWith(this.InstatiatedTypes.Where(candidateTypeDescriptor
+                                            => codeProvider.IsSubtype(candidateTypeDescriptor, typeDescriptor)));
 				}
 			}
 			return result;
@@ -102,7 +102,7 @@ namespace ReachingTypeAnalysis
 			IsConstructor = isConstructor;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
 		{
 			var calleesForNode = new HashSet<MethodDescriptor>();
 			if (this.Receiver != null)
@@ -150,12 +150,12 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, CodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
 		{
 			return GetDelegateCallees(this.CalleeDelegate, propGraph, codeProvider);
 		}
 
-		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, CodeProvider codeProvider)
+		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
 		{
 			var callees = new HashSet<MethodDescriptor>();
 			var typeDescriptors = propGraph.GetTypes(delegateNode);

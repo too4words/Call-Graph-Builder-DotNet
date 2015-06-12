@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis
         // This is not needed to be serialized. Used during propagation.
         // Can be removed if DiifProp received a codeProvider as parameter
         [NonSerialized]
-        private CodeProvider codeProvider;
+        private ProjectCodeProvider codeProvider;
 
 		internal PropagationGraph()
 		{
@@ -467,12 +467,12 @@ namespace ReachingTypeAnalysis
 			deletionWorkList.Add(n);
 		}
 
-        internal void SetCodeProvider(CodeProvider codeProvider)
+        internal void SetCodeProvider(ProjectCodeProvider codeProvider)
         {
             this.codeProvider = codeProvider;
         }
 
-		internal PropagationEffects Propagate(CodeProvider codeProvider)
+		internal PropagationEffects Propagate(ProjectCodeProvider codeProvider)
 		{
             this.codeProvider = codeProvider;
 

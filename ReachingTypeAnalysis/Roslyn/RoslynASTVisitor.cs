@@ -57,12 +57,13 @@ namespace ReachingTypeAnalysis
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = new MethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
-            var codeProvider = CodeProvider.GetAsync(this.MethodDescriptor).Result; 
+            var codeProvider = ProjectCodeProvider.GetAsync(this.MethodDescriptor).Result.Item1; 
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
 				                            this.RetVar, this.ThisRef, this.Parameters,
                                             codeProvider);
         }
+
         public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
         {
             Contract.Assert(methodDescriptor != null);
@@ -234,35 +235,43 @@ namespace ReachingTypeAnalysis
     /// </summary>
     internal class MethodSyntaxProcessor : GeneralRoslynMethodProcessor
     {
-        private SyntaxNode methodNode;
-		private CodeProvider codeProvider;
+        private BaseMethodDeclarationSyntax MethodNode;
+        private SemanticModel model;
+        private SyntaxTree Tree;
 
-		public MethodSyntaxProcessor(IMethodSymbol method, CodeProvider provider, IDispatcher dispatcher)
+        public MethodSyntaxProcessor(SemanticModel model, SyntaxTree tree, IMethodSymbol method, IDispatcher dispatcher)
             : base(method, dispatcher)
-        {
-            this.codeProvider = provider;
-            this.methodNode = Utils.FindMethodDeclaration(method);
+        {            
+            this.model = model;
+            this.Tree = tree;
+            var root = tree.GetRoot();
+            var visitor = new MethodFinder(method, model);
+            visitor.Visit(root);
+            this.MethodNode = visitor.Result;
+            Contract.Assert(this.MethodNode != null);
 
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-        public MethodSyntaxProcessor(CodeProvider provider, MethodDescriptor method, IDispatcher dispatcher)
-            : base(provider.FindMethodSyntaxAsync(method).Result.Item2, dispatcher)
+        public MethodSyntaxProcessor(SemanticModel model, ProjectCodeProvider provider, SyntaxTree tree, MethodDescriptor method, IDispatcher dispatcher)
+            : base((IMethodSymbol) null, dispatcher)
         {
-            this.codeProvider = provider;
-            IMethodSymbol symbol;
-            this.methodNode = provider.FindMethodSyntax(method, out symbol);
-
+            this.model = model;
+            var pair = ProjectCodeProvider.FindMethodSyntaxAsync(provider.Compilation.GetSemanticModel(tree), tree, method).Result;
+            this.MethodNode = pair.Item1;
+            this.Tree = tree;
+            this.RoslynMethod = pair.Item2;
+            
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
         public IEntity ParseMethod()
         {
-            Contract.Assert(methodNode != null);
-            var propGraphGenerator = new MethodSyntaxVisitor(codeProvider, methodNode, this);
-            propGraphGenerator.Visit(methodNode);
+            Contract.Assert(MethodNode != null);
+            var propGraphGenerator = new MethodSyntaxVisitor(this.model, MethodNode, this);
+            propGraphGenerator.Visit(MethodNode);
 
             var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
             var methodEntity = EntityFactory.CreateEntity(
@@ -301,8 +310,8 @@ namespace ReachingTypeAnalysis
         // var mw1 = new MethodWorker<Expr, Type, String>("m1", rv1, thisRefm1, paramsm1);
         //MethodWorker<ANode, typeDescriptor, IMethodSymbol> worker;
 
-        private CodeProvider codeProvider;
-        private SyntaxNode methodNode;
+        private SemanticModel model;
+        private BaseMethodDeclarationSyntax methodNode;
         private ExpressionVisitor expressionsVisitor;
         private MethodSyntaxProcessor roslynMethodProcessor;
 
@@ -320,22 +329,22 @@ namespace ReachingTypeAnalysis
             get { return this.StatementProcessor.InstantiatedTypes; }
         }
 
-        public MethodSyntaxVisitor(CodeProvider codeProvider, SyntaxNode methodSyntaxNode,
-                            MethodSyntaxProcessor roslynMethodProcessor)
+        public MethodSyntaxVisitor(SemanticModel model,
+                                    BaseMethodDeclarationSyntax methodSyntaxNode,
+                                    MethodSyntaxProcessor roslynMethodProcessor)
         {
             this.methodNode = methodSyntaxNode;
-            this.codeProvider = codeProvider;
+            this.model = model;
             //this.roslynMethod = roslynMethod;
             this.roslynMethodProcessor = roslynMethodProcessor;
 
             this.MethodInterfaceData = roslynMethodProcessor.MethodInterfaceData;
             this.MethodDescriptor = roslynMethodProcessor.MethodDescriptor;
-            this.roslynMethod = codeProvider.FindMethod(this.MethodDescriptor);
+            this.roslynMethod = model.GetDeclaredSymbol(this.methodNode);
 
-            this.expressionsVisitor = new ExpressionVisitor(codeProvider, this.StatementProcessor, this);
+            this.expressionsVisitor = new ExpressionVisitor(this.model, this.StatementProcessor, this);
             this.InvocationOrder = 0;
         }
-
 		
 		public override object VisitCompilationUnit(CompilationUnitSyntax node)
         {
@@ -354,7 +363,7 @@ namespace ReachingTypeAnalysis
 
         public override object VisitForEachStatement(ForEachStatementSyntax node)
         {
-            var symbol = codeProvider.SemanticModel.GetDeclaredSymbol(node);
+            var symbol = this.model.GetDeclaredSymbol(node);
             var type = symbol.Type;
 
             // This is the declaration of the iterarion variable
@@ -417,7 +426,7 @@ namespace ReachingTypeAnalysis
         {
             foreach (var v in decl.Variables)
             {
-				var declaredVariableSymbol = (ILocalSymbol)codeProvider.SemanticModel.GetDeclaredSymbol(v);
+				var declaredVariableSymbol = (ILocalSymbol)this.model.GetDeclaredSymbol(v);
                 // Register the variable in the PropGraph
                 // Note it returns a Node, not an analysis expression
                 var lhsAnalysisNode = RegisterVariable(v.Identifier, declaredVariableSymbol);
@@ -525,8 +534,8 @@ namespace ReachingTypeAnalysis
         #region Helpers to connect with statement processor
         internal VariableNode RegisterVariable(ExpressionSyntax v)
         {
-            var tVar = codeProvider.SemanticModel.GetTypeInfo(v);
-            var s = codeProvider.SemanticModel.GetSymbolInfo(v).Symbol;
+            var tVar = this.model.GetTypeInfo(v);
+            var s = this.model.GetSymbolInfo(v).Symbol;
             var lhs = RegisterVariable(v, tVar.Type, s);
             //var lhs = RegisterVariable(v, tVar.Type,s);
             return lhs;
@@ -612,31 +621,33 @@ namespace ReachingTypeAnalysis
 	internal class AllMethodsVisitor : CSharpSyntaxWalker
     {
         private IDispatcher dispatcher;
-		private CodeProvider codeProvider;
+		private SemanticModel model;
+        private SyntaxTree tree;
 
-		internal AllMethodsVisitor(CodeProvider codeProvider, IDispatcher dispatcher)
+        internal AllMethodsVisitor(SemanticModel model, SyntaxTree tree, IDispatcher dispatcher)
         {
-            this.codeProvider = codeProvider;
+            this.model = model;
+            this.tree = tree;
             this.dispatcher = dispatcher;
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            var method = this.codeProvider.SemanticModel.GetDeclaredSymbol(node);
-            var processor = new MethodSyntaxProcessor(method, this.codeProvider, dispatcher);
+            var method = this.model.GetDeclaredSymbol(node);
+            var processor = new MethodSyntaxProcessor(this.model, this.tree, method, dispatcher);
             processor.ParseMethod();
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
-            var method = this.codeProvider.SemanticModel.GetDeclaredSymbol(node);
-			var processor = new MethodSyntaxProcessor(method, this.codeProvider, dispatcher);
+            var method = this.model.GetDeclaredSymbol(node);
+			var processor = new MethodSyntaxProcessor(this.model, this.tree, method, dispatcher);
             processor.ParseMethod();
         }
 
-		internal async Task Run()
+		internal async Task Run(SyntaxTree tree)
 		{
-			var root = await this.codeProvider.SyntaxTree.GetRootAsync();
+			var root = await tree.GetRootAsync();
 
 			this.Visit(root);
 		}

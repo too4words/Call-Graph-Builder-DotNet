@@ -327,7 +327,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
     internal class ExpressionVisitor : CSharpSyntaxVisitor<AnalysisExpression>
     {
-        private CodeProvider codeProvider;
+        private SemanticModel model;
         private StatementProcessor statementProcessor;
         private MethodSyntaxVisitor roslynMethodVisitor;
         
@@ -339,13 +339,13 @@ namespace ReachingTypeAnalysis.Roslyn
             get { return roslynMethodVisitor.ThisRef; }
         }
 
-        internal ExpressionVisitor(CodeProvider codeProvider, 
+        internal ExpressionVisitor(SemanticModel model, 
             StatementProcessor stProcessor, 
             MethodSyntaxVisitor roslynMethodVisitor)
         {
-            Contract.Requires(codeProvider != null);
+            Contract.Requires(model != null);
 
-            this.codeProvider = codeProvider;
+            this.model = model;
             this.statementProcessor = stProcessor;
             this.roslynMethodVisitor = roslynMethodVisitor;
         }
@@ -363,8 +363,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public override AnalysisExpression VisitLiteralExpression(LiteralExpressionSyntax node)
 		{
-			var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node).Symbol;
-			var type = this.codeProvider.SemanticModel.GetTypeInfo(node).Type;
+			var symbol = this.model.GetSymbolInfo(node).Symbol;
+			var type = this.model.GetTypeInfo(node).Type;
 			if (type != null && Utils.IsTypeForAnalysis(type))
 			{
 				return new Constant(node, type);
@@ -384,7 +384,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
 			//var lhsExp = Visit(node.Left);
 			//var rhsExp = Visit(node.Right);
-			if (Utils.IsTypeForAnalysis(this.codeProvider.SemanticModel, node.Left) && Utils.IsTypeForAnalysis(this.codeProvider.SemanticModel, node.Right))
+			if (Utils.IsTypeForAnalysis(this.model, node.Left) && Utils.IsTypeForAnalysis(this.model, node.Right))
 			{
 				var lhs = Visit(node.Left);
 				var rhs = Visit(node.Right);
@@ -423,7 +423,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public override AnalysisExpression VisitIdentifierName(IdentifierNameSyntax node)
 		{
-			var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node).Symbol;
+			var symbol = this.model.GetSymbolInfo(node).Symbol;
 			var type = GetTypeSymbol(node);
 			switch (symbol.Kind)
 			{
@@ -481,14 +481,14 @@ namespace ReachingTypeAnalysis.Roslyn
 
         private Allocation ProcessConstructor(ExpressionSyntax node, ArgumentListSyntax argumentListSyntax)
         {
-            var type = this.codeProvider.SemanticModel.GetTypeInfo(node);
-            var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node).Symbol;
+            var type = this.model.GetTypeInfo(node);
+            var symbol = this.model.GetSymbolInfo(node).Symbol;
             // Create an allocation expression
             var allocAnalysisExpression = new Allocation(node, type.Type);
             // Process the constructor as a call
             if (symbol != null)
             {
-                IMethodSymbol roslynMethod = symbol as IMethodSymbol;
+                IMethodSymbol roslynMethod = (IMethodSymbol)symbol;
                 // Process parameters
                 var callNode = new AnalysisCallNode(roslynMethod.Name,
                     new TypeDescriptor(roslynMethod.ReturnType),
@@ -687,7 +687,7 @@ namespace ReachingTypeAnalysis.Roslyn
             VariableNode lh = null;
             AnalysisExpression result = null;
 
-            var callSymbolinfo = this.codeProvider.SemanticModel.GetSymbolInfo(node);
+            var callSymbolinfo = this.model.GetSymbolInfo(node);
             var methodSymbol = callSymbolinfo.Symbol;
             // This shouldn't happend but if it fails to get the method, at least tries to get a candidate
             if (methodSymbol == null && callSymbolinfo.CandidateSymbols.Length > 0)
@@ -783,7 +783,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             if (this.ThisRef != null)
             {
-                var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node).Symbol;
+                var symbol = this.model.GetSymbolInfo(node).Symbol;
 				var type = GetTypeSymbol(node);
                 // If we find I real "this" we replace with the fake one
                 // I did this to keep the same node 
@@ -860,7 +860,7 @@ namespace ReachingTypeAnalysis.Roslyn
             PropGraphNodeDescriptor receiverArg = null;
             // A MemberExpression looks like reference.Name, reference can be a path and Name is an identifier of a Field or Delegate
             var nameExpresssion = Visit(node.Name);
-            var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node.Name).Symbol;
+            var symbol = this.model.GetSymbolInfo(node.Name).Symbol;
             
             //if (nameExpresssion == null)
             //{
@@ -937,21 +937,21 @@ namespace ReachingTypeAnalysis.Roslyn
         public override AnalysisExpression VisitBaseExpression(BaseExpressionSyntax node)
         {
             // I treat this like a this reference...
-            var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = this.model.GetSymbolInfo(node).Symbol;
             //return new Identifier(node, this.ThisRef.DeclaredType, symbol);
             return new Identifier(node, symbol.ContainingType, symbol);
         }
 
         private ITypeSymbol GetTypeSymbol(SyntaxNode node)
         {
-            var typeInfo = this.codeProvider.SemanticModel.GetTypeInfo(node);
+            var typeInfo = this.model.GetTypeInfo(node);
             var type = typeInfo.Type;
             return type;
         }
 
         private ITypeSymbol GetTypeSymbol(ExpressionSyntax node)
         {
-            var typeInfo = this.codeProvider.SemanticModel.GetTypeInfo(node);
+            var typeInfo = this.model.GetTypeInfo(node);
             var type = typeInfo.Type;
             return type;
         }
@@ -965,7 +965,7 @@ namespace ReachingTypeAnalysis.Roslyn
         private AnalysisExpression CreateUnsupportedExpression(ExpressionSyntax exp)
         {
             var type = GetTypeSymbol(exp);
-            var symbol = this.codeProvider.SemanticModel.GetSymbolInfo(exp).Symbol;
+            var symbol = this.model.GetSymbolInfo(exp).Symbol;
             if(Utils.IsTypeForAnalysis(type))
                 return new UnsupportedExpression(exp, type, symbol);
             return null;

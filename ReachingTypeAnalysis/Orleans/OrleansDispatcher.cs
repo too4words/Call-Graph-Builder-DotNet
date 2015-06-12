@@ -73,11 +73,14 @@ namespace ReachingTypeAnalysis.Analysis
             //var methodEntity = await result.GetMethodEntity();
             //if (methodEntity != null)
             //{
-                Contract.Assert(grainDesc.MethodDescriptor != null);
-                var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
+                Contract.Assert(methodDescriptor != null);
+                var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
+                var provider = pair.Item1;
+                var tree = pair.Item2;
+                var model = provider.Compilation.GetSemanticModel(tree);
                 Contract.Assert(provider != null);
 
-                var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
+                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor, this);
                 var methodEntityGrain = (IMethodEntityGrain)methodEntityGenerator.ParseMethod();
                 return await methodEntityGrain.GetMethodEntity();
             //}
@@ -100,11 +103,14 @@ namespace ReachingTypeAnalysis.Analysis
             if (methodEntity == null)
             {
                 //Contract.Assert(grainDesc.MethodDescriptor != null);
-                var provider = await CodeProvider.GetAsync(grainDesc.MethodDescriptor);
+                var pair = await ProjectCodeProvider.GetAsync(grainDesc.MethodDescriptor);
+                var provider = pair.Item1;
+                var tree = pair.Item2;
+                var model = provider.Compilation.GetSemanticModel(tree);
                 //Contract.Assert(provider != null);
                 if (provider != null)
                 {
-                    var methodEntityGenerator = new MethodSyntaxProcessor(provider, grainDesc.MethodDescriptor, this);
+                    var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, grainDesc.MethodDescriptor, this);
                     return methodEntityGenerator.ParseMethod();
                 }
                 else 

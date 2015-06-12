@@ -75,34 +75,34 @@ namespace ReachingTypeAnalysis
 			return result;
 		}
 
-		/// <summary>
-		/// Find the node in the AST where the method was declared
-		/// We use that to visit a callee method. 
-		/// </summary>
-		/// <param name="solution"></param>
-		/// <param name="roslynMethod"></param>
-		/// <returns></returns>
-		internal static SyntaxNode FindMethodDeclaration(IMethodSymbol roslynMethod)
-		{
-			var nodes = roslynMethod.DeclaringSyntaxReferences;
-			if (nodes.Count() > 0)
-			{
-				return nodes[0].GetSyntax();
-			}
-			else
-			{
-				return null;
-			}
+		///// <summary>
+		///// Find the node in the AST where the method was declared
+		///// We use that to visit a callee method. 
+		///// </summary>
+		///// <param name="solution"></param>
+		///// <param name="roslynMethod"></param>
+		///// <returns></returns>
+		//internal static SyntaxReference FindMethodDeclaration(IMethodSymbol roslynMethod)
+		//{
+		//	var nodes = roslynMethod.DeclaringSyntaxReferences;
+		//	if (nodes.Count() > 0)
+		//	{
+		//		return nodes[0].GetSyntax();
+		//	}
+		//	else
+		//	{
+		//		return null;
+		//	}
 
-			//var position = roslynMethod.Locations.First().SourceSpan.Start;
-			//var st = roslynMethod.Locations.First().SourceTree;
-			//if (st != null)
-			//{
-			//    var node = st.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<BaseMethodDeclarationSyntax>();
-			//    return node;
-			//}
-			//else return null;
-		}
+		//	//var position = roslynMethod.Locations.First().SourceSpan.Start;
+		//	//var st = roslynMethod.Locations.First().SourceTree;
+		//	//if (st != null)
+		//	//{
+		//	//    var node = st.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<BaseMethodDeclarationSyntax>();
+		//	//    return node;
+		//	//}
+		//	//else return null;
+		//}
 
         internal static int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
         {
