@@ -288,7 +288,7 @@ namespace ReachingTypeAnalysis
             var propGraphGenerator = new MethodSyntaxVisitor(this.model, MethodNode, this);
             propGraphGenerator.Visit(MethodNode);
 
-            var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
+            var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph, descriptor,

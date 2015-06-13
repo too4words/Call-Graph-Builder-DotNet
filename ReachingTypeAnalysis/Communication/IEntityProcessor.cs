@@ -7,11 +7,14 @@ namespace ReachingTypeAnalysis.Communication
     public abstract class EntityProcessor: IEntityProcessor
     {
         protected IDispatcher dispatcher;
-        public virtual IEntity Entity { get; private set; }
-
-        public EntityProcessor(IEntity entity, IDispatcher dispatcher)
+        public virtual IEntity Entity { get; protected set; }
+        public virtual IEntityDescriptor EntityDescriptor { get; protected set; }
+        public EntityProcessor(IEntity entity, 
+                                IEntityDescriptor entityDescriptor,
+                                IDispatcher dispatcher)
         {
             this.Entity = entity;
+            this.EntityDescriptor = entityDescriptor;
             this.dispatcher = dispatcher;
         }
 

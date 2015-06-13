@@ -43,9 +43,9 @@ namespace ReachingTypeAnalysis.Communication
 			return result;
 		}
 
-		internal static IEnumerable<ISet<TypeDescriptor>> ToTypeDescriptorList(IEnumerable<ISet<TypeDescriptor>> argumentValues)
+		internal static IList<ISet<TypeDescriptor>> ToTypeDescriptorList(IList<ISet<TypeDescriptor>> argumentValues)
 		{
-			return argumentValues.Select(hash => ToTypeDescriptors(hash));
+			return argumentValues;
 		}
 	}
 }

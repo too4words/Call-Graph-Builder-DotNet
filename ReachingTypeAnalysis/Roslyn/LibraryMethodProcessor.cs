@@ -30,11 +30,12 @@ namespace ReachingTypeAnalysis.Roslyn
                                             new TypeDescriptor(RetVar.Type,false));
             }
 
-            var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
+            var descriptor = new MethodEntityDescriptor(this.MethodDescriptor); //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
             var methodEntity = new MethodEntity(this.MethodDescriptor,
                                                     this.MethodInterfaceData,
                                                     this.PropGraph, descriptor,
-                                                    this.InstantiatedTypes);
+                                                    this.InstantiatedTypes,
+                                                    false);
             return methodEntity;
         }
     }

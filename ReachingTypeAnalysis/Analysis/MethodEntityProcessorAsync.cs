@@ -255,7 +255,7 @@ namespace ReachingTypeAnalysis.Analysis
                             MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
 		{
 			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
-			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
+			var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
 			var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
 			await this.SendMessageAsync(destination, callerMessage);
@@ -372,75 +372,82 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task HandleCallEventAsync(CallMessageInfo callMessage)
 		{
-			Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
+            if (MethodEntity.CanBeAnalized)
+            {
+                Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
 
-			if (this.Verbose)
-			{
-				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
-			}
-			// This is the node in the caller where info of ret-value should go
-			var lhs = callMessage.LHS;
-			// Save caller info
-			var callContext = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
-			/// Loop detected due to recursion
-			//if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
-			//if (MethodEntity.NodesProcessing.Contains(callContext))
-			//{
-			//    if (this.Verbose)
-			//    {
-			//        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
-			//    }
-			//    //lock (this.MethodEntity)
-			//    //{
-			//    //    MethodEntity.NodesProcessing.Remove(callContext);
-			//    //    //MethodEntity.NodesProcessing.Remove(callMessage.CallNode);
-			//    //}
-			//    //EndOfPropagationEventAsync(callMessage.PropagationKind);
-			//    return new Task(() => { });
-			//}
+                if (this.Verbose)
+                {
+                    Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
+                }
+                // This is the node in the caller where info of ret-value should go
+                var lhs = callMessage.LHS;
+                // Save caller info
+                var callContext = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
+                /// Loop detected due to recursion
+                //if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
+                //if (MethodEntity.NodesProcessing.Contains(callContext))
+                //{
+                //    if (this.Verbose)
+                //    {
+                //        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
+                //    }
+                //    //lock (this.MethodEntity)
+                //    //{
+                //    //    MethodEntity.NodesProcessing.Remove(callContext);
+                //    //    //MethodEntity.NodesProcessing.Remove(callMessage.CallNode);
+                //    //}
+                //    //EndOfPropagationEventAsync(callMessage.PropagationKind);
+                //    return new Task(() => { });
+                //}
 
-			// Just a test to try to block the Entity to a single simultaneous caller 
-			//while (this.MethodEntity.CurrentContext != null)
-			//{
-			//    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
-			//    Thread.Sleep(10);
-			//}
+                // Just a test to try to block the Entity to a single simultaneous caller 
+                //while (this.MethodEntity.CurrentContext != null)
+                //{
+                //    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
+                //    Thread.Sleep(10);
+                //}
 
-			lock (this.MethodEntity)
-			{
-				//this.MethodEntity.CurrentContext = callContext;
+                lock (this.MethodEntity)
+                {
+                    //this.MethodEntity.CurrentContext = callContext;
 
-				// Here is when I register the caller
-				this.MethodEntity.AddToCallers(callContext);
+                    // Here is when I register the caller
+                    this.MethodEntity.AddToCallers(callContext);
 
-				if (this.MethodEntity.ThisRef != null)
-				{
-					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
-				}
-				var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
-					(this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
-				foreach (var pair in pairIterator)
-				{
-					var parameterNode = pair.Item1;
-					//PropGraph.Add(pn, argumentValues[i]);
-					if (parameterNode != null)
-					{
-						this.MethodEntity.PropGraph.DiffProp(
-							Demarshaler.Demarshal(pair.Item2),
-							parameterNode, callMessage.PropagationKind);
-					}
-				}
-			}
+                    if (this.MethodEntity.ThisRef != null)
+                    {
+                        this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+                    }
+                    var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
+                        (this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+                    foreach (var pair in pairIterator)
+                    {
+                        var parameterNode = pair.Item1;
+                        //PropGraph.Add(pn, argumentValues[i]);
+                        if (parameterNode != null)
+                        {
+                            this.MethodEntity.PropGraph.DiffProp(
+                                Demarshaler.Demarshal(pair.Item2),
+                                parameterNode, callMessage.PropagationKind);
+                        }
+                    }
+                }
 
-			switch (callMessage.PropagationKind)
-			{
-				case PropagationKind.ADD_TYPES:
-					await PropagateAsync();
-					break;
-				case PropagationKind.REMOVE_TYPES:
-					await PropagateDeleteAsync();
-					break;
-			}
+                switch (callMessage.PropagationKind)
+                {
+                    case PropagationKind.ADD_TYPES:
+                        await PropagateAsync();
+                        break;
+                    case PropagationKind.REMOVE_TYPES:
+                        await PropagateDeleteAsync();
+                        break;
+                }
+            }
+            else 
+            {
+                await EndOfPropagationEventAsync(callMessage.PropagationKind,false);
+            }
 		}
 
 

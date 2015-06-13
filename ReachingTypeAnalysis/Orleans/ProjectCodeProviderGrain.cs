@@ -8,7 +8,8 @@ namespace ReachingTypeAnalysis
 {
     public interface ProjectState : Orleans.IGrainState
     {
-        string FullPath { get; set; }        
+        string FullPath { get; set; }
+        string SolutionFullPath { get; set; }
     }
 
     [StorageProvider(ProviderName = "TestStore")]

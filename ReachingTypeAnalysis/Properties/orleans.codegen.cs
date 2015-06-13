@@ -18,10 +18,10 @@
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    using System;
     using ReachingTypeAnalysis;
     using Orleans.CodeGeneration;
     using Orleans;
+    using System;
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
     
@@ -34,21 +34,18 @@ namespace ReachingTypeAnalysis.Analysis
     {
         
 
-            public Guid @Guid { get; set; }
-
             public MethodDescriptor @MethodDescriptor { get; set; }
 
             public override void SetAll(System.Collections.Generic.IDictionary<string,object> values)
             {   
                 object value;
                 if (values == null) { InitStateFields(); return; }
-                if (values.TryGetValue("Guid", out value)) @Guid = (Guid) value;
                 if (values.TryGetValue("MethodDescriptor", out value)) @MethodDescriptor = (MethodDescriptor) value;
             }
 
             public override System.String ToString()
             {
-                return System.String.Format("MethodEntityGrainState( Guid={0} MethodDescriptor={1} )", @Guid, @MethodDescriptor);
+                return System.String.Format("MethodEntityGrainState( MethodDescriptor={0} )", @MethodDescriptor);
             }
         
         public MethodEntityGrainState() : 
@@ -60,14 +57,12 @@ namespace ReachingTypeAnalysis.Analysis
         public override System.Collections.Generic.IDictionary<string, object> AsDictionary()
         {
             System.Collections.Generic.Dictionary<string, object> result = new System.Collections.Generic.Dictionary<string, object>();
-            result["Guid"] = this.Guid;
             result["MethodDescriptor"] = this.MethodDescriptor;
             return result;
         }
         
         private void InitStateFields()
         {
-            this.Guid = default(Guid);
             this.MethodDescriptor = default(MethodDescriptor);
         }
         
@@ -115,16 +110,19 @@ namespace ReachingTypeAnalysis
 
             public String @FullPath { get; set; }
 
+            public String @SolutionFullPath { get; set; }
+
             public override void SetAll(System.Collections.Generic.IDictionary<string,object> values)
             {   
                 object value;
                 if (values == null) { InitStateFields(); return; }
                 if (values.TryGetValue("FullPath", out value)) @FullPath = (String) value;
+                if (values.TryGetValue("SolutionFullPath", out value)) @SolutionFullPath = (String) value;
             }
 
             public override System.String ToString()
             {
-                return System.String.Format("ProjectCodeProviderGrainState( FullPath={0} )", @FullPath);
+                return System.String.Format("ProjectCodeProviderGrainState( FullPath={0} SolutionFullPath={1} )", @FullPath, @SolutionFullPath);
             }
         
         public ProjectCodeProviderGrainState() : 
@@ -137,12 +135,14 @@ namespace ReachingTypeAnalysis
         {
             System.Collections.Generic.Dictionary<string, object> result = new System.Collections.Generic.Dictionary<string, object>();
             result["FullPath"] = this.FullPath;
+            result["SolutionFullPath"] = this.SolutionFullPath;
             return result;
         }
         
         private void InitStateFields()
         {
             this.FullPath = default(String);
+            this.SolutionFullPath = default(String);
         }
         
         [global::Orleans.CodeGeneration.CopierMethodAttribute()]

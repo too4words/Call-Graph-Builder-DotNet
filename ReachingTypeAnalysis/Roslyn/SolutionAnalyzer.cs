@@ -324,6 +324,7 @@ namespace ReachingTypeAnalysis
                     var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
+                    this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                     var mainEntityProcessor = new MethodEntityProcessor((MethodEntity)mainMethodEntity, this.Dispatcher);
                     //var mainMethodDescriptor =  new MethodDescriptor(mainSymbol);
                     //var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
@@ -378,11 +379,16 @@ namespace ReachingTypeAnalysis
                 var model = provider.Compilation.GetSemanticModel(tree);
 				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
 
-				var mainMethodEntity = methodVisitor.ParseMethod();
-				var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
-				var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor,this.Dispatcher);
+				//var mainMethodEntity = methodVisitor.ParseMethod();
+                var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
+                var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
+                var mainMethodEntity = await this.Dispatcher.GetEntityAsync(mainMethodEntityDescriptor);
+
 				var mainEntityProcessor = (MethodEntityProcessor)
 					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+
+                this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
+
 				await mainEntityProcessor.DoAnalysisAsync();
 
 				Debug.WriteLine("--- Done with propagation ---");

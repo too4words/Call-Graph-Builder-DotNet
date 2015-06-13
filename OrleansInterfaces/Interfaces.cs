@@ -16,7 +16,8 @@ namespace OrleansInterfaces
         Orleans.IGrainWithGuidKey, IEntity
     {
         Task<IEntityDescriptor> GetDescriptor();
-        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        Task ProcessMessagge(IEntityDescriptor source, IMessage message, IDispatcher dispatcher);
+        //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
         Task<bool> IsInitialized();
 
         Task<IEntity> GetMethodEntity();

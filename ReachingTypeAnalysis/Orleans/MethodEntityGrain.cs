@@ -14,23 +14,8 @@ namespace ReachingTypeAnalysis.Analysis
 {
     public interface IOrleansEntityState: IGrainState
     {
-        Guid Guid { get; set; }
+        //Guid Guid { get; set; }
         MethodDescriptor MethodDescriptor { get; set; }
-        // MethodEntity MethodEntity { get; set; }
-    }
-    [Serializable]
-    internal class OrleansEntityDescriptor :  IEntityDescriptor
-    {
-        public Guid Guid { get;  set; }
-        public MethodDescriptor MethodDescriptor { get; set; }
-        //public string Etag { get; set; }
-        
-
-        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
-        {
-            this.Guid = guid;
-            this.MethodDescriptor = methodDescriptor;
-        }
     }
 
     [StorageProvider(ProviderName = "TestStore")]
@@ -48,7 +33,7 @@ namespace ReachingTypeAnalysis.Analysis
             // Shold not be null..
             if (this.State.MethodDescriptor != null)
             {
-                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);
+                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey());
                 // TODO: do we need to check and restore methodEntity
                 this.methodEntity = (MethodEntity) await OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc);
             }
@@ -79,10 +64,10 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<IEntityDescriptor> GetDescriptor()
         {
             //Contract.Assert(this.State != null);
-            if (this.State != null)
-            {
-                this.orleansEntityDescriptor = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);   
-            }
+            //if (this.State != null)
+            //{
+            //    this.orleansEntityDescriptor = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey);   
+            //}
             return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
         }
 
@@ -94,6 +79,7 @@ namespace ReachingTypeAnalysis.Analysis
             if (this.State != null)
             {
                 this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
+                return State.WriteStateAsync();
             }
 
             return TaskDone.Done;
@@ -113,13 +99,11 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult<IEntity>(this.methodEntity);
         }
 
-        public Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message)
+        public Task ProcessMessagge(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            //Contract.Assert(this.methodEntity.EntityProcessor != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, OrleansDispatcher.Instance);
-            // this.methodEntity.GetEntityProcessor(OrleansDispatcher.Instance)
-            return methodEntityProcessor.ReceiveMessageAsync(source, message);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
+            return methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
         public Task<bool> IsInitialized()

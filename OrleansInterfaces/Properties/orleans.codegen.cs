@@ -128,10 +128,10 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityDescriptor>(331950094, null );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ReceiveMessageAsync(ReachingTypeAnalysis.IEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ProcessMessagge(ReachingTypeAnalysis.IEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message, ReachingTypeAnalysis.IDispatcher @dispatcher)
             {
 
-                return base.InvokeMethodAsync<object>(-1429416218, new object[] {@source, @message} );
+                return base.InvokeMethodAsync<object>(337708475, new object[] {@source, @message, @dispatcher} );
             }
             
             System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
@@ -186,8 +186,8 @@ namespace OrleansInterfaces
                         {
                             case 331950094: 
                                 return ((IMethodEntityGrain)grain).GetDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -1429416218: 
-                                return ((IMethodEntityGrain)grain).ReceiveMessageAsync((IEntityDescriptor)arguments[0], (IMessage)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 337708475: 
+                                return ((IMethodEntityGrain)grain).ProcessMessagge((IEntityDescriptor)arguments[0], (IMessage)arguments[1], (IDispatcher)arguments[2]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1831544886: 
                                 return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -538316126: 
@@ -227,8 +227,8 @@ namespace OrleansInterfaces
                     {
                         case 331950094:
                             return "GetDescriptor";
-                    case -1429416218:
-                            return "ReceiveMessageAsync";
+                    case 337708475:
+                            return "ProcessMessagge";
                     case -1831544886:
                             return "IsInitialized";
                     case -538316126:

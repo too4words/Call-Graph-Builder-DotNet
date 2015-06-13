@@ -255,7 +255,7 @@ namespace ReachingTypeAnalysis.Roslyn
 	/// </summary>
 	internal class UnsupportedExpression : AnalysisExpression
 	{
-		SyntaxNodeOrToken expression;
+		//SyntaxNodeOrToken expression;
 		internal UnsupportedExpression(SyntaxNodeOrToken ex, ITypeSymbol type, ISymbol s)
 			: base(ex, type)
 		{

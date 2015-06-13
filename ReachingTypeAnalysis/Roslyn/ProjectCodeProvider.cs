@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OrleansInterfaces;
 using Orleans;
+using ReachingTypeAnalysis.Analysis;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -36,6 +37,26 @@ namespace ReachingTypeAnalysis.Roslyn
             }
             Contract.Assert(false, "Can't find path = " + fullPath);
             return null;
+        }
+        async internal static Task<MethodEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
+        {
+            var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
+            MethodEntity methodEntity = null;
+
+            if (pair != null)
+            {
+                var provider = pair.Item1;
+                var tree = pair.Item2;
+                var model = provider.Compilation.GetSemanticModel(tree);
+                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor, dispatcher);
+                methodEntity = methodEntityGenerator.ParseMethod();
+            }
+            else
+            {
+                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, dispatcher);
+                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            }
+            return methodEntity;
         }
 
         /*

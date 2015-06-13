@@ -28,7 +28,7 @@ namespace ReachingTypeAnalysis
 
             if (args.Length == 0)
             {
-                throw new ArgumentException("Not enough parameters to main");
+                //throw new ArgumentException("Not enough parameters to main");
             }
             var solutionPath = args[0];
             var solution = ReadSolution(solutionPath);
