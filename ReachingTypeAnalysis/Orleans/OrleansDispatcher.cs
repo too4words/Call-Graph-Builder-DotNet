@@ -114,6 +114,8 @@ namespace ReachingTypeAnalysis.Analysis
             if (methodEntity == null)
             {
                 Contract.Assert(grainDesc.MethodDescriptor != null);
+				//  ICodeProviderGrain providerGrain = solutionGrain.GetCodeProvider(grainDesc.MethodDescriptor);
+				//  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 Contract.Assert(methodEntity != null);
                 methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();

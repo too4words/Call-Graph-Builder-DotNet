@@ -38,6 +38,7 @@ namespace ReachingTypeAnalysis.Roslyn
             Contract.Assert(false, "Can't find path = " + fullPath);
             return null;
         }
+
         async internal static Task<MethodEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);

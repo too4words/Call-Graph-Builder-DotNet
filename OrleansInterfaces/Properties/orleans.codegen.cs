@@ -555,6 +555,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.MethodDescriptor>(-819592028, new object[] {@methodDescriptor, @typeDescriptor} );
             }
+            
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> OrleansInterfaces.IProjectCodeProviderGrain.CreateMethodEntityAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-625742380, new object[] {@methodDescriptor} );
+            }
         }
     }
     
@@ -586,6 +592,8 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).IsSubtypeAsync((TypeDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -819592028: 
                                 return ((IProjectCodeProviderGrain)grain).FindMethodImplementationAsync((MethodDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -625742380: 
+                                return ((IProjectCodeProviderGrain)grain).CreateMethodEntityAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -619,6 +627,8 @@ namespace OrleansInterfaces
                             return "IsSubtypeAsync";
                     case -819592028:
                             return "FindMethodImplementationAsync";
+                    case -625742380:
+                            return "CreateMethodEntityAsync";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);

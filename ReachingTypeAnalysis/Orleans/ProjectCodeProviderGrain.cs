@@ -17,31 +17,35 @@ namespace ReachingTypeAnalysis.Analysis
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
-        private ProjectCodeProvider provider;
-        public override Task OnActivateAsync()
+        private ProjectCodeProvider projectCodeProvider;
+
+        public override async Task OnActivateAsync()
         {
             //Contract.Assert(this.State != null);
-            //var fullPath = this.State.FullPath;
-            //Contract.Assert(fullPath != null);
-            //this.provider = await ProjectCodeProvider.ProjectCodeProviderAsync(fullPath);
-            return TaskDone.Done;
+			if (this.State.FullPath != null)
+			{
+				this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
+			}
         }
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            Contract.Assert(this.provider != null);
-            return this.provider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+            Contract.Assert(this.projectCodeProvider != null);
+            return this.projectCodeProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
         }
+
         public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-            var methodImplementationDescriptor = this.provider.FindMethodImplementation(methodDescriptor, typeDescriptor);
-            if(methodImplementationDescriptor==null)
-            {
-                // That means is not 
-            }
+			Contract.Assert(this.projectCodeProvider != null);
+            var methodImplementationDescriptor = this.projectCodeProvider.FindMethodImplementation(methodDescriptor, typeDescriptor);
             return Task.FromResult<MethodDescriptor>(methodImplementationDescriptor);
         }
 
-
+		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			Contract.Assert(this.projectCodeProvider != null);
+			var methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
+			return methodEntity;
+		}
     }
 }

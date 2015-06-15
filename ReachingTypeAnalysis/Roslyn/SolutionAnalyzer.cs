@@ -55,7 +55,7 @@ namespace ReachingTypeAnalysis
 			{
 				strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
 			}
-            ISolutionGrain codeProviderGrain = SolutionGrainFactory.GetGrain("Solution");
+           
 
 			// TOOD: hack -- set the global solution
 			ProjectCodeProvider.Solution = this.Solution;
@@ -116,6 +116,8 @@ namespace ReachingTypeAnalysis
                             throw e;
                             //break;
                         }
+						// Create a Grain for the solution
+						ISolutionGrain codeProviderGrain = SolutionGrainFactory.GetGrain("Solution");
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();
                         // run

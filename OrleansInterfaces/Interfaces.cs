@@ -31,5 +31,6 @@ namespace OrleansInterfaces
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+		Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
     }
 }
