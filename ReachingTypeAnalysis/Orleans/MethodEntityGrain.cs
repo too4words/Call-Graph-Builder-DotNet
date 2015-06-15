@@ -19,25 +19,31 @@ namespace ReachingTypeAnalysis.Analysis
     }
 
     [StorageProvider(ProviderName = "TestStore")]
-    internal class MethodEntityGrain : Orleans.Grain<IOrleansEntityState>, IMethodEntityGrain
+    internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         private OrleansEntityDescriptor orleansEntityDescriptor;
         
         [NonSerialized]
         private MethodEntity methodEntity;
-
-
+        [NonSerialized]
+        private OrleansDispatcher dispacther;
+        [NonSerialized]
+        private IProjectCodeProviderGrain codeProviderGrain;
         public override async Task OnActivateAsync()
         {
+            codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain("Solution");
+
             var guid = this.GetPrimaryKey();
             // Shold not be null..
             if (this.State.MethodDescriptor != null)
             {
                 var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey());
                 // TODO: do we need to check and restore methodEntity
-                this.methodEntity = (MethodEntity) await OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc);
+                // To restore the full entity state we need to save propagation data
+                // or repropagate
+                this.dispacther = OrleansDispatcher.Instance;
+                this.methodEntity = (MethodEntity) await dispacther.GetMethodEntityAsync(orleansEntityDesc);
             }
-            //return TaskDone.Done;
         }
 
         public override Task OnDeactivateAsync()
@@ -53,21 +59,13 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity = (MethodEntity) methodEntity;
             var guid = this.GetPrimaryKey();
             // Should not be null
-            if (this.State != null)
-            {
-                this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
-                return State.WriteStateAsync();
-            }
-            return TaskDone.Done;
+            Contract.Assert(this.State != null);
+            this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
+            return State.WriteStateAsync();
         }
 
         public Task<IEntityDescriptor> GetDescriptor()
         {
-            //Contract.Assert(this.State != null);
-            //if (this.State != null)
-            //{
-            //    this.orleansEntityDescriptor = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey);   
-            //}
             return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
         }
 
@@ -75,14 +73,9 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
 
-            //Contract.Assert(this.State != null);
-            if (this.State != null)
-            {
-                this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
-                return State.WriteStateAsync();
-            }
-
-            return TaskDone.Done;
+            Contract.Assert(this.State != null);
+            this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
+            return State.WriteStateAsync();
         }
 
         //public IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
@@ -98,11 +91,17 @@ namespace ReachingTypeAnalysis.Analysis
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
+        public Task DoAnalysisAsync(IDispatcher dispatcher)
+        {
+            Contract.Assert(this.methodEntity != null);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispacther);
+            return methodEntityProcessor.DoAnalysisAsync();
+        }
 
         public Task ProcessMessagge(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispacther);
             return methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 

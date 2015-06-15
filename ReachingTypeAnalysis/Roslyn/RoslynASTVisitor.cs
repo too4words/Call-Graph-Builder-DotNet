@@ -19,7 +19,7 @@ namespace ReachingTypeAnalysis
 	internal abstract class GeneralRoslynMethodProcessor
     {
         // Analysis representation
-        public MethodInterfaceData MethodInterfaceData { get; set; }
+        internal MethodInterfaceData MethodInterfaceData { get; set; }
         /// <summary>
         /// The next 3 properties are shortcuts for elements in MethodInterfaceData
         /// </summary>
@@ -43,17 +43,16 @@ namespace ReachingTypeAnalysis
         // Roslyn solution related
         public IMethodSymbol RoslynMethod { get; protected set; }
         // Communication
-        public IDispatcher Dispatcher { get; private set; }
+        //public IDispatcher Dispatcher { get; private set; }
         //private AMethod analysisMethod;
 
-        public MethodDescriptor MethodDescriptor { get; protected set; }
+        protected ProjectCodeProvider codeProvider;
 
-        public GeneralRoslynMethodProcessor(IMethodSymbol roslynMethod, IDispatcher dispatcher)
+        public MethodDescriptor MethodDescriptor { get;  protected set; }
+
+        public GeneralRoslynMethodProcessor(IMethodSymbol roslynMethod)
         {
 			Contract.Assert(roslynMethod != null);
-			Contract.Assert(dispatcher != null);
-
-			this.Dispatcher = dispatcher;
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
@@ -62,14 +61,13 @@ namespace ReachingTypeAnalysis
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
 				                            this.RetVar, this.ThisRef, this.Parameters,
                                             codeProvider);
+            this.codeProvider = codeProvider;
         }
 
-        public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, ProjectCodeProvider codeProvider, IDispatcher dispatcher)
+        public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, 
+                                            ProjectCodeProvider codeProvider)
         {
 			Contract.Assert(methodDescriptor != null);
-			Contract.Assert(dispatcher != null);
-
-			this.Dispatcher = dispatcher;
             this.RoslynMethod = codeProvider.FindMethod(methodDescriptor);
             this.MethodDescriptor = methodDescriptor;
             this.MethodInterfaceData = CreateMethodInterfaceData(this.RoslynMethod);
@@ -77,13 +75,11 @@ namespace ReachingTypeAnalysis
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
 				                            this.RetVar, this.ThisRef, this.Parameters,
                                             codeProvider);
+            this.codeProvider = codeProvider;
         }
-        public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
+        public GeneralRoslynMethodProcessor(MethodDescriptor methodDescriptor)
         {
             Contract.Assert(methodDescriptor != null);
-            Contract.Assert(dispatcher != null);
-
-            this.Dispatcher = dispatcher;
             this.MethodDescriptor = methodDescriptor;
             this.MethodInterfaceData = CreateMethodInterfaceDataForNonAnalyzableMethod(methodDescriptor);
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor,
@@ -253,8 +249,8 @@ namespace ReachingTypeAnalysis
         private SemanticModel model;
         private SyntaxTree Tree;
 
-        public MethodSyntaxProcessor(SemanticModel model, SyntaxTree tree, IMethodSymbol method, IDispatcher dispatcher)
-            : base(method, dispatcher)
+        public MethodSyntaxProcessor(SemanticModel model, SyntaxTree tree, IMethodSymbol method)
+            : base(method)
         {            
             this.model = model;
             this.Tree = tree;
@@ -268,8 +264,9 @@ namespace ReachingTypeAnalysis
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-        public MethodSyntaxProcessor(SemanticModel model, ProjectCodeProvider codeProvider, SyntaxTree tree, MethodDescriptor methodDescriptor, IDispatcher dispatcher)
-            : base(methodDescriptor, codeProvider, dispatcher)
+        public MethodSyntaxProcessor(SemanticModel model, ProjectCodeProvider codeProvider, SyntaxTree tree, 
+                                    MethodDescriptor methodDescriptor)
+            : base(methodDescriptor, codeProvider)
         {
             this.model = model;
             var pair = ProjectCodeProvider.FindMethodSyntaxAsync(codeProvider.Compilation.GetSemanticModel(tree), tree, methodDescriptor).Result;
@@ -293,7 +290,6 @@ namespace ReachingTypeAnalysis
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph, descriptor,
                                                                     propGraphGenerator.InstantiatedTypes);
-                                                                    
             return methodEntity;
         }
     }
@@ -649,14 +645,14 @@ namespace ReachingTypeAnalysis
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var method = this.model.GetDeclaredSymbol(node);
-            var processor = new MethodSyntaxProcessor(this.model, this.tree, method, dispatcher);
+            var processor = new MethodSyntaxProcessor(this.model, this.tree, method);
             processor.ParseMethod();
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
             var method = this.model.GetDeclaredSymbol(node);
-			var processor = new MethodSyntaxProcessor(this.model, this.tree, method, dispatcher);
+			var processor = new MethodSyntaxProcessor(this.model, this.tree, method);
             processor.ParseMethod();
         }
 

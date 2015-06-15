@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Orleans.Runtime.Host;
 using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Diagnostics.Contracts;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Communication
@@ -43,7 +41,7 @@ namespace ReachingTypeAnalysis.Communication
                 //}
 
                 //var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
-                var methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(methodDescriptor, this);
+                var methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
                 base.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
                 entity = methodEntity;
             }

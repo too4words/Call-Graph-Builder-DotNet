@@ -29,34 +29,26 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
         }
 
-        internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
-        {
-            if (dispatcher is OrleansDispatcher)
-            {
-                var orleanDispatcher = (OrleansDispatcher)dispatcher;
-                var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
+        //internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
+        //{
+        //    if (dispatcher is OrleansDispatcher)
+        //    {
+        //        var orleanDispatcher = (OrleansDispatcher)dispatcher;
+        //        var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
 
-                var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
-                //var guid = orleansDescriptor..GetGuid().Result;
-                //var result = MethodEntityGrainFactory.GetGrain(guid);
-                // var guid = System.Guid.NewGuid();
-                var result = MethodEntityGrainFactory.GetGrain(guid);
-                orleansDescriptor.Guid = guid;
+        //        var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
+        //        var result = MethodEntityGrainFactory.GetGrain(guid);
+        //        orleansDescriptor.Guid = guid;
 
-                result.SetMethodEntity(methodEntity, descriptor).Wait();
-                result.SetDescriptor(orleansDescriptor).Wait();
-                return result;
-            }
-            else
-            {
-                //var result = methodEntity;
-                //result.SetMethodEntity(methodEntity).Wait();
-                //result.SetDescriptor((IOrleansEntityDescriptor)descriptor).Wait();
-
-                //return result;
-                return methodEntity;
-            }
-        }
+        //        result.SetMethodEntity(methodEntity, descriptor).Wait();
+        //        result.SetDescriptor(orleansDescriptor).Wait();
+        //        return result;
+        //    }
+        //    else
+        //    {
+        //        return methodEntity;
+        //    }
+        //}
     }
 
     /// <summary>

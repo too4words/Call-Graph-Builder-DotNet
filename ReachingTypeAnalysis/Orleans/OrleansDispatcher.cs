@@ -98,7 +98,7 @@ namespace ReachingTypeAnalysis.Analysis
             //Contract.Assert(grainDesc != null);
 
             Contract.Assert(grainDesc.MethodDescriptor != null);
-            return await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor,this);
+            return await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
         }
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
@@ -108,13 +108,13 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(grainDesc != null);
 
             var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(guid);
+            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(grainDesc.MethodDescriptor.ToString());
             // check if the result is initialized
             var methodEntity = await methodEntityGrain.GetMethodEntity();
             if (methodEntity == null)
             {
                 Contract.Assert(grainDesc.MethodDescriptor != null);
-                methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor, this);
+                methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 Contract.Assert(methodEntity != null);
                 methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();
                 methodEntityGrain.SetDescriptor(grainDesc).Wait();

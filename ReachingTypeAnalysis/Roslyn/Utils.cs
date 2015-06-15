@@ -198,6 +198,7 @@ namespace ReachingTypeAnalysis
 				.AddDocument(documentId, "MyFile.cs", source);
 			return solution;
 		}
+
 	}
 
 	public class PairIterator<T1, T2> : IEnumerable<Tuple<T1, T2>>

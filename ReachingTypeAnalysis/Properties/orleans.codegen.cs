@@ -104,25 +104,22 @@ namespace ReachingTypeAnalysis
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [SerializableAttribute()]
     [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.ReachingTypeAnalysis.ProjectCodeProviderGrain")]
-    public class ProjectCodeProviderGrainState : global::Orleans.CodeGeneration.GrainState, ProjectState
+    public class ProjectCodeProviderGrainState : global::Orleans.CodeGeneration.GrainState, IProjectState
     {
         
 
             public String @FullPath { get; set; }
-
-            public String @SolutionFullPath { get; set; }
 
             public override void SetAll(System.Collections.Generic.IDictionary<string,object> values)
             {   
                 object value;
                 if (values == null) { InitStateFields(); return; }
                 if (values.TryGetValue("FullPath", out value)) @FullPath = (String) value;
-                if (values.TryGetValue("SolutionFullPath", out value)) @SolutionFullPath = (String) value;
             }
 
             public override System.String ToString()
             {
-                return System.String.Format("ProjectCodeProviderGrainState( FullPath={0} SolutionFullPath={1} )", @FullPath, @SolutionFullPath);
+                return System.String.Format("ProjectCodeProviderGrainState( FullPath={0} )", @FullPath);
             }
         
         public ProjectCodeProviderGrainState() : 
@@ -135,14 +132,12 @@ namespace ReachingTypeAnalysis
         {
             System.Collections.Generic.Dictionary<string, object> result = new System.Collections.Generic.Dictionary<string, object>();
             result["FullPath"] = this.FullPath;
-            result["SolutionFullPath"] = this.SolutionFullPath;
             return result;
         }
         
         private void InitStateFields()
         {
             this.FullPath = default(String);
-            this.SolutionFullPath = default(String);
         }
         
         [global::Orleans.CodeGeneration.CopierMethodAttribute()]
@@ -163,6 +158,80 @@ namespace ReachingTypeAnalysis
         public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
         {
             ProjectCodeProviderGrainState result = new ProjectCodeProviderGrainState();
+            result.DeserializeFrom(stream);
+            return result;
+        }
+    }
+}
+namespace ReachingTypeAnalysis.Orleans
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Collections;
+    using Orleans.CodeGeneration;
+    using Orleans;
+    using System.Runtime.InteropServices;
+    using System.Runtime.Serialization;
+    
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [SerializableAttribute()]
+    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Orleans.ReachingTypeAnalysis.Orleans.SolutionGrain")]
+    public class SolutionGrainState : global::Orleans.CodeGeneration.GrainState, ISolutionState
+    {
+        
+
+            public String @SolutionFullPath { get; set; }
+
+            public override void SetAll(System.Collections.Generic.IDictionary<string,object> values)
+            {   
+                object value;
+                if (values == null) { InitStateFields(); return; }
+                if (values.TryGetValue("SolutionFullPath", out value)) @SolutionFullPath = (String) value;
+            }
+
+            public override System.String ToString()
+            {
+                return System.String.Format("SolutionGrainState( SolutionFullPath={0} )", @SolutionFullPath);
+            }
+        
+        public SolutionGrainState() : 
+                base("ReachingTypeAnalysis.Orleans.SolutionGrain")
+        {
+            this.InitStateFields();
+        }
+        
+        public override System.Collections.Generic.IDictionary<string, object> AsDictionary()
+        {
+            System.Collections.Generic.Dictionary<string, object> result = new System.Collections.Generic.Dictionary<string, object>();
+            result["SolutionFullPath"] = this.SolutionFullPath;
+            return result;
+        }
+        
+        private void InitStateFields()
+        {
+            this.SolutionFullPath = default(String);
+        }
+        
+        [global::Orleans.CodeGeneration.CopierMethodAttribute()]
+        public static object _Copier(object original)
+        {
+            SolutionGrainState input = ((SolutionGrainState)(original));
+            return input.DeepCopy();
+        }
+        
+        [global::Orleans.CodeGeneration.SerializerMethodAttribute()]
+        public static void _Serializer(object original, global::Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            SolutionGrainState input = ((SolutionGrainState)(original));
+            input.SerializeTo(stream);
+        }
+        
+        [global::Orleans.CodeGeneration.DeserializerMethodAttribute()]
+        public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            SolutionGrainState result = new SolutionGrainState();
             result.DeserializeFrom(stream);
             return result;
         }

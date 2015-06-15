@@ -12,7 +12,7 @@ using ReachingTypeAnalysis.Analysis;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-    internal class ProjectCodeProvider
+    public class ProjectCodeProvider
     {
         internal Compilation Compilation { get; private set; }
         internal Project Project { get; private set; }
@@ -38,7 +38,7 @@ namespace ReachingTypeAnalysis.Roslyn
             Contract.Assert(false, "Can't find path = " + fullPath);
             return null;
         }
-        async internal static Task<MethodEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
+        async internal static Task<MethodEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
             MethodEntity methodEntity = null;
@@ -48,12 +48,12 @@ namespace ReachingTypeAnalysis.Roslyn
                 var provider = pair.Item1;
                 var tree = pair.Item2;
                 var model = provider.Compilation.GetSemanticModel(tree);
-                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor, dispatcher);
+                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor);
                 methodEntity = methodEntityGenerator.ParseMethod();
             }
             else
             {
-                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, dispatcher);
+                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
                 methodEntity = libraryMethodVisitor.ParseLibraryMethod();
             }
             return methodEntity;
@@ -92,6 +92,10 @@ namespace ReachingTypeAnalysis.Roslyn
             return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
         }
 
+        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            return Task.FromResult<MethodDescriptor>(FindMethodImplementation(methodDescriptor, typeDescriptor));
+        }
         public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
             var roslynMethod = FindMethod(methodDescriptor);
@@ -125,6 +129,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 		}
 
+
 		internal static async Task<Tuple<ProjectCodeProvider, SyntaxTree>> GetAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(ProjectCodeProvider.Solution != null);
@@ -132,8 +137,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			var continuations = new List<Task<Compilation>>();
 			foreach (var project in ProjectCodeProvider.Solution.Projects)
 			{
-				var compilation = await project.GetCompilationAsync(cancellationSource.Token);
-                
+				var compilation = await project.GetCompilationAsync(cancellationSource.Token);                
 				foreach (var tree in compilation.SyntaxTrees)
 				{
                     var model = compilation.GetSemanticModel(tree);
@@ -153,6 +157,31 @@ namespace ReachingTypeAnalysis.Roslyn
             // throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
             return null;
 		}
+
+        public static async Task<IProjectCodeProviderGrain> GetCodeProviderGrainAsync(MethodDescriptor methodDescriptor, Solution solution)
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var continuations = new List<Task<Compilation>>();
+            foreach (var project in solution.Projects)
+            {
+                var compilation = await project.GetCompilationAsync(cancellationSource.Token);
+
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var model = compilation.GetSemanticModel(tree);
+                    var codeProvider = new ProjectCodeProvider(project, compilation);
+                    var pair = await ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, methodDescriptor);
+                    if (pair != null)
+                    {
+                        // found it
+                        cancellationSource.Cancel();
+                        var codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain(project.FilePath);
+                        return codeProviderGrain;
+                    }
+                }
+            }
+            return null;
+        }
 
 		internal static ProjectCodeProvider GetProviderContainingEntryPoint(Project project, out IMethodSymbol mainSymbol)
 		{

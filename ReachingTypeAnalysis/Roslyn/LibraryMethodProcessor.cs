@@ -12,12 +12,12 @@ namespace ReachingTypeAnalysis.Roslyn
     /// </summary>
     internal class LibraryMethodProcessor: GeneralRoslynMethodProcessor
     {
-		internal LibraryMethodProcessor(IMethodSymbol method, IDispatcher dispatcher)
-			: base(method, dispatcher)
+		internal LibraryMethodProcessor(IMethodSymbol method)
+			: base(method)
 		{ }
 
-        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
-            : base(methodDescriptor,dispatcher)
+        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor)
+            : base(methodDescriptor)
         {
         }
 

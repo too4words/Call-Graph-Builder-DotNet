@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
+using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis
 {
@@ -54,6 +55,8 @@ namespace ReachingTypeAnalysis
 			{
 				strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
 			}
+            ISolutionGrain codeProviderGrain = SolutionGrainFactory.GetGrain("Solution");
+
 			// TOOD: hack -- set the global solution
 			ProjectCodeProvider.Solution = this.Solution;
 
@@ -321,7 +324,7 @@ namespace ReachingTypeAnalysis
 				{
                     var model = provider.Compilation.GetSemanticModel(tree);
 					cancellationToken.Cancel(); // cancel out outstanding processing tasks
-                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
+                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
                     this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
@@ -377,19 +380,21 @@ namespace ReachingTypeAnalysis
 				var mainSymbol = triple.Item2;
                 var tree = triple.Item3;
                 var model = provider.Compilation.GetSemanticModel(tree);
-				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
+				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
 
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                 var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
-                var mainMethodEntity = await this.Dispatcher.GetEntityAsync(mainMethodEntityDescriptor);
+                var mainMethodEntity = (IMethodEntityGrain) await this.Dispatcher.GetEntityAsync(mainMethodEntityDescriptor);
 
-				var mainEntityProcessor = (MethodEntityProcessor)
-					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+                await mainMethodEntity.DoAnalysisAsync(this.Dispatcher);
 
-                this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
+                //var mainEntityProcessor = (MethodEntityProcessor)
+                //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
 
-				await mainEntityProcessor.DoAnalysisAsync();
+                //this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
+
+                //await mainEntityProcessor.DoAnalysisAsync();
 
 				Debug.WriteLine("--- Done with propagation ---");
 			}
