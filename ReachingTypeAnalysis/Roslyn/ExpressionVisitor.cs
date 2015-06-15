@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ReachingTypeAnalysis.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

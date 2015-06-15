@@ -131,6 +131,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{2930867f-55b9-4fb2-830e-dd1f4d79448a}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ReachingTypeAnalysis\ReachingTypeAnalysis.csproj">
       <Project>{31e6307f-30af-46d4-b9b5-195c54408204}</Project>
       <Name>ReachingTypeAnalysis</Name>

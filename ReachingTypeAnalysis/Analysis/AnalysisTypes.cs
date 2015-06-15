@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 
-namespace ReachingTypeAnalysis
+namespace ReachingTypeAnalysis.Analysis
 {
     /* MOVED TO COMMON Project. Delete File!
     /// <summary>

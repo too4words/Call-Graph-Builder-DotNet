@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
-namespace ReachingTypeAnalysis
+namespace ReachingTypeAnalysis.Analysis
 {
 	internal class CallContext
 	{

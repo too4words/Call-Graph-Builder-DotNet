@@ -6,7 +6,7 @@ using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
 
-namespace ReachingTypeAnalysis.Orleans
+namespace ReachingTypeAnalysis.Analysis
 {
     public interface ISolutionState : IGrainState
     {
