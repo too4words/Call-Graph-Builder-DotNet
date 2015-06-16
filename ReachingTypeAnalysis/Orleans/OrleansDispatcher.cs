@@ -18,6 +18,12 @@ namespace ReachingTypeAnalysis.Analysis
         public MethodDescriptor MethodDescriptor { get; set; }
         //public string Etag { get; set; }
 
+		public OrleansEntityDescriptor(MethodDescriptor methodDescriptor)
+		{
+			this.Guid = Guid.Empty;
+			this.MethodDescriptor = methodDescriptor;
+		}
+   
 
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
         {

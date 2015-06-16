@@ -31,18 +31,19 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProviderGrain codeProviderGrain;
         public override async Task OnActivateAsync()
         {
-            codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain("Solution");
+			var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            
 
             //var guid = this.GetPrimaryKey();
             // Shold not be null..
             if (this.State.MethodDescriptor != null)
             {
-                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey());
+				codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor);
                 // TODO: do we need to check and restore methodEntity
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
-                this.dispacther = OrleansDispatcher.Instance;
-                this.methodEntity = (MethodEntity) await dispacther.GetMethodEntityAsync(orleansEntityDesc);
+				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);// dispacther.GetMethodEntityAsync(orleansEntityDesc);
             }
         }
 

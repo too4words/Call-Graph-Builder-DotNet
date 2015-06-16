@@ -62,6 +62,10 @@ namespace ReachingTypeAnalysis
                 return (!IsStatic)? ContainerType: null;
             }
         }
+		public MethodDescriptor() : this("","")
+		{
+
+		}
 
         public MethodDescriptor(string namespaceName, string classname, string methodName, 
                                     bool isStatic = false, 

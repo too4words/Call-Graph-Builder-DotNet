@@ -65,7 +65,7 @@ namespace ReachingTypeAnalysis.Analysis
         
         private void InitStateFields()
         {
-            this.MethodDescriptor = default(MethodDescriptor);
+            this.MethodDescriptor = new MethodDescriptor();
         }
         
         [global::Orleans.CodeGeneration.CopierMethodAttribute()]
