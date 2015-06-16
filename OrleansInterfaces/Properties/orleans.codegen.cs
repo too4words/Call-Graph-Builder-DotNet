@@ -122,10 +122,16 @@ namespace OrleansInterfaces
                 return SolutionGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.ISolutionGrain.SetSolution(string @solutionPath)
+            System.Threading.Tasks.Task OrleansInterfaces.ISolutionGrain.SetSolutionPath(string @solutionPath)
             {
 
-                return base.InvokeMethodAsync<object>(1643599987, new object[] {@solutionPath} );
+                return base.InvokeMethodAsync<object>(-472864594, new object[] {@solutionPath} );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.ISolutionGrain.SetSolutionSource(string @solutionSource)
+            {
+
+                return base.InvokeMethodAsync<object>(397961266, new object[] {@solutionSource} );
             }
             
             System.Threading.Tasks.Task<OrleansInterfaces.IProjectCodeProviderGrain> OrleansInterfaces.ISolutionGrain.GetCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
@@ -160,8 +166,10 @@ namespace OrleansInterfaces
                     case -1646659855:  // ISolutionGrain
                         switch (methodId)
                         {
-                            case 1643599987: 
-                                return ((ISolutionGrain)grain).SetSolution((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -472864594: 
+                                return ((ISolutionGrain)grain).SetSolutionPath((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 397961266: 
+                                return ((ISolutionGrain)grain).SetSolutionSource((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1319809341: 
                                 return ((ISolutionGrain)grain).GetCodeProviderAsync((ReachingTypeAnalysis.MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
@@ -193,8 +201,10 @@ namespace OrleansInterfaces
                 case -1646659855:  // ISolutionGrain
                     switch (methodId)
                     {
-                        case 1643599987:
-                            return "SetSolution";
+                        case -472864594:
+                            return "SetSolutionPath";
+                    case 397961266:
+                            return "SetSolutionSource";
                     case 1319809341:
                             return "GetCodeProviderAsync";
                     
@@ -561,6 +571,18 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-625742380, new object[] {@methodDescriptor} );
             }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectPath(string @fullPath)
+            {
+
+                return base.InvokeMethodAsync<object>(-397931987, new object[] {@fullPath} );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectSourceCode(string @source)
+            {
+
+                return base.InvokeMethodAsync<object>(-113155710, new object[] {@source} );
+            }
         }
     }
     
@@ -594,6 +616,10 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).FindMethodImplementationAsync((MethodDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -625742380: 
                                 return ((IProjectCodeProviderGrain)grain).CreateMethodEntityAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -397931987: 
+                                return ((IProjectCodeProviderGrain)grain).SetProjectPath((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -113155710: 
+                                return ((IProjectCodeProviderGrain)grain).SetProjectSourceCode((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -629,6 +655,10 @@ namespace OrleansInterfaces
                             return "FindMethodImplementationAsync";
                     case -625742380:
                             return "CreateMethodEntityAsync";
+                    case -397931987:
+                            return "SetProjectPath";
+                    case -113155710:
+                            return "SetProjectSourceCode";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);

@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
-            var codeProvider = ProjectCodeProvider.GetAsync(this.MethodDescriptor).Result.Item1; 
+            var codeProvider = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(this.MethodDescriptor).Result.Item1; 
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
 				                            this.RetVar, this.ThisRef, this.Parameters,

@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis
                 //throw new ArgumentException("Not enough parameters to main");
             }
             var solutionPath = args[0];
-            var solution = ReadSolution(solutionPath);
+            var solution = Utils.ReadSolution(solutionPath);
             //var callGraph = TypePropagationAnalysis.BuildCallGraph(solution);
             //callGraph.Save("cg.dot");
 
@@ -125,30 +125,6 @@ namespace ReachingTypeAnalysis
             return true;
         }
 
-        public static Solution ReadSolution(string path)
-        {
-            if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
-            var ws = MSBuildWorkspace.Create();
-
-            var solution = ws.OpenSolutionAsync(path).Result;
-            //string pathNetFramework = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-            //string pathToDll = pathNetFramework + @"Facades\";        
-            // Didn't work 
-            // These ones works
-            //pathToDll = @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\Facades\";
-            string pathToDll = ConfigurationManager.AppSettings["PathToDLLs"];
-            Contract.Assert(pathToDll != null && Directory.Exists(pathToDll));
-
-            var metadataReferences = new string[] {
-                    "System.Runtime.dll",
-                    "System.Threading.Tasks.dll",
-                    "System.Reflection.dll",
-                    "System.Text.Encoding.dll"}.Select(s => MetadataReference.CreateFromFile(pathToDll + s));
-            var pIds = solution.ProjectIds;
-            foreach (var pId in pIds)
-                solution = solution.AddMetadataReferences(pId, metadataReferences);
-
-            return solution;
-        }
+        
     }
 }

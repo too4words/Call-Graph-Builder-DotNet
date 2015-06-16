@@ -24,24 +24,7 @@ namespace ReachingTypeAnalysis.Communication
             if (entity == null)
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);
-                //try
-                //{
-                //    var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
-                //    var roslynMethod = codeProvider.FindMethod(methodDescriptor);
-                //    var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
-                //    entity = methodEntityGenerator.ParseMethod();
-                //}
-                //catch(Exception exception)
-                //{
-                //    //    // I need a Roslyn Method. I could to this with a solution but I cant without it
-                //    //throw new NotImplementedException();
-                //    var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
-                //    entity = libraryMethodVisitor.ParseLibraryMethod();
-                //    base.RegisterEntity(entityDesc, entity);
-                //}
-
-                //var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
-                var methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
+                var methodEntity = await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(methodDescriptor);
                 base.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
                 entity = methodEntity;
             }

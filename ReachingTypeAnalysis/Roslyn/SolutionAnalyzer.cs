@@ -32,15 +32,24 @@ namespace ReachingTypeAnalysis
 	public class SolutionAnalyzer
 	{
 		// Just for text
-		public Solution Solution { get; private set; }
+		internal Solution Solution { get; private set; }
 
 		internal IDispatcher Dispatcher { get; private set; }
 
+        internal string SourceCode { get; private set; }
 		public SolutionAnalyzer(Solution solution)
 		{
 			Solution = solution;
 			//dispatcher = new SynchronousLocalDispatcher();
 		}
+
+        public SolutionAnalyzer(string sourceCode)
+        {
+            Solution = Utils.CreateSolution(sourceCode);
+            this.SourceCode = sourceCode;
+            //dispatcher = new SynchronousLocalDispatcher();
+        }
+
 
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
@@ -117,7 +126,17 @@ namespace ReachingTypeAnalysis
                             //break;
                         }
 						// Create a Grain for the solution
-						ISolutionGrain codeProviderGrain = SolutionGrainFactory.GetGrain("Solution");
+                        ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+                        if (SourceCode != null)
+                        {
+                           solutionGrain.SetSolutionSource(SourceCode).Wait();
+                           IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain("MyProject");
+                           projectGrain.SetProjectSourceCode(SourceCode);
+                        }
+                        else {
+                            Contract.Assert(Solution.FilePath!=null);
+                            solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
+                        }
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();
                         // run
@@ -387,12 +406,21 @@ namespace ReachingTypeAnalysis
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                 var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
-                var mainMethodEntity = (IMethodEntityGrain) await this.Dispatcher.GetEntityAsync(mainMethodEntityDescriptor);
+                var mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
 
-                await mainMethodEntity.DoAnalysisAsync(this.Dispatcher);
-
-                //var mainEntityProcessor = (MethodEntityProcessor)
-                //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+                // To-do: Hack 
+                if (Dispatcher is OrleansDispatcher)
+                {
+                    //var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+                    //await ((IMethodEntityGrain) mainMethodEntity).DoAnalysisAsync(this.Dispatcher);
+                    await mainMethodEntityProcessor.DoAnalysisAsync();
+                }
+                else
+                {
+                    //var mainEntityProcessor = (MethodEntityProcessor)
+                    //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+                    await mainMethodEntityProcessor.DoAnalysisAsync();
+                }
 
                 //this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
 

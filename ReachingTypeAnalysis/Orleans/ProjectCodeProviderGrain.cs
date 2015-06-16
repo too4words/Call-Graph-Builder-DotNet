@@ -11,6 +11,10 @@ namespace ReachingTypeAnalysis.Analysis
     public interface IProjectState : IGrainState
     {
         string FullPath { get; set; }
+        string Name { get; set; }
+ 
+        string SourceCode { get; set; }
+
     }
 
     [StorageProvider(ProviderName = "TestStore")]
@@ -21,12 +25,39 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
-            //Contract.Assert(this.State != null);
 			if (this.State.FullPath != null)
 			{
 				this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
 			}
+            else
+            {
+                if (this.State.SourceCode != null)
+                {
+                    var solution = Utils.CreateSolution(this.State.SourceCode);
+                    Contract.Assert(this.State.Name != null);
+                    this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution,this.State.Name);                    
+                }
+            }
+
         }
+
+        public async Task SetProjectPath(string fullPath)
+        {
+            this.State.FullPath = fullPath;
+            this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
+            await this.State.WriteStateAsync();
+            return;
+        }
+
+        public async Task SetProjectSourceCode(string source)
+        {
+            this.State.SourceCode = source;
+            var solution = Utils.CreateSolution(source);
+            this.State.Name = "MyProject";
+            await this.State.WriteStateAsync();
+            return;
+        }
+
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
@@ -44,8 +75,33 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
-			var methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
+			var methodEntity = await this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 			return methodEntity;
 		}
+    }
+    internal class ProjectGrainWrapper : ICodeProvider
+    {
+        private IProjectCodeProviderGrain projectGrain;
+        internal ProjectGrainWrapper(IProjectCodeProviderGrain grain)
+        {
+            projectGrain = grain;
+        }
+        public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            return projectGrain.IsSubtypeAsync(typeDescriptor1,typeDescriptor2);
+        }
+        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            return FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
+        }
+
+        public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
+        }
+        public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
+        }
     }
 }

@@ -26,6 +26,15 @@ namespace ReachingTypeAnalysis
         Task DoAnalysisAsync();
     }
 
+    public interface ICodeProvider
+    {
+        Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+        Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+        bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+        MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+    
+    }
+
     public delegate void MessageHandler(IMessage message);
 
     public interface IMessage
@@ -39,8 +48,8 @@ namespace ReachingTypeAnalysis
         ImmutableHashSet<IEntity> GetAllEntites();
         void DeliverMessage(IEntityDescriptor destination, IMessage message);
         Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
-        Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
-        IEntity GetEntity(IEntityDescriptor entityDesc);
+        //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
+        //IEntity GetEntity(IEntityDescriptor entityDesc);
         void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
         Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
         IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);

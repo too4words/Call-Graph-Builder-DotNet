@@ -9,7 +9,9 @@ namespace OrleansInterfaces
 {
     public interface ISolutionGrain : IGrainWithStringKey
     {
-        Task SetSolution(string solutionPath);
+        Task SetSolutionPath(string solutionPath);
+        Task SetSolutionSource(string solutionSource);
+
         Task<IProjectCodeProviderGrain> GetCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor methodDescriptor);
     }
 }

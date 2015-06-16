@@ -33,11 +33,11 @@ namespace ReachingTypeAnalysis.Analysis
         {
             codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain("Solution");
 
-            var guid = this.GetPrimaryKey();
+            //var guid = this.GetPrimaryKey();
             // Shold not be null..
             if (this.State.MethodDescriptor != null)
             {
-                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.GetPrimaryKey());
+                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor);
                 // TODO: do we need to check and restore methodEntity
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
@@ -57,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-            var guid = this.GetPrimaryKey();
+            //var guid = this.GetPrimaryKey();
             // Should not be null
             Contract.Assert(this.State != null);
             this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;

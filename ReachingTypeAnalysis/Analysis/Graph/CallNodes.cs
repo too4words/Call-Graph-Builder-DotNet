@@ -34,9 +34,9 @@ namespace ReachingTypeAnalysis
             InstatiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider);
+		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider);
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in propGraph.GetTypes(n))
@@ -102,7 +102,7 @@ namespace ReachingTypeAnalysis
 			IsConstructor = isConstructor;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var calleesForNode = new HashSet<MethodDescriptor>();
 			if (this.Receiver != null)
@@ -150,12 +150,12 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			return GetDelegateCallees(this.CalleeDelegate, propGraph, codeProvider);
 		}
 
-		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var callees = new HashSet<MethodDescriptor>();
 			var typeDescriptors = propGraph.GetTypes(delegateNode);

@@ -19,6 +19,12 @@ namespace ReachingTypeAnalysis.Analysis
         //public string Etag { get; set; }
 
 
+        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor)
+        {
+            this.Guid = Guid.Empty;
+            this.MethodDescriptor = methodDescriptor;
+        }
+
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
         {
             this.Guid = guid;
@@ -96,9 +102,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
             //Contract.Assert(grainDesc != null);
-
             Contract.Assert(grainDesc.MethodDescriptor != null);
-            return await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+            return await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(grainDesc.MethodDescriptor);
         }
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
@@ -114,9 +119,8 @@ namespace ReachingTypeAnalysis.Analysis
             if (methodEntity == null)
             {
                 Contract.Assert(grainDesc.MethodDescriptor != null);
-				//  ICodeProviderGrain providerGrain = solutionGrain.GetCodeProvider(grainDesc.MethodDescriptor);
-				//  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-                methodEntity = await ProjectCodeProvider.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+                methodEntity = await CreateMethodEntityUsingGrainsAsync(grainDesc.MethodDescriptor);
                 Contract.Assert(methodEntity != null);
                 methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();
                 methodEntityGrain.SetDescriptor(grainDesc).Wait();
@@ -127,6 +131,24 @@ namespace ReachingTypeAnalysis.Analysis
                 return methodEntityGrain;
             }
         }
+
+        async internal static Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
+        {
+            MethodEntity methodEntity = null;
+            var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+            if (providerGrain == null)
+            {
+                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
+                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            }
+            else
+            {
+                methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
+            }
+            return methodEntity;
+        }
+
 
 
 
