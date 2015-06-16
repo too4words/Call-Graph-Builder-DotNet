@@ -33,7 +33,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain("Solution");
 
-            var guid = this.GetPrimaryKey();
+            //var guid = this.GetPrimaryKey();
             // Shold not be null..
             if (this.State.MethodDescriptor != null)
             {
@@ -57,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-            var guid = this.GetPrimaryKey();
+            //var guid = this.GetPrimaryKey();
             // Should not be null
             Contract.Assert(this.State != null);
             this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
