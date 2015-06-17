@@ -92,7 +92,7 @@ namespace ReachingTypeAnalysis.Analysis
         }
         public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-            return FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
+            return projectGrain.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
         }
 
         public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)

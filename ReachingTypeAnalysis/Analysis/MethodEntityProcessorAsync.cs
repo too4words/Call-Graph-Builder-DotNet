@@ -18,9 +18,9 @@ namespace ReachingTypeAnalysis.Analysis
             if (dispatcher is OrleansDispatcher)
             {
                 var orleanDispatcher = (OrleansDispatcher)dispatcher;
-                var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
+                //var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
                 // I think we should consult the dispatcher about an existing ID for the descriptor
-                result = new OrleansEntityDescriptor(methodDescriptor, guid); //System.Guid.NewGuid());
+                result = new OrleansEntityDescriptor(methodDescriptor); //System.Guid.NewGuid());
             }
             else
             {

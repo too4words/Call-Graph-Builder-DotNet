@@ -25,8 +25,8 @@ namespace ReachingTypeAnalysis.Analysis
         
         [NonSerialized]
         private MethodEntity methodEntity;
-        [NonSerialized]
-        private OrleansDispatcher dispacther;
+        //[NonSerialized]
+        //private OrleansDispatcher dispacther;
         [NonSerialized]
         private IProjectCodeProviderGrain codeProviderGrain;
         public override async Task OnActivateAsync()
@@ -36,7 +36,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             //var guid = this.GetPrimaryKey();
             // Shold not be null..
-            if (this.State.MethodDescriptor != null)
+            if (this.State.Etag!= null)
             {
 				codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
                 var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor);
@@ -95,14 +95,14 @@ namespace ReachingTypeAnalysis.Analysis
         public Task DoAnalysisAsync(IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispacther);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
             return methodEntityProcessor.DoAnalysisAsync();
         }
 
         public Task ProcessMessagge(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispacther);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
             return methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
