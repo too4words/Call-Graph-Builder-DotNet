@@ -718,7 +718,7 @@ namespace OrleansInterfacesSerializers
         public static object DeepCopier(object original)
         {
             ReachingTypeAnalysis.MethodDescriptor input = ((ReachingTypeAnalysis.MethodDescriptor)(original));
-            ReachingTypeAnalysis.MethodDescriptor result = ((ReachingTypeAnalysis.MethodDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.MethodDescriptor))));
+            ReachingTypeAnalysis.MethodDescriptor result = new ReachingTypeAnalysis.MethodDescriptor();
             Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
             object objResult = ((object)(result));
             object temp1 = input.ClassName;
@@ -755,7 +755,7 @@ namespace OrleansInterfacesSerializers
         
         public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
         {
-            ReachingTypeAnalysis.MethodDescriptor result = ((ReachingTypeAnalysis.MethodDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.MethodDescriptor))));
+            ReachingTypeAnalysis.MethodDescriptor result = new ReachingTypeAnalysis.MethodDescriptor();
             object objResult = ((object)(result));
             object temp1 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             fieldInfo1.SetValue(objResult, temp1);
