@@ -132,7 +132,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
 			}
-			var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
+			var callsAndRets = await this.MethodEntity.PropGraph.PropagateAsync(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
 			//ProcessOutputInfoAsync(retValueHasChanged).Start();
@@ -141,7 +141,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task PropagateDeleteAsync()
 		{
-			var callsAndRets = this.MethodEntity.PropGraph.PropagateDeletionOfNodes();
+			var callsAndRets = await this.MethodEntity.PropGraph.PropagateDeletionOfNodesAsync();
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.REMOVE_TYPES);
 			this.MethodEntity.PropGraph.RemoveDeletedTypes();
 			await EndOfPropagationEventAsync(PropagationKind.REMOVE_TYPES, callsAndRets.RetValueChange);
@@ -202,7 +202,7 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var instTypes = new HashSet<TypeDescriptor>();
 					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                        .Where(candidateTypeDescriptor => codeProvider.IsSubtypeAsync(candidateTypeDescriptor,callInfo.Receiver.Type).Result));
+                        .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
 						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
@@ -217,12 +217,12 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() > 0)
 				{
 					var continuations = new List<Task>();
-					Parallel.ForEach(types, (receiverType) =>
+					Parallel.ForEach(types, async (receiverType) =>
 					{
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee, receiverType);
+                        var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
 						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);

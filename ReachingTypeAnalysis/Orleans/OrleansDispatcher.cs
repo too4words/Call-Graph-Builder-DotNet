@@ -64,23 +64,34 @@ namespace ReachingTypeAnalysis.Analysis
 		{
             var destinationEntity = await GetEntityAsync(destination);
             var destinationGrain = (IMethodEntityGrain)destinationEntity;
-          
-            //var guid = ((OrleansEntityDescriptor)destination).Guid;
-            //var destinationGrain = MethodEntityGrainFactory.GetGrain(guid);
-			/*return*/ 
 
-            await ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, 
-                                    message,destinationGrain);
-			//var processor = destinationGrain.GetEntityProcessor(this);
+            await destinationGrain.ProcessMessaggeAsync(message.Source, message, this);
+
+            //var methodEntity = (MethodEntity) await destinationGrain.GetMethodEntity();
+            //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            //var methodEntityProcessor = new MethodEntityProcessor(methodEntity, this, codeProvider);
+
+  //          await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
+
+            // await ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message,destinationGrain);
+
+            //var processor = destinationGrain.GetEntityProcessor(this);
 			//return processor.ReceiveMessageAsync(message.Source, message);
 		}
 
-        public async Task ReceiveMessageAsync(IEntityDescriptor source, 
-                                        IMessage message,
-                                        IMethodEntityGrain destinationGrain)
-        {
-            await destinationGrain.ProcessMessaggeAsync(source, message,this);
-        }
+        //public async Task ReceiveMessageAsync(IEntityDescriptor source, 
+        //                                IMessage message,
+        //                                IMethodEntityGrain destinationGrain)
+        //{
+        //    var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+        //    var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this ,codeProvider);
+
+        //    //            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
+
+        //    await methodEntityProcessor.ProcessMessageAsync(source, message);
+        
+        //    //await destinationGrain.ProcessMessaggeAsync(source, message,this);
+        //}
 
 
         /// <summary>

@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="M"></typeparam>
     [Serializable]
-    internal class PropagationGraph
+    internal partial class PropagationGraph
 	{
    		/// <summary>
 		/// The work list used during the propagation

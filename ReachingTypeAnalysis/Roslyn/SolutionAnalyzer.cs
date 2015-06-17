@@ -422,8 +422,8 @@ namespace ReachingTypeAnalysis
                     //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
                 }
 
-                await mainMethodEntityProcessor.DoAnalysisAsync();
-                // await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
+                //await mainMethodEntityProcessor.DoAnalysisAsync();
+                await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
     
                 //this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
 

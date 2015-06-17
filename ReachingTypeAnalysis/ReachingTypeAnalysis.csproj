@@ -253,6 +253,7 @@
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
     <Compile Include="Analysis\Graph\IGraph.cs" />
     <Compile Include="Analysis\Graph\PropagationEffects.cs" />
+    <Compile Include="Analysis\Graph\PropagationGraphAsync.cs" />
     <Compile Include="Analysis\MethodEntity.cs" />
     <Compile Include="Analysis\MethodEntityProcessorAsync.cs" />
     <Compile Include="Analysis\MethodEntityProcessor.cs" />
