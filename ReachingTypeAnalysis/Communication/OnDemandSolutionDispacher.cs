@@ -25,7 +25,7 @@ namespace ReachingTypeAnalysis.Communication
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);
                 var methodEntity = await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(methodDescriptor);
-                base.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
+                this.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
                 entity = methodEntity;
             }
 

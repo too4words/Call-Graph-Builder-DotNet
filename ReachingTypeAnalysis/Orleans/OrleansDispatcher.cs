@@ -125,6 +125,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Contract.Assert(methodEntity != null);
                 methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();
                 methodEntityGrain.SetDescriptor(grainDesc).Wait();
+                this.RegisterEntity(grainDesc, methodEntity);
                 return methodEntityGrain;
             }
             else

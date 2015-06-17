@@ -1,10 +1,12 @@
 ﻿using ReachingTypeAnalysis.Roslyn;
+using System;
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    [Serializable]
 	internal class CallContext
 	{
 		internal MethodDescriptor Caller { get; private set; }

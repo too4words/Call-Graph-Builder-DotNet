@@ -407,21 +407,24 @@ namespace ReachingTypeAnalysis
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                 var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
                 var mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
-
+                
+                var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+ 
                 // To-do: Hack 
                 if (Dispatcher is OrleansDispatcher)
                 {
-                    //var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
                     //await ((IMethodEntityGrain) mainMethodEntity).DoAnalysisAsync(this.Dispatcher);
-                    await mainMethodEntityProcessor.DoAnalysisAsync();
                 }
                 else
                 {
+                    this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                     //var mainEntityProcessor = (MethodEntityProcessor)
                     //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
-                    await mainMethodEntityProcessor.DoAnalysisAsync();
                 }
 
+                await mainMethodEntityProcessor.DoAnalysisAsync();
+                // await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
+    
                 //this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
 
                 //await mainEntityProcessor.DoAnalysisAsync();
