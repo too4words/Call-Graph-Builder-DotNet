@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis.Analysis
             return methodEntityProcessor.DoAnalysisAsync();
         }
 
-        public Task ProcessMessagge(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
+        public Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
             var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);

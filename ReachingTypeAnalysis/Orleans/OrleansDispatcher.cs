@@ -78,7 +78,7 @@ namespace ReachingTypeAnalysis.Analysis
                                         IMessage message,
                                         IMethodEntityGrain destinationGrain)
         {
-            await destinationGrain.ProcessMessagge(source, message,this);
+            await destinationGrain.ProcessMessaggeAsync(source, message,this);
         }
 
 
