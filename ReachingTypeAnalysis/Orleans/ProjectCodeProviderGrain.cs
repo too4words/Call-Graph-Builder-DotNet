@@ -82,6 +82,17 @@ namespace ReachingTypeAnalysis.Analysis
     internal class ProjectGrainWrapper : ICodeProvider
     {
         private IProjectCodeProviderGrain projectGrain;
+        internal static async Task<ICodeProvider>  CreateProjectGrainWrapperAsync(MethodDescriptor methodDescriptor)
+        {
+            ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            var codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+
+            if(codeProviderGrain!=null)
+            {
+                return new ProjectGrainWrapper(codeProviderGrain);
+            }
+            return null;
+        }
         internal ProjectGrainWrapper(IProjectCodeProviderGrain grain)
         {
             projectGrain = grain;

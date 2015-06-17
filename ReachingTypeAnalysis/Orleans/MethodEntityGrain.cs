@@ -92,18 +92,26 @@ namespace ReachingTypeAnalysis.Analysis
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
-        public Task DoAnalysisAsync(IDispatcher dispatcher)
+        public async Task DoAnalysisAsync(IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
-            return methodEntityProcessor.DoAnalysisAsync();
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher, codeProvider);
+
+//            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
+
+            await methodEntityProcessor.DoAnalysisAsync();
         }
 
-        public Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
+        public async Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
-            return methodEntityProcessor.ProcessMessageAsync(source, message);
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher,codeProvider);
+
+            //            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
+
+            await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
         public Task<bool> IsInitialized()

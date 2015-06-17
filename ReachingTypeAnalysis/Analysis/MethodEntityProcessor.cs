@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections;
 using ReachingTypeAnalysis.Roslyn;
 using OrleansInterfaces;
+using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -33,7 +34,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         internal MethodEntity MethodEntity { get; private set; }
         internal MethodEntityProcessor(MethodEntity methodEntity, 
-            IDispatcher dispatcher, IEntityDescriptor entityDescriptor = null, 
+            IDispatcher dispatcher, ICodeProvider codeProvider, IEntityDescriptor entityDescriptor = null, 
             bool verbose = false) :
             base(methodEntity, entityDescriptor, dispatcher)
         {
@@ -44,11 +45,11 @@ namespace ReachingTypeAnalysis.Analysis
                                                           :entityDescriptor;
             this.Verbose = verbose;
             // It gets a code provider for the method. 
-            if (dispatcher is OrleansDispatcher)
+            if (codeProvider!=null || dispatcher is OrleansDispatcher)
             {
-                 ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-                 this.codeProvider = new ProjectGrainWrapper(solutionGrain.GetCodeProviderAsync(methodEntity.MethodDescriptor).Result);
-                 //this.tree = ProjectCodeProvider.Find 
+                this.codeProvider = codeProvider;
+                 //this.codeProvider = ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor).Result;
+                //SetCodeProviderAsync(methodEntity.MethodDescriptor);
             }
             else
             {
@@ -56,13 +57,17 @@ namespace ReachingTypeAnalysis.Analysis
                 if (pair != null)
                 {
                     this.codeProvider = pair.Item1;
-                    //this.tree = pair.Item2;
                 }
             }
             // We use the codeProvider for Propagation and HandleCall and ReturnEvents (in the method DiffProp that uses IsAssignable)
             // We can get rid of this by passing codeProvider as parameter in this 3 methods
             this.MethodEntity.PropGraph.SetCodeProvider(this.codeProvider);
         }
+        internal MethodEntityProcessor(MethodEntity methodEntity,
+                                        IDispatcher dispatcher, IEntityDescriptor entityDescriptor = null,
+                                        bool verbose = false) :this (methodEntity, dispatcher, null, entityDescriptor, verbose)
+        { }
+
 
         public bool Verbose { get; private set; }
 

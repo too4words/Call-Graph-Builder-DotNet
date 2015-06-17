@@ -48,6 +48,7 @@ namespace ReachingTypeAnalysis.Analysis
         // Should be necessary if we are able to build the OrleansDescriptors properly
         //private Dictionary<MethodDescriptor, Guid> orleansGuids = new Dictionary<MethodDescriptor, Guid>();//
         private ISet<MethodDescriptor> entities = new HashSet<MethodDescriptor>();
+
         internal static OrleansDispatcher Instance = null;
 		public OrleansDispatcher()
 		{
@@ -150,15 +151,14 @@ namespace ReachingTypeAnalysis.Analysis
         }
 
 
-
-
 		public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
 		{
 			Contract.Assert(entityDesc != null);
 			var entity = (IMethodEntityGrain)await GetEntityAsync(entityDesc);
 			Contract.Assert(entity != null);
             var methodEntity = (MethodEntity) await entity.GetMethodEntity();
-			return new MethodEntityProcessor(methodEntity, this, entityDesc, true);
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            return new MethodEntityProcessor(methodEntity, this, codeProvider, entityDesc, true);
 		}
 
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
