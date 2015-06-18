@@ -35,6 +35,17 @@ namespace ReachingTypeAnalysis
                 return res;
             }
         }
+        internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
+        {
+            if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)
+            {
+                return DiffDelProp(src, n);
+            }
+            else
+            {
+                return await DiffPropAsync(src, n);
+            }
+        }
 
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n)
         {

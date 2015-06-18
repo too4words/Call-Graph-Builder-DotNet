@@ -451,7 +451,7 @@ namespace ReachingTypeAnalysis.Analysis
                 //    Thread.Sleep(10);
                 //}
 
-                lock (this.MethodEntity)
+                //lock (this.MethodEntity)
                 {
                     //this.MethodEntity.CurrentContext = callContext;
 
@@ -460,7 +460,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                     if (this.MethodEntity.ThisRef != null)
                     {
-                        this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+                        await this.MethodEntity.PropGraph.DiffPropAsync(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
                     }
                     var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
                         (this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
@@ -470,7 +470,7 @@ namespace ReachingTypeAnalysis.Analysis
                         //PropGraph.Add(pn, argumentValues[i]);
                         if (parameterNode != null)
                         {
-                            this.MethodEntity.PropGraph.DiffProp(
+                            await this.MethodEntity.PropGraph.DiffPropAsync(
                                 Demarshaler.Demarshal(pair.Item2),
                                 parameterNode, callMessage.PropagationKind);
                         }
