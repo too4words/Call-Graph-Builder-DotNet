@@ -108,11 +108,13 @@ namespace ReachingTypeAnalysis.Analysis
 
         public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
+            throw new NotImplementedException();
+            //return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
         }
         public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-            return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
+            throw new NotImplementedException();
+            //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
         }
     }
 }

@@ -134,8 +134,8 @@ namespace ReachingTypeAnalysis.Analysis
 				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 methodEntity = await CreateMethodEntityUsingGrainsAsync(grainDesc.MethodDescriptor);
                 Contract.Assert(methodEntity != null);
-                methodEntityGrain.SetMethodEntity(methodEntity, grainDesc).Wait();
-                methodEntityGrain.SetDescriptor(grainDesc).Wait();
+                await methodEntityGrain.SetMethodEntity(methodEntity, grainDesc);
+                await methodEntityGrain.SetDescriptor(grainDesc);
                 this.RegisterEntity(grainDesc, methodEntity);
                 return methodEntityGrain;
             }

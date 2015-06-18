@@ -331,7 +331,6 @@ namespace ReachingTypeAnalysis
 			Debug.Assert(this.Dispatcher != null);
 			var cancellationToken = new CancellationTokenSource();
 			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken.Token);
-			var continuations = new List<Task<Tuple<ProjectCodeProvider, IMethodSymbol>>>();
 			foreach (var projectId in projectIDs)
 			{
 				var project = this.Solution.GetProject(projectId);
@@ -363,8 +362,6 @@ namespace ReachingTypeAnalysis
 				}
 			}
 
-			//var methodEntity = (MethodEntity<ANode, AType, AMethod>)mainEntityProcessor.Entity;
-
 			if (this.Dispatcher is QueueingDispatcher)
             {
                 var qd = (QueueingDispatcher)this.Dispatcher;
@@ -375,12 +372,6 @@ namespace ReachingTypeAnalysis
                 }
             }
 
-            //if (methodEntity.Method != null)
-            //{
-            //    var methodDescriptor = methodEntity.Method.MethodDescriptor;
-            //    callgraph.AddRootMethod(methodDescriptor);
-            //    GenerateCallGraph();
-            //}
         }
 
 		/// <summary>
@@ -413,22 +404,20 @@ namespace ReachingTypeAnalysis
                 // To-do: Hack 
                 if (Dispatcher is OrleansDispatcher)
                 {
-                    //await ((IMethodEntityGrain) mainMethodEntity).DoAnalysisAsync(this.Dispatcher);
+                    var orleansDispatcher = (OrleansDispatcher)Dispatcher;
+                    //var orleansEnitityDesc = new OrleansEntityDescriptor(mainMethodDescriptor);
+
+                    var entityGrain = await orleansDispatcher.GetEntityAsync(mainMethodEntityDescriptor);
+                    await ((IMethodEntityGrain) entityGrain).DoAnalysisAsync(Dispatcher);
                 }
                 else
                 {
                     this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
-                    //var mainEntityProcessor = (MethodEntityProcessor)
-                    //    await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+                    await mainMethodEntityProcessor.DoAnalysisAsync();
                 }
 
-                //await mainMethodEntityProcessor.DoAnalysisAsync();
-                await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
+                //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
     
-                //this.Dispatcher.RegisterEntity(mainMethodEntityDescriptor, mainMethodEntity);
-
-                //await mainEntityProcessor.DoAnalysisAsync();
-
 				Debug.WriteLine("--- Done with propagation ---");
 			}
 		}
