@@ -158,12 +158,17 @@ namespace ReachingTypeAnalysis.Roslyn
 		}
 
 
-		internal static async Task<Tuple<ProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
+        internal static async Task<Tuple<ProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(ProjectCodeProvider.Solution != null);
+			return await GetProjectProviderAndSyntaxAsync(methodDescriptor,ProjectCodeProvider.Solution);
+		}
+		internal static async Task<Tuple<ProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor, Solution solution)
+		{
+			Contract.Assert(solution != null);
 			var cancellationSource = new CancellationTokenSource();
 			var continuations = new List<Task<Compilation>>();
-			foreach (var project in ProjectCodeProvider.Solution.Projects)
+			foreach (var project in solution.Projects)
 			{
 				var compilation = await project.GetCompilationAsync(cancellationSource.Token);                
 				foreach (var tree in compilation.SyntaxTrees)

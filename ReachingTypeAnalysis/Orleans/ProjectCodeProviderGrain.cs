@@ -79,6 +79,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntity;
 		}
     }
+    [Serializable]
     internal class ProjectGrainWrapper : ICodeProvider
     {
         private IProjectCodeProviderGrain projectGrain;

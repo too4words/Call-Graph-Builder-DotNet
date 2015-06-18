@@ -336,6 +336,12 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<object>(-1992686066, new object[] {@dispatcher} );
             }
             
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntityProcessor> OrleansInterfaces.IMethodEntityGrain.GetEntityWithProcessorAsync(ReachingTypeAnalysis.IDispatcher @dispatcher)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityProcessor>(1326140157, new object[] {@dispatcher} );
+            }
+            
             System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
             {
 
@@ -392,6 +398,8 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).ProcessMessaggeAsync((IEntityDescriptor)arguments[0], (IMessage)arguments[1], (IDispatcher)arguments[2]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1992686066: 
                                 return ((IMethodEntityGrain)grain).DoAnalysisAsync((IDispatcher)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 1326140157: 
+                                return ((IMethodEntityGrain)grain).GetEntityWithProcessorAsync((IDispatcher)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1831544886: 
                                 return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -538316126: 
@@ -435,6 +443,8 @@ namespace OrleansInterfaces
                             return "ProcessMessaggeAsync";
                     case -1992686066:
                             return "DoAnalysisAsync";
+                    case 1326140157:
+                            return "GetEntityWithProcessorAsync";
                     case -1831544886:
                             return "IsInitialized";
                     case -538316126:

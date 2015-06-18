@@ -46,6 +46,8 @@ namespace ReachingTypeAnalysis
     public interface IDispatcher
     {
         ImmutableHashSet<IEntity> GetAllEntites();
+        ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors();
+
         void DeliverMessage(IEntityDescriptor destination, IMessage message);
         Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
         //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);

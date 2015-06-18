@@ -132,6 +132,8 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
 			}
+            var continuations = new List<Task>();
+
 			var callsAndRets = await this.MethodEntity.PropGraph.PropagateAsync(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
@@ -152,10 +154,10 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task ProcessCalleesAffectedByPropagationAsync(IEnumerable<AnalysisInvocationExpession> callInvocationInfoForCalls, PropagationKind propKind)
 		{
 			/// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
-			if (callInvocationInfoForCalls.Count() > 0)
-			{
-				this.InvalidateCaches();
-			}
+            //if (callInvocationInfoForCalls.Count() > 0)
+            //{
+            //    this.InvalidateCaches();
+            //}
 			// I made a new list to avoid a concurrent modification exception we received in some tests
 			var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
 			var continuations = new List<Task>();
@@ -201,9 +203,16 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
 				{
 					var instTypes = new HashSet<TypeDescriptor>();
-					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                        .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
-						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
+                    foreach(var candidateTypeDescriptor in this.MethodEntity.InstantiatedTypes)
+                    {
+                        var isSubType = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, callInfo.Receiver.Type);
+                        if(isSubType)
+                        {
+                            instTypes.Add(candidateTypeDescriptor);
+                        }
+                    }
+                    //instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
+                    //    .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
 						types.Add(t);
@@ -224,6 +233,7 @@ namespace ReachingTypeAnalysis.Analysis
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
                         var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
+                        await task;
 						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
 					});
@@ -243,10 +253,51 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
+        private async Task<CallMessageInfo> CreateCallMessageAsync(AnalysisInvocationExpession callInfo,
+                                                            MethodDescriptor actuallCallee,
+                                                            TypeDescriptor computedReceiverType,
+                                                            PropagationKind propKind)
+        {
+            // var calleType = (TypeDescriptor)actuallCallee.ContainerType;
+            var calleType = computedReceiverType;
+            ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
+
+            if (callInfo.Receiver != null)
+            {
+                // BUG!!!! I should use simply computedReceiverType
+                // Instead of copying all types with use the type we use to compute the callee
+                foreach (var type in GetTypes(callInfo.Receiver, propKind))
+                {
+                    var isSubType = await codeProvider.IsSubtypeAsync(type, calleType);
+                    if(isSubType)
+                    {
+                        potentialReceivers.Add(type);
+                    }
+                }
+                //potentialReceivers.UnionWith(
+                //        GetTypes(callInfo.Receiver, propKind)
+                //        .Where(t => codeProvider.IsSubtype(t, calleType)));
+                //.Where(t => t.IsSubtype(calleType)));
+
+                // potentialReceivers.Add((AnalysisType)calleType);
+            }
+
+            var argumentValues = callInfo.Arguments
+                .Select(a => a != null ?
+                GetTypes(a, propKind) :
+                new HashSet<TypeDescriptor>());
+
+            Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
+
+            return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
+                                                potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
+                                                callInfo.LHS, callInfo.InstatiatedTypes, propKind);
+        }
+
 		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, 
                             MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
 		{
-			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
+			var callMessage = await CreateCallMessageAsync(callInfo, realCallee, receiverType, propKind);
 			var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
 			var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
@@ -468,5 +519,33 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 		#endregion
+        public async Task<IEnumerable<MethodDescriptor>> CalleesAsync()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            foreach (var callNode in this.MethodEntity.PropGraph.CallNodes)
+            {
+                result.UnionWith(await CalleesAsync(callNode));
+            }
+            return result;
+        }
+
+        public async Task<ISet<MethodDescriptor>> CalleesAsync(PropGraphNodeDescriptor node)
+        {
+            ISet<MethodDescriptor> result;
+            ValidateCache();
+            if (!calleesMappingCache.TryGetValue(node, out result))
+            {
+                var calleesForNode = new HashSet<MethodDescriptor>();
+                var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+                Contract.Assert(invExp != null);
+
+                calleesForNode.UnionWith(await invExp.ComputeCalleesForNodeAsync(this.MethodEntity.PropGraph, this.codeProvider));
+
+                calleesMappingCache[node] = calleesForNode;
+                result = calleesForNode;
+
+            }
+            return result;
+        }
 	}
 }

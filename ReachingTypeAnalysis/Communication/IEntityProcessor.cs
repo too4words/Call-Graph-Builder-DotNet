@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿using System;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Communication
 {
+    [Serializable]
     public abstract class EntityProcessor: IEntityProcessor
     {
-        protected IDispatcher dispatcher;
+        //[NonSerialized]
+        // Hack: Should not be accessible
+        internal IDispatcher dispatcher;
         public virtual IEntity Entity { get; protected set; }
         public virtual IEntityDescriptor EntityDescriptor { get; protected set; }
         public EntityProcessor(IEntity entity, 

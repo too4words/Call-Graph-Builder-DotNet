@@ -124,6 +124,14 @@ namespace ReachingTypeAnalysis.Analysis
             await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
+        public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IDispatcher dispatcher)
+        {
+            Contract.Assert(this.methodEntity != null);
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher, codeProvider);
+            return methodEntityProcessor;
+        }
+
         public Task<bool> IsInitialized()
         {
             return Task.FromResult(this.methodEntity != null);

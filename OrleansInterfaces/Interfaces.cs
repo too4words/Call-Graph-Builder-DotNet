@@ -18,6 +18,8 @@ namespace OrleansInterfaces
         Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher);
         Task DoAnalysisAsync(IDispatcher dispatcher);
         //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        Task<IEntityProcessor> GetEntityWithProcessorAsync(IDispatcher dispatcher);
+
         Task<bool> IsInitialized();
 
         Task<IEntity> GetMethodEntity();

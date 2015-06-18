@@ -404,11 +404,11 @@ namespace ReachingTypeAnalysis
                 // To-do: Hack 
                 if (Dispatcher is OrleansDispatcher)
                 {
-                    var orleansDispatcher = (OrleansDispatcher)Dispatcher;
-                    //var orleansEnitityDesc = new OrleansEntityDescriptor(mainMethodDescriptor);
-
-                    var entityGrain = await orleansDispatcher.GetEntityAsync(mainMethodEntityDescriptor);
-                    await ((IMethodEntityGrain) entityGrain).DoAnalysisAsync(Dispatcher);
+                    //var orleansDispatcher = (OrleansDispatcher)Dispatcher;
+                    //var entityGrain = await orleansDispatcher.GetEntityAsync(mainMethodEntityDescriptor);
+                    //await ((IMethodEntityGrain) entityGrain).DoAnalysisAsync(Dispatcher);
+                    await mainMethodEntityProcessor.DoAnalysisAsync();
+      
                 }
                 else
                 {
@@ -417,7 +417,7 @@ namespace ReachingTypeAnalysis
                 }
 
                 //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
-    
+                Thread.Sleep(1000);
 				Debug.WriteLine("--- Done with propagation ---");
 			}
 		}
@@ -689,13 +689,17 @@ namespace ReachingTypeAnalysis
 
         #region Callgraph
         private static void UpdateCallGraph(IEntityProcessor entityProcessor, 
-                                            CallGraph<MethodDescriptor, LocationDescriptor> callgraph)
+                                            CallGraph<MethodDescriptor, LocationDescriptor> callgraph, Solution solution)
         {
             Contract.Assert(entityProcessor != null);
             var methodEntity = (MethodEntity)entityProcessor.Entity;
             Contract.Assert(methodEntity.MethodDescriptor != null);
             var callerMethod = methodEntity.MethodDescriptor;
-            var methodEntityProcessor = (MethodEntityProcessor)entityProcessor;
+
+            var codeProvider = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(callerMethod, solution).Result.Item1;
+            // Hack
+            var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor) entityProcessor).dispatcher, codeProvider); 
+                //(MethodEntityProcessor)entityProcessor;
             var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
             foreach (var callSiteNode in callSitesForMethod.Keys)
             {
@@ -717,14 +721,15 @@ namespace ReachingTypeAnalysis
 
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             callgraph.AddRootMethods(roots);
-            var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
-            foreach (var entity in allEntities)
+            // var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
+            foreach (var entityDesc in this.Dispatcher.GetAllEntitiesDescriptors())
             {
                 //  entity.GetEntityProcessor(this.Dispatcher);
-                var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
+                //var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
+                var entityProcessor = this.Dispatcher.GetEntityWithProcessor(entityDesc);
                 
                 // Updates the callGraph
-                UpdateCallGraph(entityProcessor, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph,this.Solution);
                 MethodEntity methodEntity = (MethodEntity) entityProcessor.Entity;
                 
                 methodEntity.Save(Path.Combine(Path.GetTempPath(), 
@@ -735,7 +740,7 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        private static CallGraph<MethodDescriptor, LocationDescriptor> ReBuildCallGraph(Dispatcher dispatcher)
+        private static CallGraph<MethodDescriptor, LocationDescriptor> ReBuildCallGraph(Dispatcher dispatcher, Solution solution)
         {
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             // pg.PropagateDeletionOfNodes();
@@ -748,7 +753,7 @@ namespace ReachingTypeAnalysis
                     callgraph.AddRootMethod(methodEntity.MethodDescriptor);
                 }
                 // Updates the callGraph
-                UpdateCallGraph(entityProcessor, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph, solution);
             }
             //callgraph.Save("cg_d.dot");
 

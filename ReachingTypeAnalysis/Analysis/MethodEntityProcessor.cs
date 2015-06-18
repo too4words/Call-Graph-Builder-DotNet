@@ -26,12 +26,13 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="E"></typeparam>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="M"></typeparam>
+    [Serializable]
     internal partial class MethodEntityProcessor: EntityProcessor
     {
         internal ICodeProvider codeProvider;
+        [NonSerialized]
         private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
         //private SyntaxTree tree;
-
         internal MethodEntity MethodEntity { get; private set; }
         internal MethodEntityProcessor(MethodEntity methodEntity, 
             IDispatcher dispatcher, ICodeProvider codeProvider, IEntityDescriptor entityDescriptor = null, 
@@ -329,6 +330,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 // BUG!!!! I should use simply computedReceiverType
                 // Instead of copying all types with use the type we use to compute the callee
+
                 potentialReceivers.UnionWith(
 				    	GetTypes(callInfo.Receiver, propKind)
                         .Where(t => codeProvider.IsSubtype(t,calleType)));
@@ -577,6 +579,8 @@ namespace ReachingTypeAnalysis.Analysis
         #region Methods that compute caller callees relation
         public void InvalidateCaches()
         {
+            ValidateCache(); 
+
             calleesMappingCache.Clear();
         }
         /// <summary>
@@ -601,7 +605,7 @@ namespace ReachingTypeAnalysis.Analysis
         public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
         {
             ISet<MethodDescriptor> result;
-
+            ValidateCache(); 
             if (!calleesMappingCache.TryGetValue(node, out result))
             {
                 var calleesForNode = new HashSet<MethodDescriptor>();
@@ -615,6 +619,15 @@ namespace ReachingTypeAnalysis.Analysis
 
             }
             return result;
+        }
+
+        private void ValidateCache()
+        {
+            if (calleesMappingCache == null)
+            {
+                calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
+            }
+
         }
 
         /// <summary>
