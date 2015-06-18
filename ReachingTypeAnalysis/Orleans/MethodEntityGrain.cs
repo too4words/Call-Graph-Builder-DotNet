@@ -22,17 +22,17 @@ namespace ReachingTypeAnalysis.Analysis
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         private OrleansEntityDescriptor orleansEntityDescriptor;
-        
+		private OrleansDispatcher dispatcher;
         [NonSerialized]
         private MethodEntity methodEntity;
-        //[NonSerialized]
+	        //[NonSerialized]
         //private OrleansDispatcher dispacther;
         [NonSerialized]
         private IProjectCodeProviderGrain codeProviderGrain;
         public override async Task OnActivateAsync()
         {
 			var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-            
+			
 
             //var guid = this.GetPrimaryKey();
             // Shold not be null..
@@ -44,6 +44,7 @@ namespace ReachingTypeAnalysis.Analysis
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
 				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);// dispacther.GetMethodEntityAsync(orleansEntityDesc);
+				dispatcher = new OrleansDispatcher(orleansEntityDesc,this.methodEntity);
             }
         }
 
@@ -58,6 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
+			dispatcher = new OrleansDispatcher(descriptor, this.methodEntity);
             //var guid = this.GetPrimaryKey();
             // Should not be null
             Contract.Assert(this.State != null);
@@ -100,11 +102,11 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="dispatcher"></param>
         /// <returns></returns>
 
-        public async Task DoAnalysisAsync(IDispatcher dispatcher)
+        public async Task DoAnalysisAsync(IDispatcher dispatcherToDelete)
         {
             Contract.Assert(this.methodEntity != null);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher, codeProvider);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher, codeProvider);
             await methodEntityProcessor.DoAnalysisAsync();
         }
 
@@ -116,19 +118,19 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="dispatcher"></param>
         /// <returns></returns>
 
-        public async Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
+        public async Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcherToDelete)
         {
             Contract.Assert(this.methodEntity != null);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher,codeProvider);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher,codeProvider);
             await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
-        public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IDispatcher dispatcher)
+        public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IDispatcher dispatcherTODelete)
         {
             Contract.Assert(this.methodEntity != null);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher, codeProvider);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher, codeProvider);
             return methodEntityProcessor;
         }
 

@@ -5,6 +5,7 @@ using Orleans.CodeGeneration;
 using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
+using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -17,11 +18,18 @@ namespace ReachingTypeAnalysis.Analysis
     [StorageProvider(ProviderName = "TestStore")]
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
+		List<MethodDescriptor> MethodDescriptors { get; set; }
         [NonSerialized]
         private Microsoft.CodeAnalysis.Solution solution;
 
         public override Task OnActivateAsync()
         {
+			MethodDescriptors = new List<MethodDescriptor>();		
+
+			//if (this.State.MethodDescriptors == null)
+			//{
+			//	this.State.MethodDescriptors = new List<MethodDescriptor>();
+			//}
             if (this.State.SolutionFullPath != null)
             {
                 this.solution = Utils.ReadSolution(this.State.SolutionFullPath);
@@ -53,7 +61,18 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IProjectCodeProviderGrain> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
             var projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution);
+
+			if (!MethodDescriptors.Contains(methodDescriptor))
+			{
+				MethodDescriptors.Add(methodDescriptor);
+			}
+
+			await this.State.WriteStateAsync();
             return projectCodeProviderGrain;
         }
+		public async Task<IList<MethodDescriptor>> GetMethodDescriptors()
+		{
+			return MethodDescriptors;
+		}
     }
 }

@@ -397,27 +397,30 @@ namespace ReachingTypeAnalysis
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                 var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
-                var mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
-                
-                var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+
+
  
                 // To-do: Hack 
                 if (Dispatcher is OrleansDispatcher)
                 {
-                    //var orleansDispatcher = (OrleansDispatcher)Dispatcher;
-                    //var entityGrain = await orleansDispatcher.GetEntityAsync(mainMethodEntityDescriptor);
-                    //await ((IMethodEntityGrain) entityGrain).DoAnalysisAsync(Dispatcher);
-                    await mainMethodEntityProcessor.DoAnalysisAsync();
+					var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
+
+                    await methodEntityGrain.DoAnalysisAsync(Dispatcher);
+                    // await mainMethodEntityProcessor.DoAnalysisAsync();
       
                 }
                 else
                 {
+					var mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+
+					var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+
                     this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                     await mainMethodEntityProcessor.DoAnalysisAsync();
                 }
 
                 //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
-                Thread.Sleep(1000);
+                //Thread.Sleep(1000);
 				Debug.WriteLine("--- Done with propagation ---");
 			}
 		}
@@ -696,21 +699,25 @@ namespace ReachingTypeAnalysis
             Contract.Assert(methodEntity.MethodDescriptor != null);
             var callerMethod = methodEntity.MethodDescriptor;
 
-            var codeProvider = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(callerMethod, solution).Result.Item1;
-            // Hack
-            var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor) entityProcessor).dispatcher, codeProvider); 
-                //(MethodEntityProcessor)entityProcessor;
-            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
-            foreach (var callSiteNode in callSitesForMethod.Keys)
-            {
-                foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
-                {
-                    //var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
-                    var callee = calleeAMethod;
-                    Debug.WriteLine(string.Format("\t-> {0}", callee));
-                    callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
-                }
-            }
+            var pair = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(callerMethod, solution).Result;
+			if (pair != null)
+			{
+				var codeProvider = pair.Item1;
+				// Hack
+				var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor)entityProcessor).dispatcher, codeProvider);
+				//(MethodEntityProcessor)entityProcessor;
+				var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
+				foreach (var callSiteNode in callSitesForMethod.Keys)
+				{
+					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
+					{
+						//var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
+						var callee = calleeAMethod;
+						Debug.WriteLine(string.Format("\t-> {0}", callee));
+						callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
+					}
+				}
+			}
         }
 
         public CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph()
@@ -722,7 +729,8 @@ namespace ReachingTypeAnalysis
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             callgraph.AddRootMethods(roots);
             // var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
-            foreach (var entityDesc in this.Dispatcher.GetAllEntitiesDescriptors())
+			var allEntityDescriptors =this.Dispatcher.GetAllEntitiesDescriptors();
+            foreach (var entityDesc in allEntityDescriptors)
             {
                 //  entity.GetEntityProcessor(this.Dispatcher);
                 //var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 

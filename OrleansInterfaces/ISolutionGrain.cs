@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using ReachingTypeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,6 @@ namespace OrleansInterfaces
         Task SetSolutionSource(string solutionSource);
 
         Task<IProjectCodeProviderGrain> GetCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor methodDescriptor);
+		Task<IList<MethodDescriptor>> GetMethodDescriptors();
     }
 }

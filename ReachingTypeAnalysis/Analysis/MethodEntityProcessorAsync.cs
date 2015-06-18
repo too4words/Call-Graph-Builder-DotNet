@@ -172,12 +172,14 @@ namespace ReachingTypeAnalysis.Analysis
 				if (invocationInfo is CallInfo)
 				{
 					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 				if (invocationInfo is DelegateCallInfo)
 				{
 					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 			}
 			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
@@ -226,7 +228,9 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() > 0)
 				{
 					var continuations = new List<Task>();
-					Parallel.ForEach(types, async (receiverType) =>
+				    // Hack
+					// Parallel.ForEach(types, async (receiverType) =>
+					foreach(var receiverType in types)
 					{
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
@@ -234,9 +238,9 @@ namespace ReachingTypeAnalysis.Analysis
                         var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
                         await task;
-						continuations.Add(task);
+						//continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
-					});
+					};//);
 					await Task.WhenAll(continuations);
 				}
 				// This is not good: One reason is that loads like b = this.f are not working

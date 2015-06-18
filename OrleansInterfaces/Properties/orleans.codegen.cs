@@ -26,6 +26,7 @@ namespace OrleansInterfaces
     using System.Collections.Generic;
     using Orleans;
     using Orleans.Runtime;
+    using System.Collections;
     using ReachingTypeAnalysis;
     
     
@@ -139,6 +140,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<OrleansInterfaces.IProjectCodeProviderGrain>(1319809341, new object[] {@methodDescriptor} );
             }
+            
+            System.Threading.Tasks.Task<System.Collections.Generic.IList<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.ISolutionGrain.GetMethodDescriptors()
+            {
+
+                return base.InvokeMethodAsync<System.Collections.Generic.IList<ReachingTypeAnalysis.MethodDescriptor>>(1971864790, null );
+            }
         }
     }
     
@@ -172,6 +179,8 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).SetSolutionSource((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1319809341: 
                                 return ((ISolutionGrain)grain).GetCodeProviderAsync((ReachingTypeAnalysis.MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1971864790: 
+                                return ((ISolutionGrain)grain).GetMethodDescriptors().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -207,6 +216,8 @@ namespace OrleansInterfaces
                             return "SetSolutionSource";
                     case 1319809341:
                             return "GetCodeProviderAsync";
+                    case 1971864790:
+                            return "GetMethodDescriptors";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Runtime.Serialization;
+﻿using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
