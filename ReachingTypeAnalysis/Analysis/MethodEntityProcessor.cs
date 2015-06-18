@@ -413,7 +413,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// If some output info was generated it will generate return messahe
         /// </summary>
         /// <param name="propKind"></param>
-        public void EndOfPropagationEvent(PropagationKind propKind, bool retValueChange)
+        private void EndOfPropagationEvent(PropagationKind propKind, bool retValueChange)
         {
             // Should do something more clever
             ProcessReturnNode(propKind);

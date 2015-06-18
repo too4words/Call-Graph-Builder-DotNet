@@ -92,25 +92,35 @@ namespace ReachingTypeAnalysis.Analysis
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
+        /// <summary>
+        /// Ideally I would prefer to have a method GetEntityWithProcessor and 
+        /// keep the same flow as the non-Orleans approach, but we cannot return a 
+        /// MethodEntityProcessor...
+        /// </summary>
+        /// <param name="dispatcher"></param>
+        /// <returns></returns>
+
         public async Task DoAnalysisAsync(IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
             var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher, codeProvider);
-
-//            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
-
             await methodEntityProcessor.DoAnalysisAsync();
         }
+
+        /// <summary>
+        /// Ideally I would prefer to have a method GetEntityWithProcessor and 
+        /// keep the same flow as the non-Orleans approach, but we cannot return a 
+        /// MethodEntityProcessor...
+        /// </summary>
+        /// <param name="dispatcher"></param>
+        /// <returns></returns>
 
         public async Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher)
         {
             Contract.Assert(this.methodEntity != null);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
             var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher,codeProvider);
-
-            //            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
-
             await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
