@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System.IO;
 using System.Configuration;
+using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
 {
@@ -200,6 +201,12 @@ namespace ReachingTypeAnalysis
 				.AddDocument(documentId, "MyFile.cs", source);
 			return solution;
 		}
+        public static async Task<Project> ReadProjectAsync(string path)
+        {
+            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+            return await workspace.OpenProjectAsync(path);
+
+        }
         public static Solution ReadSolution(string path)
         {
             if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
@@ -222,10 +229,8 @@ namespace ReachingTypeAnalysis
             var pIds = solution.ProjectIds;
             foreach (var pId in pIds)
                 solution = solution.AddMetadataReferences(pId, metadataReferences);
-
             return solution;
         }
-
 	}
 
 	public class PairIterator<T1, T2> : IEnumerable<Tuple<T1, T2>>

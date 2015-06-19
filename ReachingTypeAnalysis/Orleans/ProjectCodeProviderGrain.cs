@@ -53,11 +53,12 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.State.SourceCode = source;
             var solution = Utils.CreateSolution(source);
+            // To do: Hack
             this.State.Name = "MyProject";
+            this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution, this.State.Name);                    
             await this.State.WriteStateAsync();
             return;
         }
-
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {

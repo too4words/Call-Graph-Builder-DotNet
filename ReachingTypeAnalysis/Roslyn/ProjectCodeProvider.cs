@@ -28,14 +28,19 @@ namespace ReachingTypeAnalysis.Roslyn
 
         async internal static Task<ProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
         {
-            foreach (var id in Solution.ProjectIds)
+            var project = await Utils.ReadProjectAsync(fullPath);
+            if(project!=null)
             {
-                var project = Solution.GetProject(id);
-                if(project.FilePath.Equals(fullPath))
-                {
-                    return new ProjectCodeProvider(project, await project.GetCompilationAsync());
-                }
+                return new ProjectCodeProvider(project, await project.GetCompilationAsync());
             }
+            //foreach (var id in Solution.ProjectIds)
+            //{
+            //    var project = Solution.GetProject(id);
+            //    if(project.FilePath.Equals(fullPath))
+            //    {
+            //        return new ProjectCodeProvider(project, await project.GetCompilationAsync());
+            //    }
+            //}
             Contract.Assert(false, "Can't find path = " + fullPath);
             return null;
         }

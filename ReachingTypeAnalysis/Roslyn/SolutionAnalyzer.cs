@@ -135,6 +135,11 @@ namespace ReachingTypeAnalysis
                         else {
                             Contract.Assert(Solution.FilePath!=null);
                             solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
+                            foreach(var project in this.Solution.Projects)
+                            {
+                                IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain(project.Name);
+                                projectGrain.SetProjectPath(project.FilePath).Wait();
+                            }                            
                         }
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();
