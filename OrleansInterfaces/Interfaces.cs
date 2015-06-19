@@ -15,10 +15,10 @@ namespace OrleansInterfaces
     public interface IMethodEntityGrain :  IGrainWithStringKey, IEntity
     {
         Task<IEntityDescriptor> GetDescriptor();
-        Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message, IDispatcher dispatcher);
-        Task DoAnalysisAsync(IDispatcher dispatcher);
+        Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
+        Task DoAnalysisAsync();
         //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
-        Task<IEntityProcessor> GetEntityWithProcessorAsync(IDispatcher dispatcher);
+        Task<IEntityProcessor> GetEntityWithProcessorAsync();
 
         Task<bool> IsInitialized();
 

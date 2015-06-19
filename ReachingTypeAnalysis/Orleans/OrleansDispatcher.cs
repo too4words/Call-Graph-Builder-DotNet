@@ -16,8 +16,6 @@ namespace ReachingTypeAnalysis.Analysis
     {
         public Guid Guid { get; set; }
         public MethodDescriptor MethodDescriptor { get; set; }
-        //public string Etag { get; set; }
-
 
         public OrleansEntityDescriptor(MethodDescriptor methodDescriptor)
         {
@@ -44,18 +42,16 @@ namespace ReachingTypeAnalysis.Analysis
     [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
-        // Keeps a mapping between method descriptors and orleans entities Guids
-        // Should be necessary if we are able to build the OrleansDescriptors properly
-        //private Dictionary<MethodDescriptor, Guid> orleansGuids = new Dictionary<MethodDescriptor, Guid>();//
-
-        internal static OrleansDispatcher Instance = null;
 		private IEntityDescriptor self;
 		private IEntity entity;
 		public OrleansDispatcher()
 		{
-            Instance = this;
 		}
-
+        /// <summary>
+        /// We use this constructor in the case we use one dispatcher per grain
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="entity"></param>
 		public OrleansDispatcher(IEntityDescriptor self, IEntity entity)
 		{
 			this.self = self;
@@ -69,33 +65,23 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
-            var destinationEntity = await GetEntityAsync(destination);
-            var destinationGrain = (IMethodEntityGrain)destinationEntity;
+            // Option 1: Using directly the grain
+            //var destinationEntity = await GetEntityAsync(destination);
+            //var destinationGrain = (IMethodEntityGrain)destinationEntity;
+            //await destinationGrain.ProcessMessaggeAsync(message.Source, message);
 
-            await destinationGrain.ProcessMessaggeAsync(message.Source, message, this);
-
-            //var methodEntity = (MethodEntity) await destinationGrain.GetMethodEntity();
-            //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            //var methodEntityProcessor = new MethodEntityProcessor(methodEntity, this, codeProvider);
-
-            //var methodEntityProcessor = (MethodEntityProcessor) await GetEntityWithProcessorAsync(destination); 
-            //await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
+            // Option 2: Using a MethoProcessor created by the grain.
+            // This option requires the processor to be serializable
+            var methodEntityProcessor = (MethodEntityProcessor)await GetEntityWithProcessorAsync(destination);
+            await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
 
             // await ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message,destinationGrain);
-
 		}
 
         //public async Task ReceiveMessageAsync(IEntityDescriptor source, 
         //                                IMessage message,
         //                                IMethodEntityGrain destinationGrain)
-        //{
-        //    var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-        //    var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this ,codeProvider);
-
-        //    //            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, dispatcher);
-
-        //    await methodEntityProcessor.ProcessMessageAsync(source, message);
-        
+        //{        
         //    //await destinationGrain.ProcessMessaggeAsync(source, message,this);
         //}
 
@@ -199,7 +185,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Contract.Assert(entityDesc != null);
 			var entity = (IMethodEntityGrain)await GetEntityAsync(entityDesc);
-            return await entity.GetEntityWithProcessorAsync(this);
+            return await entity.GetEntityWithProcessorAsync();
             //Contract.Assert(entity != null);
             //var methodEntity = (MethodEntity) await entity.GetMethodEntity();
             //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);

@@ -80,6 +80,8 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             MethodEntity methodEntity = null;
             var tree = await this.GetSyntaxAsync(methodDescriptor);
+            if(tree==null)
+            { }
             var model = this.Compilation.GetSemanticModel(tree);
             var methodEntityGenerator = new MethodSyntaxProcessor(model, this, tree, methodDescriptor);
             methodEntity = methodEntityGenerator.ParseMethod();

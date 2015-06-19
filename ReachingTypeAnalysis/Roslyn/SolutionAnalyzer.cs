@@ -89,8 +89,7 @@ namespace ReachingTypeAnalysis
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
-                        AnalyzeOnDemandAsync().Wait();
-
+                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
                         break;
                     }
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
@@ -140,7 +139,7 @@ namespace ReachingTypeAnalysis
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();
                         // run
-                        AnalyzeOnDemandAsync().Wait();
+                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ORLEANS).Wait();
 
                         break;
                     }
@@ -378,7 +377,7 @@ namespace ReachingTypeAnalysis
 		/// Try to get the roslyn methods on the fly
 		/// Currently works with one project.
 		/// </summary>
-		public async Task AnalyzeOnDemandAsync()
+		public async Task AnalyzeOnDemandAsync(AnalysisStrategy strategy)
 		{
 			Debug.Assert(this.Dispatcher != null);
 			var cancellationSource = new CancellationTokenSource();
@@ -398,27 +397,24 @@ namespace ReachingTypeAnalysis
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                 var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
 
-
- 
-                // To-do: Hack 
-                if (Dispatcher is OrleansDispatcher)
+                IEntityProcessor mainMethodEntityProcessor = null;
+                switch(strategy)
                 {
-					var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
-
-                    await methodEntityGrain.DoAnalysisAsync(Dispatcher);
-                    // await mainMethodEntityProcessor.DoAnalysisAsync();
-      
+                    case AnalysisStrategy.ONDEMAND_ORLEANS:
+                        var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
+                        // Option 1: Direcly using the Grain
+                        //await methodEntityGrain.DoAnalysisAsync();
+                        // Option 2: Using the processor (requires making the processor serializable)
+                        mainMethodEntityProcessor = await methodEntityGrain.GetEntityWithProcessorAsync();
+                        await mainMethodEntityProcessor.DoAnalysisAsync();
+                        break;
+                    case AnalysisStrategy.ONDEMAND_ASYNC:
+                        mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+					    var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+                        this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
+                        await mainMethodEntityProcessor.DoAnalysisAsync();
+                        break;
                 }
-                else
-                {
-					var mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
-
-					var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
-
-                    this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
-                    await mainMethodEntityProcessor.DoAnalysisAsync();
-                }
-
                 //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
                 //Thread.Sleep(1000);
 				Debug.WriteLine("--- Done with propagation ---");

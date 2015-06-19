@@ -335,22 +335,22 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityDescriptor>(331950094, null );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ProcessMessaggeAsync(ReachingTypeAnalysis.IEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message, ReachingTypeAnalysis.IDispatcher @dispatcher)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ProcessMessaggeAsync(ReachingTypeAnalysis.IEntityDescriptor @source, ReachingTypeAnalysis.IMessage @message)
             {
 
-                return base.InvokeMethodAsync<object>(-357577366, new object[] {@source, @message, @dispatcher} );
+                return base.InvokeMethodAsync<object>(-550949426, new object[] {@source, @message} );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.DoAnalysisAsync(ReachingTypeAnalysis.IDispatcher @dispatcher)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.DoAnalysisAsync()
             {
 
-                return base.InvokeMethodAsync<object>(-1992686066, new object[] {@dispatcher} );
+                return base.InvokeMethodAsync<object>(-676666698, null );
             }
             
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntityProcessor> OrleansInterfaces.IMethodEntityGrain.GetEntityWithProcessorAsync(ReachingTypeAnalysis.IDispatcher @dispatcher)
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntityProcessor> OrleansInterfaces.IMethodEntityGrain.GetEntityWithProcessorAsync()
             {
 
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityProcessor>(1326140157, new object[] {@dispatcher} );
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityProcessor>(110400473, null );
             }
             
             System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
@@ -405,12 +405,12 @@ namespace OrleansInterfaces
                         {
                             case 331950094: 
                                 return ((IMethodEntityGrain)grain).GetDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -357577366: 
-                                return ((IMethodEntityGrain)grain).ProcessMessaggeAsync((IEntityDescriptor)arguments[0], (IMessage)arguments[1], (IDispatcher)arguments[2]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case -1992686066: 
-                                return ((IMethodEntityGrain)grain).DoAnalysisAsync((IDispatcher)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case 1326140157: 
-                                return ((IMethodEntityGrain)grain).GetEntityWithProcessorAsync((IDispatcher)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -550949426: 
+                                return ((IMethodEntityGrain)grain).ProcessMessaggeAsync((IEntityDescriptor)arguments[0], (IMessage)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -676666698: 
+                                return ((IMethodEntityGrain)grain).DoAnalysisAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 110400473: 
+                                return ((IMethodEntityGrain)grain).GetEntityWithProcessorAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1831544886: 
                                 return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -538316126: 
@@ -450,11 +450,11 @@ namespace OrleansInterfaces
                     {
                         case 331950094:
                             return "GetDescriptor";
-                    case -357577366:
+                    case -550949426:
                             return "ProcessMessaggeAsync";
-                    case -1992686066:
+                    case -676666698:
                             return "DoAnalysisAsync";
-                    case 1326140157:
+                    case 110400473:
                             return "GetEntityWithProcessorAsync";
                     case -1831544886:
                             return "IsInitialized";
