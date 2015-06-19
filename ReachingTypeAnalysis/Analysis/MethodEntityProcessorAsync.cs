@@ -172,14 +172,14 @@ namespace ReachingTypeAnalysis.Analysis
 				if (invocationInfo is CallInfo)
 				{
 					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
-					//await t;
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 				if (invocationInfo is DelegateCallInfo)
 				{
 					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-					//await t;
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 			}
 			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);

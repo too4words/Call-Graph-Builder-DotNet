@@ -66,16 +66,14 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
             // Option 1: Using directly the grain
-            //var destinationEntity = await GetEntityAsync(destination);
-            //var destinationGrain = (IMethodEntityGrain)destinationEntity;
-            //await destinationGrain.ProcessMessaggeAsync(message.Source, message);
+            var destinationEntity = await GetEntityAsync(destination);
+            var destinationGrain = (IMethodEntityGrain)destinationEntity;
+            await destinationGrain.ProcessMessaggeAsync(message.Source, message);
 
             // Option 2: Using a MethoProcessor created by the grain.
             // This option requires the processor to be serializable
-            var methodEntityProcessor = (MethodEntityProcessor)await GetEntityWithProcessorAsync(destination);
-            await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
-
-            // await ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message,destinationGrain);
+            //var methodEntityProcessor = (MethodEntityProcessor)await GetEntityWithProcessorAsync(destination);
+            //await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
 		}
 
         //public async Task ReceiveMessageAsync(IEntityDescriptor source, 
