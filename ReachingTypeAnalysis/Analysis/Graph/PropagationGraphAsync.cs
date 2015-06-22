@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Tachyon;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis
 {
@@ -22,19 +23,6 @@ namespace ReachingTypeAnalysis
     /// <typeparam name="M"></typeparam>
     internal partial class PropagationGraph
     {
-
-        internal async Task<bool> DiffPropAysnc(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
-        {
-            if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)
-            {
-                return DiffDelProp(src, n);
-            }
-            else
-            {
-                var res = await DiffPropAsync(src, n);
-                return res;
-            }
-        }
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
         {
             if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)

@@ -44,7 +44,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.MethodEntity = methodEntity;
             this.EntityDescriptor = entityDescriptor==null?methodEntity.EntityDescriptor
                                                           :entityDescriptor;
-            this.Verbose = verbose;
+			this.Verbose = true; // verbose;
             // It gets a code provider for the method. 
             if (codeProvider!=null || dispatcher is OrleansDispatcher)
             {
@@ -98,7 +98,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="callerMesssage"></param>
         private void ProcessCallMessage(CallerMessage callerMesssage)
         {
-            Debug.WriteLine(string.Format("ProcessCallMessage: {0}", callerMesssage));
+            Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
             // Propagate this to the callee (RTA)
             this.MethodEntity.InstantiatedTypes
 				.UnionWith(
@@ -131,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (this.Verbose)
             {
-                Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
+                Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
             }
             // Propagation of concrete types
 
@@ -428,7 +428,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
                 if (this.Verbose)
                 {
-                    Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
+                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
                 }
 
                 // This tries to check that the invocation is repeated (didn't work: need to check)
@@ -438,7 +438,7 @@ namespace ReachingTypeAnalysis.Analysis
                 {
                     if (this.Verbose)
                     {
-                        Debug.WriteLine(string.Format("Recursion loop {0} ", this.MethodEntity.MethodDescriptor.ToString()));
+                        Debug.WriteLine("Recursion loop {0} ", this.MethodEntity.MethodDescriptor);
                     }
                     EndOfPropagationEvent(callMessage.PropagationKind, false);
                     return;

@@ -94,7 +94,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessCallMessageAsync(CallerMessage callerMesssage)
 		{
-			Debug.WriteLine(string.Format("ProcessCallMessage: {0}", callerMesssage));
+			Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
 			// Propagate this to the callee (RTA)
 			this.MethodEntity.InstantiatedTypes.UnionWith(
 				Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
@@ -130,7 +130,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
+				Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
 			}
             var continuations = new List<Task>();
 
@@ -172,14 +172,14 @@ namespace ReachingTypeAnalysis.Analysis
 				if (invocationInfo is CallInfo)
 				{
 					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
-					await t;
-					//continuations.Add(t);
+					//await t;
+					continuations.Add(t);
 				}
 				if (invocationInfo is DelegateCallInfo)
 				{
 					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-					await t;
-					//continuations.Add(t);
+					//await t;
+					continuations.Add(t);
 				}
 			}
 			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
@@ -205,10 +205,11 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
 				{
 					var instTypes = new HashSet<TypeDescriptor>();
-                    foreach(var candidateTypeDescriptor in this.MethodEntity.InstantiatedTypes)
+                    foreach (var candidateTypeDescriptor in this.MethodEntity.InstantiatedTypes)
                     {
                         var isSubType = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, callInfo.Receiver.Type);
-                        if(isSubType)
+
+                        if (isSubType)
                         {
                             instTypes.Add(candidateTypeDescriptor);
                         }
@@ -235,10 +236,10 @@ namespace ReachingTypeAnalysis.Analysis
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
+						var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
-                        await task;
-						//continuations.Add(task);
+                        //await task;
+						continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
 					};//);
 					await Task.WhenAll(continuations);
@@ -273,6 +274,7 @@ namespace ReachingTypeAnalysis.Analysis
                 foreach (var type in GetTypes(callInfo.Receiver, propKind))
                 {
                     var isSubType = await codeProvider.IsSubtypeAsync(type, calleType);
+
                     if(isSubType)
                     {
                         potentialReceivers.Add(type);
@@ -380,10 +382,21 @@ namespace ReachingTypeAnalysis.Analysis
 			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
 			{
 				var instTypes = new HashSet<TypeDescriptor>();
-				instTypes.UnionWith(
-					this.MethodEntity.InstantiatedTypes
-                        .Where(iType => codeProvider.IsSubtypeAsync(iType,returnVariable.Type).Result));
-                        //.Where(iType => iType.IsSubtype(returnVariable.Type)));
+
+				foreach (var iType in this.MethodEntity.InstantiatedTypes)
+				{
+					var isSubtype = await codeProvider.IsSubtypeAsync(iType,returnVariable.Type);
+					
+					if (isSubtype)
+					{
+						instTypes.Add(iType);
+					}
+				}
+
+				//instTypes.UnionWith(
+				//	this.MethodEntity.InstantiatedTypes
+				//		.Where(iType => codeProvider.IsSubtypeAsync(iType,returnVariable.Type).Result));
+                ////    .Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{
 					types.Add(t);
@@ -410,6 +423,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task EndOfPropagationEventAsync(PropagationKind propKind, bool retValueChange)
 		{
+			if (this.Verbose)
+			{
+				Debug.WriteLine("EndOfPropagationEventAsync of {0}", this.MethodEntity.MethodDescriptor);
+			}
+
 			// Should do something more clever
 			if (retValueChange)
 			{
@@ -425,7 +443,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (this.Verbose)
                 {
-                    Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
+                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
                 }
                 // This is the node in the caller where info of ret-value should go
                 var lhs = callMessage.LHS;
@@ -502,9 +520,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (retMessageInfo.LHS != null)
 			{
-				lock (this.MethodEntity)
+				//lock (this.MethodEntity)
 				{
-					this.MethodEntity.PropGraph.DiffProp(
+					await this.MethodEntity.PropGraph.DiffPropAsync(
 						Demarshaler.Demarshal(retMessageInfo.RVs),
 						Demarshaler.Demarshal(retMessageInfo.LHS),
 						retMessageInfo.PropagationKind);

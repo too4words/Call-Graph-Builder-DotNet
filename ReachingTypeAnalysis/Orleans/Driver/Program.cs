@@ -84,7 +84,7 @@ namespace ReachingTypeAnalysis
             analyzerLocal.Analyze(AnalysisStrategy.ONDEMAND_SYNC);
             timerLocal.Stop();
             var callgraphLocal = analyzerLocal.GenerateCallGraph();
-            Debug.WriteLine(string.Format("Local analysis time: {0}", timerLocal.Elapsed));
+            Debug.WriteLine("Local analysis time: {0}", timerLocal.Elapsed);
 
             var analyzerParallel = new SolutionAnalyzer(solution);
             var timerQueuing = new Stopwatch();

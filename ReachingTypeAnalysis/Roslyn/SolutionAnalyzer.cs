@@ -403,10 +403,10 @@ namespace ReachingTypeAnalysis
                     case AnalysisStrategy.ONDEMAND_ORLEANS:
                         var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
                         // Option 1: Direcly using the Grain
-                        //await methodEntityGrain.DoAnalysisAsync();
-                        // Option 2: Using the processor (requires making the processor serializable)
-                        mainMethodEntityProcessor = await methodEntityGrain.GetEntityWithProcessorAsync();
-                        await mainMethodEntityProcessor.DoAnalysisAsync();
+                        await methodEntityGrain.DoAnalysisAsync();
+                        //// Option 2: Using the processor (requires making the processor serializable)
+						//mainMethodEntityProcessor = await methodEntityGrain.GetEntityWithProcessorAsync();
+						//await mainMethodEntityProcessor.DoAnalysisAsync();
                         break;
                     case AnalysisStrategy.ONDEMAND_ASYNC:
                         mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
