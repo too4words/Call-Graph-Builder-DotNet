@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
@@ -18,6 +19,7 @@ namespace ReachingTypeAnalysis.Analysis
     }
 
     [StorageProvider(ProviderName = "TestStore")]
+    [Reentrant]
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         private OrleansEntityDescriptor orleansEntityDescriptor;

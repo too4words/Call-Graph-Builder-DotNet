@@ -40,7 +40,8 @@ class Program
         C d = new D();
         C c;
         c = new C();
-        C h = d.m1(c);
+        C h = d.m1(d);
+        h.m2(c);
         d.Equals(c);
     }
 }";

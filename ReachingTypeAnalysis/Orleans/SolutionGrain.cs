@@ -70,9 +70,9 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.State.WriteStateAsync();
             return projectCodeProviderGrain;
         }
-		public async Task<IList<MethodDescriptor>> GetMethodDescriptors()
+		public  Task<IList<MethodDescriptor>> GetMethodDescriptors()
 		{
-			return MethodDescriptors;
+            return Task.FromResult <IList<MethodDescriptor>>(MethodDescriptors);
 		}
     }
 }

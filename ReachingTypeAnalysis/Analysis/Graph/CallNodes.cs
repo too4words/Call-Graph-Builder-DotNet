@@ -36,7 +36,7 @@ namespace ReachingTypeAnalysis
 		}
 
 		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider);
-        internal virtual async Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(PropagationGraph propGraph, ICodeProvider codeProvider)
+        internal virtual Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(PropagationGraph propGraph, ICodeProvider codeProvider)
         {
             throw new NotImplementedException();
         }

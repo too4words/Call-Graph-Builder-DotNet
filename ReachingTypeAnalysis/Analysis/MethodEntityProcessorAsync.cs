@@ -104,6 +104,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessReturnMessageAsync(ReturnMessage returnMesssage)
 		{
+            Debug.WriteLine("ProcessReturnMessage: {1} in method {0}", this.MethodEntity.MethodDescriptor, returnMesssage);
+
 			var retMsgInfo = returnMesssage.ReturnMessageInfo;
 			// Propagate types from the callee (RTA)
 			this.MethodEntity.InstantiatedTypes
@@ -133,7 +135,6 @@ namespace ReachingTypeAnalysis.Analysis
 				Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
 			}
             var continuations = new List<Task>();
-
 			var callsAndRets = await this.MethodEntity.PropGraph.PropagateAsync(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
@@ -172,14 +173,14 @@ namespace ReachingTypeAnalysis.Analysis
 				if (invocationInfo is CallInfo)
 				{
 					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
-					//await t;
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 				if (invocationInfo is DelegateCallInfo)
 				{
 					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-					//await t;
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 			}
 			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
@@ -313,7 +314,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task DispatchCallMessageForDelegateAsync(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
 		{
 			var continuations = new List<Task>();
-			foreach (var callee in GetDelegateCallees(delegateCallInfo.CalleeDelegate))
+			foreach (var callee in await GetDelegateCalleesAsync(delegateCallInfo.CalleeDelegate))
 			{
 				var continuation = CreateAndSendCallMessageAsync(delegateCallInfo, 
 					callee, callee.ContainerType, propKind);
@@ -329,6 +330,10 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		private async Task ProcessReturnNodeAsync(PropagationKind propKind)
 		{
+            if(this.Verbose)
+            {
+                Debug.WriteLine("ProcessReturnNode: {0}", this.MethodEntity.MethodDescriptor);
+            }
 			if (this.MethodEntity.ReturnVariable != null)
 			{
 				// A test to try to force only one simultaneous entity 
@@ -360,6 +365,7 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 
 				await Task.WhenAll(continuations);
+
 			}
 		}
 
@@ -540,6 +546,32 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 		}
+
+        private async Task<IEnumerable<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var types = GetTypes(delegateVariableNode);
+            foreach (var delegateInstance in GetDelegates(delegateVariableNode))
+            {
+                if (types.Count() > 0)
+                {
+                    foreach (var t in types)
+                    {
+                        //var aMethod = delegateInstance.FindMethodImplementation(t);
+                        // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
+                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(delegateInstance, t);
+                        callees.Add(methodDescriptor);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+            return callees;
+        }
+
 		#endregion
         public async Task<IEnumerable<MethodDescriptor>> CalleesAsync()
         {
