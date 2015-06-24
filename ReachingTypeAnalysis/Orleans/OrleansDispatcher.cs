@@ -43,6 +43,7 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class OrleansDispatcher : IDispatcher
 	{
 		private IEntityDescriptor self;
+        [NonSerialized]
 		private IEntity entity;
 		public OrleansDispatcher()
 		{

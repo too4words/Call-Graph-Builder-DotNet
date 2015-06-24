@@ -239,8 +239,8 @@ namespace ReachingTypeAnalysis.Analysis
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
 						var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
-                        //await task;
-						continuations.Add(task);
+                        await task;
+						//continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
 					};//);
 					await Task.WhenAll(continuations);
@@ -318,9 +318,9 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				var continuation = CreateAndSendCallMessageAsync(delegateCallInfo, 
 					callee, callee.ContainerType, propKind);
-				continuations.Add(continuation);
+                await continuation;
+                //continuations.Add(continuation);
 			}
-
 			await Task.WhenAll(continuations);
 		}
 
@@ -361,7 +361,8 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var ret = this.MethodEntity.ReturnVariable;
 					var t = DispachReturnMessageAsync(callerContex, ret, propKind);
-					continuations.Add(t);
+                    await t;
+                    //continuations.Add(t);
 				}
 
 				await Task.WhenAll(continuations);

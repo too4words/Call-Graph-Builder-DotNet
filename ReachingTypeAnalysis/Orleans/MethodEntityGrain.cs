@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
 				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);
- 				dispatcher = new OrleansDispatcher(orleansEntityDesc,this.methodEntity);
+                dispatcher = new OrleansDispatcher(orleansEntityDesc, this.AsReference<IMethodEntityGrain>());
             }
         }
 
@@ -60,7 +60,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-			dispatcher = new OrleansDispatcher(descriptor, this.methodEntity);
+			dispatcher = new OrleansDispatcher(descriptor, this.AsReference<IMethodEntityGrain>());
             Contract.Assert(this.State != null);
             this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
             return State.WriteStateAsync();

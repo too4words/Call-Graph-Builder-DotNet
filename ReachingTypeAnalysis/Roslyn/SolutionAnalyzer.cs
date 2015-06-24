@@ -332,7 +332,7 @@ namespace ReachingTypeAnalysis
         /// </summary>
         public void AnalyzeOnDemand()
         {
-			Debug.Assert(this.Dispatcher != null);
+			Contract.Assert(this.Dispatcher != null);
 			var cancellationToken = new CancellationTokenSource();
 			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken.Token);
 			foreach (var projectId in projectIDs)
@@ -384,7 +384,7 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		public async Task AnalyzeOnDemandAsync(AnalysisStrategy strategy)
 		{
-			Debug.Assert(this.Dispatcher != null);
+			Contract.Assert(this.Dispatcher != null);
 			var cancellationSource = new CancellationTokenSource();
 			var triple = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token);
 			if (triple != null)
