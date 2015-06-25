@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ReachingTypeAnalysis.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -255,7 +256,7 @@ namespace ReachingTypeAnalysis.Roslyn
 	/// </summary>
 	internal class UnsupportedExpression : AnalysisExpression
 	{
-		SyntaxNodeOrToken expression;
+		//SyntaxNodeOrToken expression;
 		internal UnsupportedExpression(SyntaxNodeOrToken ex, ITypeSymbol type, ISymbol s)
 			: base(ex, type)
 		{

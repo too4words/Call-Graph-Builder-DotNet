@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
@@ -14,45 +15,38 @@ namespace ReachingTypeAnalysis.Analysis
 {
     public interface IOrleansEntityState: IGrainState
     {
-        Guid Guid { get; set; }
         MethodDescriptor MethodDescriptor { get; set; }
-        // MethodEntity MethodEntity { get; set; }
-    }
-    [Serializable]
-    internal class OrleansEntityDescriptor :  IEntityDescriptor
-    {
-        public Guid Guid { get;  set; }
-        public MethodDescriptor MethodDescriptor { get; set; }
-        //public string Etag { get; set; }
-        
-
-        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
-        {
-            this.Guid = guid;
-            this.MethodDescriptor = methodDescriptor;
-        }
     }
 
     [StorageProvider(ProviderName = "TestStore")]
-    internal class MethodEntityGrain : Orleans.Grain<IOrleansEntityState>, IMethodEntityGrain
+    [Reentrant]
+    internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         private OrleansEntityDescriptor orleansEntityDescriptor;
-        
+        /// <summary>
+        /// Each grain will use its own dispatcher
+        /// </summary>
+		private OrleansDispatcher dispatcher;
         [NonSerialized]
         private MethodEntity methodEntity;
-
-
+        [NonSerialized]
+        private MethodEntityProcessor methodEntityProcessor;
+        [NonSerialized]
+        private IProjectCodeProviderGrain codeProviderGrain;
         public override async Task OnActivateAsync()
         {
-            var guid = this.GetPrimaryKey();
-            // Shold not be null..
-            if (this.State.MethodDescriptor != null)
+	        // Shold not be null..
+            if (this.State.Etag!= null)
             {
-                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);
+                var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+				codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+                var orleansEntityDesc = new OrleansEntityDescriptor(this.State.MethodDescriptor);
                 // TODO: do we need to check and restore methodEntity
-                this.methodEntity = (MethodEntity) await OrleansDispatcher.Instance.GetMethodEntityAsync(orleansEntityDesc);
+                // To restore the full entity state we need to save propagation data
+                // or repropagate
+				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);
+                dispatcher = new OrleansDispatcher(orleansEntityDesc, this.AsReference<IMethodEntityGrain>());
             }
-            //return TaskDone.Done;
         }
 
         public override Task OnDeactivateAsync()
@@ -66,23 +60,14 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
-            var guid = this.GetPrimaryKey();
-            // Should not be null
-            if (this.State != null)
-            {
-                this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
-                return State.WriteStateAsync();
-            }
-            return TaskDone.Done;
+			dispatcher = new OrleansDispatcher(descriptor, this.AsReference<IMethodEntityGrain>());
+            Contract.Assert(this.State != null);
+            this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
+            return State.WriteStateAsync();
         }
 
         public Task<IEntityDescriptor> GetDescriptor()
         {
-            //Contract.Assert(this.State != null);
-            if (this.State != null)
-            {
-                this.orleansEntityDescriptor = new OrleansEntityDescriptor(this.State.MethodDescriptor, this.State.Guid);   
-            }
             return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
         }
 
@@ -90,36 +75,58 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var orleansEntityDescriptor = (OrleansEntityDescriptor)descriptor;
 
-            //Contract.Assert(this.State != null);
-            if (this.State != null)
-            {
-                this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
-            }
-
-            return TaskDone.Done;
+            Contract.Assert(this.State != null);
+            this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
+            return State.WriteStateAsync();
         }
-
-        //public IEntityProcessor GetEntityProcessor(IDispatcher dispatcher)
-        //{
-        //    Contract.Assert(this.methodEntity != null);
-        //    Contract.Assert(dispatcher != null);
-
-        //    return new MethodEntityProcessor(this.methodEntity, dispatcher, true);
-        //}
 
         public  Task<IEntity> GetMethodEntity()
         {
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
-
-        public Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message)
+        /// <summary>
+        /// Ideally I would prefer to have a method GetEntityWithProcessor and 
+        /// keep the same flow as the non-Orleans approach, but this require
+        /// to have the EntityProcessor serializable
+        /// </summary>
+        public async Task DoAnalysisAsync()
         {
             Contract.Assert(this.methodEntity != null);
-            //Contract.Assert(this.methodEntity.EntityProcessor != null);
-            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, OrleansDispatcher.Instance);
-            // this.methodEntity.GetEntityProcessor(OrleansDispatcher.Instance)
-            return methodEntityProcessor.ReceiveMessageAsync(source, message);
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher, codeProvider);
+            await methodEntityProcessor.DoAnalysisAsync();
+        }
+
+        /// <summary>
+        /// Ideally I would prefer to have a method GetEntityWithProcessor and 
+        /// keep the same flow as the non-Orleans approach, but this require
+        /// to have the EntityProcessor serializable
+        /// </summary>
+        public async Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message)
+        {
+            Contract.Assert(this.methodEntity != null);
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            var methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher,codeProvider);
+            await methodEntityProcessor.ProcessMessageAsync(source, message);
+        }
+
+        /// <summary>
+        /// We use this to obtain a processor directly from the grain
+        /// If we make it public we require the processor to be serializable
+        /// One option is making this private and implemente 
+        /// DoAnalysisAsync and ProcessMessageAsync in the grain
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEntityProcessor> GetEntityWithProcessorAsync()
+        {
+            Contract.Assert(this.methodEntity != null);
+            if(this.methodEntityProcessor==null)
+            {
+                var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+                methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher, codeProvider);
+            }
+            return methodEntityProcessor;
         }
 
         public Task<bool> IsInitialized()

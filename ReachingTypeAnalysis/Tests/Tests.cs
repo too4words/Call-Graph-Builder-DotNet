@@ -20,8 +20,9 @@ namespace ReachingTypeAnalysis
 
         private static void AnalyzeExample(string source, RunChecks checker, AnalysisStrategy strategy = AnalysisStrategy.NONE)
         {
-            var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
-            var solAnalyzer = new SolutionAnalyzer(solution);
+            //var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
+            //var solAnalyzer = new SolutionAnalyzer(solution);
+            var solAnalyzer = new SolutionAnalyzer(source);
             solAnalyzer.Analyze(strategy);
             var callgraph = solAnalyzer.GenerateCallGraph();
 
@@ -45,7 +46,7 @@ namespace ReachingTypeAnalysis
                 Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(currentSolutionPath).FullName).FullName).FullName).FullName, 
                 ConfigurationManager.AppSettings["Solution1"]);
             //string solutionPath = ConfigurationManager.AppSettings["TestSolutionsPath"]+  ConfigurationManager.AppSettings["Solution1"];
-            var solution = Program.ReadSolution(solutionPath);
+            var solution = Utils.ReadSolution(solutionPath);
             AnalizeSolution(solution, (s, callgraph) =>
             {
                 //callgraph.Save("solution1.dot");
@@ -90,7 +91,7 @@ namespace ReachingTypeAnalysis
 
         public void CompareWithRoslyn(string solutionPath)
         {
-            var solution = Program.ReadSolution(solutionPath);
+            var solution = Utils.ReadSolution(solutionPath);
             AnalizeSolution(solution, (s, callgraph) =>
             {
                 callgraph.Save("solution1.dot");

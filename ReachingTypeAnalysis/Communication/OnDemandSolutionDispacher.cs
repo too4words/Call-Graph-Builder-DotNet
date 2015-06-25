@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Orleans.Runtime.Host;
 using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Diagnostics.Contracts;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Communication
@@ -26,48 +24,9 @@ namespace ReachingTypeAnalysis.Communication
             if (entity == null)
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);
-                //try
-                //{
-                //    var codeProvider = await CodeProvider.GetAsync(methodDescriptor);
-                //    var roslynMethod = codeProvider.FindMethod(methodDescriptor);
-                //    var methodEntityGenerator = new MethodSyntaxProcessor(roslynMethod, codeProvider, this);
-                //    entity = methodEntityGenerator.ParseMethod();
-                //}
-                //catch(Exception exception)
-                //{
-                //    //    // I need a Roslyn Method. I could to this with a solution but I cant without it
-                //    //throw new NotImplementedException();
-                //    var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
-                //    entity = libraryMethodVisitor.ParseLibraryMethod();
-                //    base.RegisterEntity(entityDesc, entity);
-                //}
-
-                var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
-                
-                if(pair!=null) {
-                    var codeProvider = pair.Item1;
-                    var tree = pair.Item2;
-
-                    if (codeProvider != null)
-                    {
-                        var roslynMethod = codeProvider.FindMethod(methodDescriptor);
-                        var model = codeProvider.Compilation.GetSemanticModel(tree);
-                        var methodEntityGenerator = new MethodSyntaxProcessor(model, tree, roslynMethod, this);
-                        entity = methodEntityGenerator.ParseMethod();
-                    }
-                    else
-                    {
-                        var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor, this);
-                        entity = libraryMethodVisitor.ParseLibraryMethod();
-
-                        // I need a Roslyn Method. I could to this with a solution but I cant without it
-                        ///throw new NotImplementedException();
-                        //var libraryMethodVisitor = new LibraryMethodProcessor(roslynMethod, this);
-                        //entity = libraryMethodVisitor.ParseLibraryMethod();
-                        //base.RegisterEntity(entityDesc, entity);
-                    }
-                    base.RegisterEntity(entityDesc, entity);
-                }
+                var methodEntity = await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(methodDescriptor);
+                this.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
+                entity = methodEntity;
             }
 
             return entity;

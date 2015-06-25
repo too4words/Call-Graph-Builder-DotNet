@@ -38,8 +38,9 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <summary>
 		/// This is a flag to indicate that information has been propagated at least once
 		/// </summary>
-		public bool HasBeenPropagated { get { return PropGraph.HasBeenPropagated; } }
+        public bool HasBeenPropagated { get { return PropGraph.HasBeenPropagated; } }
 
+        public bool CanBeAnalized { get; private set; }
 		/// <summary>
 		/// This maintain the set of methods that calls this method
 		/// This is used to compute the Caller of the CG 
@@ -116,7 +117,8 @@ namespace ReachingTypeAnalysis.Analysis
 			MethodInterfaceData mid,
 			PropagationGraph propGraph,
             IEntityDescriptor descriptor,
-			IEnumerable<TypeDescriptor> instantiatedTypes)
+			IEnumerable<TypeDescriptor> instantiatedTypes,
+            bool canBeAnalyzed = true)
 			: base()
 		{
 			this.MethodDescriptor = methodDescriptor;
@@ -125,6 +127,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.propGraph = propGraph;
 			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
+            this.CanBeAnalized = canBeAnalyzed;
 		}
 
 		/// <summary>

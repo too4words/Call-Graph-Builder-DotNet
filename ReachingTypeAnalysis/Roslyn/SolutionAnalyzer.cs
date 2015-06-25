@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Orleans;
+using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis
 {
@@ -31,15 +32,24 @@ namespace ReachingTypeAnalysis
 	public class SolutionAnalyzer
 	{
 		// Just for text
-		public Solution Solution { get; private set; }
+		internal Solution Solution { get; private set; }
 
 		internal IDispatcher Dispatcher { get; private set; }
 
+        internal string SourceCode { get; private set; }
 		public SolutionAnalyzer(Solution solution)
 		{
 			Solution = solution;
 			//dispatcher = new SynchronousLocalDispatcher();
 		}
+
+        public SolutionAnalyzer(string sourceCode)
+        {
+            Solution = Utils.CreateSolution(sourceCode);
+            this.SourceCode = sourceCode;
+            //dispatcher = new SynchronousLocalDispatcher();
+        }
+
 
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
@@ -54,6 +64,8 @@ namespace ReachingTypeAnalysis
 			{
 				strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
 			}
+           
+
 			// TOOD: hack -- set the global solution
 			ProjectCodeProvider.Solution = this.Solution;
 
@@ -77,8 +89,7 @@ namespace ReachingTypeAnalysis
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
-                        AnalyzeOnDemandAsync().Wait();
-
+                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
                         break;
                     }
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
@@ -113,10 +124,27 @@ namespace ReachingTypeAnalysis
                             throw e;
                             //break;
                         }
+						// Create a Grain for the solution
+                        ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+                        if (SourceCode != null)
+                        {
+                           solutionGrain.SetSolutionSource(SourceCode).Wait();
+                           IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain("MyProject");
+                           projectGrain.SetProjectSourceCode(SourceCode);
+                        }
+                        else {
+                            Contract.Assert(Solution.FilePath!=null);
+                            solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
+                            foreach(var project in this.Solution.Projects)
+                            {
+                                IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain(project.Name);
+                                projectGrain.SetProjectPath(project.FilePath).Wait();
+                            }                            
+                        }
                         // make a dispatcher
                         this.Dispatcher = new OrleansDispatcher();
                         // run
-                        AnalyzeOnDemandAsync().Wait();
+                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ORLEANS).Wait();
 
                         break;
                     }
@@ -304,10 +332,9 @@ namespace ReachingTypeAnalysis
         /// </summary>
         public void AnalyzeOnDemand()
         {
-			Debug.Assert(this.Dispatcher != null);
+			Contract.Assert(this.Dispatcher != null);
 			var cancellationToken = new CancellationTokenSource();
 			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken.Token);
-			var continuations = new List<Task<Tuple<ProjectCodeProvider, IMethodSymbol>>>();
 			foreach (var projectId in projectIDs)
 			{
 				var project = this.Solution.GetProject(projectId);
@@ -321,9 +348,10 @@ namespace ReachingTypeAnalysis
 				{
                     var model = provider.Compilation.GetSemanticModel(tree);
 					cancellationToken.Cancel(); // cancel out outstanding processing tasks
-                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
+                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
+                    this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                     var mainEntityProcessor = new MethodEntityProcessor((MethodEntity)mainMethodEntity, this.Dispatcher);
                     //var mainMethodDescriptor =  new MethodDescriptor(mainSymbol);
                     //var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor);
@@ -338,8 +366,6 @@ namespace ReachingTypeAnalysis
 				}
 			}
 
-			//var methodEntity = (MethodEntity<ANode, AType, AMethod>)mainEntityProcessor.Entity;
-
 			if (this.Dispatcher is QueueingDispatcher)
             {
                 var qd = (QueueingDispatcher)this.Dispatcher;
@@ -350,21 +376,15 @@ namespace ReachingTypeAnalysis
                 }
             }
 
-            //if (methodEntity.Method != null)
-            //{
-            //    var methodDescriptor = methodEntity.Method.MethodDescriptor;
-            //    callgraph.AddRootMethod(methodDescriptor);
-            //    GenerateCallGraph();
-            //}
         }
 
 		/// <summary>
 		/// Try to get the roslyn methods on the fly
 		/// Currently works with one project.
 		/// </summary>
-		public async Task AnalyzeOnDemandAsync()
+		public async Task AnalyzeOnDemandAsync(AnalysisStrategy strategy)
 		{
-			Debug.Assert(this.Dispatcher != null);
+			Contract.Assert(this.Dispatcher != null);
 			var cancellationSource = new CancellationTokenSource();
 			var triple = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token);
 			if (triple != null)
@@ -376,15 +396,32 @@ namespace ReachingTypeAnalysis
 				var mainSymbol = triple.Item2;
                 var tree = triple.Item3;
                 var model = provider.Compilation.GetSemanticModel(tree);
-				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol, this.Dispatcher);
+				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
 
-				var mainMethodEntity = methodVisitor.ParseMethod();
-				var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
-				var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor,this.Dispatcher);
-				var mainEntityProcessor = (MethodEntityProcessor)
-					await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
-				await mainEntityProcessor.DoAnalysisAsync();
+				//var mainMethodEntity = methodVisitor.ParseMethod();
+                var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
+                var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
 
+                IEntityProcessor mainMethodEntityProcessor = null;
+                switch(strategy)
+                {
+                    case AnalysisStrategy.ONDEMAND_ORLEANS:
+                        var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
+                        // Option 1: Direcly using the Grain
+                        await methodEntityGrain.DoAnalysisAsync();
+                        // Option 2: Using the processor (requires making the processor serializable)
+                        //mainMethodEntityProcessor = await methodEntityGrain.GetEntityWithProcessorAsync();
+                        //await mainMethodEntityProcessor.DoAnalysisAsync();
+                        break;
+                    case AnalysisStrategy.ONDEMAND_ASYNC:
+                        mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+					    var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
+                        this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
+                        await mainMethodEntityProcessor.DoAnalysisAsync();
+                        break;
+                }
+                //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
+                //Thread.Sleep(1000);
 				Debug.WriteLine("--- Done with propagation ---");
 			}
 		}
@@ -656,24 +693,32 @@ namespace ReachingTypeAnalysis
 
         #region Callgraph
         private static void UpdateCallGraph(IEntityProcessor entityProcessor, 
-                                            CallGraph<MethodDescriptor, LocationDescriptor> callgraph)
+                                            CallGraph<MethodDescriptor, LocationDescriptor> callgraph, Solution solution)
         {
             Contract.Assert(entityProcessor != null);
             var methodEntity = (MethodEntity)entityProcessor.Entity;
             Contract.Assert(methodEntity.MethodDescriptor != null);
             var callerMethod = methodEntity.MethodDescriptor;
-            var methodEntityProcessor = (MethodEntityProcessor)entityProcessor;
-            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
-            foreach (var callSiteNode in callSitesForMethod.Keys)
-            {
-                foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
-                {
-                    //var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
-                    var callee = calleeAMethod;
-                    Debug.WriteLine(string.Format("\t-> {0}", callee));
-                    callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
-                }
-            }
+
+            var pair = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(callerMethod, solution).Result;
+			if (pair != null)
+			{
+				var codeProvider = pair.Item1;
+				// Hack
+				var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor)entityProcessor).dispatcher, codeProvider);
+				//(MethodEntityProcessor)entityProcessor;
+				var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
+				foreach (var callSiteNode in callSitesForMethod.Keys)
+				{
+					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
+					{
+						//var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
+						var callee = calleeAMethod;
+						Debug.WriteLine(string.Format("\t-> {0}", callee));
+						callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
+					}
+				}
+			}
         }
 
         public CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph()
@@ -684,14 +729,16 @@ namespace ReachingTypeAnalysis
 
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             callgraph.AddRootMethods(roots);
-            var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
-            foreach (var entity in allEntities)
+            // var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
+			var allEntityDescriptors =this.Dispatcher.GetAllEntitiesDescriptors();
+            foreach (var entityDesc in allEntityDescriptors)
             {
                 //  entity.GetEntityProcessor(this.Dispatcher);
-                var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
+                //var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
+                var entityProcessor = this.Dispatcher.GetEntityWithProcessor(entityDesc);
                 
                 // Updates the callGraph
-                UpdateCallGraph(entityProcessor, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph,this.Solution);
                 MethodEntity methodEntity = (MethodEntity) entityProcessor.Entity;
                 
                 methodEntity.Save(Path.Combine(Path.GetTempPath(), 
@@ -702,7 +749,7 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        private static CallGraph<MethodDescriptor, LocationDescriptor> ReBuildCallGraph(Dispatcher dispatcher)
+        private static CallGraph<MethodDescriptor, LocationDescriptor> ReBuildCallGraph(Dispatcher dispatcher, Solution solution)
         {
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             // pg.PropagateDeletionOfNodes();
@@ -715,7 +762,7 @@ namespace ReachingTypeAnalysis
                     callgraph.AddRootMethod(methodEntity.MethodDescriptor);
                 }
                 // Updates the callGraph
-                UpdateCallGraph(entityProcessor, callgraph);
+                UpdateCallGraph(entityProcessor, callgraph, solution);
             }
             //callgraph.Save("cg_d.dot");
 

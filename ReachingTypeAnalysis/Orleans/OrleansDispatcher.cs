@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
 using Orleans;
 using OrleansInterfaces;
@@ -12,15 +12,51 @@ using System.Threading.Tasks;
 namespace ReachingTypeAnalysis.Analysis
 {
     [Serializable]
+    internal class OrleansEntityDescriptor : IEntityDescriptor
+    {
+        public Guid Guid { get; set; }
+        public MethodDescriptor MethodDescriptor { get; set; }
+
+        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor)
+        {
+            this.Guid = Guid.Empty;
+            this.MethodDescriptor = methodDescriptor;
+        }
+
+        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
+        {
+            this.Guid = guid;
+            this.MethodDescriptor = methodDescriptor;
+        }
+        public override bool Equals(object obj)
+        {
+            var oed = (OrleansEntityDescriptor)obj;
+            return oed != null && this.MethodDescriptor.Equals(oed.MethodDescriptor);
+        }
+        public override int GetHashCode()
+        {
+            return this.MethodDescriptor.GetHashCode();
+        }
+    }
+
+    [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
-        // Keeps a mapping between method descriptors and orleans entities Guids
-        // Should be necessary if we are able to build the OrleansDescriptors properly
-        private Dictionary<MethodDescriptor, Guid> orleansGuids = new Dictionary<MethodDescriptor, Guid>();//
-        internal static OrleansDispatcher Instance = null;
+		private IEntityDescriptor self;
+        [NonSerialized]
+		private IEntity entity;
 		public OrleansDispatcher()
 		{
-            Instance = this;
+		}
+        /// <summary>
+        /// We use this constructor in the case we use one dispatcher per grain
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="entity"></param>
+		public OrleansDispatcher(IEntityDescriptor self, IEntity entity)
+		{
+			this.self = self;
+			this.entity = entity;
 		}
 
 		public void DeliverMessage(IEntityDescriptor destination, IMessage message)
@@ -30,18 +66,24 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
 		{
-			//Contract.Assert(destination is IOrleansEntityDescriptor);
-			//var guid = await ((OrleansEntityDescriptor)destination).GetGuid();
+            // Option 1: Using directly the grain
             var destinationEntity = await GetEntityAsync(destination);
             var destinationGrain = (IMethodEntityGrain)destinationEntity;
-          
-            //var guid = ((OrleansEntityDescriptor)destination).Guid;
-            //var destinationGrain = MethodEntityGrainFactory.GetGrain(guid);
-			/*return*/ 
-            destinationGrain.ReceiveMessageAsync((OrleansEntityDescriptor)message.Source, message);
-			//var processor = destinationGrain.GetEntityProcessor(this);
-			//return processor.ReceiveMessageAsync(message.Source, message);
+            await destinationGrain.ProcessMessaggeAsync(message.Source, message);
+
+            // Option 2: Using a MethoProcessor created by the grain.
+            // This option requires the processor to be serializable
+            //var methodEntityProcessor = (MethodEntityProcessor)await GetEntityWithProcessorAsync(destination);
+            //await methodEntityProcessor.ProcessMessageAsync(message.Source, message);
 		}
+
+        //public async Task ReceiveMessageAsync(IEntityDescriptor source, 
+        //                                IMessage message,
+        //                                IMethodEntityGrain destinationGrain)
+        //{        
+        //    //await destinationGrain.ProcessMessaggeAsync(source, message,this);
+        //}
+
 
         /// <summary>
         ///  
@@ -49,137 +91,111 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
 		public ImmutableHashSet<IEntity> GetAllEntites()
 		{
-            var result = new HashSet<IEntity>();
-            foreach(var methodDescriptor in this.orleansGuids.Keys.ToImmutableList())
-            {
-                var guid = orleansGuids[methodDescriptor];
-                var orleansEnitityDesc = new OrleansEntityDescriptor(methodDescriptor,guid);
-                IMethodEntityGrain entity = (IMethodEntityGrain)GetEntityAsync(orleansEnitityDesc).Result;
-                result.Add(entity.GetMethodEntity().Result);
-            }
-            return result.ToImmutableHashSet<IEntity>();
-           // throw new NotImplementedException();
+			var result = new HashSet<IEntity>();
+			var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+			var methodDescriptors = solutionGrain.GetMethodDescriptors().Result;
+
+			foreach (var methodDescriptor in methodDescriptors)
+			{
+				var orleansEnitityDesc = new OrleansEntityDescriptor(methodDescriptor);
+				IMethodEntityGrain entity = (IMethodEntityGrain)GetEntityAsync(orleansEnitityDesc).Result;
+				result.Add(entity);
+			}
+
+			return result.ToImmutableHashSet<IEntity>();
 		}
-        public async Task<IEntity> GetMethodEntityAsync(IEntityDescriptor entityDesc)
+
+        public ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors()
+        {
+            var result = new HashSet<IEntityDescriptor>();
+			var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+			var methodDescriptors = solutionGrain.GetMethodDescriptors().Result;
+
+			foreach (var methodDescriptor in methodDescriptors)
+            {
+                var orleansEnitityDesc = new OrleansEntityDescriptor(methodDescriptor);
+                result.Add(orleansEnitityDesc);
+            }
+
+            return result.ToImmutableHashSet<IEntityDescriptor>();
+        }
+        public async Task<MethodEntity> GetMethodEntityAsync(IEntityDescriptor entityDesc)
         {
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
             //Contract.Assert(grainDesc != null);
-            var methodDescriptor = grainDesc.MethodDescriptor;
-
-            //var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-            //var result = MethodEntityGrainFactory.GetGrain(guid);
-            //// check if the result is initialized
-            //var methodEntity = await result.GetMethodEntity();
-            //if (methodEntity != null)
-            //{
-                Contract.Assert(methodDescriptor != null);
-                var pair = await ProjectCodeProvider.GetAsync(methodDescriptor);
-                var provider = pair.Item1;
-                var tree = pair.Item2;
-                var model = provider.Compilation.GetSemanticModel(tree);
-                Contract.Assert(provider != null);
-
-                var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor, this);
-                var methodEntityGrain = (IMethodEntityGrain)methodEntityGenerator.ParseMethod();
-                return await methodEntityGrain.GetMethodEntity();
-            //}
-            //else
-            //{
-            //    return result;
-            //}
+            Contract.Assert(grainDesc.MethodDescriptor != null);
+            return await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(grainDesc.MethodDescriptor);
         }
 
         public async Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
         {
-            //Contract.Assert(entityDesc != null);
+			if(entityDesc.Equals(self))
+			{
+				return entity;
+			}
+            Contract.Assert(entityDesc != null);
             var grainDesc = (OrleansEntityDescriptor)entityDesc;
-            //Contract.Assert(grainDesc != null);
-            //var guid = await grainDesc.GetGuid();
-            var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-            var result = MethodEntityGrainFactory.GetGrain(guid);
-            // check if the result is initialized
-            var methodEntity = await result.GetMethodEntity();
-            if (methodEntity == null)
+            Contract.Assert(grainDesc != null);
+
+            //var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
+			return await CreateMethodEntityGrain(grainDesc);
+        }
+
+		internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(OrleansEntityDescriptor grainDesc)
+		{
+			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(grainDesc.MethodDescriptor.ToString());
+			// check if the result is initialized
+			var methodEntity = await methodEntityGrain.GetMethodEntity();
+			if (methodEntity == null)
+			{
+				Contract.Assert(grainDesc.MethodDescriptor != null);
+				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+				methodEntity = await CreateMethodEntityUsingGrainsAsync(grainDesc.MethodDescriptor);
+				Contract.Assert(methodEntity != null);
+				await methodEntityGrain.SetMethodEntity(methodEntity, grainDesc);
+				await methodEntityGrain.SetDescriptor(grainDesc);
+				return methodEntityGrain;
+			}
+			else
+			{
+				return methodEntityGrain;
+			}
+		}
+
+        async internal static Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
+        {
+            MethodEntity methodEntity = null;
+            var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+            if (providerGrain == null)
             {
-                //Contract.Assert(grainDesc.MethodDescriptor != null);
-                var pair = await ProjectCodeProvider.GetAsync(grainDesc.MethodDescriptor);
-                if (pair != null)
-                {
-                    var provider = pair.Item1;
-                    var tree = pair.Item2;
-                    var model = provider.Compilation.GetSemanticModel(tree);
-                    //Contract.Assert(provider != null);
-                    if (provider != null)
-                    {
-                        var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, grainDesc.MethodDescriptor, this);
-                        return methodEntityGenerator.ParseMethod();
-                    }
-                    else
-                    {
-                        var libraryMethodVisitor = new LibraryMethodProcessor(grainDesc.MethodDescriptor, this);
-                        return libraryMethodVisitor.ParseLibraryMethod();
-                    }
-                }
-                return result;
+                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
+                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
             }
             else
             {
-                return result;
+                methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
             }
-
-            //          var node = Utils.FindMethodDeclaration(grainDesc.Symbol, out symbol);
-            //          //var node = Utils.FindMethodImplementation(ed.Method.RoslynMethod);
-            //          MethodEntityGrain<ANode,AType,AMethod> methodEntity;
-            //          if (node != null)
-            //          {
-            //              var sm = Utils.SearchSemanticModelForMethods(this.DeliverMessage, node);
-            //              if (sm != null)
-            //              {
-            //                  var methodEntityGenerator = new MethodSyntaxProcessor(symbol, sm, this);
-            //methodEntity = (MethodEntityGrain<ANode, AType, AMethod>)methodEntityGenerator.ParseMethod();
-            //                  //base.RegisterEntity(entityDesc, e);
-            //              }
-            //              else
-            //              {
-            //                  throw new ArgumentException("Cannot find a method for " + entityDesc);
-            //              }
-            //          }
-
-            //else
-            //{
-            //	var libraryMethodVisitor = new LibraryMethodProcessor(symbol, this);
-            //	var methodEntity = (MethodEntityGrain<ANode, AType, AMethod>)libraryMethodVisitor.ParseLibraryMethod();
-            //	return methodEntity;
-            //	//this.RegisterEntity(entityDesc, entity);
-            //}
-
+            return methodEntity;
         }
+
 
 		public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
 		{
 			Contract.Assert(entityDesc != null);
 			var entity = (IMethodEntityGrain)await GetEntityAsync(entityDesc);
-			Contract.Assert(entity != null);
-            var methodEntity = (MethodEntity) await entity.GetMethodEntity();
-			return new MethodEntityProcessor(methodEntity, this, true);
+            return await entity.GetEntityWithProcessorAsync();
+            //Contract.Assert(entity != null);
+            //var methodEntity = (MethodEntity) await entity.GetMethodEntity();
+            //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            //return new MethodEntityProcessor(methodEntity, this, codeProvider, entityDesc, true);
 		}
 
 		public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
 		{
-			var descriptor = (OrleansEntityDescriptor)entityDesc;
-            this.orleansGuids[descriptor.MethodDescriptor]= descriptor.Guid;
-			//Contract.Assert(entity is MethodEntityGrain);
-			//this.orleansGrains.Add(descriptor.GetGuid().Result, (MethodEntityGrain)entity);
-		}
-        public Guid GetGuidForMethod(MethodDescriptor methodDescriptor)
-        {
-            Guid result = Guid.Empty; 
-            if (orleansGuids.TryGetValue(methodDescriptor, out result))
-                return result;
-            orleansGuids[methodDescriptor] = Guid.NewGuid();
-            return orleansGuids[methodDescriptor];
-        }
-
+			//var descriptor = (OrleansEntityDescriptor)entityDesc;
+			//this.entities.Add(descriptor.MethodDescriptor);
+ 		}
         public IEntity GetEntity(IEntityDescriptor entityDesc)
         {
             throw new NotImplementedException();
@@ -187,7 +203,8 @@ namespace ReachingTypeAnalysis.Analysis
 
         public IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return GetEntityWithProcessorAsync(entityDesc).Result;
         }
     }
 }

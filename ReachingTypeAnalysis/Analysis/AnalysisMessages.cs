@@ -4,6 +4,7 @@ using System;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    [Serializable]
     internal class CallerMessage : Message
     {
         public CallMessageInfo CallMessageInfo { get; private set; }
@@ -26,6 +27,7 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
 
+    [Serializable]
 	internal class ReturnMessage : Message
 	{
 		public ReturnMessageInfo ReturnMessageInfo { get; private set; }

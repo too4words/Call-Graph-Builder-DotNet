@@ -8,6 +8,8 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Collections;
 using ReachingTypeAnalysis.Roslyn;
+using OrleansInterfaces;
+using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -24,28 +26,49 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="E"></typeparam>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="M"></typeparam>
+    [Serializable]
     internal partial class MethodEntityProcessor: EntityProcessor
     {
-        internal ProjectCodeProvider codeProvider;
+        internal ICodeProvider codeProvider;
+        [NonSerialized]
         private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
-        private SyntaxTree tree;
-
+        //private SyntaxTree tree;
         internal MethodEntity MethodEntity { get; private set; }
-        internal MethodEntityProcessor(MethodEntity methodEntity, IDispatcher dispatcher, bool verbose = false) :
-            base(methodEntity, dispatcher)
+        internal MethodEntityProcessor(MethodEntity methodEntity, 
+            IDispatcher dispatcher, ICodeProvider codeProvider, IEntityDescriptor entityDescriptor = null, 
+            bool verbose = false) :
+            base(methodEntity, entityDescriptor, dispatcher)
         {
             Contract.Assert(methodEntity != null);
 
             this.MethodEntity = methodEntity;
-            this.Verbose = verbose;
+            this.EntityDescriptor = entityDescriptor==null?methodEntity.EntityDescriptor
+                                                          :entityDescriptor;
+			this.Verbose = true; // verbose;
             // It gets a code provider for the method. 
-            var pair = ProjectCodeProvider.GetAsync(methodEntity.MethodDescriptor).Result;
-            this.codeProvider = pair.Item1;
-            this.tree = pair.Item2;
+            if (codeProvider!=null || dispatcher is OrleansDispatcher)
+            {
+                this.codeProvider = codeProvider;
+                 //this.codeProvider = ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor).Result;
+                //SetCodeProviderAsync(methodEntity.MethodDescriptor);
+            }
+            else
+            {
+                var pair = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodEntity.MethodDescriptor).Result;
+                if (pair != null)
+                {
+                    this.codeProvider = pair.Item1;
+                }
+            }
             // We use the codeProvider for Propagation and HandleCall and ReturnEvents (in the method DiffProp that uses IsAssignable)
             // We can get rid of this by passing codeProvider as parameter in this 3 methods
             this.MethodEntity.PropGraph.SetCodeProvider(this.codeProvider);
         }
+        internal MethodEntityProcessor(MethodEntity methodEntity,
+                                        IDispatcher dispatcher, IEntityDescriptor entityDescriptor = null,
+                                        bool verbose = false) :this (methodEntity, dispatcher, null, entityDescriptor, verbose)
+        { }
+
 
         public bool Verbose { get; private set; }
 
@@ -75,7 +98,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="callerMesssage"></param>
         private void ProcessCallMessage(CallerMessage callerMesssage)
         {
-            Debug.WriteLine(string.Format("ProcessCallMessage: {0}", callerMesssage));
+            Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
             // Propagate this to the callee (RTA)
             this.MethodEntity.InstantiatedTypes
 				.UnionWith(
@@ -108,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (this.Verbose)
             {
-                Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
+                Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
             }
             // Propagation of concrete types
 
@@ -255,7 +278,7 @@ namespace ReachingTypeAnalysis.Analysis
             /// Here I have all the necessary info to update the callgraph
             /// 
             var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
-            var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
+            var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
             var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
             this.SendMessage(destination, callerMessage);
@@ -307,6 +330,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 // BUG!!!! I should use simply computedReceiverType
                 // Instead of copying all types with use the type we use to compute the callee
+
                 potentialReceivers.UnionWith(
 				    	GetTypes(callInfo.Receiver, propKind)
                         .Where(t => codeProvider.IsSubtype(t,calleType)));
@@ -391,7 +415,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// If some output info was generated it will generate return messahe
         /// </summary>
         /// <param name="propKind"></param>
-        public void EndOfPropagationEvent(PropagationKind propKind, bool retValueChange)
+        private void EndOfPropagationEvent(PropagationKind propKind, bool retValueChange)
         {
             // Should do something more clever
             ProcessReturnNode(propKind);
@@ -399,59 +423,65 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private void HandleCallEvent(CallMessageInfo callMessage)
         {
-            Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
-            if (this.Verbose)
+            if (MethodEntity.CanBeAnalized)
             {
-                Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
-            }
-
-			// This tries to check that the invocation is repeated (didn't work: need to check)
-			//if (MethodEntity.Callers.Where(cs => cs.Invocation.Equals(callMessage.CallNode)).Count()>0)
-			// This check if the method is already in caller list
-			if (MethodEntity.Callers.Where(cs => cs.Caller.Equals(callMessage.Caller)).Count() > 0)
-			{
-				if (this.Verbose)
-				{
-					Debug.WriteLine(string.Format("Recursion loop {0} ", this.MethodEntity.MethodDescriptor.ToString()));
-				}
-				EndOfPropagationEvent(callMessage.PropagationKind, false);
-
-				return;
-			}
-
-            // Save caller info
-            var context = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
-            this.MethodEntity.AddToCallers(context);
-
-            // Propagate type info in method 
-            //PropGraph.Add(thisRef, receivers);
-            if (this.MethodEntity.ThisRef != null)
-            {
-                this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
-            }
-
-			var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(
-				this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
-
-            foreach (var pair in pairEnumerable)
-            {
-                var parameterNode = pair.Item1;
-                //PropGraph.Add(pn, argumentValues[i]);
-                if (parameterNode != null)
+                Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
+                if (this.Verbose)
                 {
-                    this.MethodEntity.PropGraph.DiffProp(
-						Demarshaler.Demarshal(pair.Item2), 
-						parameterNode, callMessage.PropagationKind);
+                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
+                }
+
+                // This tries to check that the invocation is repeated (didn't work: need to check)
+                //if (MethodEntity.Callers.Where(cs => cs.Invocation.Equals(callMessage.CallNode)).Count()>0)
+                // This check if the method is already in caller list
+                if (MethodEntity.Callers.Where(cs => cs.Caller.Equals(callMessage.Caller)).Count() > 0)
+                {
+                    if (this.Verbose)
+                    {
+                        Debug.WriteLine("Recursion loop {0} ", this.MethodEntity.MethodDescriptor);
+                    }
+                    EndOfPropagationEvent(callMessage.PropagationKind, false);
+                    return;
+                }
+
+                // Save caller info
+                var context = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
+                this.MethodEntity.AddToCallers(context);
+
+                // Propagate type info in method 
+                //PropGraph.Add(thisRef, receivers);
+                if (this.MethodEntity.ThisRef != null)
+                {
+                    this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+                }
+
+                var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(
+                    this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+
+                foreach (var pair in pairEnumerable)
+                {
+                    var parameterNode = pair.Item1;
+                    //PropGraph.Add(pn, argumentValues[i]);
+                    if (parameterNode != null)
+                    {
+                        this.MethodEntity.PropGraph.DiffProp(
+                            Demarshaler.Demarshal(pair.Item2),
+                            parameterNode, callMessage.PropagationKind);
+                    }
+                }
+
+                if (callMessage.PropagationKind == PropagationKind.ADD_TYPES)
+                {
+                    Propagate();
+                }
+                if (callMessage.PropagationKind == PropagationKind.REMOVE_TYPES)
+                {
+                    PropagateDelete();
                 }
             }
-
-            if (callMessage.PropagationKind == PropagationKind.ADD_TYPES)
+            else
             {
-                Propagate();
-            }
-            if (callMessage.PropagationKind == PropagationKind.REMOVE_TYPES)
-            {
-                PropagateDelete();
+                EndOfPropagationEvent(callMessage.PropagationKind, false);
             }
         }
 
@@ -549,6 +579,8 @@ namespace ReachingTypeAnalysis.Analysis
         #region Methods that compute caller callees relation
         public void InvalidateCaches()
         {
+            ValidateCache(); 
+
             calleesMappingCache.Clear();
         }
         /// <summary>
@@ -573,7 +605,7 @@ namespace ReachingTypeAnalysis.Analysis
         public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
         {
             ISet<MethodDescriptor> result;
-
+            ValidateCache(); 
             if (!calleesMappingCache.TryGetValue(node, out result))
             {
                 var calleesForNode = new HashSet<MethodDescriptor>();
@@ -587,6 +619,15 @@ namespace ReachingTypeAnalysis.Analysis
 
             }
             return result;
+        }
+
+        private void ValidateCache()
+        {
+            if (calleesMappingCache == null)
+            {
+                calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
+            }
+
         }
 
         /// <summary>

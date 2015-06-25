@@ -1,6 +1,6 @@
 ﻿using ReachingTypeAnalysis;
-using System;
 using System.Threading.Tasks;
+using Orleans;
 
 namespace OrleansInterfaces
 {
@@ -12,11 +12,14 @@ namespace OrleansInterfaces
     }
      */
 
-    public interface IMethodEntityGrain :
-        Orleans.IGrainWithGuidKey, IEntity
+    public interface IMethodEntityGrain :  IGrainWithStringKey, IEntity
     {
         Task<IEntityDescriptor> GetDescriptor();
-        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
+        Task DoAnalysisAsync();
+        //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        Task<IEntityProcessor> GetEntityWithProcessorAsync();
+
         Task<bool> IsInitialized();
 
         Task<IEntity> GetMethodEntity();
@@ -26,8 +29,12 @@ namespace OrleansInterfaces
         Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
     }
 
-    public interface IProjectCodeProviderGrain : Orleans.IGrainWithStringKey
+    public interface IProjectCodeProviderGrain : IGrainWithStringKey
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+        Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+		Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+        Task SetProjectPath(string fullPath);
+        Task SetProjectSourceCode(string source);
     }
 }

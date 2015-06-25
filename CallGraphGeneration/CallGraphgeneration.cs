@@ -50,7 +50,7 @@ namespace CallGraphGeneration
         }
 
         //public static CallGraph<IMethodSymbol,Location> BuildCallGraph(Solution solution)
-        public static CallGraph<MethodDescriptor,ALocation> BuildCallGraph(Solution solution)
+		public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
         {
             var analyzer = new SolutionAnalyzer(solution);
             analyzer.Analyze();

@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (ok)
                 {
-                    System.Diagnostics.Debug.WriteLine(string.Format("Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type));
+                    System.Diagnostics.Debug.WriteLine("Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type);
                 }
                 else
                 {
@@ -41,7 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
             catch (Exception ex)
             {
                 siloHost.ReportStartupError(ex);
-                System.Diagnostics.Debug.WriteLine(string.Format("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace));
+                System.Diagnostics.Debug.WriteLine("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
             }
 
             return ok;
@@ -55,12 +55,12 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 siloHost.StopOrleansSilo();
 
-                System.Diagnostics.Debug.WriteLine(string.Format("Orleans silo '{0}' shutdown.", siloHost.Name));
+                System.Diagnostics.Debug.WriteLine("Orleans silo '{0}' shutdown.", siloHost.Name);
             }
             catch (Exception ex)
             {
                 siloHost.ReportStartupError(ex);
-                System.Diagnostics.Debug.WriteLine(string.Format("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace));
+                System.Diagnostics.Debug.WriteLine("{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
             }
 
             return ok;

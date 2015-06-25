@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
 {
@@ -34,9 +35,13 @@ namespace ReachingTypeAnalysis
             InstatiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider);
+		internal abstract ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider);
+        internal virtual Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(PropagationGraph propGraph, ICodeProvider codeProvider)
+        {
+            throw new NotImplementedException();
+        }
 
-		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var result = new HashSet<TypeDescriptor>();
 			foreach (var typeDescriptor in propGraph.GetTypes(n))
@@ -59,6 +64,32 @@ namespace ReachingTypeAnalysis
 			}
 			return result;
 		}
+        internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, PropagationGraph propGraph, ICodeProvider codeProvider)
+        {
+            var result = new HashSet<TypeDescriptor>();
+            foreach (var typeDescriptor in propGraph.GetTypes(n))
+            {
+                // TO-DO fix by adding a where T: AnalysisType
+                if (typeDescriptor.IsConcreteType)
+                {
+                    result.Add(typeDescriptor);
+                }
+                else
+                {
+                    Contract.Assert(this.InstatiatedTypes != null);
+                    foreach(var candidateType in this.InstatiatedTypes)
+                    {
+                        var isSubtype = await codeProvider.IsSubtypeAsync(candidateType, typeDescriptor);
+                        if(isSubtype)
+                        {
+                            result.Add(candidateType);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
 
 		internal bool IsStatic { get; set; }
 		internal bool IsConstructor { get; set; }
@@ -102,7 +133,7 @@ namespace ReachingTypeAnalysis
 			IsConstructor = isConstructor;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var calleesForNode = new HashSet<MethodDescriptor>();
 			if (this.Receiver != null)
@@ -121,6 +152,26 @@ namespace ReachingTypeAnalysis
 			return calleesForNode;
 		}
 
+        internal async override Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(PropagationGraph propGraph, ICodeProvider codeProvider)
+        {
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            if (this.Receiver != null)
+            {
+                // I replaced the invocation for a local call to mark that functionality is missing
+                //var callees = GetPotentialTypes(this.Receiver, propGraph)
+                //    .Select(t => this.Callee.FindMethodImplementation(t));
+                foreach(var type in GetPotentialTypes(this.Receiver, propGraph, codeProvider))
+                {
+                    var realCallee = await codeProvider.FindMethodImplementationAsync(this.Callee, type);
+                    calleesForNode.Add(realCallee);
+                }
+            }
+            else
+            {
+                calleesForNode.Add(this.Callee);
+            }
+            return calleesForNode;
+        }
 
 		public MethodDescriptor Callee { get; private set; }
 	}
@@ -150,12 +201,17 @@ namespace ReachingTypeAnalysis
 			LHS = lhs;
 		}
 
-		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+		internal override ISet<MethodDescriptor> ComputeCalleesForNode(PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			return GetDelegateCallees(this.CalleeDelegate, propGraph, codeProvider);
 		}
 
-		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, ProjectCodeProvider codeProvider)
+        internal override async Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(PropagationGraph propGraph, ICodeProvider codeProvider)
+        {
+            return await GetDelegateCalleesAsync(this.CalleeDelegate, propGraph, codeProvider);
+        }
+
+		private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, PropagationGraph propGraph, ICodeProvider codeProvider)
 		{
 			var callees = new HashSet<MethodDescriptor>();
 			var typeDescriptors = propGraph.GetTypes(delegateNode);
@@ -181,6 +237,34 @@ namespace ReachingTypeAnalysis
 
 			return callees;
 		}
+
+        private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(VariableNode delegateNode, PropagationGraph propGraph, ICodeProvider codeProvider)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var typeDescriptors = propGraph.GetTypes(delegateNode);
+            foreach (var delegateInstance in propGraph.GetDelegates(delegateNode))
+            {
+                if (typeDescriptors.Count() > 0)
+                {
+                    foreach (var typeDescriptor in typeDescriptors)
+                    {
+                        // TO-DO!!!
+                        // Ugly: I'll fix it
+                        //var aMethod = delegateInstance.FindMethodImplementation(type);
+                        var aMethod = await codeProvider.FindMethodImplementationAsync(delegateInstance, typeDescriptor);
+                        callees.Add(aMethod);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+
+            return callees;
+        }
+
 
 		internal DelegateVariableNode CalleeDelegate { get; private set; }
 	}

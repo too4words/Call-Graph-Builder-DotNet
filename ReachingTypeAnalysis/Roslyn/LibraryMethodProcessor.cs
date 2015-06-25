@@ -12,17 +12,17 @@ namespace ReachingTypeAnalysis.Roslyn
     /// </summary>
     internal class LibraryMethodProcessor: GeneralRoslynMethodProcessor
     {
-		internal LibraryMethodProcessor(IMethodSymbol method, IDispatcher dispatcher)
-			: base(method, dispatcher)
+		internal LibraryMethodProcessor(IMethodSymbol method)
+			: base(method)
 		{ }
 
-        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
-            : base(methodDescriptor,dispatcher)
+        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor)
+            : base(methodDescriptor)
         {
         }
 
 
-        public IEntity ParseLibraryMethod()
+        public MethodEntity ParseLibraryMethod()
         {
             if (this.RetVar != null)
             {
@@ -30,14 +30,12 @@ namespace ReachingTypeAnalysis.Roslyn
                                             new TypeDescriptor(RetVar.Type,false));
             }
 
-            var descriptor = EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-            var methodEntity = EntityFactory.CreateEntity(
-                                    new MethodEntity(this.MethodDescriptor,
+            var descriptor = new MethodEntityDescriptor(this.MethodDescriptor); //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
+            var methodEntity = new MethodEntity(this.MethodDescriptor,
                                                     this.MethodInterfaceData,
                                                     this.PropGraph, descriptor,
-                                                    this.InstantiatedTypes),
-                                                    descriptor, this.Dispatcher);
-            this.Dispatcher.RegisterEntity(descriptor, methodEntity);
+                                                    this.InstantiatedTypes,
+                                                    false);
             return methodEntity;
         }
     }

@@ -18,47 +18,37 @@ namespace ReachingTypeAnalysis.Analysis
             if (dispatcher is OrleansDispatcher)
             {
                 var orleanDispatcher = (OrleansDispatcher)dispatcher;
-                var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
+                //var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
                 // I think we should consult the dispatcher about an existing ID for the descriptor
-                result = new OrleansEntityDescriptor(methodDescriptor, guid); //System.Guid.NewGuid());
+                result = new OrleansEntityDescriptor(methodDescriptor); //System.Guid.NewGuid());
             }
             else
             {
                 result = new MethodEntityDescriptor(methodDescriptor);
-                //result.MethodDescriptor = methodDescriptor;
-                //Contract.Assert(result.MethodDescriptor != null);
             }
             return result;
         }
 
-        internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
-        {
-            if (dispatcher is OrleansDispatcher)
-            {
-                var orleanDispatcher = (OrleansDispatcher)dispatcher;
-                var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
+        //internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
+        //{
+        //    if (dispatcher is OrleansDispatcher)
+        //    {
+        //        var orleanDispatcher = (OrleansDispatcher)dispatcher;
+        //        var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
 
-                var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
-                //var guid = orleansDescriptor..GetGuid().Result;
-                //var result = MethodEntityGrainFactory.GetGrain(guid);
-                // var guid = System.Guid.NewGuid();
-                var result = MethodEntityGrainFactory.GetGrain(guid);
-                orleansDescriptor.Guid = guid;
+        //        var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
+        //        var result = MethodEntityGrainFactory.GetGrain(guid);
+        //        orleansDescriptor.Guid = guid;
 
-                result.SetMethodEntity(methodEntity, descriptor).Wait();
-                result.SetDescriptor(orleansDescriptor).Wait();
-                return result;
-            }
-            else
-            {
-                //var result = methodEntity;
-                //result.SetMethodEntity(methodEntity).Wait();
-                //result.SetDescriptor((IOrleansEntityDescriptor)descriptor).Wait();
-
-                //return result;
-                return methodEntity;
-            }
-        }
+        //        result.SetMethodEntity(methodEntity, descriptor).Wait();
+        //        result.SetDescriptor(orleansDescriptor).Wait();
+        //        return result;
+        //    }
+        //    else
+        //    {
+        //        return methodEntity;
+        //    }
+        //}
     }
 
     /// <summary>
@@ -104,7 +94,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessCallMessageAsync(CallerMessage callerMesssage)
 		{
-			Debug.WriteLine(string.Format("ProcessCallMessage: {0}", callerMesssage));
+			Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
 			// Propagate this to the callee (RTA)
 			this.MethodEntity.InstantiatedTypes.UnionWith(
 				Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
@@ -114,6 +104,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessReturnMessageAsync(ReturnMessage returnMesssage)
 		{
+            Debug.WriteLine("ProcessReturnMessage: {1} in method {0}", this.MethodEntity.MethodDescriptor, returnMesssage);
+
 			var retMsgInfo = returnMesssage.ReturnMessageInfo;
 			// Propagate types from the callee (RTA)
 			this.MethodEntity.InstantiatedTypes
@@ -140,9 +132,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine(string.Format("Reached {0} via propagation", this.MethodEntity.MethodDescriptor.ToString()));
+				Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
 			}
-			var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
+            var continuations = new List<Task>();
+			var callsAndRets = await this.MethodEntity.PropGraph.PropagateAsync(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES);
 			var retValueHasChanged = callsAndRets.RetValueChange;
 			//ProcessOutputInfoAsync(retValueHasChanged).Start();
@@ -151,7 +144,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task PropagateDeleteAsync()
 		{
-			var callsAndRets = this.MethodEntity.PropGraph.PropagateDeletionOfNodes();
+			var callsAndRets = await this.MethodEntity.PropGraph.PropagateDeletionOfNodesAsync();
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.REMOVE_TYPES);
 			this.MethodEntity.PropGraph.RemoveDeletedTypes();
 			await EndOfPropagationEventAsync(PropagationKind.REMOVE_TYPES, callsAndRets.RetValueChange);
@@ -162,10 +155,10 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task ProcessCalleesAffectedByPropagationAsync(IEnumerable<AnalysisInvocationExpession> callInvocationInfoForCalls, PropagationKind propKind)
 		{
 			/// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
-			if (callInvocationInfoForCalls.Count() > 0)
-			{
-				this.InvalidateCaches();
-			}
+            //if (callInvocationInfoForCalls.Count() > 0)
+            //{
+            //    this.InvalidateCaches();
+            //}
 			// I made a new list to avoid a concurrent modification exception we received in some tests
 			var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
 			var continuations = new List<Task>();
@@ -180,12 +173,14 @@ namespace ReachingTypeAnalysis.Analysis
 				if (invocationInfo is CallInfo)
 				{
 					var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind);
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 				if (invocationInfo is DelegateCallInfo)
 				{
 					var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-					continuations.Add(t);
+					await t;
+					//continuations.Add(t);
 				}
 			}
 			Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
@@ -211,9 +206,17 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
 				{
 					var instTypes = new HashSet<TypeDescriptor>();
-					instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                        .Where(candidateTypeDescriptor => codeProvider.IsSubtypeAsync(candidateTypeDescriptor,callInfo.Receiver.Type).Result));
-						//.Where(iType => iType.IsSubtype(callInfo.Receiver.Type)));
+                    foreach (var candidateTypeDescriptor in this.MethodEntity.InstantiatedTypes)
+                    {
+                        var isSubType = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, callInfo.Receiver.Type);
+
+                        if (isSubType)
+                        {
+                            instTypes.Add(candidateTypeDescriptor);
+                        }
+                    }
+                    //instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
+                    //    .Where(candidateTypeDescriptor => codeProvider.IsSubtype(candidateTypeDescriptor,callInfo.Receiver.Type)));
 					foreach (var t in instTypes)
 					{
 						types.Add(t);
@@ -227,16 +230,19 @@ namespace ReachingTypeAnalysis.Analysis
 				if (types.Count() > 0)
 				{
 					var continuations = new List<Task>();
-					Parallel.ForEach(types, (receiverType) =>
+				    // Hack
+					// Parallel.ForEach(types, async (receiverType) =>
+					foreach(var receiverType in types)
 					{
 						// Given a method m and T find the most accurate implementation wrt to T
 						// it can be T.m or the first super class implementing m
 						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee, receiverType);
+						var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, receiverType);
 						var task = CreateAndSendCallMessageAsync(callInfo, realCallee, receiverType, propKind);
-						continuations.Add(task);
+                        await task;
+						//continuations.Add(task);
 						//CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
-					});
+					};//);
 					await Task.WhenAll(continuations);
 				}
 				// This is not good: One reason is that loads like b = this.f are not working
@@ -253,11 +259,53 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
+        private async Task<CallMessageInfo> CreateCallMessageAsync(AnalysisInvocationExpession callInfo,
+                                                            MethodDescriptor actuallCallee,
+                                                            TypeDescriptor computedReceiverType,
+                                                            PropagationKind propKind)
+        {
+            // var calleType = (TypeDescriptor)actuallCallee.ContainerType;
+            var calleType = computedReceiverType;
+            ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
+
+            if (callInfo.Receiver != null)
+            {
+                // BUG!!!! I should use simply computedReceiverType
+                // Instead of copying all types with use the type we use to compute the callee
+                foreach (var type in GetTypes(callInfo.Receiver, propKind))
+                {
+                    var isSubType = await codeProvider.IsSubtypeAsync(type, calleType);
+
+                    if(isSubType)
+                    {
+                        potentialReceivers.Add(type);
+                    }
+                }
+                //potentialReceivers.UnionWith(
+                //        GetTypes(callInfo.Receiver, propKind)
+                //        .Where(t => codeProvider.IsSubtype(t, calleType)));
+                //.Where(t => t.IsSubtype(calleType)));
+
+                // potentialReceivers.Add((AnalysisType)calleType);
+            }
+
+            var argumentValues = callInfo.Arguments
+                .Select(a => a != null ?
+                GetTypes(a, propKind) :
+                new HashSet<TypeDescriptor>());
+
+            Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
+
+            return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
+                                                potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
+                                                callInfo.LHS, callInfo.InstatiatedTypes, propKind);
+        }
+
 		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, 
                             MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
 		{
-			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
-			var callerMessage = new CallerMessage(this.MethodEntity.EntityDescriptor, callMessage);
+			var callMessage = await CreateCallMessageAsync(callInfo, realCallee, receiverType, propKind);
+			var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
 			var destination = EntityFactory.Create(realCallee, this.dispatcher);
 
 			await this.SendMessageAsync(destination, callerMessage);
@@ -266,13 +314,13 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task DispatchCallMessageForDelegateAsync(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
 		{
 			var continuations = new List<Task>();
-			foreach (var callee in GetDelegateCallees(delegateCallInfo.CalleeDelegate))
+			foreach (var callee in await GetDelegateCalleesAsync(delegateCallInfo.CalleeDelegate))
 			{
 				var continuation = CreateAndSendCallMessageAsync(delegateCallInfo, 
 					callee, callee.ContainerType, propKind);
-				continuations.Add(continuation);
+                await continuation;
+                //continuations.Add(continuation);
 			}
-
 			await Task.WhenAll(continuations);
 		}
 
@@ -282,6 +330,10 @@ namespace ReachingTypeAnalysis.Analysis
 		/// </summary>
 		private async Task ProcessReturnNodeAsync(PropagationKind propKind)
 		{
+            if(this.Verbose)
+            {
+                Debug.WriteLine("ProcessReturnNode: {0}", this.MethodEntity.MethodDescriptor);
+            }
 			if (this.MethodEntity.ReturnVariable != null)
 			{
 				// A test to try to force only one simultaneous entity 
@@ -309,10 +361,12 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var ret = this.MethodEntity.ReturnVariable;
 					var t = DispachReturnMessageAsync(callerContex, ret, propKind);
-					continuations.Add(t);
+                    await t;
+                    //continuations.Add(t);
 				}
 
 				await Task.WhenAll(continuations);
+
 			}
 		}
 
@@ -335,10 +389,21 @@ namespace ReachingTypeAnalysis.Analysis
 			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
 			{
 				var instTypes = new HashSet<TypeDescriptor>();
-				instTypes.UnionWith(
-					this.MethodEntity.InstantiatedTypes
-                        .Where(iType => codeProvider.IsSubtypeAsync(iType,returnVariable.Type).Result));
-                        //.Where(iType => iType.IsSubtype(returnVariable.Type)));
+
+				foreach (var iType in this.MethodEntity.InstantiatedTypes)
+				{
+					var isSubtype = await codeProvider.IsSubtypeAsync(iType,returnVariable.Type);
+					
+					if (isSubtype)
+					{
+						instTypes.Add(iType);
+					}
+				}
+
+				//instTypes.UnionWith(
+				//	this.MethodEntity.InstantiatedTypes
+				//		.Where(iType => codeProvider.IsSubtypeAsync(iType,returnVariable.Type).Result));
+                ////    .Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{
 					types.Add(t);
@@ -365,6 +430,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task EndOfPropagationEventAsync(PropagationKind propKind, bool retValueChange)
 		{
+			if (this.Verbose)
+			{
+				Debug.WriteLine("EndOfPropagationEventAsync of {0}", this.MethodEntity.MethodDescriptor);
+			}
+
 			// Should do something more clever
 			if (retValueChange)
 			{
@@ -374,75 +444,82 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task HandleCallEventAsync(CallMessageInfo callMessage)
 		{
-			Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
+            if (MethodEntity.CanBeAnalized)
+            {
+                Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
 
-			if (this.Verbose)
-			{
-				Debug.WriteLine(string.Format("Reached {0} via call", this.MethodEntity.MethodDescriptor.ToString()));
-			}
-			// This is the node in the caller where info of ret-value should go
-			var lhs = callMessage.LHS;
-			// Save caller info
-			var callContext = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
-			/// Loop detected due to recursion
-			//if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
-			//if (MethodEntity.NodesProcessing.Contains(callContext))
-			//{
-			//    if (this.Verbose)
-			//    {
-			//        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
-			//    }
-			//    //lock (this.MethodEntity)
-			//    //{
-			//    //    MethodEntity.NodesProcessing.Remove(callContext);
-			//    //    //MethodEntity.NodesProcessing.Remove(callMessage.CallNode);
-			//    //}
-			//    //EndOfPropagationEventAsync(callMessage.PropagationKind);
-			//    return new Task(() => { });
-			//}
+                if (this.Verbose)
+                {
+                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
+                }
+                // This is the node in the caller where info of ret-value should go
+                var lhs = callMessage.LHS;
+                // Save caller info
+                var callContext = new CallContext(callMessage.Caller, callMessage.LHS, callMessage.CallNode);
+                /// Loop detected due to recursion
+                //if (MethodEntity.NodesProcessing.Contains(callMessage.CallNode))
+                //if (MethodEntity.NodesProcessing.Contains(callContext))
+                //{
+                //    if (this.Verbose)
+                //    {
+                //        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
+                //    }
+                //    //lock (this.MethodEntity)
+                //    //{
+                //    //    MethodEntity.NodesProcessing.Remove(callContext);
+                //    //    //MethodEntity.NodesProcessing.Remove(callMessage.CallNode);
+                //    //}
+                //    //EndOfPropagationEventAsync(callMessage.PropagationKind);
+                //    return new Task(() => { });
+                //}
 
-			// Just a test to try to block the Entity to a single simultaneous caller 
-			//while (this.MethodEntity.CurrentContext != null)
-			//{
-			//    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
-			//    Thread.Sleep(10);
-			//}
+                // Just a test to try to block the Entity to a single simultaneous caller 
+                //while (this.MethodEntity.CurrentContext != null)
+                //{
+                //    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
+                //    Thread.Sleep(10);
+                //}
 
-			lock (this.MethodEntity)
-			{
-				//this.MethodEntity.CurrentContext = callContext;
+                //lock (this.MethodEntity)
+                {
+                    //this.MethodEntity.CurrentContext = callContext;
 
-				// Here is when I register the caller
-				this.MethodEntity.AddToCallers(callContext);
+                    // Here is when I register the caller
+                    this.MethodEntity.AddToCallers(callContext);
 
-				if (this.MethodEntity.ThisRef != null)
-				{
-					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
-				}
-				var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
-					(this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
-				foreach (var pair in pairIterator)
-				{
-					var parameterNode = pair.Item1;
-					//PropGraph.Add(pn, argumentValues[i]);
-					if (parameterNode != null)
-					{
-						this.MethodEntity.PropGraph.DiffProp(
-							Demarshaler.Demarshal(pair.Item2),
-							parameterNode, callMessage.PropagationKind);
-					}
-				}
-			}
+                    if (this.MethodEntity.ThisRef != null)
+                    {
+                        await this.MethodEntity.PropGraph.DiffPropAsync(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+                    }
+                    var pairIterator = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>
+                        (this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+                    foreach (var pair in pairIterator)
+                    {
+                        var parameterNode = pair.Item1;
+                        //PropGraph.Add(pn, argumentValues[i]);
+                        if (parameterNode != null)
+                        {
+                            await this.MethodEntity.PropGraph.DiffPropAsync(
+                                Demarshaler.Demarshal(pair.Item2),
+                                parameterNode, callMessage.PropagationKind);
+                        }
+                    }
+                }
 
-			switch (callMessage.PropagationKind)
-			{
-				case PropagationKind.ADD_TYPES:
-					await PropagateAsync();
-					break;
-				case PropagationKind.REMOVE_TYPES:
-					await PropagateDeleteAsync();
-					break;
-			}
+                switch (callMessage.PropagationKind)
+                {
+                    case PropagationKind.ADD_TYPES:
+                        await PropagateAsync();
+                        break;
+                    case PropagationKind.REMOVE_TYPES:
+                        await PropagateDeleteAsync();
+                        break;
+                }
+            }
+            else 
+            {
+                await EndOfPropagationEventAsync(callMessage.PropagationKind,false);
+            }
 		}
 
 
@@ -450,9 +527,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (retMessageInfo.LHS != null)
 			{
-				lock (this.MethodEntity)
+				//lock (this.MethodEntity)
 				{
-					this.MethodEntity.PropGraph.DiffProp(
+					await this.MethodEntity.PropGraph.DiffPropAsync(
 						Demarshaler.Demarshal(retMessageInfo.RVs),
 						Demarshaler.Demarshal(retMessageInfo.LHS),
 						retMessageInfo.PropagationKind);
@@ -470,6 +547,60 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 		}
+
+        private async Task<IEnumerable<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var types = GetTypes(delegateVariableNode);
+            foreach (var delegateInstance in GetDelegates(delegateVariableNode))
+            {
+                if (types.Count() > 0)
+                {
+                    foreach (var t in types)
+                    {
+                        //var aMethod = delegateInstance.FindMethodImplementation(t);
+                        // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
+                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(delegateInstance, t);
+                        callees.Add(methodDescriptor);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+            return callees;
+        }
+
 		#endregion
+        public async Task<IEnumerable<MethodDescriptor>> CalleesAsync()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            foreach (var callNode in this.MethodEntity.PropGraph.CallNodes)
+            {
+                result.UnionWith(await CalleesAsync(callNode));
+            }
+            return result;
+        }
+
+        public async Task<ISet<MethodDescriptor>> CalleesAsync(PropGraphNodeDescriptor node)
+        {
+            ISet<MethodDescriptor> result;
+            ValidateCache();
+            if (!calleesMappingCache.TryGetValue(node, out result))
+            {
+                var calleesForNode = new HashSet<MethodDescriptor>();
+                var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+                Contract.Assert(invExp != null);
+
+                calleesForNode.UnionWith(await invExp.ComputeCalleesForNodeAsync(this.MethodEntity.PropGraph, this.codeProvider));
+
+                calleesMappingCache[node] = calleesForNode;
+                result = calleesForNode;
+
+            }
+            return result;
+        }
 	}
 }

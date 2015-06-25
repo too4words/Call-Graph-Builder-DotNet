@@ -61,6 +61,10 @@ namespace ReachingTypeAnalysis
         {
             return entityMapping.Values.ToImmutableHashSet();
         }
+        public ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors()
+        {
+            return entityMapping.Keys.ToImmutableHashSet();
+        }
 
         public abstract void DeliverMessage(IEntityDescriptor destination, IMessage message);
         public abstract Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);

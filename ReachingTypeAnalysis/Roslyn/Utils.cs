@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
+using System.IO;
+using System.Configuration;
+using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
 {
@@ -198,6 +201,36 @@ namespace ReachingTypeAnalysis
 				.AddDocument(documentId, "MyFile.cs", source);
 			return solution;
 		}
+        public static async Task<Project> ReadProjectAsync(string path)
+        {
+            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+            return await workspace.OpenProjectAsync(path);
+
+        }
+        public static Solution ReadSolution(string path)
+        {
+            if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
+            var ws = MSBuildWorkspace.Create();
+
+            var solution = ws.OpenSolutionAsync(path).Result;
+            //string pathNetFramework = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+            //string pathToDll = pathNetFramework + @"Facades\";        
+            // Didn't work 
+            // These ones works
+            //pathToDll = @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\Facades\";
+            string pathToDll = ConfigurationManager.AppSettings["PathToDLLs"];
+            Contract.Assert(pathToDll != null && Directory.Exists(pathToDll));
+
+            var metadataReferences = new string[] {
+                    "System.Runtime.dll",
+                    "System.Threading.Tasks.dll",
+                    "System.Reflection.dll",
+                    "System.Text.Encoding.dll"}.Select(s => MetadataReference.CreateFromFile(pathToDll + s));
+            var pIds = solution.ProjectIds;
+            foreach (var pId in pIds)
+                solution = solution.AddMetadataReferences(pId, metadataReferences);
+            return solution;
+        }
 	}
 
 	public class PairIterator<T1, T2> : IEnumerable<Tuple<T1, T2>>

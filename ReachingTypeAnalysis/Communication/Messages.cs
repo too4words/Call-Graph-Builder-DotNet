@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 
 namespace ReachingTypeAnalysis.Communication
 {
+    [Serializable]
 	public abstract class Message: IMessage
     {
         internal Message(IEntityDescriptor source)
@@ -19,6 +20,7 @@ namespace ReachingTypeAnalysis.Communication
     /// <summary>
     /// This type represent the type of operation we want to process
     /// </summary>
+    [Serializable]
     public enum PropagationKind
     {
         ADD_TYPES,
@@ -33,11 +35,12 @@ namespace ReachingTypeAnalysis.Communication
 	/// <typeparam name="M"></typeparam>
 	/// <typeparam name="T"></typeparam>
 	/// <typeparam name="E"></typeparam>
-	internal class CallMessageInfo
+	[Serializable]
+    internal class CallMessageInfo
     {
         public CallMessageInfo() { }
         internal CallMessageInfo(MethodDescriptor caller, MethodDescriptor callee, AnalysisCallNode callNode, 
-            ISet<TypeDescriptor> receivers, IEnumerable<ISet<TypeDescriptor>> argumentValues,
+            ISet<TypeDescriptor> receivers, IList<ISet<TypeDescriptor>> argumentValues,
             VariableNode lhs, ISet<TypeDescriptor> instantiatedTypes, PropagationKind propKind)
         {
             this.Caller = caller;
@@ -54,7 +57,7 @@ namespace ReachingTypeAnalysis.Communication
 		internal readonly MethodDescriptor Callee;
 		internal readonly MethodDescriptor Caller;
 		internal readonly AnalysisCallNode CallNode;
-		internal readonly IEnumerable<ISet<TypeDescriptor>> ArgumentValues;
+		internal readonly IList<ISet<TypeDescriptor>> ArgumentValues;
 		internal readonly ISet<TypeDescriptor> Receivers;
         internal readonly VariableNode LHS;
 		internal readonly ISet<TypeDescriptor> InstantiatedTypes;
@@ -72,6 +75,7 @@ namespace ReachingTypeAnalysis.Communication
     /// <typeparam name="M"></typeparam>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="E"></typeparam>
+    [Serializable]
     internal class ReturnMessageInfo 
     {
 		internal ISet<TypeDescriptor> RVs { get; private set; }
