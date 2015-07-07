@@ -570,6 +570,75 @@ namespace ReachingTypeAnalysis
 			return res;
 		}
 
+
+        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, CallInfo callInfo, ICodeProvider codeProvider)
+        {
+            var result = new HashSet<TypeDescriptor>();
+            foreach (var typeDescriptor in this.GetTypes(n))
+            {
+                // TO-DO fix by adding a where T: AnalysisType
+                if (typeDescriptor.IsConcreteType)
+                {
+                    result.Add(typeDescriptor);
+                }
+                else
+                {
+                    // If it is a declaredTyped it means we were not able to compute a concrete type
+                    // Therefore, we instantiate all compatible types for the set of instantiated types
+                    //result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
+                    Contract.Assert(callInfo.InstantiatedTypes != null);
+                    // Diego: This requires a Code Provider. Now it will simply fail.
+                    result.UnionWith(callInfo.InstantiatedTypes.Where(candidateTypeDescriptor
+                                            => codeProvider.IsSubtype(candidateTypeDescriptor, typeDescriptor)));
+                }
+            }
+            return result;
+        }
+
+        internal ISet<MethodDescriptor> ComputeCalleesForNode(AnalysisInvocationExpession invoInfo, ICodeProvider codeProvider)
+        {
+            //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
+            if (invoInfo is CallInfo)
+            {
+                return ComputeCalleesForCallNode((CallInfo)invoInfo, codeProvider);
+            }
+            Contract.Assert(invoInfo is DelegateCallInfo);
+            return ComputeCalleesForDelegateNode((DelegateCallInfo)invoInfo, codeProvider);
+        }
+
+
+        internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, ICodeProvider codeProvider)
+        {
+            return GetDelegateCallees(callInfo.CalleeDelegate, codeProvider);
+        }
+
+        private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, ICodeProvider codeProvider)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var typeDescriptors = this.GetTypes(delegateNode);
+            foreach (var delegateInstance in this.GetDelegates(delegateNode))
+            {
+                if (typeDescriptors.Count() > 0)
+                {
+                    foreach (var typeDescriptor in typeDescriptors)
+                    {
+                        // TO-DO!!!
+                        // Ugly: I'll fix it
+                        //var aMethod = delegateInstance.FindMethodImplementation(type);
+                        var aMethod = codeProvider.FindMethodImplementation(delegateInstance, typeDescriptor);
+                        callees.Add(aMethod);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+
+            return callees;
+        }
+
 		public void Save(string path)
 		{
 			var dataAdapter = new GraphvizGraphDataAdapter(path);

@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis
 {
-	internal class PropagationEffects
+	public class PropagationEffects
 	{
-		internal PropagationEffects(ISet<AnalysisInvocationExpession> calls, bool rvChange)
+		public PropagationEffects(ISet<AnalysisInvocationExpession> calls, bool rvChange)
 		{
 			this.Calls = calls;
 			this.RetValueChange = rvChange;
 		}
 
-		internal ISet<AnalysisInvocationExpession> Calls { get; set; }
-		internal bool RetValueChange { get; set; }
+		public ISet<AnalysisInvocationExpession> Calls { get; set; }
+		public bool RetValueChange { get; set; }
 	}
 }

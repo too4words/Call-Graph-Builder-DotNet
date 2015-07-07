@@ -15,6 +15,8 @@ namespace OrleansInterfaces
     public interface IMethodEntityGrain :  IGrainWithStringKey, IEntity
     {
         Task<IEntityDescriptor> GetDescriptor();
+
+        Task<PropagationEffects> PropagateAsync();
         Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
         Task DoAnalysisAsync();
         //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);

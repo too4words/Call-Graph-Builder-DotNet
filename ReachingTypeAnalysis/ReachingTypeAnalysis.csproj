@@ -260,7 +260,6 @@
     <Compile Include="Analysis\Graph\Graph.cs" />
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
     <Compile Include="Analysis\Graph\IGraph.cs" />
-    <Compile Include="Analysis\Graph\PropagationEffects.cs" />
     <Compile Include="Analysis\Graph\PropagationGraphAsync.cs" />
     <Compile Include="Analysis\MethodEntity.cs" />
     <Compile Include="Analysis\MethodEntityProcessorAsync.cs" />
@@ -275,7 +274,6 @@
     <Compile Include="Communication\SynchronousLocalDispatcher.cs" />
     <Compile Include="Communication\Messages.cs" />
     <Compile Include="Communication\OnDemandSolutionDispacher.cs" />
-    <Compile Include="Analysis\Graph\CallNodes.cs" />
     <Compile Include="Analysis\Graph\GraphvizAdapter.cs" />
     <Compile Include="Analysis\Graph\PropagationGraph.cs" />
     <Compile Include="Communication\IDispatcher.cs" />

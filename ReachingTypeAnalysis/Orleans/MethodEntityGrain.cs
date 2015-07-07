@@ -111,6 +111,13 @@ namespace ReachingTypeAnalysis.Analysis
             await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
+        public async Task<PropagationEffects> PropagateAsync()
+        {
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
+            return await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
+        }
+
+
         /// <summary>
         /// We use this to obtain a processor directly from the grain
         /// If we make it public we require the processor to be serializable

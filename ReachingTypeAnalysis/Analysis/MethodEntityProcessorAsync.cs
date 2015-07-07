@@ -168,7 +168,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//  Add instanciated types! 
 				/// Diego: Ben. This may not work well in parallel... 
 				/// We need a different way to update this info
-				invocationInfo.InstatiatedTypes = this.MethodEntity.InstantiatedTypes;
+				invocationInfo.InstantiatedTypes = this.MethodEntity.InstantiatedTypes;
 				// I hate to do this. Need to Refactor!
 				if (invocationInfo is CallInfo)
 				{
@@ -298,7 +298,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
                                                 potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
-                                                callInfo.LHS, callInfo.InstatiatedTypes, propKind);
+                                                callInfo.LHS, callInfo.InstantiatedTypes, propKind);
         }
 
 		private async Task CreateAndSendCallMessageAsync(AnalysisInvocationExpession callInfo, 
@@ -594,8 +594,8 @@ namespace ReachingTypeAnalysis.Analysis
                 var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
                 Contract.Assert(invExp != null);
 
-                calleesForNode.UnionWith(await invExp.ComputeCalleesForNodeAsync(this.MethodEntity.PropGraph, this.codeProvider));
-
+                //calleesForNode.UnionWith(await invExp.ComputeCalleesForNodeAsync(this.MethodEntity.PropGraph, this.codeProvider));
+                calleesForNode.UnionWith(await this.MethodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp,this.codeProvider));
                 calleesMappingCache[node] = calleesForNode;
                 result = calleesForNode;
 

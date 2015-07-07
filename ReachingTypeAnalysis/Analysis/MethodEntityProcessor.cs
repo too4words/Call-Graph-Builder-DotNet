@@ -197,7 +197,7 @@ namespace ReachingTypeAnalysis.Analysis
             foreach (var invocationInfo in invocationsToProcess)
             {
                 ///  Add instanciated types
-                invocationInfo.InstatiatedTypes = this.MethodEntity.InstantiatedTypes;
+                invocationInfo.InstantiatedTypes = this.MethodEntity.InstantiatedTypes;
                 // I hate to do this. Need to Refactor!
                 if (invocationInfo is CallInfo)
                 {
@@ -348,7 +348,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
                                                 potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
-                                                callInfo.LHS, callInfo.InstatiatedTypes, propKind);
+                                                callInfo.LHS, callInfo.InstantiatedTypes, propKind);
         }
 
         /// <summary>
@@ -612,7 +612,8 @@ namespace ReachingTypeAnalysis.Analysis
                 var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
                 Contract.Assert(invExp != null);
 
-                calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));
+                calleesForNode.UnionWith(this.MethodEntity.PropGraph.ComputeCalleesForNode(invExp, this.codeProvider));
+                //calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));
 
                 calleesMappingCache[node] = calleesForNode;
                 result = calleesForNode;

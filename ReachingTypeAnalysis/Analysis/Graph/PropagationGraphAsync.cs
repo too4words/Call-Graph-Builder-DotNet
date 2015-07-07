@@ -176,5 +176,112 @@ namespace ReachingTypeAnalysis
             }
             return new PropagationEffects(calls, retModified);
         }
+        internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, CallInfo callInfo, ICodeProvider codeProvider)
+        {
+            var result = new HashSet<TypeDescriptor>();
+            foreach (var typeDescriptor in this.GetTypes(n))
+            {
+                // TO-DO fix by adding a where T: AnalysisType
+                if (typeDescriptor.IsConcreteType)
+                {
+                    result.Add(typeDescriptor);
+                }
+                else
+                {
+                    Contract.Assert(callInfo.InstantiatedTypes != null);
+                    foreach (var candidateType in callInfo.InstantiatedTypes)
+                    {
+                        var isSubtype = await codeProvider.IsSubtypeAsync(candidateType, typeDescriptor);
+                        if (isSubtype)
+                        {
+                            result.Add(candidateType);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        internal  ISet<MethodDescriptor> ComputeCalleesForCallNode(CallInfo callInfo, ICodeProvider codeProvider)
+        {
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            if (callInfo.Receiver != null)
+            {
+                // I replaced the invocation for a local call to mark that functionality is missing
+                //var callees = GetPotentialTypes(this.Receiver, propGraph)
+                //    .Select(t => this.Callee.FindMethodImplementation(t));
+                var callees = GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider)
+                        .Select(t => codeProvider.FindMethodImplementation(callInfo.Callee, t));
+                calleesForNode.UnionWith(callees);
+            }
+            else
+            {
+                calleesForNode.Add(callInfo.Callee);
+            }
+            return calleesForNode;
+        }
+        internal Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(AnalysisInvocationExpession invoInfo, ICodeProvider codeProvider)
+        {
+            //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
+            if (invoInfo is CallInfo)
+            {
+                return ComputeCalleesForCallNodeAsync((CallInfo)invoInfo, codeProvider);                
+            }
+            Contract.Assert(invoInfo is DelegateCallInfo);
+            return ComputeCalleesForDelegateNodeAsync((DelegateCallInfo)invoInfo, codeProvider);
+        }
+
+        internal async  Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(CallInfo callInfo, ICodeProvider codeProvider)
+        {
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            if (callInfo.Receiver != null)
+            {
+                // I replaced the invocation for a local call to mark that functionality is missing
+                //var callees = GetPotentialTypes(this.Receiver, propGraph)
+                //    .Select(t => this.Callee.FindMethodImplementation(t));
+                foreach (var type in this.GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider))
+                {
+                    var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, type);
+                    calleesForNode.Add(realCallee);
+                }
+            }
+            else
+            {
+                calleesForNode.Add(callInfo.Callee);
+            }
+            return calleesForNode;
+        }
+
+        internal async Task<ISet<MethodDescriptor>> ComputeCalleesForDelegateNodeAsync(DelegateCallInfo callInfo, ICodeProvider codeProvider)
+        {
+            return await GetDelegateCalleesAsync(callInfo.CalleeDelegate, codeProvider);
+        }
+
+        private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(VariableNode delegateNode, ICodeProvider codeProvider)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var typeDescriptors = this.GetTypes(delegateNode);
+            foreach (var delegateInstance in this.GetDelegates(delegateNode))
+            {
+                if (typeDescriptors.Count() > 0)
+                {
+                    foreach (var typeDescriptor in typeDescriptors)
+                    {
+                        // TO-DO!!!
+                        // Ugly: I'll fix it
+                        //var aMethod = delegateInstance.FindMethodImplementation(type);
+                        var aMethod = await codeProvider.FindMethodImplementationAsync(delegateInstance, typeDescriptor);
+                        callees.Add(aMethod);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+
+            return callees;
+        }
+
     }
 }
