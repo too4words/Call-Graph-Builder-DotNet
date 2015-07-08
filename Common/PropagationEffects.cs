@@ -13,5 +13,7 @@ namespace ReachingTypeAnalysis
 
 		public ISet<AnalysisInvocationExpession> Calls { get; set; }
 		public bool RetValueChange { get; set; }
+        public ISet<ReturnInfo> ReturnInfo { get; set; }
+  
 	}
 }

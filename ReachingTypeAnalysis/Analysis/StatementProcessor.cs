@@ -6,33 +6,7 @@ using System.Diagnostics.Contracts;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    [Serializable]
-	internal class CallContext
-	{
-		internal MethodDescriptor Caller { get; private set; }
-		internal VariableNode CallLHS { get; private set; }
-		internal AnalysisCallNode Invocation { get; private set; }
-
-		internal CallContext(MethodDescriptor caller, VariableNode lhs, AnalysisCallNode inv)
-		{
-			this.Caller = caller;
-			this.CallLHS = lhs;
-			this.Invocation = inv;
-		}
-
-		public override bool Equals(object obj)
-		{
-			var c2 = obj as CallContext;
-			return this.Caller.Equals(c2.Caller) && (this.CallLHS == null || this.CallLHS.Equals(c2.CallLHS))
-				&& (this.Invocation == null || c2.Invocation == null || this.Invocation.Equals(c2.Invocation));
-		}
-		public override int GetHashCode()
-		{
-			int lhsHashCode = this.CallLHS == null ? 1 : this.CallLHS.GetHashCode();
-			return this.Caller.GetHashCode() + lhsHashCode;
-		}
-	}
-
+ 
 	internal class StatementProcessor
 	{
 		// t-digarb: Should I include context information?

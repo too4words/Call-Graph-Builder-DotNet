@@ -146,8 +146,39 @@ namespace ReachingTypeAnalysis.Analysis
                     invocationInfo.ArgumentsPotentialTypes.Add(potentialTypes);
                 }
             }
+
             //TODO: Add instanciation for return 
+            foreach(var callerContext in this.methodEntity.Callers)
+            {
+                var returnInfo = new ReturnInfo(callerContext);
+                //TODO: add return info, compute return values with GetTypes from returnVariable (if !null)
+                returnInfo.ReturnPotentialTypes = GetType(this.methodEnity.ReturnVariable)
+            }
+           
             return callsAndRet;
+        }
+
+        public async Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes, 
+            IList<ISet<TypeDescriptor>> argumentsPotentialTypes, PropagationKind propKind)
+        {
+            if (!this.methodEntity.CanBeAnalized)
+            {
+                return;
+            }
+            if (this.methodEntity.ThisRef != null)
+            {
+                await this.methodEntity.PropGraph.DiffPropAsync(receiverTypes, this.methodEntity.ThisRef, propKind);
+            }
+            for(int i = 0; i < this.methodEntity.ParameterNodes.Count;i++)
+            {
+                var parameterNode = this.methodEntity.ParameterNodes[i];
+
+                if (parameterNode != null)
+                {
+                    await this.methodEntity.PropGraph.DiffPropAsync(argumentsPotentialTypes[i], parameterNode, propKind);
+                }
+            }
+            return; 
         }
 
         private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode, 

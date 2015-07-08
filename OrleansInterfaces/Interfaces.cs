@@ -1,6 +1,7 @@
 ﻿using ReachingTypeAnalysis;
 using System.Threading.Tasks;
 using Orleans;
+using System.Collections.Generic;
 
 namespace OrleansInterfaces
 {
@@ -17,6 +18,10 @@ namespace OrleansInterfaces
         Task<IEntityDescriptor> GetDescriptor();
 
         Task<PropagationEffects> PropagateAsync();
+
+        Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes,
+            IList<ISet<TypeDescriptor>> argumentsPotentialTypes, PropagationKind propKind);
+
         Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
         Task DoAnalysisAsync();
         //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);

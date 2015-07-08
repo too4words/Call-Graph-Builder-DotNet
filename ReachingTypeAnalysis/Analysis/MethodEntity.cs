@@ -77,7 +77,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <summary>
         /// These are the node correspoding to the parameters
         /// </summary>
-        public IEnumerable<VariableNode> ParameterNodes
+        public IList<ParameterNode> ParameterNodes
         {
             get { return MethodInterfaceData.Parameters; }
 
@@ -292,7 +292,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public VariableNode ThisRef { get; internal set; }
 
-		public IEnumerable<ParameterNode> Parameters { get; internal set; }
+		public IList<ParameterNode> Parameters { get; internal set; }
 
 		public VariableNode ReturnVariable { get; internal set; }
 

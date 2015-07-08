@@ -17,17 +17,6 @@ namespace ReachingTypeAnalysis.Communication
         public abstract MessageHandler Handler();
     }
 
-    /// <summary>
-    /// This type represent the type of operation we want to process
-    /// </summary>
-    [Serializable]
-    public enum PropagationKind
-    {
-        ADD_TYPES,
-        REMOVE_TYPES,
-        ADD_ASSIGNMENT,
-        REMOVE_ASSIGNMENT,
-    }
 
 	/// <summary>
 	/// Information that is passed in a call message
