@@ -867,7 +867,7 @@ namespace OrleansInterfacesSerializers
             Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
             result.Calls = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.AnalysisInvocationExpession>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Calls)));
             result.RetValueChange = input.RetValueChange;
-            result.ReturnInfo = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReturnInfo)));
+            result.ReturnInfoForCallers = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReturnInfoForCallers)));
             return result;
         }
         
@@ -876,7 +876,7 @@ namespace OrleansInterfacesSerializers
             ReachingTypeAnalysis.PropagationEffects input = ((ReachingTypeAnalysis.PropagationEffects)(untypedInput));
             Orleans.Serialization.SerializationManager.SerializeInner(input.Calls, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.AnalysisInvocationExpession>));
             Orleans.Serialization.SerializationManager.SerializeInner(input.RetValueChange, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.ReturnInfo, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.ReturnInfoForCallers, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>));
         }
         
         public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
@@ -884,7 +884,7 @@ namespace OrleansInterfacesSerializers
             ReachingTypeAnalysis.PropagationEffects result = ((ReachingTypeAnalysis.PropagationEffects)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.PropagationEffects))));
             result.Calls = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.AnalysisInvocationExpession>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.AnalysisInvocationExpession>), stream)));
             result.RetValueChange = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
-            result.ReturnInfo = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>), stream)));
+            result.ReturnInfoForCallers = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.ReturnInfo>), stream)));
             return result;
         }
         

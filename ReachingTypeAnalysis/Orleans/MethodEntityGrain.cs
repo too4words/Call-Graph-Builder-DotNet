@@ -154,6 +154,7 @@ namespace ReachingTypeAnalysis.Analysis
                 //TODO: add return info, compute return values with GetTypes from returnVariable (if !null)
                 returnInfo.ReturnPotentialTypes = GetTypes(this.methodEntity.ReturnVariable);
                 returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+                callsAndRet.ReturnInfoForCallers.Add(returnInfo);
             }
            
             return callsAndRet;

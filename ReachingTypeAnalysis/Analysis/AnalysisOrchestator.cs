@@ -196,7 +196,7 @@ namespace ReachingTypeAnalysis.Analysis
             await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
             if(callsAndRets.RetValueChange)
             {
-                await ProcessReturnAsync(calleeDescriptor, callsAndRets.ReturnInfo, propKind, codeProvider);
+                await ProcessReturnAsync(calleeDescriptor, callsAndRets.ReturnInfoForCallers, propKind, codeProvider);
             }
         }
 
@@ -215,7 +215,7 @@ namespace ReachingTypeAnalysis.Analysis
             await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
             if (callsAndRets.RetValueChange)
             {
-                await ProcessReturnAsync(callerDescriptor, callsAndRets.ReturnInfo, propKind, codeProvider);
+                await ProcessReturnAsync(callerDescriptor, callsAndRets.ReturnInfoForCallers, propKind, codeProvider);
             }
         }
 

@@ -9,11 +9,12 @@ namespace ReachingTypeAnalysis
 		{
 			this.Calls = calls;
 			this.RetValueChange = rvChange;
+            this.ReturnInfoForCallers = new HashSet<ReturnInfo>();
 		}
 
 		public ISet<AnalysisInvocationExpession> Calls { get; set; }
 		public bool RetValueChange { get; set; }
-        public ISet<ReturnInfo> ReturnInfo { get; set; }
+        public ISet<ReturnInfo> ReturnInfoForCallers { get; set; }
   
 	}
 }
