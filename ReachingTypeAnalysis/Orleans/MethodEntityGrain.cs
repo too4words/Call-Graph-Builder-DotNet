@@ -153,6 +153,7 @@ namespace ReachingTypeAnalysis.Analysis
                 var returnInfo = new ReturnInfo(callerContext);
                 //TODO: add return info, compute return values with GetTypes from returnVariable (if !null)
                 returnInfo.ReturnPotentialTypes = GetTypes(this.methodEntity.ReturnVariable);
+                returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
             }
            
             return callsAndRet;
@@ -180,6 +181,27 @@ namespace ReachingTypeAnalysis.Analysis
             }
             return; 
         }
+
+        public async Task UpdateMethodReturnAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind)
+        {
+            //PropGraph.Add(lhs, retValues);
+            await this.methodEntity.PropGraph.DiffPropAsync(returnValues,lhs, propKind);
+            // This should be Async
+            //switch (retMesssageInfo.PropagationKind)
+            //{
+            //    case PropagationKind.ADD_TYPES:
+            //        Propagate();
+            //        break;
+            //    case PropagationKind.REMOVE_TYPES:
+            //        PropagateDelete();
+            //        break;
+            //    default:
+            //        throw new ArgumentException();
+            //}
+            //return;
+        }
+
+
 
         private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode, 
                                                                                     ICodeProvider codeProvider)

@@ -21,7 +21,8 @@ namespace OrleansInterfaces
 
         Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes,
             IList<ISet<TypeDescriptor>> argumentsPotentialTypes, PropagationKind propKind);
-
+        Task UpdateMethodReturnAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind);
+ 
         Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
         Task DoAnalysisAsync();
         //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);

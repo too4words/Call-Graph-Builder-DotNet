@@ -173,31 +173,61 @@ namespace ReachingTypeAnalysis.Analysis
 
         }
 
+        /// <summary>
+        /// This method "replaces" the send + dispatch + processMessage for calless that used the methodProcessor and dispatcher
+        /// The idea is trying to avoid reentrant calls to grains
+        /// We wil need to improve the code / design but this is a first approach to solve that problem
+        /// </summary>
+        /// <param name="calleeDescriptor"></param>
+        /// <param name="callerMessage"></param>
+        /// <param name="propKind"></param>
+        /// <returns></returns>
         private static async Task AnalyzeCalleeAsync(MethodDescriptor calleeDescriptor, CallerMessage callerMessage,PropagationKind propKind)
         {
 
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(calleeDescriptor);
-            Debug.WriteLine("Analyzing {0} ", calleeDescriptor);
+            Debug.WriteLine("Analyzing call to {0} ", calleeDescriptor);
             var orleansEnityDesc = new OrleansEntityDescriptor(calleeDescriptor);
             var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
 
             await methodEntityGrain.UpdateMethodArgumentsAsync(callerMessage.CallMessageInfo.Receivers, callerMessage.CallMessageInfo.ArgumentValues, propKind);
 
             var callsAndRets = await methodEntityGrain.PropagateAsync();
-            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES, codeProvider);
+            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
             if(callsAndRets.RetValueChange)
             {
-                await ProcessReturnAsync(callsAndRets.ReturnInfo);
+                await ProcessReturnAsync(calleeDescriptor, callsAndRets.ReturnInfo, propKind, codeProvider);
             }
         }
 
-        private static async Task ProcessReturnAsync(ISet<ReturnInfo> returnInfos)
+
+        private static async Task AnalyzeReturnAsync(MethodDescriptor callerDescriptor, ReturnMessage returnMessage, PropagationKind propKind)
+        {
+
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(callerDescriptor);
+            Debug.WriteLine("Analyzing return to {0} ", callerDescriptor);
+            var orleansEnityDesc = new OrleansEntityDescriptor(callerDescriptor);
+            var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
+
+            await methodEntityGrain.UpdateMethodReturnAsync(returnMessage.ReturnMessageInfo.RVs, returnMessage.ReturnMessageInfo.LHS, propKind);
+    
+            var callsAndRets = await methodEntityGrain.PropagateAsync();
+            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
+            if (callsAndRets.RetValueChange)
+            {
+                await ProcessReturnAsync(callerDescriptor, callsAndRets.ReturnInfo, propKind, codeProvider);
+            }
+        }
+
+
+
+        private static async Task ProcessReturnAsync(MethodDescriptor calleeDescriptor, ISet<ReturnInfo> returnInfos, PropagationKind propKind, ICodeProvider codeProvider)
         {
                 var continuations = new List<Task>();
                 foreach (var returnInfo in returnInfos)
                 {
                     var retPotentialTypes = returnInfo.ReturnPotentialTypes;
-                    //var t = DispachReturnMessageAsync(returnInfo.Caller, ret, propKind);
+                    var t = DispachReturnMessageAsync(calleeDescriptor,returnInfo, propKind, codeProvider);
                     await t;
                     //continuations.Add(t);
                 }
@@ -208,33 +238,26 @@ namespace ReachingTypeAnalysis.Analysis
 
 
 
-    internal static async Task DispachReturnMessageAsync(CallContext context, VariableNode returnVariable, PropagationKind propKind)
+    internal static async Task DispachReturnMessageAsync(MethodDescriptor callerDescriptor, ReturnInfo returnInfo, PropagationKind propKind, ICodeProvider codeProvider)
 		{
-			var caller = context.Caller;
-			var lhs = context.CallLHS;
-			var types = returnVariable != null ?
-				GetTypes(returnVariable, propKind) : 
-				new HashSet<TypeDescriptor>();
+			var caller = returnInfo.CallerContext.Caller;
+            var lhs = returnInfo.CallerContext.CallLHS;
+            var types = returnInfo.ReturnPotentialTypes;
 
 			// Diego TO-DO, different treatment for adding and removal
-			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
+			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 )
 			{
 				var instTypes = new HashSet<TypeDescriptor>();
 
-				foreach (var iType in this.MethodEntity.InstantiatedTypes)
+				foreach (var iType in returnInfo.InstantiatedTypes)
 				{
-					var isSubtype = await codeProvider.IsSubtypeAsync(iType,returnVariable.Type);
+					var isSubtype = await codeProvider.IsSubtypeAsync(iType, lhs.Type);
 					
 					if (isSubtype)
 					{
 						instTypes.Add(iType);
 					}
 				}
-
-				//instTypes.UnionWith(
-				//	this.MethodEntity.InstantiatedTypes
-				//		.Where(iType => codeProvider.IsSubtypeAsync(iType,returnVariable.Type).Result));
-                ////    .Where(iType => iType.IsSubtype(returnVariable.Type)));
 				foreach (var t in instTypes)
 				{
 					types.Add(t);
@@ -242,17 +265,20 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			// Jump to caller
-			var destination = EntityFactory.Create(caller,this.dispatcher);
+			var destination = new OrleansEntityDescriptor(caller);
 			var retMessageInfo = new ReturnMessageInfo(
 				lhs,
 				types,
-				propKind, this.MethodEntity.InstantiatedTypes,
-				context.Invocation);
-			var returnMessage = new ReturnMessage(this.MethodEntity.EntityDescriptor, retMessageInfo);
+				propKind, returnInfo.InstantiatedTypes,
+				returnInfo.CallerContext.Invocation);
+			var returnMessage = new ReturnMessage(new OrleansEntityDescriptor(callerDescriptor), retMessageInfo);
 			//if (lhs != null)
 			{
-				await this.SendMessageAsync(destination, returnMessage);
+			//	await this.SendMessageAsync(destination, returnMessage);
 			}
+
+            await  AnalyzeReturnAsync(caller, returnMessage, propKind);
+
 			//else
 			//{
 			//    return new Task(() => { });

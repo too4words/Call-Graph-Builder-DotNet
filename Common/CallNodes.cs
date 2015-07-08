@@ -267,14 +267,15 @@ namespace ReachingTypeAnalysis
     public class ReturnInfo
     {
         public ISet<TypeDescriptor> ReturnPotentialTypes { get;  set; }
-        public ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
-        public CallContext Caller { get; private set; }
+        public ISet<TypeDescriptor> InstantiatedTypes { get;  set; }
+        public CallContext CallerContext { get; private set; }
+       
 
         public ReturnInfo(CallContext caller)
         {
-            this.InstatiatedTypes = new HashSet<TypeDescriptor>();
+            this.InstantiatedTypes = new HashSet<TypeDescriptor>();
             this.ReturnPotentialTypes = new HashSet<TypeDescriptor>();
-            this.Caller = caller;
+            this.CallerContext = caller;
         }
     }
 }
