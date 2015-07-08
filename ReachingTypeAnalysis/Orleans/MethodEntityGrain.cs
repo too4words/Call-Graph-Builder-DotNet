@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis.Analysis
     }
 
     [StorageProvider(ProviderName = "TestStore")]
-    [Reentrant]
+    //[Reentrant]
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         private OrleansEntityDescriptor orleansEntityDescriptor;
