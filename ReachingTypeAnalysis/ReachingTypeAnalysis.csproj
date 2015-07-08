@@ -254,6 +254,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analysis\AnalysisMessages.cs" />
+    <Compile Include="Analysis\AnalysisOrchestator.cs" />
     <Compile Include="Analysis\AnalysisTypes.cs">
       <SubType>Code</SubType>
     </Compile>

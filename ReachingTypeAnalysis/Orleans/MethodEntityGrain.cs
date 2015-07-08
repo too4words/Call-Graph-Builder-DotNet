@@ -4,6 +4,7 @@ using Orleans;
 using Orleans.Concurrency;
 using Orleans.Providers;
 using OrleansInterfaces;
+using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Collections.Generic;
@@ -113,10 +114,106 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync()
         {
+            //TODO: Pass propKind as parameters
+            var propKind = PropagationKind.ADD_TYPES;
+
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            return await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
+            var callsAndRet = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
+            foreach (var invocationInfo in callsAndRet.Calls)
+            {
+                //  Add instanciated types! 
+                /// Diego: Ben. This may not work well in parallel... 
+                /// We need a different way to update this info
+                invocationInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+                // TODO: This is because of the refactor
+                if (invocationInfo is CallInfo)
+                {
+                    invocationInfo.ReceiverPotentialTypes = GetTypes(invocationInfo.Receiver);
+                }
+                else
+                {
+                    Contract.Assert(invocationInfo is DelegateCallInfo);
+                    var delegateInvocation = (DelegateCallInfo)invocationInfo;
+                    invocationInfo.ReceiverPotentialTypes = GetTypes(delegateInvocation.CalleeDelegate);
+                    delegateInvocation.ResolvedCallees = await GetDelegateCalleesAsync(delegateInvocation.CalleeDelegate, codeProvider);
+                }
+
+
+                for (int i = 0; i < invocationInfo.Arguments.Count; i++)
+                {
+                    var arg = invocationInfo.Arguments[i];
+                    var potentialTypes = arg != null ? GetTypes(arg, propKind) : new HashSet<TypeDescriptor>();
+                    invocationInfo.ArgumentsPotentialTypes.Add(potentialTypes);
+                }
+            }
+            //TODO: Add instanciation for return 
+            return callsAndRet;
         }
 
+        private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode, 
+                                                                                    ICodeProvider codeProvider)
+        {
+            var callees = new HashSet<MethodDescriptor>();
+            var types = GetTypes(delegateVariableNode);
+            foreach (var delegateInstance in GetDelegates(delegateVariableNode))
+            {
+                if (types.Count > 0)
+                {
+                    foreach (var t in types)
+                    {
+                        //var aMethod = delegateInstance.FindMethodImplementation(t);
+                        // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
+                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(delegateInstance, t);
+                        callees.Add(methodDescriptor);
+                    }
+                }
+                else
+                {
+                    // if Count is 0, it is a delegate that do not came form an instance variable
+                    callees.Add(delegateInstance);
+                }
+            }
+            return callees;
+        }
+
+        private ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor analysisNode)
+        {
+            if (analysisNode != null)
+            {
+                return this.methodEntity.PropGraph.GetTypes(analysisNode);
+            }
+            else
+            {
+                return new HashSet<TypeDescriptor>();
+            }
+        }
+        private ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor node, PropagationKind prop)
+        {
+            switch (prop)
+            {
+                case PropagationKind.ADD_TYPES:
+                    return GetTypes(node);
+                case PropagationKind.REMOVE_TYPES:
+                    return GetDeletedTypes(node);
+                default:
+                    return GetTypes(node);
+            }
+        }
+        internal ISet<TypeDescriptor> GetDeletedTypes(PropGraphNodeDescriptor node)
+        {
+            if (node != null)
+            {
+                return this.methodEntity.PropGraph.GetDeletedTypes(node);
+            }
+            else
+            {
+                return new HashSet<TypeDescriptor>();
+            }
+        }
+        internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode node)
+        {
+            return this.methodEntity.PropGraph.GetDelegates(node);
+        }
 
         /// <summary>
         /// We use this to obtain a processor directly from the grain
