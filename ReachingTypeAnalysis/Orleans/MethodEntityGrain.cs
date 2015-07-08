@@ -152,7 +152,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var returnInfo = new ReturnInfo(callerContext);
                 //TODO: add return info, compute return values with GetTypes from returnVariable (if !null)
-                returnInfo.ReturnPotentialTypes = GetType(this.methodEnity.ReturnVariable)
+                returnInfo.ReturnPotentialTypes = GetTypes(this.methodEntity.ReturnVariable);
             }
            
             return callsAndRet;

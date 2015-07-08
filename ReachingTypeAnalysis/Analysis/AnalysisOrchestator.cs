@@ -187,17 +187,17 @@ namespace ReachingTypeAnalysis.Analysis
             await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES, codeProvider);
             if(callsAndRets.RetValueChange)
             {
-                await ProcessReturnAsync(callsAndRets.Callers);
+                await ProcessReturnAsync(callsAndRets.ReturnInfo);
             }
         }
 
-        private static async Task ProcessReturnAsync(ISet<CallContext> callers)
+        private static async Task ProcessReturnAsync(ISet<ReturnInfo> returnInfos)
         {
                 var continuations = new List<Task>();
-                foreach (var callerContex in callers)
+                foreach (var returnInfo in returnInfos)
                 {
-                    var ret = this.MethodEntity.ReturnVariable;
-                    var t = DispachReturnMessageAsync(callerContex, ret, propKind);
+                    var retPotentialTypes = returnInfo.ReturnPotentialTypes;
+                    //var t = DispachReturnMessageAsync(returnInfo.Caller, ret, propKind);
                     await t;
                     //continuations.Add(t);
                 }
