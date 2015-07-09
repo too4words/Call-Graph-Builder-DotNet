@@ -84,7 +84,7 @@ namespace ReachingTypeAnalysis
             analyzerLocal.Analyze(AnalysisStrategy.ONDEMAND_SYNC);
             timerLocal.Stop();
             var callgraphLocal = analyzerLocal.GenerateCallGraph();
-            Debug.WriteLine("Local analysis time: {0}", timerLocal.Elapsed);
+            Logger.Instance.Log("Program", "CompareDispatchers", "Local analysis time: {0}", timerLocal.Elapsed);
 
             var analyzerParallel = new SolutionAnalyzer(solution);
             var timerQueuing = new Stopwatch();
@@ -107,10 +107,10 @@ namespace ReachingTypeAnalysis
             timerQueuing.Stop();
 
             var callgraphQueuing = analyzerParallel.GenerateCallGraph();
-            Debug.WriteLine(string.Format("Queueing analysis time: {0}", timerLocal.Elapsed));
 
-            Debug.WriteLine(string.Format("Analysis {0} {1} methods ", 1, callgraphLocal.GetReachableMethods().Count));
-            Debug.WriteLine(string.Format("Analysis {0} {1} methods ", 2, callgraphQueuing.GetReachableMethods().Count));
+            Logger.Instance.Log("Program", "CompareDispatchers", "Queueing analysis time: {0}", timerLocal.Elapsed);
+            Logger.Instance.Log("Program", "CompareDispatchers", "Analysis {0} {1} methods ", 1, callgraphLocal.GetReachableMethods().Count);
+            Logger.Instance.Log("Program", "CompareDispatchers", "Analysis {0} {1} methods ", 2, callgraphQueuing.GetReachableMethods().Count);
 
             if (callgraphLocal.GetReachableMethods().Count != callgraphQueuing.GetReachableMethods().Count)
             {

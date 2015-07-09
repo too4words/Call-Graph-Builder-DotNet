@@ -278,6 +278,7 @@
     <Compile Include="Analysis\Graph\GraphvizAdapter.cs" />
     <Compile Include="Analysis\Graph\PropagationGraph.cs" />
     <Compile Include="Communication\IDispatcher.cs" />
+    <Compile Include="Communication\Logger.cs" />
     <Compile Include="Orleans\OrleansDispatcher.cs" />
     <Compile Include="Orleans\MethodEntityGrain.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
@@ -335,9 +336,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ClientConfiguration.xml">

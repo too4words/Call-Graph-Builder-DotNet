@@ -116,11 +116,11 @@ namespace ReachingTypeAnalysis
                         try
                         {                            
                             GrainClient.Initialize(xmlConfig);
-                            Debug.WriteLine("Orleans silo initialized");
+                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
                         }
                         catch (Exception e)
                         {
-                            Debug.WriteLine(e.Message);
+                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
                             throw e;
                             //break;
                         }
@@ -172,7 +172,7 @@ namespace ReachingTypeAnalysis
 
             if (!hostWrapper.Run())
             {
-                Console.Error.WriteLine("Failed to initialize Orleans silo");
+                Logger.Instance.Log("SolutionAnalyzer", "InitSilo", "Failed to initialize Orleans silo");
             }
         }
 
@@ -247,7 +247,7 @@ namespace ReachingTypeAnalysis
             //    var qd = (QueueingDispatcher)this.Dispatcher;
             //    while (!qd.IsDoneProcessing)
             //    {
-            //        Debug.WriteLine("Waiting for the queue to empty up...");
+            //        Logger.Instance.Log("Waiting for the queue to empty up...");
             //        Thread.Sleep(1000);
             //    }
             //}
@@ -290,7 +290,7 @@ namespace ReachingTypeAnalysis
             //    var qd = (QueueingDispatcher)this.Dispatcher;
             //    while (!qd.IsDoneProcessing)
             //    {
-            //        Debug.WriteLine("Waiting for the queue to empty up...");
+            //        Logger.Instance.Log("Waiting for the queue to empty up...");
             //        Thread.Sleep(1000);
             //    }
             //}
@@ -319,7 +319,7 @@ namespace ReachingTypeAnalysis
                 //{
                 //    while (!mainEntityProcessor.HasFinishedAllProgatations())
                 //    {
-                //        Debug.WriteLine("Waiting in Main for the queue to empty up... {0}",mainEntityProcessor.MethodEntity.NodesProcessing.Count());
+                //        Logger.Instance.Log("Waiting in Main for the queue to empty up... {0}",mainEntityProcessor.MethodEntity.NodesProcessing.Count());
                 //        Thread.Sleep(10);
                 //    }
                 //}
@@ -363,7 +363,7 @@ namespace ReachingTypeAnalysis
 
 					mainEntityProcessor.DoAnalysis();
 
-					Debug.WriteLine("--- Done with propagation ---");
+					Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemand", "--- Done with propagation ---");
 				}
 			}
 
@@ -372,7 +372,7 @@ namespace ReachingTypeAnalysis
                 var qd = (QueueingDispatcher)this.Dispatcher;
                 while (!qd.IsDoneProcessing)
                 {
-                    Debug.WriteLine("Waiting for the queue to empty up...");
+                    Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemand", "Waiting for the queue to empty up...");
                     Thread.Sleep(1000);
                 }
             }
@@ -425,7 +425,7 @@ namespace ReachingTypeAnalysis
                 }
                 //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
                 //Thread.Sleep(1000);
-				Debug.WriteLine("--- Done with propagation ---");
+				Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemandAsync", "--- Done with propagation ---");
 			}
 		}
 
@@ -717,7 +717,7 @@ namespace ReachingTypeAnalysis
 					{
 						//var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
 						var callee = calleeAMethod;
-						Debug.WriteLine(string.Format("\t-> {0}", callee));
+						Logger.Instance.Log("SolutionAnalyzer", "UpdateCallGraph", "\t-> {0}", callee);
 						callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
 					}
 				}

@@ -39,7 +39,7 @@ namespace ReachingTypeAnalysis.Communication
 
         public override void DeliverMessage(IEntityDescriptor destination, IMessage message)
         {
-            //Debug.WriteLine(string.Format("Delivering {0} to {1}...", message, destination));
+            //Logger.Instance.Log(string.Format("Delivering {0} to {1}...", message, destination));
             //this.MessageCount++;
             //var t = new Task(() =>
             //{
@@ -61,7 +61,7 @@ namespace ReachingTypeAnalysis.Communication
             //    //}
             //    //entity.ReceiveMessage(message.Source, message);
             //    //}
-            //    Debug.WriteLine(string.Format("Delivered {0} to {1}", message, destination));
+            //    Logger.Instance.Log(string.Format("Delivered {0} to {1}", message, destination));
             //});
             //lock (this.Tasks)
             //{
@@ -73,7 +73,7 @@ namespace ReachingTypeAnalysis.Communication
 
         public override async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
         {
-            Debug.WriteLine(string.Format("Delivering {0} to {1}...", message, destination));
+            Logger.Instance.Log("AsyncDispatcher", "DeliverMessageAsync", "Delivering {0} to {1}", message, destination);
             this.MessageCount++;
             var messageAndDestination = new MessageWithDestination
             {
