@@ -7,24 +7,47 @@ using System.Diagnostics;
 using System.Threading;
 using ReachingTypeAnalysis.Communication;
 using System.Diagnostics.Contracts;
+using OrleansInterfaces;
 
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    /// <summary>
+    /// This class is a prototype version of the propagation analysis avoiding the rentrancy in grains.
+    /// All methods are static.
+    /// Essentially, now the MethodGrain only performs the Propagation within its graph but doesn't trigger the 
+    /// propagation to other methods. This is done by this orchestator
+    /// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
+    /// This should be improved in next versions.
+    /// </summary>
     class AnalysisOrchestator
     {
+        static bool conservativeWithTypes = false;
 
         public static async Task AnalyzeAsync(MethodDescriptor methodDescriptor)
         {
+            Debug.WriteLine("Analyzing {0} ", methodDescriptor);
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodDescriptor);
 
-            Debug.WriteLine("Analyzing {0} ", methodDescriptor);
             var orleansEnityDesc = new OrleansEntityDescriptor(methodDescriptor);
-            var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);  
+            var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
+
+            await DoPropagationOnGrain(methodDescriptor, PropagationKind.ADD_TYPES, codeProvider, methodEntityGrain);
+
+            //var callsAndRets = await methodEntityGrain.PropagateAsync();
+            //await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES, codeProvider);
+        }
+
+        private static async Task DoPropagationOnGrain(MethodDescriptor methodDescriptor, PropagationKind propKind,
+                                               ICodeProvider codeProvider,
+                                               IMethodEntityGrain methodEntityGrain)
+        {
             var callsAndRets = await methodEntityGrain.PropagateAsync();
-            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, PropagationKind.ADD_TYPES, codeProvider);
-            //var retValueHasChanged = callsAndRets.RetValueChange;
-           // await EndOfPropagationEventAsync(PropagationKind.ADD_TYPES, retValueHasChanged);
+            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
+            if (callsAndRets.RetValueChange)
+            {
+                await ProcessReturnAsync(methodDescriptor, callsAndRets.ReturnInfoForCallers, propKind, codeProvider);
+            }
         }
         private static async Task ProcessCalleesAffectedByPropagationAsync(IEnumerable<AnalysisInvocationExpession> callInvocationInfoForCalls,
                                                                             PropagationKind propKind, ICodeProvider codeProvider)
@@ -36,18 +59,22 @@ namespace ReachingTypeAnalysis.Analysis
 
             foreach (var invocationInfo in invocationsToProcess)
             {
-                //TODO: I hate to do this. Need to Refactor!
+                //TODO: Need to Refactor to get rid of this ifs!
                 if (invocationInfo is CallInfo)
                 {
+                    // TODO: This should work in any order because the technique is flow insensitive 
+                    // But actually for some reason the ordering is affecting the result
+                    // I think the problem is the conservative treatment when types(receiver).Count = 0 
+                    // (FIXED??)
                     var t = DispatchCallMessageAsync(invocationInfo as CallInfo, propKind, codeProvider);
-                    await t;
-                    //continuations.Add(t);
+                    //await t;
+                    continuations.Add(t);
                 }
                 if (invocationInfo is DelegateCallInfo)
                 {
                     var t = DispatchCallMessageForDelegateAsync(invocationInfo as DelegateCallInfo, propKind);
-                    await t;
-                    //continuations.Add(t);
+                    //await t;
+                    continuations.Add(t);
                 }
             }
             Contract.Assert(invocationsToProcess.Count == invocationsToProcess.Count);
@@ -63,7 +90,9 @@ namespace ReachingTypeAnalysis.Analysis
                 var types = callInfo.ReceiverPotentialTypes;
 
                 // If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
-                if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
+                // TODO: I make this False for testing what happens if we remove this
+
+                if (conservativeWithTypes && types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
                 {
                     var instTypes = new HashSet<TypeDescriptor>();
                     foreach (var candidateTypeDescriptor in callInfo.InstantiatedTypes)
@@ -123,39 +152,11 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var continuation = CreateAndSendCallMessageAsync(delegateCallInfo,
                     callee, callee.ContainerType, propKind);
-                await continuation;
-                //continuations.Add(continuation);
+                //await continuation;
+                continuations.Add(continuation);
             }
             await Task.WhenAll(continuations);
         }
-
-        //private static async Task<IEnumerable<MethodDescriptor>> GetDelegateCalleesAsync(DelegateCallInfo delegateCallInfo)
-        //{
-        //    var callees = new HashSet<MethodDescriptor>();
-        //    var types = GetTypes( delegateVariableNode);
-        //    delegateCallInfo.ReceiverPotentialTypes;
-        //    foreach (var delegateInstance in GetDelegates(delegateVariableNode))
-        //    {
-        //        if (types.Count() > 0)
-        //        {
-        //            foreach (var t in types)
-        //            {
-        //                //var aMethod = delegateInstance.FindMethodImplementation(t);
-        //                // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
-        //                var methodDescriptor = await codeProvider.FindMethodImplementationAsync(delegateInstance, t);
-        //                callees.Add(methodDescriptor);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // if Count is 0, it is a delegate that do not came form an instance variable
-        //            callees.Add(delegateInstance);
-        //        }
-        //    }
-        //    return callees;
-        //}
-
-
 
         private static Task CreateAndSendCallMessageAsync(
                             AnalysisInvocationExpession callInfo,
@@ -166,15 +167,14 @@ namespace ReachingTypeAnalysis.Analysis
             var destination = new OrleansEntityDescriptor(realCallee);
 
             //await this.SendMessageAsync(destination, callerMessage);
-            return AnalyzeCalleeAsync(realCallee,callerMessage,propKind);
+            return AnalyzeCalleeAsync(realCallee, callerMessage, propKind);
             //var destinationEntity = await GetEntityAsync(destination);
             //var destinationGrain = (IMethodEntityGrain)destinationEntity;
             //await destinationGrain.ProcessMessaggeAsync(message.Source, message);
 
         }
-
         /// <summary>
-        /// This method "replaces" the send + dispatch + processMessage for calless that used the methodProcessor and dispatcher
+        /// This method "replaces" the send + dispatch + processCallMessage for calless that used the methodProcessor and dispatcher
         /// The idea is trying to avoid reentrant calls to grains
         /// We wil need to improve the code / design but this is a first approach to solve that problem
         /// </summary>
@@ -182,7 +182,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="callerMessage"></param>
         /// <param name="propKind"></param>
         /// <returns></returns>
-        private static async Task AnalyzeCalleeAsync(MethodDescriptor calleeDescriptor, CallerMessage callerMessage,PropagationKind propKind)
+        private static async Task AnalyzeCalleeAsync(MethodDescriptor calleeDescriptor, CallerMessage callerMessage, PropagationKind propKind)
         {
 
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(calleeDescriptor);
@@ -192,15 +192,18 @@ namespace ReachingTypeAnalysis.Analysis
 
             await methodEntityGrain.UpdateMethodArgumentsAsync(callerMessage.CallMessageInfo.Receivers, callerMessage.CallMessageInfo.ArgumentValues, propKind);
 
-            var callsAndRets = await methodEntityGrain.PropagateAsync();
-            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
-            if(callsAndRets.RetValueChange)
-            {
-                await ProcessReturnAsync(calleeDescriptor, callsAndRets.ReturnInfoForCallers, propKind, codeProvider);
-            }
+            await DoPropagationOnGrain(calleeDescriptor, propKind, codeProvider, methodEntityGrain);
         }
 
-
+        /// <summary>
+        /// This method "replaces" the send + dispatch + processReturnMessage for calless that used the methodProcessor and dispatcher
+        /// The idea is trying to avoid reentrant calls to grains
+        /// We wil need to improve the code / design but this is a first approach to solve that problem
+        /// </summary>
+        /// <param name="callerDescriptor"></param>
+        /// <param name="returnMessage"></param>
+        /// <param name="propKind"></param>
+        /// <returns></returns>
         private static async Task AnalyzeReturnAsync(MethodDescriptor callerDescriptor, ReturnMessage returnMessage, PropagationKind propKind)
         {
 
@@ -210,83 +213,74 @@ namespace ReachingTypeAnalysis.Analysis
             var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
 
             await methodEntityGrain.UpdateMethodReturnAsync(returnMessage.ReturnMessageInfo.RVs, returnMessage.ReturnMessageInfo.LHS, propKind);
-    
-            var callsAndRets = await methodEntityGrain.PropagateAsync();
-            await ProcessCalleesAffectedByPropagationAsync(callsAndRets.Calls, propKind, codeProvider);
-            if (callsAndRets.RetValueChange)
-            {
-                await ProcessReturnAsync(callerDescriptor, callsAndRets.ReturnInfoForCallers, propKind, codeProvider);
-            }
+
+            await DoPropagationOnGrain(callerDescriptor, propKind, codeProvider, methodEntityGrain);
         }
-
-
-
+        
         private static async Task ProcessReturnAsync(MethodDescriptor calleeDescriptor, ISet<ReturnInfo> returnInfos, PropagationKind propKind, ICodeProvider codeProvider)
         {
-                var continuations = new List<Task>();
-                foreach (var returnInfo in returnInfos)
-                {
-                    var retPotentialTypes = returnInfo.ReturnPotentialTypes;
-                    var t = DispachReturnMessageAsync(calleeDescriptor,returnInfo, propKind, codeProvider);
-                    await t;
-                    //continuations.Add(t);
-                }
-
-                await Task.WhenAll(continuations);
-
+            var continuations = new List<Task>();
+            foreach (var returnInfo in returnInfos)
+            {
+                var retPotentialTypes = returnInfo.ReturnPotentialTypes;
+                var t = DispachReturnMessageAsync(calleeDescriptor, returnInfo, propKind, codeProvider);
+                //await t;
+                continuations.Add(t);
             }
 
+            await Task.WhenAll(continuations);
+        }
 
-
-    internal static async Task DispachReturnMessageAsync(MethodDescriptor callerDescriptor, ReturnInfo returnInfo, PropagationKind propKind, ICodeProvider codeProvider)
-		{
-			var caller = returnInfo.CallerContext.Caller;
+        internal static async Task DispachReturnMessageAsync(MethodDescriptor callerDescriptor, ReturnInfo returnInfo, PropagationKind propKind, ICodeProvider codeProvider)
+        {
+            var caller = returnInfo.CallerContext.Caller;
             var lhs = returnInfo.CallerContext.CallLHS;
             var types = returnInfo.ReturnPotentialTypes;
 
-			// Diego TO-DO, different treatment for adding and removal
-			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 )
-			{
-				var instTypes = new HashSet<TypeDescriptor>();
+            // TODO: different treatment for adding and removal
+            // TODO: I make this false to test if I can avoid this
+            if (conservativeWithTypes && propKind == PropagationKind.ADD_TYPES && types.Count() == 0)
+            {
+                var instTypes = new HashSet<TypeDescriptor>();
 
-				foreach (var iType in returnInfo.InstantiatedTypes)
-				{
-					var isSubtype = await codeProvider.IsSubtypeAsync(iType, lhs.Type);
-					
-					if (isSubtype)
-					{
-						instTypes.Add(iType);
-					}
-				}
-				foreach (var t in instTypes)
-				{
-					types.Add(t);
-				}
-			}
+                foreach (var iType in returnInfo.InstantiatedTypes)
+                {
+                    var isSubtype = await codeProvider.IsSubtypeAsync(iType, lhs.Type);
 
-			// Jump to caller
-			var destination = new OrleansEntityDescriptor(caller);
-			var retMessageInfo = new ReturnMessageInfo(
-				lhs,
-				types,
-				propKind, returnInfo.InstantiatedTypes,
-				returnInfo.CallerContext.Invocation);
-			var returnMessage = new ReturnMessage(new OrleansEntityDescriptor(callerDescriptor), retMessageInfo);
-			//if (lhs != null)
-			{
-			//	await this.SendMessageAsync(destination, returnMessage);
-			}
+                    if (isSubtype)
+                    {
+                        instTypes.Add(iType);
+                    }
+                }
+                foreach (var t in instTypes)
+                {
+                    types.Add(t);
+                }
+            }
 
-            await  AnalyzeReturnAsync(caller, returnMessage, propKind);
+            // Jump to caller
+            var destination = new OrleansEntityDescriptor(caller);
+            var retMessageInfo = new ReturnMessageInfo(
+                lhs,
+                types,
+                propKind, returnInfo.InstantiatedTypes,
+                returnInfo.CallerContext.Invocation);
+            var returnMessage = new ReturnMessage(new OrleansEntityDescriptor(callerDescriptor), retMessageInfo);
+            //if (lhs != null)
+            {
+                //	await this.SendMessageAsync(destination, returnMessage);
+            }
 
-			//else
-			//{
-			//    return new Task(() => { });
-			//}
-		}
+            await AnalyzeReturnAsync(caller, returnMessage, propKind);
+
+            //else
+            //{
+            //    return new Task(() => { });
+            //}
+        }
 
 
-        private static  CallMessageInfo CreateCallMessage(AnalysisInvocationExpession callInfo,
+        private static CallMessageInfo CreateCallMessage(AnalysisInvocationExpession callInfo,
                                                             MethodDescriptor actuallCallee,
                                                             TypeDescriptor computedReceiverType,
                                                             PropagationKind propKind)

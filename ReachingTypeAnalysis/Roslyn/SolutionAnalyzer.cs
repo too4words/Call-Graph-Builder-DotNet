@@ -145,6 +145,7 @@ namespace ReachingTypeAnalysis
                         this.Dispatcher = new OrleansDispatcher();
                         // run
                         AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ORLEANS).Wait();
+                        hostDomain.DoCallBack(ShutdownSilo);
 
                         break;
                     }

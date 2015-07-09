@@ -138,6 +138,7 @@ namespace ReachingTypeAnalysis.Roslyn
             {
                 var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
                 var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+                Contract.Assert(implementedMethod != null);
                 return Utils.CreateMethodDescriptor(implementedMethod);
             }
             // If we cannot resolve the method, we return the same method.
