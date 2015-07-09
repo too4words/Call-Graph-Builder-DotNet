@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override string ToString()
         {
-            return string.Format("CallMessage {0}", this.CallMessageInfo);
+            return this.CallMessageInfo.ToString();
         }
     }
 
@@ -44,7 +44,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override string ToString()
 		{
-			return string.Format("ReturnMessage {0}", this.ReturnMessageInfo);
+			return this.ReturnMessageInfo.ToString();
 		}
 	}
 }

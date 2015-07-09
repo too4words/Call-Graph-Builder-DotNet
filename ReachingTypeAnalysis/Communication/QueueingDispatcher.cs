@@ -102,8 +102,8 @@ namespace ReachingTypeAnalysis.Communication
             var averageLength = 1.0 * queueSize / iterations;
             var averageThreads = threadCounts / iterations;
 
-            Debug.WriteLine("Average queue length: {0}", averageLength);
-            Debug.WriteLine("Thread count: {0}", averageThreads);
+            Logger.Instance.Log("QueueingDispatcher", "Run", "Average queue length: {0}", averageLength);
+            Logger.Instance.Log("QueueingDispatcher", "Run", "Thread count: {0}", averageThreads);
         }
 
         public override void DeliverMessage(IEntityDescriptor destination, IMessage message)

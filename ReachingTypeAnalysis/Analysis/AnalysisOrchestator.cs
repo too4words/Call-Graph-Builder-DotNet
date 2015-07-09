@@ -18,7 +18,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodDescriptor);
 
-            Debug.WriteLine("Analyzing {0} ", methodDescriptor);
+            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", methodDescriptor);
             var orleansEnityDesc = new OrleansEntityDescriptor(methodDescriptor);
             var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);  
             var callsAndRets = await methodEntityGrain.PropagateAsync();
@@ -186,7 +186,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(calleeDescriptor);
-            Debug.WriteLine("Analyzing call to {0} ", calleeDescriptor);
+			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", calleeDescriptor);
             var orleansEnityDesc = new OrleansEntityDescriptor(calleeDescriptor);
             var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
 
@@ -205,7 +205,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(callerDescriptor);
-            Debug.WriteLine("Analyzing return to {0} ", callerDescriptor);
+			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", callerDescriptor);
             var orleansEnityDesc = new OrleansEntityDescriptor(callerDescriptor);
             var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain(orleansEnityDesc);
 

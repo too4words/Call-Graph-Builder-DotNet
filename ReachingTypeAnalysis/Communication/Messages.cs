@@ -87,7 +87,7 @@ namespace ReachingTypeAnalysis.Communication
 
         public override string ToString()
         {
-            return string.Format("{0} <- [{1}]", this.LHS, string.Join(",", this.RVs));
+            return string.Format("ReturnMessage: {0} <- [{1}]", this.LHS, string.Join(", ", this.RVs));
         }
     }
 }

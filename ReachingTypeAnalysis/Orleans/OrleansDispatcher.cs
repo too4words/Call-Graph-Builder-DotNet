@@ -6,6 +6,7 @@ using ReachingTypeAnalysis.Roslyn;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
@@ -37,7 +38,12 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.MethodDescriptor.GetHashCode();
         }
-    }
+
+		public override string ToString()
+		{
+			return this.MethodDescriptor.ToString();
+		}
+	}
 
     [Serializable]
 	internal class OrleansDispatcher : IDispatcher
@@ -143,11 +149,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 		internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(OrleansEntityDescriptor grainDesc)
 		{
+			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", grainDesc);
+
 			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(grainDesc.MethodDescriptor.ToString());
 			// check if the result is initialized
 			var methodEntity = await methodEntityGrain.GetMethodEntity();
 			if (methodEntity == null)
 			{
+				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", grainDesc);
 				Contract.Assert(grainDesc.MethodDescriptor != null);
 				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
 				methodEntity = await CreateMethodEntityUsingGrainsAsync(grainDesc.MethodDescriptor);
@@ -158,13 +167,16 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			else
 			{
+				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", grainDesc);
 				return methodEntityGrain;
 			}
 		}
 
         async internal static Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
         {
-            MethodEntity methodEntity = null;
+			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
+
+			MethodEntity methodEntity = null;
             var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
             IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
             if (providerGrain == null)

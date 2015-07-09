@@ -140,9 +140,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(10);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Debug.WriteLine(code);
+            Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", code);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", solution.FilePath);
         }
 
         [TestMethod]
@@ -164,9 +164,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(10);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Debug.WriteLine(code);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution1", code);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution1", solution.FilePath);
             var solAnalyzer = new SolutionAnalyzer(solution);
             solAnalyzer.Analyze(strategy);
             var resolved = solAnalyzer.GenerateCallGraph();
@@ -205,9 +205,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(50);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Debug.WriteLine(code);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution2", code);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution2", solution.FilePath);
             var solAnalyzer = new SolutionAnalyzer(solution);
             solAnalyzer.Analyze(strategy);
             var resolved = solAnalyzer.GenerateCallGraph();
@@ -247,9 +247,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(100);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Debug.WriteLine(code);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution3", code);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution3", solution.FilePath);
             var solAnalyzer = new SolutionAnalyzer(solution);
             solAnalyzer.Analyze(strategy);
             var resolved = solAnalyzer.GenerateCallGraph();
@@ -289,9 +289,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(1000);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Debug.WriteLine(code);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution4", code);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution4", solution.FilePath);
             var solAnalyzer = new SolutionAnalyzer(solution);
             solAnalyzer.Analyze(strategy);
             var resolved = solAnalyzer.GenerateCallGraph();
@@ -320,9 +320,9 @@ namespace ReachingTypeAnalysis
             var callgraph = GenerateCallGraph(10000);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            //Debug.WriteLine(code);
+            //Logger.Instance.Log(code);
             var solution = ReachingTypeAnalysis.Roslyn.Utils.CreateSolution(code);
-            Debug.WriteLine(solution.FilePath);
+            Logger.Instance.Log(solution.FilePath);
             var solutionAnalyzer = new SolutionAnalyzer(solution);
             solutionAnalyzer.Analyze();
             var resolved = solutionAnalyzer.Callgraph;
