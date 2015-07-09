@@ -174,7 +174,13 @@ namespace ReachingTypeAnalysis
         }
 
 		public MethodDescriptor Callee { get; private set; }
-	}
+
+        public override string ToString()
+        {
+			var arguments = string.Join(", ", this.Arguments);
+            return string.Format("{0} -> {1}({2})", this.Caller, this.Callee, arguments);
+        }
+    }
 
 	[Serializable]
 	internal class DelegateCallInfo : AnalysisInvocationExpession
@@ -267,5 +273,11 @@ namespace ReachingTypeAnalysis
 
 
 		internal DelegateVariableNode CalleeDelegate { get; private set; }
+
+		public override string ToString()
+		{
+			var arguments = string.Join(", ", this.Arguments);
+			return string.Format("{0} -> {1}({2})", this.Caller, this.CalleeDelegate, arguments);
+		}
 	}
 }

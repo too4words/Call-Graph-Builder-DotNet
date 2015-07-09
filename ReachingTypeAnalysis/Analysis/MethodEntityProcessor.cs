@@ -98,7 +98,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="callerMesssage"></param>
         private void ProcessCallMessage(CallerMessage callerMesssage)
         {
-            Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
+            Logger.Instance.Log("MethodEntityProcessor", "ProcessCallMessage", callerMesssage);
             // Propagate this to the callee (RTA)
             this.MethodEntity.InstantiatedTypes
 				.UnionWith(
@@ -131,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (this.Verbose)
             {
-                Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
+                Logger.Instance.Log("MethodEntityProcessor", "Propagate", "Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
             }
             // Propagation of concrete types
 
@@ -428,7 +428,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
                 if (this.Verbose)
                 {
-                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
+                    Logger.Instance.Log("MethodEntityProcessor", "HandleCallEvent", "Reached {0} via call", this.MethodEntity.MethodDescriptor);
                 }
 
                 // This tries to check that the invocation is repeated (didn't work: need to check)
@@ -438,7 +438,7 @@ namespace ReachingTypeAnalysis.Analysis
                 {
                     if (this.Verbose)
                     {
-                        Debug.WriteLine("Recursion loop {0} ", this.MethodEntity.MethodDescriptor);
+                        Logger.Instance.Log("MethodEntityProcessor", "HandleCallEvent", "Recursion loop {0} ", this.MethodEntity.MethodDescriptor);
                     }
                     EndOfPropagationEvent(callMessage.PropagationKind, false);
                     return;

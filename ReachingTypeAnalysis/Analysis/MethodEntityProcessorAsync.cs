@@ -94,7 +94,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessCallMessageAsync(CallerMessage callerMesssage)
 		{
-			Debug.WriteLine("ProcessCallMessage: {0}", callerMesssage);
+			Logger.Instance.Log("MethodEntityProcessor", "ProcessCallMessageAsync", callerMesssage);
 			// Propagate this to the callee (RTA)
 			this.MethodEntity.InstantiatedTypes.UnionWith(
 				Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
@@ -104,7 +104,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessReturnMessageAsync(ReturnMessage returnMesssage)
 		{
-            Debug.WriteLine("ProcessReturnMessage: {1} in method {0}", this.MethodEntity.MethodDescriptor, returnMesssage);
+            Logger.Instance.Log("MethodEntityProcessor", "ProcessReturnMessageAsync", "{0} in method {1}", returnMesssage, this.MethodEntity.MethodDescriptor);
 
 			var retMsgInfo = returnMesssage.ReturnMessageInfo;
 			// Propagate types from the callee (RTA)
@@ -132,7 +132,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine("Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
+				Logger.Instance.Log("MethodEntityProcessor", "PropagateAsync", "Reached {0} via propagation", this.MethodEntity.MethodDescriptor);
 			}
             var continuations = new List<Task>();
 			var callsAndRets = await this.MethodEntity.PropGraph.PropagateAsync(this.codeProvider);
@@ -332,7 +332,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
             if(this.Verbose)
             {
-                Debug.WriteLine("ProcessReturnNode: {0}", this.MethodEntity.MethodDescriptor);
+                Logger.Instance.Log("MethodEntityProcessor", "ProcessReturnNodeAsync", this.MethodEntity.MethodDescriptor);
             }
 			if (this.MethodEntity.ReturnVariable != null)
 			{
@@ -340,7 +340,7 @@ namespace ReachingTypeAnalysis.Analysis
 				// We should use a Queue instead
 				//while (this.MethodEntity.CurrentContext == null)
 				//{
-				//    Debug.WriteLine(string.Format("Waiting: {0} to start before return...", this.Method));
+				//    Logger.Instance.Log(string.Format("Waiting: {0} to start before return...", this.Method));
 				//    Thread.Sleep(10);
 				//}
 				//CallConext<M, E> callContext=null;
@@ -432,7 +432,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (this.Verbose)
 			{
-				Debug.WriteLine("EndOfPropagationEventAsync of {0}", this.MethodEntity.MethodDescriptor);
+				Logger.Instance.Log("MethodEntityProcessor", "EndOfPropagationEventAsync", this.MethodEntity.MethodDescriptor);
 			}
 
 			// Should do something more clever
@@ -450,7 +450,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (this.Verbose)
                 {
-                    Debug.WriteLine("Reached {0} via call", this.MethodEntity.MethodDescriptor);
+                    Logger.Instance.Log("MethodEntityProcessor", "HandleCallEventAsync", "Reached {0} via call {1}", this.MethodEntity.MethodDescriptor, callMessage);
                 }
                 // This is the node in the caller where info of ret-value should go
                 var lhs = callMessage.LHS;
@@ -462,7 +462,7 @@ namespace ReachingTypeAnalysis.Analysis
                 //{
                 //    if (this.Verbose)
                 //    {
-                //        Debug.WriteLine(string.Format("Recursion loop {0} ", this.Method.ToString()));
+                //        Logger.Instance.Log(string.Format("Recursion loop {0} ", this.Method.ToString()));
                 //    }
                 //    //lock (this.MethodEntity)
                 //    //{
@@ -476,7 +476,7 @@ namespace ReachingTypeAnalysis.Analysis
                 // Just a test to try to block the Entity to a single simultaneous caller 
                 //while (this.MethodEntity.CurrentContext != null)
                 //{
-                //    Debug.WriteLine(string.Format("Waiting: {0} to finish", this.Method));
+                //    Logger.Instance.Log(string.Format("Waiting: {0} to finish", this.Method));
                 //    Thread.Sleep(10);
                 //}
 
