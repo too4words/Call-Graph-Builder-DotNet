@@ -67,31 +67,32 @@ namespace ReachingTypeAnalysis
         ADD_ASSIGNMENT,
         REMOVE_ASSIGNMENT,
     }
+
     [Serializable]
     public class CallContext
     {
         public MethodDescriptor Caller { get; private set; }
-        public VariableNode CallLHS { get; private set; }
-        public AnalysisCallNode Invocation { get; private set; }
+        public VariableNode LHS { get; private set; }
+        public AnalysisCallNode CallNode { get; private set; }
 
-        public CallContext(MethodDescriptor caller, VariableNode lhs, AnalysisCallNode inv)
+        public CallContext(MethodDescriptor caller, VariableNode lhs, AnalysisCallNode callNode)
         {
             this.Caller = caller;
-            this.CallLHS = lhs;
-            this.Invocation = inv;
+            this.LHS = lhs;
+            this.CallNode = callNode;
         }
 
         public override bool Equals(object obj)
         {
             var c2 = obj as CallContext;
-            return this.Caller.Equals(c2.Caller) && (this.CallLHS == null || this.CallLHS.Equals(c2.CallLHS))
-                && (this.Invocation == null || c2.Invocation == null || this.Invocation.Equals(c2.Invocation));
+            return this.Caller.Equals(c2.Caller) && (this.LHS == null || this.LHS.Equals(c2.LHS))
+                && (this.CallNode == null || c2.CallNode == null || this.CallNode.Equals(c2.CallNode));
         }
+
         public override int GetHashCode()
         {
-            int lhsHashCode = this.CallLHS == null ? 1 : this.CallLHS.GetHashCode();
+            int lhsHashCode = this.LHS == null ? 1 : this.LHS.GetHashCode();
             return this.Caller.GetHashCode() + lhsHashCode;
         }
     }
-
 }

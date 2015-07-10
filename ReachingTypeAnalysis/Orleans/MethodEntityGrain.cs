@@ -23,7 +23,9 @@ namespace ReachingTypeAnalysis.Analysis
     //[Reentrant]
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
-        private OrleansEntityDescriptor orleansEntityDescriptor;
+		private const bool conservativeWithTypes = false;
+
+		private OrleansEntityDescriptor orleansEntityDescriptor;
         /// <summary>
         /// Each grain will use its own dispatcher
         /// </summary>
@@ -112,75 +114,74 @@ namespace ReachingTypeAnalysis.Analysis
             await methodEntityProcessor.ProcessMessageAsync(source, message);
         }
 
-        public async Task<PropagationEffects> PropagateAsync()
+        public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            //TODO: Pass propKind as parameters
-            var propKind = PropagationKind.ADD_TYPES;
+            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
+            var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
 
-            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-            var callsAndRet = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
-            foreach (var invocationInfo in callsAndRet.Calls)
+            foreach (var calleeInfo in propagationEffects.CalleesInfo)
             {
                 //  Add instanciated types! 
                 /// Diego: Ben. This may not work well in parallel... 
                 /// We need a different way to update this info
-                invocationInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+                calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+
                 // TODO: This is because of the refactor
-                if (invocationInfo is CallInfo)
+                if (calleeInfo is MethodCallInfo)
                 {
-                    invocationInfo.ReceiverPotentialTypes = GetTypes(invocationInfo.Receiver);
-                }
-                else
+					var methodCallInfo = calleeInfo as MethodCallInfo;
+					methodCallInfo.ReceiverPossibleTypes = GetTypes(methodCallInfo.Receiver);
+					methodCallInfo.PossibleCallees = await GetPossibleCalleesForMethodCallAsync(methodCallInfo, codeProvider);
+				}
+                else if (calleeInfo is DelegateCallInfo)
                 {
-                    Contract.Assert(invocationInfo is DelegateCallInfo);
-                    var delegateInvocation = (DelegateCallInfo)invocationInfo;
-                    invocationInfo.ReceiverPotentialTypes = GetTypes(delegateInvocation.CalleeDelegate);
-                    delegateInvocation.ResolvedCallees = await GetDelegateCalleesAsync(delegateInvocation.CalleeDelegate, codeProvider);
+                    var delegateCalleeInfo = calleeInfo as DelegateCallInfo;
+					delegateCalleeInfo.ReceiverPossibleTypes = GetTypes(delegateCalleeInfo.Delegate);
+                    delegateCalleeInfo.PossibleCallees = await GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo, codeProvider);
                 }
 
-
-                for (int i = 0; i < invocationInfo.Arguments.Count; i++)
+                for (int i = 0; i < calleeInfo.Arguments.Count; i++)
                 {
-                    var arg = invocationInfo.Arguments[i];
+                    var arg = calleeInfo.Arguments[i];
                     var potentialTypes = arg != null ? GetTypes(arg, propKind) : new HashSet<TypeDescriptor>();
-                    invocationInfo.ArgumentsPotentialTypes.Add(potentialTypes);
+                    calleeInfo.ArgumentsPossibleTypes.Add(potentialTypes);
                 }
             }
 
-            //TODO: Add instanciation for return 
-            foreach(var callerContext in this.methodEntity.Callers)
-            {
-                var returnInfo = new ReturnInfo(callerContext);
-                //TODO: add return info, compute return values with GetTypes from returnVariable (if !null)
-                returnInfo.ReturnPotentialTypes = GetTypes(this.methodEntity.ReturnVariable);
-                returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
-                callsAndRet.ReturnInfoForCallers.Add(returnInfo);
-            }
+			if (this.methodEntity.ReturnVariable != null)
+			{
+				foreach (var callerContext in this.methodEntity.Callers)
+				{
+					var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
+					returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
+					returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+
+					propagationEffects.CallersInfo.Add(returnInfo);
+				}
+			}
            
-            return callsAndRet;
+            return propagationEffects;
         }
 
-        public async Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes, 
-            IList<ISet<TypeDescriptor>> argumentsPotentialTypes, PropagationKind propKind)
+		public async Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes, 
+            IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind)
         {
-            if (!this.methodEntity.CanBeAnalized)
-            {
-                return;
-            }
+            if (!this.methodEntity.CanBeAnalized) return;
+
             if (this.methodEntity.ThisRef != null)
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(receiverTypes, this.methodEntity.ThisRef, propKind);
             }
-            for(int i = 0; i < this.methodEntity.ParameterNodes.Count;i++)
+
+            for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
             {
                 var parameterNode = this.methodEntity.ParameterNodes[i];
 
                 if (parameterNode != null)
                 {
-                    await this.methodEntity.PropGraph.DiffPropAsync(argumentsPotentialTypes[i], parameterNode, propKind);
+                    await this.methodEntity.PropGraph.DiffPropAsync(argumentsPossibleTypes[i], parameterNode, propKind);
                 }
             }
-            return; 
         }
 
         public async Task UpdateMethodReturnAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind)
@@ -202,32 +203,105 @@ namespace ReachingTypeAnalysis.Analysis
             //return;
         }
 
+		private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)
+		{
+			var possibleCallees = new HashSet<MethodDescriptor>();
 
+			// TODO: This is not good: one reason is that loads like b = this.f are not working
+			// in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
 
-        private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(DelegateVariableNode delegateVariableNode, 
-                                                                                    ICodeProvider codeProvider)
+			if (methodCallInfo.Method.IsStatic)
+			{
+				// Static method call
+				possibleCallees.Add(methodCallInfo.Method);
+			}
+			else
+			{
+				// Instance method call
+
+				//// I need to compute all the callees
+				//// In case of a deletion we can discard the deleted callee
+
+				//// If callInfo.ReceiverPossibleTypes == {} it means that some info in missing => we should be conservative and use the instantiated types (RTA) 
+				//// TODO: I make this False for testing what happens if we remove this
+
+				//if (conservativeWithTypes && methodCallInfo.ReceiverPossibleTypes.Count == 0)
+				//{
+				//	// TO-DO: Should I fix the node in the receiver to show that is not loaded. Ideally I should use the declared type. 
+				//	// Here I will use the already instantiated types
+
+				//	foreach (var candidateTypeDescriptor in methodCallInfo.InstantiatedTypes)
+				//	{
+				//		var isSubtype = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, methodCallInfo.Receiver.Type);
+
+				//		if (isSubtype)
+				//		{
+				//			methodCallInfo.ReceiverPossibleTypes.Add(candidateTypeDescriptor);
+				//		}
+				//	}
+				//}
+
+				if (methodCallInfo.ReceiverPossibleTypes.Count > 0)
+				{
+					foreach (var receiverType in methodCallInfo.ReceiverPossibleTypes)
+					{
+						// Given a method m and T find the most accurate implementation wrt to T
+						// it can be T.m or the first super class implementing m
+						var methodDescriptor = await codeProvider.FindMethodImplementationAsync(methodCallInfo.Method, receiverType);
+						possibleCallees.Add(methodDescriptor);
+					}
+				}
+				else
+				{
+					// We don't have any possibleType for the receiver,
+					// so we just use the receiver's declared type to
+					// identify the calle method implementation
+					possibleCallees.Add(methodCallInfo.Method);
+				}
+			}
+
+			return possibleCallees;
+		}
+
+		private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForDelegateCallAsync(DelegateCallInfo delegateCallInfo, ICodeProvider codeProvider)
         {
-            var callees = new HashSet<MethodDescriptor>();
-            var types = GetTypes(delegateVariableNode);
-            foreach (var delegateInstance in GetDelegates(delegateVariableNode))
+            var possibleCallees = new HashSet<MethodDescriptor>();
+			var possibleDelegateMethods = GetPossibleMethodsForDelegate(delegateCallInfo.Delegate);
+
+			foreach (var method in possibleDelegateMethods)
             {
-                if (types.Count > 0)
-                {
-                    foreach (var t in types)
-                    {
-                        //var aMethod = delegateInstance.FindMethodImplementation(t);
-                        // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
-                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(delegateInstance, t);
-                        callees.Add(methodDescriptor);
-                    }
-                }
-                else
-                {
-                    // if Count is 0, it is a delegate that do not came form an instance variable
-                    callees.Add(delegateInstance);
-                }
+				if (method.IsStatic)
+				{
+					// Static method call
+					possibleCallees.Add(method);
+				}
+				else
+				{
+					// Instance method call
+
+					if (delegateCallInfo.ReceiverPossibleTypes.Count > 0)
+					{
+						foreach (var receiverType in delegateCallInfo.ReceiverPossibleTypes)
+						{
+							//var aMethod = delegateInstance.FindMethodImplementation(t);
+							// Diego: Should I use : codeProvider.FindImplementation(delegateInstance, t);
+							var callee = await codeProvider.FindMethodImplementationAsync(method, receiverType);
+							possibleCallees.Add(callee);
+						}
+					}
+					else
+					{
+						// We don't have any possibleType for the receiver,
+						// so we just use the receiver's declared type to
+						// identify the calle method implementation
+
+						// if Count is 0, it is a delegate that do not came form an instance variable
+						possibleCallees.Add(method);
+					}
+				}
             }
-            return callees;
+
+            return possibleCallees;
         }
 
         private ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor analysisNode)
@@ -264,7 +338,7 @@ namespace ReachingTypeAnalysis.Analysis
                 return new HashSet<TypeDescriptor>();
             }
         }
-        internal ISet<MethodDescriptor> GetDelegates(DelegateVariableNode node)
+        internal ISet<MethodDescriptor> GetPossibleMethodsForDelegate(DelegateVariableNode node)
         {
             return this.methodEntity.PropGraph.GetDelegates(node);
         }

@@ -387,7 +387,7 @@ namespace ReachingTypeAnalysis
 		{ }
         public override string ToString()
         {
- 	         return "Delegate:" + base.ToString();
+ 	         return "Delegate: " + base.ToString();
         }
 	}
 

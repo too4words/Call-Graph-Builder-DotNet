@@ -8,86 +8,84 @@ namespace ReachingTypeAnalysis.Communication
     [Serializable]
 	public abstract class Message: IMessage
     {
-        internal Message(IEntityDescriptor source)
+		public IEntityDescriptor Source { get; private set; }
+
+		internal Message(IEntityDescriptor source)
         {
             this.Source = source;
         }
-        public IEntityDescriptor Source { get; private set; }
 
         public abstract MessageHandler Handler();
     }
 
-
 	/// <summary>
 	/// Information that is passed in a call message
 	/// </summary>
-	/// <typeparam name="M"></typeparam>
-	/// <typeparam name="T"></typeparam>
-	/// <typeparam name="E"></typeparam>
 	[Serializable]
     internal class CallMessageInfo
     {
-        public CallMessageInfo() { }
-        internal CallMessageInfo(MethodDescriptor caller, MethodDescriptor callee, AnalysisCallNode callNode, 
-            ISet<TypeDescriptor> receivers, IList<ISet<TypeDescriptor>> argumentValues,
-            VariableNode lhs, ISet<TypeDescriptor> instantiatedTypes, PropagationKind propKind)
-        {
+		internal MethodDescriptor Callee { get; private set; }
+		internal MethodDescriptor Caller { get; private set; }
+		internal AnalysisCallNode CallNode { get; private set; }
+		internal IList<ISet<TypeDescriptor>> ArgumentsPossibleTypes { get; private set; }
+		internal ISet<TypeDescriptor> ReceiverPossibleTypes { get; private set; }
+		internal VariableNode LHS { get; private set; }
+		internal ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
+		internal PropagationKind PropagationKind { get; private set; }
+
+		public CallMessageInfo() { }
+
+        internal CallMessageInfo(MethodDescriptor caller, MethodDescriptor callee, ISet<TypeDescriptor> receiverPossibleTypes,
+			IList<ISet<TypeDescriptor>> argumentsPossibleTypes, ISet<TypeDescriptor> instantiatedTypes,
+			AnalysisCallNode callNode, VariableNode lhs, PropagationKind propKind)
+		{
             this.Caller = caller;
             this.Callee = callee;
-            this.ArgumentValues = Marshal.ToTypeDescriptorList(argumentValues);
-            this.Receivers = Marshal.ToTypeDescriptors(receivers);
+            this.ArgumentsPossibleTypes = argumentsPossibleTypes;
+            this.ReceiverPossibleTypes = receiverPossibleTypes;
             this.LHS = lhs;
-            this.InstantiatedTypes = Marshal.ToTypeDescriptors(instantiatedTypes);
+            this.InstantiatedTypes = instantiatedTypes;
             this.PropagationKind = propKind;
             this.CallNode = callNode;
         }
 
-		//private bool isStatic;
-		internal readonly MethodDescriptor Callee;
-		internal readonly MethodDescriptor Caller;
-		internal readonly AnalysisCallNode CallNode;
-		internal readonly IList<ISet<TypeDescriptor>> ArgumentValues;
-		internal readonly ISet<TypeDescriptor> Receivers;
-        internal readonly VariableNode LHS;
-		internal readonly ISet<TypeDescriptor> InstantiatedTypes;
-		internal readonly PropagationKind PropagationKind;
-
-        public override string ToString()
+		public override string ToString()
         {
-            return string.Format("CallMessage: {0}(...) -> {1}", this.Caller, this.Callee);
+            return string.Format("CallMessageInfo: {0}(...) -> {1}", this.Caller, this.Callee);
         }
     }
 
     /// <summary>
     /// Information that is passed in a return message
     /// </summary>
-    /// <typeparam name="M"></typeparam>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="E"></typeparam>
     [Serializable]
     internal class ReturnMessageInfo 
     {
-		internal ISet<TypeDescriptor> RVs { get; private set; }
+		internal MethodDescriptor Callee { get; private set; }
+		internal MethodDescriptor Caller { get; private set; }
+		internal ISet<TypeDescriptor> ResultPossibleTypes { get; private set; }
         internal VariableNode LHS { get; private set; }
 		internal ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
 		internal PropagationKind PropagationKind { get; private set; }
-		internal AnalysisCallNode InvocationNode { get; private set; }
+		internal AnalysisCallNode CallNode { get; private set; }
 
-        internal ReturnMessageInfo(VariableNode lhs, 
-			ISet<TypeDescriptor> rvs, PropagationKind propKind, 
-			ISet<TypeDescriptor> instantiatedTypes, AnalysisCallNode invocationNode)
-        {
-            //ISet<Type> rvs = rv != null ? worker.GetTypes(rv, propKind) : new HashSet<Type>();
-            this.RVs = rvs;
-            this.LHS = lhs;
+		public ReturnMessageInfo() { }
+
+		internal ReturnMessageInfo(MethodDescriptor caller, MethodDescriptor callee, ISet<TypeDescriptor> resultPossibleTypes,
+			ISet<TypeDescriptor> instantiatedTypes, AnalysisCallNode callNode, VariableNode lhs, PropagationKind propKind)
+		{
+			this.Caller = caller;
+			this.Callee = callee;
+			this.LHS = lhs;
+			this.ResultPossibleTypes = resultPossibleTypes;
             this.PropagationKind = propKind;
 			this.InstatiatedTypes = instantiatedTypes;
-            this.InvocationNode = invocationNode;
+            this.CallNode = callNode;
         }
 
         public override string ToString()
         {
-            return string.Format("ReturnMessage: {0} <- [{1}]", this.LHS, string.Join(", ", this.RVs));
+            return string.Format("ReturnMessageInfo: {0} <- [{1}]", this.LHS, string.Join(", ", this.ResultPossibleTypes));
         }
     }
 }

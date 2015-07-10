@@ -18,7 +18,7 @@ namespace ReachingTypeAnalysis
 		internal ISet<TypeDescriptor> DeletedElems { get; private set; }
 		internal ISet<MethodDescriptor> Delegates { get; set; }
 		internal PropGraphNodeDescriptor Node { get; set; }
-		internal AnalysisInvocationExpession CallNode { get; set; }
+		internal CallInfo CallNode { get; set; }
 		internal bool HasRetValue { get; set; }
 
 		internal GraphNodeAnnotationData(PropGraphNodeDescriptor node)

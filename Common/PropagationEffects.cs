@@ -5,16 +5,15 @@ namespace ReachingTypeAnalysis
 {
 	public class PropagationEffects
 	{
-		public PropagationEffects(ISet<AnalysisInvocationExpession> calls, bool rvChange)
+		public PropagationEffects(ISet<CallInfo> calleesInfo, bool resultChanged)
 		{
-			this.Calls = calls;
-			this.RetValueChange = rvChange;
-            this.ReturnInfoForCallers = new HashSet<ReturnInfo>();
+			this.CalleesInfo = calleesInfo;
+			this.ResultChanged = resultChanged;
+            this.CallersInfo = new HashSet<ReturnInfo>();
 		}
 
-		public ISet<AnalysisInvocationExpession> Calls { get; set; }
-		public bool RetValueChange { get; set; }
-        public ISet<ReturnInfo> ReturnInfoForCallers { get; set; }
-  
+		public ISet<CallInfo> CalleesInfo { get; set; }
+		public bool ResultChanged { get; set; }
+        public ISet<ReturnInfo> CallersInfo { get; set; }  
 	}
 }

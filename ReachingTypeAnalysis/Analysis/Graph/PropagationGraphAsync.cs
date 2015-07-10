@@ -91,8 +91,8 @@ namespace ReachingTypeAnalysis
         {
             this.codeProvider = codeProvider;
 
-            var calls = new HashSet<AnalysisInvocationExpession>();
-            bool retModified = false;
+            var calls = new HashSet<CallInfo>();
+            var retModified = false;
 
             while (workList.Count > 0)
             {
@@ -130,8 +130,8 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateDeletionOfNodesAsync()
         {
-            var calls = new HashSet<AnalysisInvocationExpession>();
-            bool retModified = false;
+            var calls = new HashSet<CallInfo>();
+            var retModified = false;
 
             while (deletionWorkList.Count > 0)
             {
@@ -176,7 +176,7 @@ namespace ReachingTypeAnalysis
             }
             return new PropagationEffects(calls, retModified);
         }
-        internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, CallInfo callInfo, ICodeProvider codeProvider)
+        internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var result = new HashSet<TypeDescriptor>();
             foreach (var typeDescriptor in this.GetTypes(n))
@@ -201,7 +201,7 @@ namespace ReachingTypeAnalysis
             }
             return result;
         }
-        internal  ISet<MethodDescriptor> ComputeCalleesForCallNode(CallInfo callInfo, ICodeProvider codeProvider)
+        internal  ISet<MethodDescriptor> ComputeCalleesForCallNode(MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var calleesForNode = new HashSet<MethodDescriptor>();
             if (callInfo.Receiver != null)
@@ -210,27 +210,27 @@ namespace ReachingTypeAnalysis
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
                 var callees = GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider)
-                        .Select(t => codeProvider.FindMethodImplementation(callInfo.Callee, t));
+                        .Select(t => codeProvider.FindMethodImplementation(callInfo.Method, t));
                 calleesForNode.UnionWith(callees);
             }
             else
             {
-                calleesForNode.Add(callInfo.Callee);
+                calleesForNode.Add(callInfo.Method);
             }
             return calleesForNode;
         }
-        internal Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(AnalysisInvocationExpession invoInfo, ICodeProvider codeProvider)
+        internal Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(CallInfo invoInfo, ICodeProvider codeProvider)
         {
             //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
-            if (invoInfo is CallInfo)
+            if (invoInfo is MethodCallInfo)
             {
-                return ComputeCalleesForCallNodeAsync((CallInfo)invoInfo, codeProvider);                
+                return ComputeCalleesForCallNodeAsync((MethodCallInfo)invoInfo, codeProvider);                
             }
             Contract.Assert(invoInfo is DelegateCallInfo);
             return ComputeCalleesForDelegateNodeAsync((DelegateCallInfo)invoInfo, codeProvider);
         }
 
-        internal async  Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(CallInfo callInfo, ICodeProvider codeProvider)
+        internal async  Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var calleesForNode = new HashSet<MethodDescriptor>();
             if (callInfo.Receiver != null)
@@ -240,20 +240,20 @@ namespace ReachingTypeAnalysis
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
                 foreach (var type in this.GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider))
                 {
-                    var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Callee, type);
+                    var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Method, type);
                     calleesForNode.Add(realCallee);
                 }
             }
             else
             {
-                calleesForNode.Add(callInfo.Callee);
+                calleesForNode.Add(callInfo.Method);
             }
             return calleesForNode;
         }
 
         internal async Task<ISet<MethodDescriptor>> ComputeCalleesForDelegateNodeAsync(DelegateCallInfo callInfo, ICodeProvider codeProvider)
         {
-            return await GetDelegateCalleesAsync(callInfo.CalleeDelegate, codeProvider);
+            return await GetDelegateCalleesAsync(callInfo.Delegate, codeProvider);
         }
 
         private async Task<ISet<MethodDescriptor>> GetDelegateCalleesAsync(VariableNode delegateNode, ICodeProvider codeProvider)

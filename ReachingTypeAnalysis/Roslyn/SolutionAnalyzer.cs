@@ -448,13 +448,13 @@ namespace ReachingTypeAnalysis
                 {
                     int countCG = methodEntityProcessor.Callees(callNode).Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
-                    if (invExp is CallInfo)
+                    if (invExp is MethodCallInfo)
                     {
-						var callInfo = invExp as CallInfo;
-                        var calleeRoslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(solution, callInfo.Callee);
+						var callInfo = invExp as MethodCallInfo;
+                        var calleeRoslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(solution, callInfo.Method);
                         var calleeReferences = SymbolFinder.FindImplementationsAsync(calleeRoslynMethod, solution).Result;
                         var roslynCount = calleeReferences.Count();
-                        writer.WriteLine("{0}; {1}; {2}; {3}; {4}; {5}", method.ToString(), callInfo.Callee.ToString(), countCG,roslynCount ,roslynCount-countCG, countCG-roslynCount );
+                        writer.WriteLine("{0}; {1}; {2}; {3}; {4}; {5}", method.ToString(), callInfo.Method.ToString(), countCG,roslynCount ,roslynCount-countCG, countCG-roslynCount );
                         max = Math.Max(max, roslynCount-countCG);
                         if (roslynCount - countCG > 5)
                             countDiff++;

@@ -50,17 +50,17 @@ namespace ReachingTypeAnalysis
 					else
 					{
 
-						if (invoc is CallInfo)
+						if (invoc is MethodCallInfo)
 						{
-							var callNode = invoc as CallInfo;
+							var callNode = invoc as MethodCallInfo;
 							var lhsStr = callNode.LHS == null ? "$" : callNode.LHS.ToString();
 							var recStr = callNode.Receiver == null ? "[]" : callNode.Receiver.ToString(); ;
-							writer.WriteLine(@"{0} [shape=""circle"",label=""{1}:{2}, lhs={3} rec={4}"",fillcolor=""blue""];", v.Id, callNode.Callee.ToString(), elemsStr, lhsStr, recStr);
+							writer.WriteLine(@"{0} [shape=""circle"",label=""{1}:{2}, lhs={3} rec={4}"",fillcolor=""blue""];", v.Id, callNode.Method.ToString(), elemsStr, lhsStr, recStr);
 						}
 						if (invoc is DelegateCallInfo)
 						{
 							var deleNode = invoc as DelegateCallInfo;
-							writer.WriteLine(@"{0} [shape=""circle"",label=""{1}:[{2}]"",fillcolor=""brown""];", v.Id, deleNode.CalleeDelegate.ToString(), elemsStr);
+							writer.WriteLine(@"{0} [shape=""circle"",label=""{1}:[{2}]"",fillcolor=""brown""];", v.Id, deleNode.Delegate.ToString(), elemsStr);
 
 						}
 					}

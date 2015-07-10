@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis
 			return node;
 		}
 
-		private GraphNode<GraphNodeAnnotationData> AddVertex(AnalysisCallNode m, AnalysisInvocationExpession callNode)
+		private GraphNode<GraphNodeAnnotationData> AddVertex(AnalysisCallNode m, CallInfo callNode)
 		{
 			Contract.Assert(callNode != null);
 			var v = AddVertex(m);
@@ -122,7 +122,7 @@ namespace ReachingTypeAnalysis
 			v.Value.Delegates.Add(methodDescriptor);
 		}
 
-		public void AddCall(AnalysisInvocationExpession call, AnalysisCallNode callNode)
+		public void AddCall(CallInfo call, AnalysisCallNode callNode)
 		{
 			var v = AddVertex(callNode, call);
 			callNodes.Add(callNode);
@@ -141,7 +141,7 @@ namespace ReachingTypeAnalysis
 			v.Value.HasRetValue = true;
 		}
 
-		public AnalysisInvocationExpession GetInvocationInfo(PropGraphNodeDescriptor callNode)
+		public CallInfo GetInvocationInfo(PropGraphNodeDescriptor callNode)
 		{
             Contract.Requires(IsCallNode(callNode) || IsDelegateCallNode(callNode));
 			long index;
@@ -161,7 +161,7 @@ namespace ReachingTypeAnalysis
 		{
 			var index = vIndex[n];
 			var v = graph.GetNode(index);
-			return v.Value.CallNode != null && v.Value.CallNode is CallInfo;
+			return v.Value.CallNode != null && v.Value.CallNode is MethodCallInfo;
 		}
 
 		bool IsRetNode(PropGraphNodeDescriptor n)
@@ -474,7 +474,7 @@ namespace ReachingTypeAnalysis
 		{
             this.codeProvider = codeProvider;
 
-			var calls = new HashSet<AnalysisInvocationExpession>();
+			var calls = new HashSet<CallInfo>();
 			bool retModified = false;
 
 			while (workList.Count > 0)
@@ -513,7 +513,7 @@ namespace ReachingTypeAnalysis
 
 		internal PropagationEffects PropagateDeletionOfNodes()
 		{
-			var calls = new HashSet<AnalysisInvocationExpession>();
+			var calls = new HashSet<CallInfo>();
 			bool retModified = false;
 
 			while (deletionWorkList.Count > 0)
@@ -571,7 +571,7 @@ namespace ReachingTypeAnalysis
 		}
 
 
-        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, CallInfo callInfo, ICodeProvider codeProvider)
+        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var result = new HashSet<TypeDescriptor>();
             foreach (var typeDescriptor in this.GetTypes(n))
@@ -595,12 +595,12 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
-        internal ISet<MethodDescriptor> ComputeCalleesForNode(AnalysisInvocationExpession invoInfo, ICodeProvider codeProvider)
+        internal ISet<MethodDescriptor> ComputeCalleesForNode(CallInfo invoInfo, ICodeProvider codeProvider)
         {
             //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
-            if (invoInfo is CallInfo)
+            if (invoInfo is MethodCallInfo)
             {
-                return ComputeCalleesForCallNode((CallInfo)invoInfo, codeProvider);
+                return ComputeCalleesForCallNode((MethodCallInfo)invoInfo, codeProvider);
             }
             Contract.Assert(invoInfo is DelegateCallInfo);
             return ComputeCalleesForDelegateNode((DelegateCallInfo)invoInfo, codeProvider);
@@ -609,7 +609,7 @@ namespace ReachingTypeAnalysis
 
         internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, ICodeProvider codeProvider)
         {
-            return GetDelegateCallees(callInfo.CalleeDelegate, codeProvider);
+            return GetDelegateCallees(callInfo.Delegate, codeProvider);
         }
 
         private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, ICodeProvider codeProvider)

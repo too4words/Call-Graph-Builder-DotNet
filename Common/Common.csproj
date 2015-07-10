@@ -198,7 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisTypes.cs" />
-    <Compile Include="CallNodes.cs" />
+    <Compile Include="CallInfo.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="PropagationEffects.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

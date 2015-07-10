@@ -85,9 +85,9 @@ namespace ReachingTypeAnalysis.Analysis
                 {
                     ProcessCallMessage(message as CallerMessage);
                 }
-                else if (message is ReturnMessage)
+                else if (message is CalleeMessage)
                 {
-                    ProcessReturnMessage(message as ReturnMessage);
+                    ProcessReturnMessage(message as CalleeMessage);
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace ReachingTypeAnalysis.Analysis
             HandleCallEvent(callerMesssage.CallMessageInfo);
         }
 
-        private void ProcessReturnMessage(ReturnMessage returnMessage)
+        private void ProcessReturnMessage(CalleeMessage returnMessage)
         {
             var retMsgInfo = returnMessage.ReturnMessageInfo;
             // Propagate types from the callee (RTA)
@@ -136,8 +136,8 @@ namespace ReachingTypeAnalysis.Analysis
             // Propagation of concrete types
 
             var callsAndRets = this.MethodEntity.PropGraph.Propagate(this.codeProvider);
-            var callsThatHasChanged = callsAndRets.Calls;
-            var retValueHasChanged = callsAndRets.RetValueChange;
+            var callsThatHasChanged = callsAndRets.CalleesInfo;
+            var retValueHasChanged = callsAndRets.ResultChanged;
             // This propagates the types in the affected calles
             ProcessCalleesAffectedByPropagation(callsThatHasChanged, PropagationKind.ADD_TYPES);
             // This progagate the output values of the method to the callers
@@ -145,7 +145,7 @@ namespace ReachingTypeAnalysis.Analysis
             ///This is a method we call to declara that we finish our propagation. 
             /// In the sync case it means everything was propagated
             /// In the sync case it can be the case that information is still flowing through other entities
-            EndOfPropagationEvent(PropagationKind.ADD_TYPES, callsAndRets.RetValueChange);
+            EndOfPropagationEvent(PropagationKind.ADD_TYPES, callsAndRets.ResultChanged);
         }
 
         private void ProcessOutputInfo(bool retValueHasChanged)
@@ -167,8 +167,8 @@ namespace ReachingTypeAnalysis.Analysis
         private void PropagateDelete()
         {
             var callsAndRets = this.MethodEntity.PropGraph.PropagateDeletionOfNodes();
-            var callsThatHasChanged = callsAndRets.Calls;
-            var retValueHasChanged = callsAndRets.RetValueChange;
+            var callsThatHasChanged = callsAndRets.CalleesInfo;
+            var retValueHasChanged = callsAndRets.ResultChanged;
 
             ProcessCalleesAffectedByPropagation(callsThatHasChanged, PropagationKind.REMOVE_TYPES);
             //if (retValueHasChanged)
@@ -177,12 +177,12 @@ namespace ReachingTypeAnalysis.Analysis
             //}
             this.MethodEntity.PropGraph.RemoveDeletedTypes();
 
-            EndOfPropagationEvent(PropagationKind.REMOVE_TYPES, callsAndRets.RetValueChange);
+            EndOfPropagationEvent(PropagationKind.REMOVE_TYPES, callsAndRets.ResultChanged);
         }
         #endregion
 
         #region Event Triggering and Handling
-        private void ProcessCalleesAffectedByPropagation(IEnumerable<AnalysisInvocationExpession> callInvocationInfoForCalls, PropagationKind propKind)
+        private void ProcessCalleesAffectedByPropagation(IEnumerable<CallInfo> callInvocationInfoForCalls, PropagationKind propKind)
         {
             /// This to to remove any information about calls that we cached
             /// This is for the incremental reasoning
@@ -192,16 +192,16 @@ namespace ReachingTypeAnalysis.Analysis
                 this.InvalidateCaches();
             }
             /// I made a new list to avoid a concurrent modification exception we received in some tests
-            var invocationsToProcess = new List<AnalysisInvocationExpession>(callInvocationInfoForCalls);
+            var invocationsToProcess = new List<CallInfo>(callInvocationInfoForCalls);
             /// Every invocation that was "touched" by a propagation is signaled to propagate the new data
             foreach (var invocationInfo in invocationsToProcess)
             {
                 ///  Add instanciated types
                 invocationInfo.InstantiatedTypes = this.MethodEntity.InstantiatedTypes;
                 // I hate to do this. Need to Refactor!
-                if (invocationInfo is CallInfo)
+                if (invocationInfo is MethodCallInfo)
                 {
-                    DispatchCallMessage(invocationInfo as CallInfo, propKind);
+                    DispatchCallMessage(invocationInfo as MethodCallInfo, propKind);
                 }
                 if (invocationInfo is DelegateCallInfo)
                 {
@@ -215,7 +215,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="callInfo"></param>
         /// <param name="propKind"></param>
-        private void DispatchCallMessage(CallInfo callInfo, PropagationKind propKind)
+        private void DispatchCallMessage(MethodCallInfo callInfo, PropagationKind propKind)
         {
             if (!callInfo.IsStatic && callInfo.Receiver != null)
             {
@@ -252,7 +252,7 @@ namespace ReachingTypeAnalysis.Analysis
                         // Given a method m and T find the most accurate implementation wrt to T
                         // it can be T.m or the first super class implementing m
                         //var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Callee,receiverType);
+                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Method,receiverType);
                         CreateAndSendCallMessage(
 							callInfo, realCallee, receiverType, propKind);
                     }
@@ -261,18 +261,18 @@ namespace ReachingTypeAnalysis.Analysis
                 // in a meth m a after  call r.m() because only the value of r is passed and not all its structure
                 else
                 {
-                    CreateAndSendCallMessage(callInfo, callInfo.Callee, callInfo.Callee.ContainerType, propKind);
+                    CreateAndSendCallMessage(callInfo, callInfo.Method, callInfo.Method.ContainerType, propKind);
                 }
             }
             else
             {
                 CreateAndSendCallMessage(callInfo, 
-					callInfo.Callee, 
-					callInfo.Callee.ContainerType, propKind);
+					callInfo.Method, 
+					callInfo.Method.ContainerType, propKind);
             }
         }
 
-        private void CreateAndSendCallMessage(AnalysisInvocationExpession callInfo, MethodDescriptor realCallee, 
+        private void CreateAndSendCallMessage(CallInfo callInfo, MethodDescriptor realCallee, 
                                             TypeDescriptor receiverType, PropagationKind propKind)
         {
             /// Here I have all the necessary info to update the callgraph
@@ -311,13 +311,13 @@ namespace ReachingTypeAnalysis.Analysis
 
         private void DispatchCallMessageForDelegate(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
         {
-            foreach (var callee in GetDelegateCallees(delegateCallInfo.CalleeDelegate))
+            foreach (var callee in GetDelegateCallees(delegateCallInfo.Delegate))
             {
                 CreateAndSendCallMessage(delegateCallInfo, callee, callee.ContainerType, propKind);
             }
         }
 
-        private CallMessageInfo CreateCallMessage(AnalysisInvocationExpession callInfo,
+        private CallMessageInfo CreateCallMessage(CallInfo callInfo,
                                                             MethodDescriptor actuallCallee,
                                                             TypeDescriptor computedReceiverType,
                                                             PropagationKind propKind)
@@ -346,9 +346,9 @@ namespace ReachingTypeAnalysis.Analysis
 
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
 
-            return new CallMessageInfo(callInfo.Caller, actuallCallee, callInfo.CallNode,
-                                                potentialReceivers, new List<ISet<TypeDescriptor>>(argumentValues),
-                                                callInfo.LHS, callInfo.InstantiatedTypes, propKind);
+            return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
+				new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
+				callInfo.CallNode, callInfo.LHS, propKind);
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace ReachingTypeAnalysis.Analysis
         internal void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
         {
             var caller = context.Caller;
-            var lhs = context.CallLHS;
+            var lhs = context.LHS;
             var types = returnVariable != null ? 
 				GetTypes(returnVariable, propKind) : 
 				new HashSet<TypeDescriptor>();
@@ -397,12 +397,14 @@ namespace ReachingTypeAnalysis.Analysis
             // Jump to caller
             var destination = EntityFactory.Create(caller, this.dispatcher);
             var retMessageInfo = new ReturnMessageInfo(
-				lhs, 
-				types, 
-				propKind, 
-				this.MethodEntity.InstantiatedTypes, 
-				context.Invocation); 
-            var returnMessage = new ReturnMessage(
+				context.Caller,
+				this.MethodEntity.MethodDescriptor,
+                types,
+				this.MethodEntity.InstantiatedTypes,
+				context.CallNode,
+				lhs,
+				propKind); 
+            var returnMessage = new CalleeMessage(
 				this.MethodEntity.EntityDescriptor, retMessageInfo);
             if (lhs != null)
             {
@@ -425,7 +427,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             if (MethodEntity.CanBeAnalized)
             {
-                Contract.Assert(callMessage.ArgumentValues.Count() == this.MethodEntity.ParameterNodes.Count());
+                Contract.Assert(callMessage.ArgumentsPossibleTypes.Count() == this.MethodEntity.ParameterNodes.Count());
                 if (this.Verbose)
                 {
                     Logger.Instance.Log("MethodEntityProcessor", "HandleCallEvent", "Reached {0} via call", this.MethodEntity.MethodDescriptor);
@@ -452,11 +454,11 @@ namespace ReachingTypeAnalysis.Analysis
                 //PropGraph.Add(thisRef, receivers);
                 if (this.MethodEntity.ThisRef != null)
                 {
-                    this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.Receivers), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+                    this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.ReceiverPossibleTypes), this.MethodEntity.ThisRef, callMessage.PropagationKind);
                 }
 
                 var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(
-                    this.MethodEntity.ParameterNodes, callMessage.ArgumentValues);
+                    this.MethodEntity.ParameterNodes, callMessage.ArgumentsPossibleTypes);
 
                 foreach (var pair in pairEnumerable)
                 {
@@ -490,7 +492,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             //PropGraph.Add(lhs, retValues);
             this.MethodEntity.PropGraph.DiffProp(
-				Demarshaler.Demarshal(retMesssageInfo.RVs),
+				Demarshaler.Demarshal(retMesssageInfo.ResultPossibleTypes),
 				Demarshaler.Demarshal(retMesssageInfo.LHS), 
 				retMesssageInfo.PropagationKind);
             // This should be Async

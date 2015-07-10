@@ -108,7 +108,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(arguments != null);
 			//var argumentValues = arguments.Select(a => a!=null?worker.GetTypes(a):new HashSet<Type>());
 
-			var callExp = new CallInfo(this.Method, callNode, callee, arguments, lhs, true);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, arguments, lhs, true);
 
 			PropagationGraph.AddCall(callExp, callNode);
 			PropagationGraph.AddToWorkList(callNode);
@@ -134,7 +134,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(callNode != null);
 			Contract.Requires(arguments != null);
 
-			var callExp = new CallInfo(this.Method, callNode, callee, arguments, lhs, false);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, arguments, lhs, false);
 
 			RegisterInvocation(arguments, callNode, callExp);
 
@@ -148,7 +148,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(callNode != null);
 			Contract.Requires(arguments != null);
 
-			var callExp = new CallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
 			RegisterInvocation(arguments, callNode, callExp);
 			if (receiver != null)
 			{
@@ -163,7 +163,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(callNode != null);
 			Contract.Requires(callee != null);
 
-			var callExp = new CallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
 			RegisterInvocation(arguments, callNode, callExp);
 			if (receiver != null)
 			{
@@ -202,7 +202,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 
 		private void RegisterInvocation(IList<PropGraphNodeDescriptor> arguments, AnalysisCallNode invocationNode, 
-                                        AnalysisInvocationExpession callExp)
+                                        CallInfo callExp)
 		{
 			Contract.Requires(callExp != null);
 			Contract.Requires(arguments != null);

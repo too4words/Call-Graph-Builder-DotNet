@@ -147,27 +147,28 @@ namespace ReachingTypeAnalysis.Analysis
 			return await CreateMethodEntityGrain(grainDesc);
         }
 
-		internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(OrleansEntityDescriptor grainDesc)
+		internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(OrleansEntityDescriptor entityDescriptor)
 		{
-			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", grainDesc);
+			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", entityDescriptor);
 
-			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(grainDesc.MethodDescriptor.ToString());
-			// check if the result is initialized
+			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(entityDescriptor.MethodDescriptor.ToString());
 			var methodEntity = await methodEntityGrain.GetMethodEntity();
+
+			// check if the result is initialized
 			if (methodEntity == null)
 			{
-				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", grainDesc);
-				Contract.Assert(grainDesc.MethodDescriptor != null);
+				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
+				Contract.Assert(entityDescriptor.MethodDescriptor != null);
 				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-				methodEntity = await CreateMethodEntityUsingGrainsAsync(grainDesc.MethodDescriptor);
+				methodEntity = await CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
 				Contract.Assert(methodEntity != null);
-				await methodEntityGrain.SetMethodEntity(methodEntity, grainDesc);
-				await methodEntityGrain.SetDescriptor(grainDesc);
+				await methodEntityGrain.SetMethodEntity(methodEntity, entityDescriptor);
+				await methodEntityGrain.SetDescriptor(entityDescriptor);
 				return methodEntityGrain;
 			}
 			else
 			{
-				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", grainDesc);
+				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
 				return methodEntityGrain;
 			}
 		}

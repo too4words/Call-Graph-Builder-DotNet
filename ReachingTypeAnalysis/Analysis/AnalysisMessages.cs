@@ -28,10 +28,10 @@ namespace ReachingTypeAnalysis.Analysis
     }
 
     [Serializable]
-	internal class ReturnMessage : Message
+	internal class CalleeMessage : Message
 	{
 		public ReturnMessageInfo ReturnMessageInfo { get; private set; }
-		internal ReturnMessage(IEntityDescriptor source, ReturnMessageInfo messageInfo)
+		internal CalleeMessage(IEntityDescriptor source, ReturnMessageInfo messageInfo)
 			: base(source)
 		{
 			this.ReturnMessageInfo = messageInfo;
