@@ -1,25 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
-using ReachingTypeAnalysis.Analysis;
-using ReachingTypeAnalysis.Communication;
-using ReachingTypeAnalysis.Roslyn;
-using SolutionTraversal.Callgraph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Orleans;
 using OrleansInterfaces;
+using ReachingTypeAnalysis.Analysis;
+using ReachingTypeAnalysis.Communication;
+using ReachingTypeAnalysis.Roslyn;
+using SolutionTraversal.Callgraph;
 
 namespace ReachingTypeAnalysis
 {
-	public enum AnalysisStrategy
+    public enum AnalysisStrategy
     {
         ONDEMAND_SYNC,
         ENTIRE_SYNC,

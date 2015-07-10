@@ -1,26 +1,23 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Threading;
-using ReachingTypeAnalysis.Communication;
 using System.Diagnostics.Contracts;
+using System.Threading.Tasks;
 using OrleansInterfaces;
+using ReachingTypeAnalysis.Communication;
 using SolutionTraversal.Callgraph;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	/// <summary>
-	/// This class is a prototype version of the propagation analysis avoiding the rentrancy in grains.
-	/// All methods are static.
-	/// Essentially, now the MethodGrain only performs the Propagation within its graph but doesn't trigger the 
-	/// propagation to other methods. This is done by this orchestator
-	/// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
-	/// This should be improved in next versions.
-	/// </summary>
-	internal static class AnalysisOrchestator
+    /// <summary>
+    /// This class is a prototype version of the propagation analysis avoiding the rentrancy in grains.
+    /// All methods are static.
+    /// Essentially, now the MethodGrain only performs the Propagation within its graph but doesn't trigger the 
+    /// propagation to other methods. This is done by this orchestator
+    /// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
+    /// This should be improved in next versions.
+    /// </summary>
+    internal static class AnalysisOrchestator
 	{
 		public static async Task AnalyzeAsync(MethodDescriptor method)
 		{

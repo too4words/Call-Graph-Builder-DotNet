@@ -1,6 +1,8 @@
-﻿using System.Diagnostics.Contracts;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
 using System;
+using System.Diagnostics.Contracts;
+using System.Threading.Tasks;
 using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;

@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ReachingTypeAnalysis.Analysis;
-using ReachingTypeAnalysis.Roslyn;
-using SolutionTraversal.Callgraph;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using ReachingTypeAnalysis.Analysis;
+using SolutionTraversal.Callgraph;
 
 namespace ReachingTypeAnalysis
 {
-	public static class CallGraphBuilder
+    public static class CallGraphBuilder
     {
         /// <summary>
         /// Computes a CG for a solution
