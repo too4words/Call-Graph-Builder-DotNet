@@ -232,6 +232,7 @@ namespace ReachingTypeAnalysis
 
         internal async  Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
+            Contract.Assert(codeProvider != null);
             var calleesForNode = new HashSet<MethodDescriptor>();
             if (callInfo.Receiver != null)
             {
@@ -240,7 +241,12 @@ namespace ReachingTypeAnalysis
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
                 foreach (var type in this.GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider))
                 {
+                    Contract.Assert(type != null);
+                    Contract.Assert(callInfo != null);
+
                     var realCallee = await codeProvider.FindMethodImplementationAsync(callInfo.Method, type);
+                    Contract.Assert(realCallee != null);
+
                     calleesForNode.Add(realCallee);
                 }
             }

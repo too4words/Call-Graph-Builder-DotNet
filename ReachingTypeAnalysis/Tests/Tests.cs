@@ -23,8 +23,7 @@ namespace ReachingTypeAnalysis
             //var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
             //var solAnalyzer = new SolutionAnalyzer(solution);
             var solAnalyzer = new SolutionAnalyzer(source);
-            solAnalyzer.Analyze(strategy);
-            var callgraph = solAnalyzer.GenerateCallGraph();
+            var callgraph = solAnalyzer.Analyze(strategy, true);
 
             checker(solAnalyzer, callgraph);
         }
@@ -32,8 +31,8 @@ namespace ReachingTypeAnalysis
         private static void AnalizeSolution(Solution solution, RunChecks checker, AnalysisStrategy type = AnalysisStrategy.NONE)
         {
             var solAnalyzer = new SolutionAnalyzer(solution);
-            solAnalyzer.Analyze(type);
-            var callgraph = solAnalyzer.GenerateCallGraph();
+            var callgraph = solAnalyzer.Analyze(type, true);
+            
             checker(solAnalyzer, callgraph);
         }
 
@@ -104,14 +103,11 @@ namespace ReachingTypeAnalysis
         {
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
             var analyzerLocal = new SolutionAnalyzer(solution);
-            analyzerLocal.Analyze(AnalysisStrategy.ONDEMAND_SYNC);
-            
-            var callgraphLocal = analyzerLocal.GenerateCallGraph();
+            var callgraphLocal = analyzerLocal.Analyze(AnalysisStrategy.ONDEMAND_SYNC, true);
 
             var analyzerParallel = new SolutionAnalyzer(solution);
             var queueingDispatcher = new QueueingDispatcher();
-            analyzerParallel.Analyze(AnalysisStrategy.ENTIRE_ASYNC);
-            var callgraphQueuing = analyzerParallel.GenerateCallGraph();
+            var callgraphQueuing = analyzerParallel.Analyze(AnalysisStrategy.ENTIRE_ASYNC, true);
 
             var localReachable = callgraphLocal.GetReachableMethods().Count;
             var queuingReachable = callgraphQueuing.GetReachableMethods().Count;

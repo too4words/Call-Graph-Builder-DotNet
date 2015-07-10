@@ -48,7 +48,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
+    <CodeContractsEnableRuntimeChecking>True</CodeContractsEnableRuntimeChecking>
     <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
     <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
     <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
@@ -267,6 +267,7 @@
     <Compile Include="Analysis\MethodEntityProcessor.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
     <Compile Include="CallGraph\GraphVizGraphDataAdapter .cs" />
+    <Compile Include="Analysis\QueryInterfaces.cs" />
     <Compile Include="Communication\IEntity.cs" />
     <Compile Include="Communication\IEntityProcessor.cs" />
     <Compile Include="Communication\AsyncDispatcher.cs" />
@@ -279,9 +280,10 @@
     <Compile Include="Analysis\Graph\PropagationGraph.cs" />
     <Compile Include="Communication\IDispatcher.cs" />
     <Compile Include="Communication\Logger.cs" />
-    <Compile Include="Orleans\OrleansDispatcher.cs" />
+    <Content Include="Orleans\OrleansDispatcher.cs" />
     <Compile Include="Orleans\MethodEntityGrain.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
+    <Content Include="Orleans\OrleansEntityDescriptor.cs" />
     <Compile Include="Orleans\OrleansHostWrapper.cs" />
     <Compile Include="Orleans\ProjectCodeProviderGrain.cs" />
     <Compile Include="Orleans\SolutionGrain.cs" />

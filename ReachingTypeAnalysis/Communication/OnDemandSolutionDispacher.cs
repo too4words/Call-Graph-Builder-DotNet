@@ -44,13 +44,13 @@ namespace ReachingTypeAnalysis.Communication
             {
                 return ((MethodEntityDescriptor)entityDesc).MethodDescriptor;
             }
-            if (entityDesc is OrleansEntityDescriptor)
-            {
-                var grainDesc = (OrleansEntityDescriptor)entityDesc;
-    			Contract.Assert(grainDesc != null);
+       //     if (entityDesc is OrleansEntityDescriptor)
+       //     {
+       //         var grainDesc = (OrleansEntityDescriptor)entityDesc;
+    			//Contract.Assert(grainDesc != null);
 	
-                return grainDesc.MethodDescriptor;
-            }
+       //         return grainDesc.MethodDescriptor;
+       //     }
             throw new NotImplementedException("We shouldn't reach this place");
         }
     }

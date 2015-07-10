@@ -27,29 +27,30 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="M"></typeparam>
     [Serializable]
-    internal partial class MethodEntityProcessor: EntityProcessor
+    internal partial class MethodEntityProcessor : EntityProcessor
     {
         internal ICodeProvider codeProvider;
         [NonSerialized]
         private IDictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>> calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
         //private SyntaxTree tree;
         internal MethodEntity MethodEntity { get; private set; }
-        internal MethodEntityProcessor(MethodEntity methodEntity, 
-            IDispatcher dispatcher, ICodeProvider codeProvider, IEntityDescriptor entityDescriptor = null, 
+        internal MethodEntityProcessor(MethodEntity methodEntity,
+            IDispatcher dispatcher,
+            ICodeProvider codeProvider, IEntityDescriptor entityDescriptor = null,
             bool verbose = false) :
             base(methodEntity, entityDescriptor, dispatcher)
         {
             Contract.Assert(methodEntity != null);
 
             this.MethodEntity = methodEntity;
-            this.EntityDescriptor = entityDescriptor==null?methodEntity.EntityDescriptor
-                                                          :entityDescriptor;
-			this.Verbose = true; // verbose;
+            this.EntityDescriptor = entityDescriptor == null ? methodEntity.EntityDescriptor
+                                                          : entityDescriptor;
+            this.Verbose = true; // verbose;
             // It gets a code provider for the method. 
-            if (codeProvider!=null || dispatcher is OrleansDispatcher)
+            if (codeProvider != null)
             {
                 this.codeProvider = codeProvider;
-                 //this.codeProvider = ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor).Result;
+                //this.codeProvider = ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor).Result;
                 //SetCodeProviderAsync(methodEntity.MethodDescriptor);
             }
             else
@@ -64,9 +65,11 @@ namespace ReachingTypeAnalysis.Analysis
             // We can get rid of this by passing codeProvider as parameter in this 3 methods
             this.MethodEntity.PropGraph.SetCodeProvider(this.codeProvider);
         }
+
         internal MethodEntityProcessor(MethodEntity methodEntity,
                                         IDispatcher dispatcher, IEntityDescriptor entityDescriptor = null,
-                                        bool verbose = false) :this (methodEntity, dispatcher, null, entityDescriptor, verbose)
+                                        bool verbose = false) : 
+            this(methodEntity, dispatcher, null, entityDescriptor, verbose)
         { }
 
 
@@ -101,8 +104,8 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.Instance.Log("MethodEntityProcessor", "ProcessCallMessage", callerMesssage);
             // Propagate this to the callee (RTA)
             this.MethodEntity.InstantiatedTypes
-				.UnionWith(
-					Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
+                .UnionWith(
+                    Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
             // "Event" handler: Do the propagation of caller info
             HandleCallEvent(callerMesssage.CallMessageInfo);
         }
@@ -112,7 +115,7 @@ namespace ReachingTypeAnalysis.Analysis
             var retMsgInfo = returnMessage.ReturnMessageInfo;
             // Propagate types from the callee (RTA)
             this.MethodEntity.InstantiatedTypes
-				.UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
+                .UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
             // "Event" handler: Do the propagation of callee info
             HandleReturnEvent(retMsgInfo);
         }
@@ -187,10 +190,10 @@ namespace ReachingTypeAnalysis.Analysis
             /// This to to remove any information about calls that we cached
             /// This is for the incremental reasoning
             /// Diego: I did this for the demo because I query directly the entities instead of querying the callgraph 
-            if (callInvocationInfoForCalls.Count() > 0)
-            {
-                this.InvalidateCaches();
-            }
+            //if (callInvocationInfoForCalls.Count() > 0)
+            //{
+            //    this.InvalidateCaches();
+            //}
             /// I made a new list to avoid a concurrent modification exception we received in some tests
             var invocationsToProcess = new List<CallInfo>(callInvocationInfoForCalls);
             /// Every invocation that was "touched" by a propagation is signaled to propagate the new data
@@ -230,13 +233,13 @@ namespace ReachingTypeAnalysis.Analysis
                     var instantiatedTypes = new HashSet<TypeDescriptor>();
                     /// We get the instantiated type that are compatible with the receiver type
                     instantiatedTypes.UnionWith(
-						this.MethodEntity.InstantiatedTypes
-							.Where(type => codeProvider.IsSubtype(type,callInfo.Receiver.Type)));
-                        // .Where(type => type.IsSubtype(callInfo.Receiver.Type)));
-					foreach (var type in instantiatedTypes)
-					{
-						types.Add(type);
-					}
+                        this.MethodEntity.InstantiatedTypes
+                            .Where(type => codeProvider.IsSubtype(type, callInfo.Receiver.Type)));
+                    // .Where(type => type.IsSubtype(callInfo.Receiver.Type)));
+                    foreach (var type in instantiatedTypes)
+                    {
+                        types.Add(type);
+                    }
                     // TO-DO: SHould I fix the node in the receiver to show that is not loaded? Ideally I should use the declared type. 
                     // Here I will use the already instantiated types
                     this.MethodEntity.PropGraph.Add(callInfo.Receiver, types);
@@ -252,9 +255,9 @@ namespace ReachingTypeAnalysis.Analysis
                         // Given a method m and T find the most accurate implementation wrt to T
                         // it can be T.m or the first super class implementing m
                         //var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Method,receiverType);
+                        var realCallee = codeProvider.FindMethodImplementation(callInfo.Method, receiverType);
                         CreateAndSendCallMessage(
-							callInfo, realCallee, receiverType, propKind);
+                            callInfo, realCallee, receiverType, propKind);
                     }
                 }
                 // This is not good: One reason is that loads like b = this.f are not working
@@ -266,22 +269,20 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                CreateAndSendCallMessage(callInfo, 
-					callInfo.Method, 
-					callInfo.Method.ContainerType, propKind);
+                CreateAndSendCallMessage(callInfo,
+                    callInfo.Method,
+                    callInfo.Method.ContainerType, propKind);
             }
         }
 
-        private void CreateAndSendCallMessage(CallInfo callInfo, MethodDescriptor realCallee, 
+        private void CreateAndSendCallMessage(CallInfo callInfo, MethodDescriptor realCallee,
                                             TypeDescriptor receiverType, PropagationKind propKind)
         {
             /// Here I have all the necessary info to update the callgraph
             /// 
             var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
             var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
-            var destination = EntityFactory.Create(realCallee, this.dispatcher);
-
-            this.SendMessage(destination, callerMessage);
+            this.SendMessage(new MethodEntityDescriptor(realCallee), callerMessage);
         }
 
         private IEnumerable<MethodDescriptor> GetDelegateCallees(DelegateVariableNode delegateVariableNode)
@@ -332,23 +333,23 @@ namespace ReachingTypeAnalysis.Analysis
                 // Instead of copying all types with use the type we use to compute the callee
 
                 potentialReceivers.UnionWith(
-				    	GetTypes(callInfo.Receiver, propKind)
-                        .Where(t => codeProvider.IsSubtype(t,calleType)));
-                        //.Where(t => t.IsSubtype(calleType)));
+                        GetTypes(callInfo.Receiver, propKind)
+                        .Where(t => codeProvider.IsSubtype(t, calleType)));
+                //.Where(t => t.IsSubtype(calleType)));
 
                 // potentialReceivers.Add((AnalysisType)calleType);
             }
 
             var argumentValues = callInfo.Arguments
-				.Select(a => a != null ? 
-				GetTypes(a, propKind) : 
-				new HashSet<TypeDescriptor>());
+                .Select(a => a != null ?
+                GetTypes(a, propKind) :
+                new HashSet<TypeDescriptor>());
 
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
 
             return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
-				new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
-				callInfo.CallNode, callInfo.LHS, propKind);
+                new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
+                callInfo.CallNode, callInfo.LHS, propKind);
         }
 
         /// <summary>
@@ -377,17 +378,17 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var caller = context.Caller;
             var lhs = context.LHS;
-            var types = returnVariable != null ? 
-				GetTypes(returnVariable, propKind) : 
-				new HashSet<TypeDescriptor>();
+            var types = returnVariable != null ?
+                GetTypes(returnVariable, propKind) :
+                new HashSet<TypeDescriptor>();
 
             // Diego TO-DO, different treatment for adding and removal
             if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
             {
                 var instTypes = new HashSet<TypeDescriptor>();
                 instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-                          .Where(type => codeProvider.IsSubtype(type,returnVariable.Type)));
-						//.Where(type => type.IsSubtype(returnVariable.Type)));
+                          .Where(type => codeProvider.IsSubtype(type, returnVariable.Type)));
+                //.Where(type => type.IsSubtype(returnVariable.Type)));
                 foreach (var type in instTypes)
                 {
                     types.Add(type);
@@ -395,17 +396,17 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             // Jump to caller
-            var destination = EntityFactory.Create(caller, this.dispatcher);
+            var destination = new MethodEntityDescriptor(caller);
             var retMessageInfo = new ReturnMessageInfo(
-				context.Caller,
-				this.MethodEntity.MethodDescriptor,
+                context.Caller,
+                this.MethodEntity.MethodDescriptor,
                 types,
-				this.MethodEntity.InstantiatedTypes,
-				context.CallNode,
-				lhs,
-				propKind); 
+                this.MethodEntity.InstantiatedTypes,
+                context.CallNode,
+                lhs,
+                propKind);
             var returnMessage = new CalleeMessage(
-				this.MethodEntity.EntityDescriptor, retMessageInfo);
+                this.MethodEntity.EntityDescriptor, retMessageInfo);
             if (lhs != null)
             {
                 this.SendMessage(destination, returnMessage);
@@ -423,7 +424,7 @@ namespace ReachingTypeAnalysis.Analysis
             ProcessReturnNode(propKind);
         }
 
-		private void HandleCallEvent(CallMessageInfo callMessage)
+        private void HandleCallEvent(CallMessageInfo callMessage)
         {
             if (MethodEntity.CanBeAnalized)
             {
@@ -492,9 +493,9 @@ namespace ReachingTypeAnalysis.Analysis
 
             //PropGraph.Add(lhs, retValues);
             this.MethodEntity.PropGraph.DiffProp(
-				Demarshaler.Demarshal(retMesssageInfo.ResultPossibleTypes),
-				Demarshaler.Demarshal(retMesssageInfo.LHS), 
-				retMesssageInfo.PropagationKind);
+                Demarshaler.Demarshal(retMesssageInfo.ResultPossibleTypes),
+                Demarshaler.Demarshal(retMesssageInfo.LHS),
+                retMesssageInfo.PropagationKind);
             // This should be Async
             switch (retMesssageInfo.PropagationKind)
             {
@@ -509,7 +510,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-		internal ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor node, PropagationKind prop)
+        internal ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor node, PropagationKind prop)
         {
             switch (prop)
             {
@@ -558,110 +559,24 @@ namespace ReachingTypeAnalysis.Analysis
             return this.MethodEntity.PropGraph.GetDelegates(node);
         }
 
-      //  internal ISet<T> GetPotentialTypes(E node)
-      //  {
-      //      var res = new HashSet<T>();
-      //      foreach (var type in this.MethodEntity.PropGraph.GetTypes(node))
-      //      {
-      //          if (type.IsConcreteType)
-      //          {
-      //              res.Add(type);
-      //          }
-      //          else
-      //          {
-      //              res.UnionWith(
-						//InstantiatedTypes
-						//	.Where(type => type.IsSubtype(type)));
-      //          }
-      //      }
-      //      return res;
-      //  }
-        #endregion
-
-        #region Methods that compute caller callees relation
-        public void InvalidateCaches()
-        {
-            ValidateCache(); 
-
-            calleesMappingCache.Clear();
-        }
-        /// <summary>
-        /// Compute all the calless of this method entities
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<MethodDescriptor> Callees()
-        {
-            var result = new HashSet<MethodDescriptor>();
-            foreach (var callNode in this.MethodEntity.PropGraph.CallNodes)
-            {
-                result.UnionWith(Callees(callNode));
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Computes all the potential callees for a particular method invocation
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public ISet<MethodDescriptor> Callees(PropGraphNodeDescriptor node)
-        {
-            ISet<MethodDescriptor> result;
-            ValidateCache(); 
-            if (!calleesMappingCache.TryGetValue(node, out result))
-            {
-                var calleesForNode = new HashSet<MethodDescriptor>();
-                var invExp = this.MethodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
-                Contract.Assert(invExp != null);
-
-                calleesForNode.UnionWith(this.MethodEntity.PropGraph.ComputeCalleesForNode(invExp, this.codeProvider));
-                //calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));
-
-                calleesMappingCache[node] = calleesForNode;
-                result = calleesForNode;
-
-            }
-            return result;
-        }
-
-        private void ValidateCache()
-        {
-            if (calleesMappingCache == null)
-            {
-                calleesMappingCache = new Dictionary<PropGraphNodeDescriptor, ISet<MethodDescriptor>>();
-            }
-
-        }
-
-        /// <summary>
-        /// Generates a dictionary invocationNode -> potential callees
-        /// This is used for example by the demo to get the caller / callee info
-        /// </summary>
-        /// <returns></returns>
-        public IDictionary<AnalysisCallNode, ISet<MethodDescriptor>> GetCalleesInfo()
-        {
-            var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
-            foreach (var calleeNode in this.MethodEntity.PropGraph.CallNodes)
-            {
-                calleesPerEntity[calleeNode] = Callees(calleeNode);
-            }
-            return calleesPerEntity;
-        }
-
-        //private void GetCallesForCalleeNode(ANode calleeNode)
-        //{
-        //    var res = new HashSet<AMethod>();
-        //    var callInfo = this.PropGraph.GetInvocationInfo(calleeNode);
-        //    res.UnionWith(callInfo.ComputeCalleesForNode(this.PropGraph));
-        //    calleesPerEntityCache[calleeNode] = res;
-        //}
-
-        /// <summary>
-        /// This methods register that there is a new caller for this method
-        /// This is used in to register who calls this method
-        /// </summary>
-        /// <param name="context"></param>
-            #endregion
-
+        //  internal ISet<T> GetPotentialTypes(E node)
+        //  {
+        //      var res = new HashSet<T>();
+        //      foreach (var type in this.MethodEntity.PropGraph.GetTypes(node))
+        //      {
+        //          if (type.IsConcreteType)
+        //          {
+        //              res.Add(type);
+        //          }
+        //          else
+        //          {
+        //              res.UnionWith(
+        //InstantiatedTypes
+        //	.Where(type => type.IsSubtype(type)));
+        //          }
+        //      }
+        //      return res;
+        //  }
+        #endregion       
     }
 }

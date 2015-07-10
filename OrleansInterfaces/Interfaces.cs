@@ -16,6 +16,7 @@ namespace OrleansInterfaces
     public interface IMethodEntityGrain :  IGrainWithStringKey, IEntity
     {
         Task<IEntityDescriptor> GetDescriptor();
+        Task<MethodDescriptor> GetMethodDescriptor();
 
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
 
@@ -23,10 +24,10 @@ namespace OrleansInterfaces
             IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind);
         Task UpdateMethodReturnAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind);
  
-        Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
-        Task DoAnalysisAsync();
-        //Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
-        Task<IEntityProcessor> GetEntityWithProcessorAsync();
+        //Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
+        //Task DoAnalysisAsync();
+        ////Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        //Task<IEntityProcessor> GetEntityWithProcessorAsync();
 
         Task<bool> IsInitialized();
 
@@ -35,6 +36,8 @@ namespace OrleansInterfaces
         Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor);
 
         Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
+
+        Task<IEnumerable<MethodDescriptor>> GetCallees();
     }
 
     public interface IProjectCodeProviderGrain : IGrainWithStringKey

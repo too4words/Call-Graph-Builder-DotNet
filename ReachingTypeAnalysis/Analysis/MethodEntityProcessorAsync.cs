@@ -12,22 +12,19 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal class EntityFactory
     {
-        internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor, IDispatcher dispatcher)
-        {
-            IEntityDescriptor result = null;
-            if (dispatcher is OrleansDispatcher)
-            {
-                var orleanDispatcher = (OrleansDispatcher)dispatcher;
-                //var guid = orleanDispatcher.GetGuidForMethod(methodDescriptor);
-                // I think we should consult the dispatcher about an existing ID for the descriptor
-                result = new OrleansEntityDescriptor(methodDescriptor); //System.Guid.NewGuid());
-            }
-            else
-            {
-                result = new MethodEntityDescriptor(methodDescriptor);
-            }
-            return result;
-        }
+        //internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor, bool useOrleans)
+        //{
+        //    IEntityDescriptor result = null;
+        //    if (useOrleans)
+        //    {
+        //        result = new OrleansEntityDescriptor(methodDescriptor); //System.Guid.NewGuid());
+        //    }
+        //    else
+        //    {
+        //        result = new MethodEntityDescriptor(methodDescriptor);
+        //    }
+        //    return result;
+        //}
 
         //internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
         //{
@@ -306,7 +303,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var callMessage = await CreateCallMessageAsync(callInfo, realCallee, receiverType, propKind);
 			var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
-			var destination = EntityFactory.Create(realCallee, this.dispatcher);
+            var destination = new MethodEntityDescriptor(realCallee);
 
 			await this.SendMessageAsync(destination, callerMessage);
 		}
@@ -366,7 +363,6 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 
 				await Task.WhenAll(continuations);
-
 			}
 		}
 
@@ -410,8 +406,8 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 
-			// Jump to caller
-			var destination = EntityFactory.Create(caller,this.dispatcher);
+            // Jump to caller
+            var destination = new MethodEntityDescriptor(caller);
 			var retMessageInfo = new ReturnMessageInfo(
 				context.Caller,
 				this.MethodEntity.MethodDescriptor,
@@ -589,7 +585,7 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<ISet<MethodDescriptor>> CalleesAsync(PropGraphNodeDescriptor node)
         {
             ISet<MethodDescriptor> result;
-            ValidateCache();
+            //ValidateCache();
             if (!calleesMappingCache.TryGetValue(node, out result))
             {
                 var calleesForNode = new HashSet<MethodDescriptor>();

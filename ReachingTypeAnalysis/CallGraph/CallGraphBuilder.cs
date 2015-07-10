@@ -52,6 +52,7 @@ namespace ReachingTypeAnalysis
             this.solutionAnalyzer.AnalyzeWithoutAppSettings();
         }
 
+        /*
         /// <summary>
         /// This is used by the VS Studio Extension. 
         /// NEEDS TO BE REEMPLEMENTED because nodes no longer contains AST Expression 
@@ -68,14 +69,13 @@ namespace ReachingTypeAnalysis
             var result = new HashSet<MethodDescriptor>();
             var methodDescriptor = Utils.CreateMethodDescriptor(method);
             var methodEntityProcessor = (MethodEntityProcessor)
-                 this.solutionAnalyzer.Dispatcher.GetEntityWithProcessor
-                (EntityFactory.Create(methodDescriptor, this.solutionAnalyzer.Dispatcher));
+                 this.solutionAnalyzer.Dispatcher.GetEntityWithProcessor(new MethodEntityDescriptor(methodDescriptor));
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
                 methodEntityProcessor.DoAnalysis();
 
-            var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
+            var callSitesForMethod = QueryInterfaces.GetCalleesInfo();
 
 			// var roslynMethodwithNewId = methodEntity.Method.RoslynMethod;
             var roslynMethodwithNewId = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solutionAnalyzer.Solution, methodDescriptor);
@@ -105,8 +105,7 @@ namespace ReachingTypeAnalysis
             var methodDescriptor = Utils.CreateMethodDescriptor(method);
 			//var methodEntity = this.solutionAnalyzer.Dispatcher.GetEntity(new MethodEntityDescriptor<methodDescriptor>(methodDescriptor)) as MethodEntity<ANode,AType,methodDescriptor>;
 			var methodEntityProcessor = (MethodEntityProcessor)
-                this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(EntityFactory.Create(methodDescriptor, 
-                                                                                this.solutionAnalyzer.Dispatcher)).Result;
+                this.solutionAnalyzer.Dispatcher.GetEntityWithProcessorAsync(new MethodEntityDescriptor(methodDescriptor)).Result;
             var methodEntity = methodEntityProcessor.MethodEntity;
 
             if (!methodEntity.HasBeenPropagated)
@@ -127,9 +126,9 @@ namespace ReachingTypeAnalysis
                 }
             }
             return result;
-        }		
+        }*/
 
-//		public async Task<ISet<KeyValuePair<int, MethodDescriptor>>> GetCallersWithOrder(IMethodSymbol m)
+        //		public async Task<ISet<KeyValuePair<int, MethodDescriptor>>> GetCallersWithOrder(IMethodSymbol m)
         public ISet<KeyValuePair<int, MethodDescriptor>> GetCallersWithOrder(IMethodSymbol m)
         {
 			var result = new HashSet<KeyValuePair<int, MethodDescriptor>>();
@@ -137,8 +136,7 @@ namespace ReachingTypeAnalysis
 
             var methodEntityProcessor = (MethodEntityProcessor)
 				this.solutionAnalyzer.
-				Dispatcher.GetEntityWithProcessor(
-                    EntityFactory.Create(methodDescriptor, this.solutionAnalyzer.Dispatcher));
+				Dispatcher.GetEntityWithProcessor(new MethodEntityDescriptor(methodDescriptor));
 			var methodEntity = methodEntityProcessor.MethodEntity;
 			if (!methodEntity.HasBeenPropagated)
 			{

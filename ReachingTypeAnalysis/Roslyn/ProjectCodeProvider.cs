@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -121,6 +122,31 @@ namespace ReachingTypeAnalysis.Roslyn
 				}
 			}
 		}
+
+        public async static Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Solution solution)
+        {
+            var cancellationToken = new System.Threading.CancellationToken();
+            var continuations = new List<Task<Compilation>>();
+            foreach (var project in solution.Projects)
+            {
+                var compilation = project.GetCompilationAsync();
+                continuations.Add(compilation);                
+            }
+            await Task.WhenAll(continuations);
+            var result = new HashSet<MethodDescriptor>();
+
+            foreach (var c in continuations)
+            {
+                var mainMethod = c.Result.GetEntryPoint(cancellationToken);
+                if (mainMethod != null)
+                {
+                    // only return if there's a main method
+                    result.Add(Utils.CreateMethodDescriptor(mainMethod));
+                }
+            }
+
+            return result;
+        }
 
         public IMethodSymbol FindMethod(MethodDescriptor methodDescriptor)
         {

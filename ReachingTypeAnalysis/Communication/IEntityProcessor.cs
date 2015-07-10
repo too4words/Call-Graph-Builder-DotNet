@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace ReachingTypeAnalysis.Communication
 {
     [Serializable]
-    public abstract class EntityProcessor: IEntityProcessor
+    public abstract class EntityProcessor : IEntityProcessor
     {
         //[NonSerialized]
         // Hack: Should not be accessible

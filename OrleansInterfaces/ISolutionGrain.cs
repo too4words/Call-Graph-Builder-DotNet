@@ -12,8 +12,7 @@ namespace OrleansInterfaces
     {
         Task SetSolutionPath(string solutionPath);
         Task SetSolutionSource(string solutionSource);
-
         Task<IProjectCodeProviderGrain> GetCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor methodDescriptor);
-		Task<IList<MethodDescriptor>> GetMethodDescriptors();
+        Task<IEnumerable<MethodDescriptor>> GetRoots();
     }
 }

@@ -18,13 +18,14 @@ namespace ReachingTypeAnalysis.Analysis
     [StorageProvider(ProviderName = "TestStore")]
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
-		List<MethodDescriptor> MethodDescriptors { get; set; }
+        [NonSerialized]
+        private Dictionary<MethodDescriptor, IProjectCodeProviderGrain> MethodDescriptors;
         [NonSerialized]
         private Microsoft.CodeAnalysis.Solution solution;
 
         public override Task OnActivateAsync()
         {
-			MethodDescriptors = new List<MethodDescriptor>();		
+            MethodDescriptors = new Dictionary<MethodDescriptor, IProjectCodeProviderGrain>();
 
 			//if (this.State.MethodDescriptors == null)
 			//{
@@ -58,21 +59,28 @@ namespace ReachingTypeAnalysis.Analysis
             this.solution = Utils.CreateSolution(solutionSource);
             return this.State.WriteStateAsync();
         }
+
         public async Task<IProjectCodeProviderGrain> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
-            var projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution);
 
-			if (!MethodDescriptors.Contains(methodDescriptor))
-			{
-				MethodDescriptors.Add(methodDescriptor);
-			}
-
-			await this.State.WriteStateAsync();
+            IProjectCodeProviderGrain projectCodeProviderGrain;
+            if (this.MethodDescriptors.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
+            {
+                return projectCodeProviderGrain;
+            }
+            else
+            {
+                projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution);
+                this.MethodDescriptors.Add(methodDescriptor, projectCodeProviderGrain);
+                await this.State.WriteStateAsync();
+            }
+			
             return projectCodeProviderGrain;
         }
-		public  Task<IList<MethodDescriptor>> GetMethodDescriptors()
-		{
-            return Task.FromResult <IList<MethodDescriptor>>(MethodDescriptors);
-		}
+
+        public Task<IEnumerable<MethodDescriptor>> GetRoots()
+        {
+            return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
+        }
     }
 }

@@ -50,7 +50,6 @@ namespace ReachingTypeAnalysis
             //dispatcher = new SynchronousLocalDispatcher();
         }
 
-
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
 		/// We cannot use the SyncronousDistacther because it doesn't look for the 
@@ -58,45 +57,46 @@ namespace ReachingTypeAnalysis
 		/// analysis!!!!
 		/// </summary>
 		/// <param name="dispatcher"></param>
-		public void Analyze(AnalysisStrategy strategy = AnalysisStrategy.NONE)
-		{
-			if (strategy == AnalysisStrategy.NONE)
-			{
-				strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
-			}
-           
+        public CallGraph<MethodDescriptor, LocationDescriptor>
+            Analyze(AnalysisStrategy strategy = AnalysisStrategy.NONE, bool produceCallGraph = true)
+        {
+            if (strategy == AnalysisStrategy.NONE)
+            {
+                strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
+            }
 
-			// TOOD: hack -- set the global solution
-			ProjectCodeProvider.Solution = this.Solution;
 
-			switch (strategy)
+            // TOOD: hack -- set the global solution
+            ProjectCodeProvider.Solution = this.Solution;
+
+            switch (strategy)
             {
                 case AnalysisStrategy.ONDEMAND_SYNC:
                     {
                         this.Dispatcher = new OnDemandSyncDispatcher();
                         AnalyzeOnDemand();
-
-                        break;
+                        return this.GenerateCallGraph();
                     }
-				case AnalysisStrategy.ENTIRE_SYNC:
-					{
-						this.Dispatcher = new SynchronousLocalDispatcher();
-						AnalyzeEntireSolution();
+                case AnalysisStrategy.ENTIRE_SYNC:
+                    {
+                        this.Dispatcher = new SynchronousLocalDispatcher();
+                        AnalyzeEntireSolution();
 
-						break;
-					}
-				case AnalysisStrategy.ONDEMAND_ASYNC:
+                        return this.GenerateCallGraph();
+                    }
+                case AnalysisStrategy.ONDEMAND_ASYNC:
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
                         AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
-                        break;
+                        
+                        return this.GenerateCallGraph();
                     }
                 case AnalysisStrategy.ONDEMAND_ORLEANS:
                     {
                         //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
                         var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
-                            //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                        //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
                         var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
 
                         var appDomainSetup = new AppDomainSetup
@@ -109,12 +109,12 @@ namespace ReachingTypeAnalysis
                             ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
                         };
                         // set up the Orleans silo
-                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null,appDomainSetup);
+                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
 
                         var xmlConfig = "DevTestClientConfiguration.xml";
                         Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
                         try
-                        {                            
+                        {
                             GrainClient.Initialize(xmlConfig);
                             Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
                         }
@@ -124,40 +124,61 @@ namespace ReachingTypeAnalysis
                             throw e;
                             //break;
                         }
-						// Create a Grain for the solution
+                        // Create a Grain for the solution
                         ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+                        Contract.Assert(solutionGrain != null);
                         if (SourceCode != null)
                         {
-                           solutionGrain.SetSolutionSource(SourceCode).Wait();
-                           IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain("MyProject");
-                           projectGrain.SetProjectSourceCode(SourceCode);
+                            solutionGrain.SetSolutionSource(SourceCode).Wait();
+                            IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain("MyProject");
+                            projectGrain.SetProjectSourceCode(SourceCode);
                         }
-                        else {
-                            Contract.Assert(Solution.FilePath!=null);
+                        else
+                        {
+                            Contract.Assert(Solution.FilePath != null);
                             solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
-                            foreach(var project in this.Solution.Projects)
+                            foreach (var project in this.Solution.Projects)
                             {
                                 IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain(project.Name);
                                 projectGrain.SetProjectPath(project.FilePath).Wait();
-                            }                            
+                            }
                         }
                         // make a dispatcher
-                        this.Dispatcher = new OrleansDispatcher();
+                        //this.Dispatcher = new OrleansDispatcher();
+                        this.Dispatcher = null;
                         // run
-                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ORLEANS).Wait();
-                        hostDomain.DoCallBack(ShutdownSilo);
+                        var cancellationSource = new CancellationTokenSource();
+                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
+                        if (triple != null)
+                        {
+                            // cancel out outstanding processing tasks
+                            //cancellationSource.Cancel();	
+                            var provider = triple.Item1;
+                            var mainSymbol = triple.Item2;
+                            Contract.Assert(mainSymbol != null);
+                            //var tree = triple.Item3;
+                            //var model = provider.Compilation.GetSemanticModel(tree);
+                            var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
+                            var mainMethodEntityDescriptor = mainMethodDescriptor;
 
-                        break;
+                            AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
+                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionGrain).Result;
+
+                            hostDomain.DoCallBack(ShutdownSilo);
+                            return callGraph;
+                        }
+
+                        return null;
                     }
                 case AnalysisStrategy.ENTIRE_ASYNC:
-					{
+                    {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
                         AnalyzeEntireSolutionAsync();
 
-						break;
-					}
-				default:
+                        return this.GenerateCallGraph();
+                    }
+                default:
                     {
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
                     }
@@ -401,7 +422,7 @@ namespace ReachingTypeAnalysis
 
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
-                var mainMethodEntityDescriptor = EntityFactory.Create(mainMethodDescriptor, this.Dispatcher);
+                var mainMethodEntityDescriptor = mainMethodDescriptor;
 
                 IEntityProcessor mainMethodEntityProcessor = null;
                 switch(strategy)
@@ -417,7 +438,7 @@ namespace ReachingTypeAnalysis
                         //await mainMethodEntityProcessor.DoAnalysisAsync();
                         break;
                     case AnalysisStrategy.ONDEMAND_ASYNC:
-                        mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(mainMethodEntityDescriptor);
+                        mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(new MethodEntityDescriptor(mainMethodEntityDescriptor));
 					    var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
                         this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                         await mainMethodEntityProcessor.DoAnalysisAsync();
@@ -435,7 +456,7 @@ namespace ReachingTypeAnalysis
             writer.WriteLine("Caller; Callee; CG; Roslyn; CG vs R; R vs CG");
             var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
             int max = 0; int count = 0; int sum = 0;
-            int countDiff=0;
+            int countDiff = 0;
             foreach (var e in allEntities)
             {
 				var methodEntity = e as MethodEntity;
@@ -446,7 +467,7 @@ namespace ReachingTypeAnalysis
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
-                    int countCG = methodEntityProcessor.Callees(callNode).Count();
+                    int countCG = QueryInterfaces.CalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
                     if (invExp is MethodCallInfo)
                     {
@@ -710,7 +731,7 @@ namespace ReachingTypeAnalysis
 				// Hack
 				var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor)entityProcessor).dispatcher, codeProvider);
 				//(MethodEntityProcessor)entityProcessor;
-				var callSitesForMethod = methodEntityProcessor.GetCalleesInfo();
+                var callSitesForMethod = QueryInterfaces.GetCalleesInfo(methodEntity, codeProvider).Result;
 				foreach (var callSiteNode in callSitesForMethod.Keys)
 				{
 					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
@@ -733,7 +754,7 @@ namespace ReachingTypeAnalysis
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             callgraph.AddRootMethods(roots);
             // var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
-			var allEntityDescriptors =this.Dispatcher.GetAllEntitiesDescriptors();
+            var allEntityDescriptors = this.Dispatcher.GetAllEntitiesDescriptors();
             foreach (var entityDesc in allEntityDescriptors)
             {
                 //  entity.GetEntityProcessor(this.Dispatcher);

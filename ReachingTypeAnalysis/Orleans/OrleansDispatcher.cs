@@ -13,39 +13,6 @@ using System.Threading.Tasks;
 namespace ReachingTypeAnalysis.Analysis
 {
     [Serializable]
-    internal class OrleansEntityDescriptor : IEntityDescriptor
-    {
-        public Guid Guid { get; set; }
-        public MethodDescriptor MethodDescriptor { get; set; }
-
-        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor)
-        {
-            this.Guid = Guid.Empty;
-            this.MethodDescriptor = methodDescriptor;
-        }
-
-        public OrleansEntityDescriptor(MethodDescriptor methodDescriptor, Guid guid)
-        {
-            this.Guid = guid;
-            this.MethodDescriptor = methodDescriptor;
-        }
-        public override bool Equals(object obj)
-        {
-            var oed = (OrleansEntityDescriptor)obj;
-            return oed != null && this.MethodDescriptor.Equals(oed.MethodDescriptor);
-        }
-        public override int GetHashCode()
-        {
-            return this.MethodDescriptor.GetHashCode();
-        }
-
-		public override string ToString()
-		{
-			return this.MethodDescriptor.ToString();
-		}
-	}
-
-    [Serializable]
 	internal class OrleansDispatcher : IDispatcher
 	{
 		private IEntityDescriptor self;
@@ -144,54 +111,8 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(grainDesc != null);
 
             //var guid = ((OrleansEntityDescriptor)grainDesc).Guid;
-			return await CreateMethodEntityGrain(grainDesc);
-        }
-
-		internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(OrleansEntityDescriptor entityDescriptor)
-		{
-			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", entityDescriptor);
-
-			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(entityDescriptor.MethodDescriptor.ToString());
-			var methodEntity = await methodEntityGrain.GetMethodEntity();
-
-			// check if the result is initialized
-			if (methodEntity == null)
-			{
-				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
-				Contract.Assert(entityDescriptor.MethodDescriptor != null);
-				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-				methodEntity = await CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
-				Contract.Assert(methodEntity != null);
-				await methodEntityGrain.SetMethodEntity(methodEntity, entityDescriptor);
-				await methodEntityGrain.SetDescriptor(entityDescriptor);
-				return methodEntityGrain;
-			}
-			else
-			{
-				Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
-				return methodEntityGrain;
-			}
-		}
-
-        async internal static Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
-        {
-			Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
-
-			MethodEntity methodEntity = null;
-            var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-            IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
-            if (providerGrain == null)
-            {
-                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
-                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
-            }
-            else
-            {
-                methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
-            }
-            return methodEntity;
-        }
-
+			return await AnalysisOrchestator.CreateMethodEntityGrain(grainDesc);
+        }		
 
 		public async Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
 		{
