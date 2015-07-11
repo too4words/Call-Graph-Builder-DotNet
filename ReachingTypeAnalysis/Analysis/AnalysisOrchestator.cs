@@ -27,8 +27,6 @@ namespace ReachingTypeAnalysis.Analysis
 			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
 
 			await DoPropagationOnGrain(method, methodEntityGrain, PropagationKind.ADD_TYPES);
-
-            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "End Analyzing {0} ", method);
 		}
 
 		private static async Task DoPropagationOnGrain(MethodDescriptor method, IMethodEntityGrain methodEntityGrain, PropagationKind propKind)
@@ -241,6 +239,7 @@ namespace ReachingTypeAnalysis.Analysis
             while (worklist.Count > 0)
             {
                 var currentMethodDescriptor = worklist.Dequeue();
+                visited.Add(currentMethodDescriptor);
                 Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}",currentMethodDescriptor);
 
                 var currentGrain = await CreateMethodEntityGrain(new MethodEntityDescriptor(currentMethodDescriptor));

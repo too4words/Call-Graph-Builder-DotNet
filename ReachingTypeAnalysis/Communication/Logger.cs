@@ -50,7 +50,6 @@ namespace ReachingTypeAnalysis
             orleansLog.Info(0, message);
         }
 
-
 		public void Log(string type, string method, string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
@@ -62,11 +61,18 @@ namespace ReachingTypeAnalysis
 			//Console.WriteLine(message);
 
 			lock (syncObject)
-			{
-				using (var writer = File.AppendText(filename))
-				{
-					writer.WriteLine(message);
-				}
+            {
+                try
+                {
+                    using (var writer = File.AppendText(filename))
+                    {
+                        writer.WriteLine(message);
+                    }
+                }
+                catch(Exception e)
+                {
+                    Debug.WriteLine("Error writing log");
+                }
 			}
 		}
 
