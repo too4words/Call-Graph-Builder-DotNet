@@ -27,6 +27,8 @@ namespace ReachingTypeAnalysis.Analysis
 			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
 
 			await DoPropagationOnGrain(method, methodEntityGrain, PropagationKind.ADD_TYPES);
+
+            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "End Analyzing {0} ", method);
 		}
 
 		private static async Task DoPropagationOnGrain(MethodDescriptor method, IMethodEntityGrain methodEntityGrain, PropagationKind propKind)
@@ -127,6 +129,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await methodEntityGrain.UpdateMethodArgumentsAsync(callerMessage.CallMessageInfo.ReceiverPossibleTypes, callerMessage.CallMessageInfo.ArgumentsPossibleTypes, propKind);
 			await DoPropagationOnGrain(callee, methodEntityGrain, propKind);
+            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
+
 		}
 
 		private static async Task ProcessReturnAsync(IEnumerable<ReturnInfo> callersInfo, PropagationKind propKind)
@@ -177,11 +181,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await methodEntityGrain.UpdateMethodReturnAsync(calleeMessage.ReturnMessageInfo.ResultPossibleTypes, calleeMessage.ReturnMessageInfo.LHS, propKind);
 			await DoPropagationOnGrain(caller, methodEntityGrain, propKind);
+
+            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
         internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(MethodEntityDescriptor entityDescriptor)
         {
-            Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", entityDescriptor);
+            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", entityDescriptor);
 
             var methodEntityGrain = MethodEntityGrainFactory.GetGrain(entityDescriptor.MethodDescriptor.ToString());
             var methodEntity = await methodEntityGrain.GetMethodEntity();
@@ -189,7 +195,7 @@ namespace ReachingTypeAnalysis.Analysis
             // check if the result is initialized
             if (methodEntity == null)
             {
-                Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
+                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
                 Contract.Assert(entityDescriptor.MethodDescriptor != null);
                 ////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 methodEntity = await AnalysisOrchestator.CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
@@ -200,14 +206,14 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
+                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
                 return methodEntityGrain;
             }
         }
 
         internal static async Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
         {
-            Logger.Instance.Log("OrleansDispatcher", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
+            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
 
             MethodEntity methodEntity = null;
             var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
@@ -226,6 +232,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         internal static async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraph(ISolutionGrain solution)
         {
+            Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
             var roots = await solution.GetRoots();
             callgraph.AddRootMethods(roots);
@@ -233,15 +240,24 @@ namespace ReachingTypeAnalysis.Analysis
             var worklist = new Queue<MethodDescriptor>(roots);
             while (worklist.Count > 0)
             {
-                var current = worklist.Dequeue();
-                var currentGrain = await CreateMethodEntityGrain(new MethodEntityDescriptor(current));
-                var callees = await currentGrain.GetCallees();
-                foreach (var calleeDescriptor in callees)
+                var currentMethodDescriptor = worklist.Dequeue();
+                Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}",currentMethodDescriptor);
+
+                var currentGrain = await CreateMethodEntityGrain(new MethodEntityDescriptor(currentMethodDescriptor));
+                var calleesInfoForMethod = await currentGrain.GetCalleesInfo();
+  
+                foreach (var entry in calleesInfoForMethod)
                 {
-                    callgraph.AddCall(current, calleeDescriptor);
-                    if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
+                    var analysisNode = entry.Key;
+                    var callees = entry.Value;
+                    foreach (var calleeDescriptor in callees)
                     {
-                        worklist.Enqueue(calleeDescriptor);
+                        Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG",currentMethodDescriptor, calleeDescriptor);
+                        callgraph.AddCallAtLocation(analysisNode.LocationDescriptor, currentMethodDescriptor, calleeDescriptor);
+                        if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
+                        {
+                            worklist.Enqueue(calleeDescriptor);
+                        }
                     }
                 }
             }
@@ -249,7 +265,7 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
 
-    internal static class QueryInterfaces
+    internal static class CallGraphQueryInterface
     {
         /// <summary>
         /// Compute all the calless of this method entities
@@ -279,13 +295,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(codeProvider != null);
 
             var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
-            if (calleeResult != null)
-            {
-                calleesForNode.UnionWith(calleeResult);
-            }
-            else {
-                ;
-            }
+            calleesForNode.UnionWith(calleeResult);
             
             //calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));
 

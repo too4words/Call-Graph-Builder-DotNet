@@ -38,6 +38,9 @@ namespace OrleansInterfaces
         Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
 
         Task<IEnumerable<MethodDescriptor>> GetCallees();
+
+        Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo();
+
     }
 
     public interface IProjectCodeProviderGrain : IGrainWithStringKey

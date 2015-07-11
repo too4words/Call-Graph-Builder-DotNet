@@ -25,6 +25,8 @@ namespace ReachingTypeAnalysis
     {
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
         {
+            Logger.Instance.Log("PropagationGraph", "DiffPropAsync", "Diff({0},{1})", src, n);
+
             if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)
             {
                 return DiffDelProp(src, n);
@@ -179,7 +181,23 @@ namespace ReachingTypeAnalysis
         internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var result = new HashSet<TypeDescriptor>();
-            foreach (var typeDescriptor in this.GetTypes(n))
+            var types = this.GetTypes(n);
+
+            if (types.Count() == 0)
+            {
+                foreach(var potentialType in callInfo.InstantiatedTypes)
+                {
+                    if(await codeProvider.IsSubtypeAsync(potentialType, callInfo.Receiver.Type))
+                    {
+                        types.Add(potentialType);
+                    }
+                }
+            }
+            if (types.Count() == 0)
+            {
+                types.Add(callInfo.Receiver.Type);
+            }
+            foreach (var typeDescriptor in types)
             {
                 // TO-DO fix by adding a where T: AnalysisType
                 if (typeDescriptor.IsConcreteType)
@@ -239,7 +257,7 @@ namespace ReachingTypeAnalysis
                 // I replaced the invocation for a local call to mark that functionality is missing
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
-                foreach (var type in this.GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider))
+                foreach (var type in await this.GetPotentialTypesAsync(callInfo.Receiver, callInfo, codeProvider))
                 {
                     Contract.Assert(type != null);
                     Contract.Assert(callInfo != null);

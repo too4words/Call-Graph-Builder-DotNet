@@ -40,6 +40,17 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
+        public static void Log(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
+        {
+            var message = string.Format(format, arguments);
+			var threadId = Thread.CurrentThread.ManagedThreadId;
+
+			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
+
+            orleansLog.Info(0, message);
+        }
+
+
 		public void Log(string type, string method, string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);

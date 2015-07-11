@@ -574,7 +574,21 @@ namespace ReachingTypeAnalysis
         internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var result = new HashSet<TypeDescriptor>();
-            foreach (var typeDescriptor in this.GetTypes(n))
+            var types = this.GetTypes(n);
+
+            if (types.Count() == 0)
+            {
+                /// We get the instantiated type that are compatible with the receiver type
+                types.UnionWith(
+                    callInfo.InstantiatedTypes
+                        .Where(type => codeProvider.IsSubtype(type, callInfo.Receiver.Type)));
+            }
+            if (types.Count() == 0)
+            {
+                types.Add(callInfo.Receiver.Type);
+            }
+
+            foreach (var typeDescriptor in types)
             {
                 // TO-DO fix by adding a where T: AnalysisType
                 if (typeDescriptor.IsConcreteType)

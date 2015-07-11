@@ -135,16 +135,15 @@ namespace ReachingTypeAnalysis.Roslyn
             await Task.WhenAll(continuations);
             var result = new HashSet<MethodDescriptor>();
 
-            foreach (var c in continuations)
+            foreach (var getCompilitacionTask in continuations)
             {
-                var mainMethod = c.Result.GetEntryPoint(cancellationToken);
+                var mainMethod = getCompilitacionTask.Result.GetEntryPoint(cancellationToken);
                 if (mainMethod != null)
                 {
                     // only return if there's a main method
                     result.Add(Utils.CreateMethodDescriptor(mainMethod));
                 }
             }
-
             return result;
         }
 

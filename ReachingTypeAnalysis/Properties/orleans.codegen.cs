@@ -24,8 +24,8 @@ namespace ReachingTypeAnalysis.Analysis
     using System;
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
-    using System.Collections;
     using System.Collections.Generic;
+    using System.Collections;
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]

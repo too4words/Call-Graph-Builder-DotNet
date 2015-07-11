@@ -388,6 +388,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(1962424493, null );
             }
+            
+            System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode, System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>> OrleansInterfaces.IMethodEntityGrain.GetCalleesInfo()
+            {
+
+                return base.InvokeMethodAsync<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode,System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>>(389579785, null );
+            }
         }
     }
     
@@ -435,6 +441,8 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).SetDescriptor((IEntityDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1962424493: 
                                 return ((IMethodEntityGrain)grain).GetCallees().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 389579785: 
+                                return ((IMethodEntityGrain)grain).GetCalleesInfo().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -484,6 +492,8 @@ namespace OrleansInterfaces
                             return "SetDescriptor";
                     case 1962424493:
                             return "GetCallees";
+                    case 389579785:
+                            return "GetCalleesInfo";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -1020,127 +1030,6 @@ namespace OrleansInterfacesSerializers
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
-    internal class ReachingTypeAnalysis_AnalysisCallNodeSerialization
-    {
-        
-        private static System.Reflection.FieldInfo fieldInfo1;
-        
-        private static System.Reflection.FieldInfo fieldInfo2;
-        
-        private static System.Reflection.FieldInfo fieldInfo3;
-        
-        private static System.Reflection.FieldInfo fieldInfo4;
-        
-        static ReachingTypeAnalysis_AnalysisCallNodeSerialization()
-        {
-            Register();
-        }
-        
-        public static object DeepCopier(object original)
-        {
-            ReachingTypeAnalysis.AnalysisCallNode input = ((ReachingTypeAnalysis.AnalysisCallNode)(original));
-            ReachingTypeAnalysis.AnalysisCallNode result = ((ReachingTypeAnalysis.AnalysisCallNode)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.AnalysisCallNode))));
-            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
-            object objResult = ((object)(result));
-            object temp1 = input.InMethodOrder;
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = ((ReachingTypeAnalysis.LocationDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.LocationDescriptor)));
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = input.Name;
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Type)));
-            fieldInfo4.SetValue(objResult, temp4);
-            return objResult;
-        }
-        
-        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-        {
-            ReachingTypeAnalysis.AnalysisCallNode input = ((ReachingTypeAnalysis.AnalysisCallNode)(untypedInput));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.InMethodOrder, stream, typeof(int));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.LocationDescriptor, stream, typeof(ReachingTypeAnalysis.LocationDescriptor));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.Name, stream, typeof(string));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.Type, stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
-        }
-        
-        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-        {
-            ReachingTypeAnalysis.AnalysisCallNode result = ((ReachingTypeAnalysis.AnalysisCallNode)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.AnalysisCallNode))));
-            object objResult = ((object)(result));
-            object temp1 = ((int)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(int), stream)));
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = ((ReachingTypeAnalysis.LocationDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.LocationDescriptor), stream)));
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
-            fieldInfo4.SetValue(objResult, temp4);
-            return objResult;
-        }
-        
-        public static void Register()
-        {
-            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.AnalysisCallNode), DeepCopier, Serializer, Deserializer);
-            fieldInfo1 = typeof(ReachingTypeAnalysis.AnalysisCallNode).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo2 = typeof(ReachingTypeAnalysis.AnalysisCallNode).GetField("<LocationDescriptor>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo3 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Name>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo4 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Type>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
-    internal class ReachingTypeAnalysis_LocationDescriptorSerialization
-    {
-        
-        private static System.Reflection.FieldInfo fieldInfo1;
-        
-        static ReachingTypeAnalysis_LocationDescriptorSerialization()
-        {
-            Register();
-        }
-        
-        public static object DeepCopier(object original)
-        {
-            ReachingTypeAnalysis.LocationDescriptor input = ((ReachingTypeAnalysis.LocationDescriptor)(original));
-            ReachingTypeAnalysis.LocationDescriptor result = ((ReachingTypeAnalysis.LocationDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.LocationDescriptor))));
-            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
-            object objResult = ((object)(result));
-            object temp1 = input.InMethodOrder;
-            fieldInfo1.SetValue(objResult, temp1);
-            return objResult;
-        }
-        
-        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-        {
-            ReachingTypeAnalysis.LocationDescriptor input = ((ReachingTypeAnalysis.LocationDescriptor)(untypedInput));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.InMethodOrder, stream, typeof(int));
-        }
-        
-        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-        {
-            ReachingTypeAnalysis.LocationDescriptor result = ((ReachingTypeAnalysis.LocationDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.LocationDescriptor))));
-            object objResult = ((object)(result));
-            object temp1 = ((int)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(int), stream)));
-            fieldInfo1.SetValue(objResult, temp1);
-            return objResult;
-        }
-        
-        public static void Register()
-        {
-            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.LocationDescriptor), DeepCopier, Serializer, Deserializer);
-            fieldInfo1 = typeof(ReachingTypeAnalysis.LocationDescriptor).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_TypeDescriptorSerialization
     {
         
@@ -1264,6 +1153,127 @@ namespace OrleansInterfacesSerializers
             fieldInfo1 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Name>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
             fieldInfo2 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Type>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_AnalysisCallNodeSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        private static System.Reflection.FieldInfo fieldInfo2;
+        
+        private static System.Reflection.FieldInfo fieldInfo3;
+        
+        private static System.Reflection.FieldInfo fieldInfo4;
+        
+        static ReachingTypeAnalysis_AnalysisCallNodeSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.AnalysisCallNode input = ((ReachingTypeAnalysis.AnalysisCallNode)(original));
+            ReachingTypeAnalysis.AnalysisCallNode result = ((ReachingTypeAnalysis.AnalysisCallNode)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.AnalysisCallNode))));
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = input.InMethodOrder;
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.LocationDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.LocationDescriptor)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = input.Name;
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Type)));
+            fieldInfo4.SetValue(objResult, temp4);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.AnalysisCallNode input = ((ReachingTypeAnalysis.AnalysisCallNode)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.InMethodOrder, stream, typeof(int));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.LocationDescriptor, stream, typeof(ReachingTypeAnalysis.LocationDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Name, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Type, stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.AnalysisCallNode result = ((ReachingTypeAnalysis.AnalysisCallNode)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.AnalysisCallNode))));
+            object objResult = ((object)(result));
+            object temp1 = ((int)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(int), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.LocationDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.LocationDescriptor), stream)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
+            fieldInfo4.SetValue(objResult, temp4);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.AnalysisCallNode), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.AnalysisCallNode).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo2 = typeof(ReachingTypeAnalysis.AnalysisCallNode).GetField("<LocationDescriptor>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo3 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Name>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo4 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Type>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_LocationDescriptorSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        static ReachingTypeAnalysis_LocationDescriptorSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.LocationDescriptor input = ((ReachingTypeAnalysis.LocationDescriptor)(original));
+            ReachingTypeAnalysis.LocationDescriptor result = ((ReachingTypeAnalysis.LocationDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.LocationDescriptor))));
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = input.InMethodOrder;
+            fieldInfo1.SetValue(objResult, temp1);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.LocationDescriptor input = ((ReachingTypeAnalysis.LocationDescriptor)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.InMethodOrder, stream, typeof(int));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.LocationDescriptor result = ((ReachingTypeAnalysis.LocationDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.LocationDescriptor))));
+            object objResult = ((object)(result));
+            object temp1 = ((int)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(int), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.LocationDescriptor), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.LocationDescriptor).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }

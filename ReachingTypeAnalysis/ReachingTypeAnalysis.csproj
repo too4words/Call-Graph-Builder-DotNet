@@ -279,7 +279,6 @@
     <Compile Include="Analysis\Graph\PropagationGraph.cs" />
     <Compile Include="Communication\IDispatcher.cs" />
     <Compile Include="Communication\Logger.cs" />
-    <Content Include="Orleans\OrleansDispatcher.cs" />
     <Compile Include="Orleans\MethodEntityGrain.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
     <Content Include="Orleans\OrleansEntityDescriptor.cs" />

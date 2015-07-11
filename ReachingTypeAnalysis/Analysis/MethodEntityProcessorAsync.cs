@@ -8,44 +8,6 @@ using ReachingTypeAnalysis.Communication;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    internal class EntityFactory
-    {
-        //internal static IEntityDescriptor Create(MethodDescriptor methodDescriptor, bool useOrleans)
-        //{
-        //    IEntityDescriptor result = null;
-        //    if (useOrleans)
-        //    {
-        //        result = new OrleansEntityDescriptor(methodDescriptor); //System.Guid.NewGuid());
-        //    }
-        //    else
-        //    {
-        //        result = new MethodEntityDescriptor(methodDescriptor);
-        //    }
-        //    return result;
-        //}
-
-        //internal static IEntity CreateEntity(MethodEntity methodEntity, IEntityDescriptor descriptor, IDispatcher dispatcher)
-        //{
-        //    if (dispatcher is OrleansDispatcher)
-        //    {
-        //        var orleanDispatcher = (OrleansDispatcher)dispatcher;
-        //        var guid = orleanDispatcher.GetGuidForMethod(methodEntity.MethodDescriptor);
-
-        //        var orleansDescriptor = (OrleansEntityDescriptor)descriptor;
-        //        var result = MethodEntityGrainFactory.GetGrain(guid);
-        //        orleansDescriptor.Guid = guid;
-
-        //        result.SetMethodEntity(methodEntity, descriptor).Wait();
-        //        result.SetDescriptor(orleansDescriptor).Wait();
-        //        return result;
-        //    }
-        //    else
-        //    {
-        //        return methodEntity;
-        //    }
-        //}
-    }
-
     /// <summary>
     /// This class is in charge of processing a method entity
     /// In particular, in performing the propagation of types 

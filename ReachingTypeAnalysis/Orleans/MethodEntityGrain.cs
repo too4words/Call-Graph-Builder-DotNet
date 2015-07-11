@@ -26,20 +26,24 @@ namespace ReachingTypeAnalysis.Analysis
         [NonSerialized]
         private MethodEntity methodEntity;
         [NonSerialized]
-        private ICodeProvider projectGrainWrapper;
+        private ICodeProvider codeProvider;
         //[NonSerialized]
         //private MethodEntityProcessor methodEntityProcessor;
         [NonSerialized]
         private IProjectCodeProviderGrain codeProviderGrain;
-        
+        [NonSerialized]
+        private ISolutionGrain solutionGrain; 
+
         public override async Task OnActivateAsync()
         {
+            Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
+
+            solutionGrain = SolutionGrainFactory.GetGrain("Solution");
 	        // Shold not be null..
             if (this.State.Etag!= null)
             {
-                var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
 				codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
-                this.projectGrainWrapper = new ProjectGrainWrapper(codeProviderGrain);
+                this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
                 var orleansEntityDesc = new MethodEntityDescriptor(this.State.MethodDescriptor);
                 // TODO: do we need to check and restore methodEntity
                 // To restore the full entity state we need to save propagation data
@@ -51,26 +55,37 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<IEnumerable<MethodDescriptor>> GetCallees()
         {
             var result = new HashSet<IMethodEntityGrain>();
-            var codeProvider = this.projectGrainWrapper;
+            var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
 
-            return QueryInterfaces.CalleesAsync(this.methodEntity, codeProvider);
+            return CallGraphQueryInterface.CalleesAsync(this.methodEntity, codeProvider);
+        }
+
+        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo()
+        {
+            return CallGraphQueryInterface.GetCalleesInfo(this.methodEntity, this.codeProvider);
         }
 
         public override Task OnDeactivateAsync()
         {
+            Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
             this.methodEntity = null;
             return TaskDone.Done;
         }
 
-        public Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
+        public async Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
         {
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
             this.methodEntity = (MethodEntity) methodEntity;
             Contract.Assert(this.State != null);
+
             this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
-            return State.WriteStateAsync();
+
+            codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+            this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+
+            await State.WriteStateAsync();
         }
 
         public Task<IEntityDescriptor> GetDescriptor()
@@ -100,6 +115,8 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
+            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+
             var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
             var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
 
@@ -143,7 +160,8 @@ namespace ReachingTypeAnalysis.Analysis
 					propagationEffects.CallersInfo.Add(returnInfo);
 				}
 			}
-           
+            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
+            //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }
 

@@ -466,7 +466,7 @@ namespace ReachingTypeAnalysis
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
-                    int countCG = QueryInterfaces.CalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
+                    int countCG = CallGraphQueryInterface.CalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
                     if (invExp is MethodCallInfo)
                     {
@@ -730,7 +730,7 @@ namespace ReachingTypeAnalysis
 				// Hack
 				var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor)entityProcessor).dispatcher, codeProvider);
 				//(MethodEntityProcessor)entityProcessor;
-                var callSitesForMethod = QueryInterfaces.GetCalleesInfo(methodEntity, codeProvider).Result;
+                var callSitesForMethod = CallGraphQueryInterface.GetCalleesInfo(methodEntity, codeProvider).Result;
 				foreach (var callSiteNode in callSitesForMethod.Keys)
 				{
 					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])

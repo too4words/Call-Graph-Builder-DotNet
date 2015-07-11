@@ -201,7 +201,8 @@ namespace ReachingTypeAnalysis.Analysis
         //}
 
 
-		private void RegisterInvocation(IList<PropGraphNodeDescriptor> arguments, AnalysisCallNode invocationNode, 
+		private void RegisterInvocation(IList<PropGraphNodeDescriptor> arguments, 
+                                        AnalysisCallNode invocationNode, 
                                         CallInfo callExp)
 		{
 			Contract.Requires(callExp != null);
