@@ -329,34 +329,22 @@ namespace OrleansInterfaces
                 return MethodEntityGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntityDescriptor> OrleansInterfaces.IMethodEntityGrain.GetDescriptor()
-            {
-
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntityDescriptor>(331950094, null );
-            }
-            
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.MethodDescriptor> OrleansInterfaces.IMethodEntityGrain.GetMethodDescriptor()
-            {
-
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.MethodDescriptor>(345346859, null );
-            }
-            
             System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ReachingTypeAnalysis.PropagationKind @propKind)
             {
 
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(1262137734, new object[] {@propKind} );
             }
             
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ISet<TypeDescriptor> @receiverTypes, IList<ISet<TypeDescriptor>> @argumentsPossibleTypes, ReachingTypeAnalysis.PropagationKind @propKind)
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ReachingTypeAnalysis.Communication.CallMessageInfo @callMessageInfo)
             {
 
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(1468283082, new object[] {@receiverTypes, @argumentsPossibleTypes, @propKind} );
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(-1023082020, new object[] {@callMessageInfo} );
             }
             
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ISet<TypeDescriptor> @returnValues, ReachingTypeAnalysis.VariableNode @lhs, ReachingTypeAnalysis.PropagationKind @propKind)
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ReachingTypeAnalysis.Communication.ReturnMessageInfo @returnMessageInfo)
             {
 
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(1065034552, new object[] {@returnValues, @lhs, @propKind} );
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(-1329787351, new object[] {@returnMessageInfo} );
             }
             
             System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
@@ -371,28 +359,22 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-538316126, null );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetMethodEntity(ReachingTypeAnalysis.IEntity @methodEntity, ReachingTypeAnalysis.IEntityDescriptor @descriptor)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetMethodEntityAsync(ReachingTypeAnalysis.IEntity @methodEntity, ReachingTypeAnalysis.IEntityDescriptor @descriptor)
             {
 
-                return base.InvokeMethodAsync<object>(-1284597035, new object[] {@methodEntity, @descriptor} );
+                return base.InvokeMethodAsync<object>(1170896751, new object[] {@methodEntity, @descriptor} );
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetDescriptor(ReachingTypeAnalysis.IEntityDescriptor @orleansEntityDescriptor)
+            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesAsync()
             {
 
-                return base.InvokeMethodAsync<object>(-673288645, new object[] {@orleansEntityDescriptor} );
+                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(412610256, null );
             }
             
-            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCallees()
+            System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode, System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>> OrleansInterfaces.IMethodEntityGrain.GetCalleesInfoAsync()
             {
 
-                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(1962424493, null );
-            }
-            
-            System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode, System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>> OrleansInterfaces.IMethodEntityGrain.GetCalleesInfo()
-            {
-
-                return base.InvokeMethodAsync<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode,System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>>(389579785, null );
+                return base.InvokeMethodAsync<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode,System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>>(-65115232, null );
             }
         }
     }
@@ -421,28 +403,22 @@ namespace OrleansInterfaces
                     case 898358989:  // IMethodEntityGrain
                         switch (methodId)
                         {
-                            case 331950094: 
-                                return ((IMethodEntityGrain)grain).GetDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 345346859: 
-                                return ((IMethodEntityGrain)grain).GetMethodDescriptor().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 1262137734: 
                                 return ((IMethodEntityGrain)grain).PropagateAsync((PropagationKind)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 1468283082: 
-                                return ((IMethodEntityGrain)grain).PropagateAsync((ISet<TypeDescriptor>)arguments[0], (IList<ISet<TypeDescriptor>>)arguments[1], (PropagationKind)arguments[2]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 1065034552: 
-                                return ((IMethodEntityGrain)grain).PropagateAsync((ISet<TypeDescriptor>)arguments[0], (VariableNode)arguments[1], (PropagationKind)arguments[2]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1023082020: 
+                                return ((IMethodEntityGrain)grain).PropagateAsync((ReachingTypeAnalysis.Communication.CallMessageInfo)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1329787351: 
+                                return ((IMethodEntityGrain)grain).PropagateAsync((ReachingTypeAnalysis.Communication.ReturnMessageInfo)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1831544886: 
                                 return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -538316126: 
                                 return ((IMethodEntityGrain)grain).GetMethodEntity().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -1284597035: 
-                                return ((IMethodEntityGrain)grain).SetMethodEntity((IEntity)arguments[0], (IEntityDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case -673288645: 
-                                return ((IMethodEntityGrain)grain).SetDescriptor((IEntityDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case 1962424493: 
-                                return ((IMethodEntityGrain)grain).GetCallees().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 389579785: 
-                                return ((IMethodEntityGrain)grain).GetCalleesInfo().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1170896751: 
+                                return ((IMethodEntityGrain)grain).SetMethodEntityAsync((IEntity)arguments[0], (IEntityDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 412610256: 
+                                return ((IMethodEntityGrain)grain).GetCalleesAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -65115232: 
+                                return ((IMethodEntityGrain)grain).GetCalleesInfoAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -472,28 +448,22 @@ namespace OrleansInterfaces
                 case 898358989:  // IMethodEntityGrain
                     switch (methodId)
                     {
-                        case 331950094:
-                            return "GetDescriptor";
-                    case 345346859:
-                            return "GetMethodDescriptor";
-                    case 1262137734:
+                        case 1262137734:
                             return "PropagateAsync";
-                    case 1468283082:
+                    case -1023082020:
                             return "PropagateAsync";
-                    case 1065034552:
+                    case -1329787351:
                             return "PropagateAsync";
                     case -1831544886:
                             return "IsInitialized";
                     case -538316126:
                             return "GetMethodEntity";
-                    case -1284597035:
-                            return "SetMethodEntity";
-                    case -673288645:
-                            return "SetDescriptor";
-                    case 1962424493:
-                            return "GetCallees";
-                    case 389579785:
-                            return "GetCalleesInfo";
+                    case 1170896751:
+                            return "SetMethodEntityAsync";
+                    case 412610256:
+                            return "GetCalleesAsync";
+                    case -65115232:
+                            return "GetCalleesInfoAsync";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -735,6 +705,7 @@ namespace OrleansInterfacesSerializers
     using System.Reflection;
     using Orleans.Serialization;
     using ReachingTypeAnalysis;
+    using ReachingTypeAnalysis.Communication;
     using System.Collections;
     using System.Runtime.InteropServices;
     
@@ -1030,80 +1001,6 @@ namespace OrleansInterfacesSerializers
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
-    internal class ReachingTypeAnalysis_TypeDescriptorSerialization
-    {
-        
-        private static System.Reflection.FieldInfo fieldInfo1;
-        
-        private static System.Reflection.FieldInfo fieldInfo2;
-        
-        private static System.Reflection.FieldInfo fieldInfo3;
-        
-        private static System.Reflection.FieldInfo fieldInfo4;
-        
-        static ReachingTypeAnalysis_TypeDescriptorSerialization()
-        {
-            Register();
-        }
-        
-        public static object DeepCopier(object original)
-        {
-            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(original));
-            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
-            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
-            object objResult = ((object)(result));
-            object temp1 = input.IsConcreteType;
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = input.IsReferenceType;
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = input.Kind;
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = input.TypeName;
-            fieldInfo4.SetValue(objResult, temp4);
-            return objResult;
-        }
-        
-        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-        {
-            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(untypedInput));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.IsConcreteType, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.IsReferenceType, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.SerializableTypeKind));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.TypeName, stream, typeof(string));
-        }
-        
-        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-        {
-            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
-            object objResult = ((object)(result));
-            object temp1 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = ((ReachingTypeAnalysis.SerializableTypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.SerializableTypeKind), stream)));
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
-            fieldInfo4.SetValue(objResult, temp4);
-            return objResult;
-        }
-        
-        public static void Register()
-        {
-            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.TypeDescriptor), DeepCopier, Serializer, Deserializer);
-            fieldInfo1 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsConcreteType>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo2 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsReferenceType>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo3 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<Kind>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo4 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<TypeName>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_VariableNodeSerialization
     {
         
@@ -1153,6 +1050,217 @@ namespace OrleansInterfacesSerializers
             fieldInfo1 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Name>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
             fieldInfo2 = typeof(ReachingTypeAnalysis.PropGraphNodeDescriptor).GetField("<Type>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_Communication_CallMessageInfoSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        private static System.Reflection.FieldInfo fieldInfo2;
+        
+        private static System.Reflection.FieldInfo fieldInfo3;
+        
+        private static System.Reflection.FieldInfo fieldInfo4;
+        
+        private static System.Reflection.FieldInfo fieldInfo5;
+        
+        private static System.Reflection.FieldInfo fieldInfo6;
+        
+        private static System.Reflection.FieldInfo fieldInfo7;
+        
+        private static System.Reflection.FieldInfo fieldInfo8;
+        
+        static ReachingTypeAnalysis_Communication_CallMessageInfoSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.Communication.CallMessageInfo input = ((ReachingTypeAnalysis.Communication.CallMessageInfo)(original));
+            ReachingTypeAnalysis.Communication.CallMessageInfo result = new ReachingTypeAnalysis.Communication.CallMessageInfo();
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = ((System.Collections.Generic.IList<System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ArgumentsPossibleTypes)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.AnalysisCallNode)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.CallNode)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Callee)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Caller)));
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.InstantiatedTypes)));
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = ((ReachingTypeAnalysis.VariableNode)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.LHS)));
+            fieldInfo6.SetValue(objResult, temp6);
+            object temp7 = input.PropagationKind;
+            fieldInfo7.SetValue(objResult, temp7);
+            object temp8 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReceiverPossibleTypes)));
+            fieldInfo8.SetValue(objResult, temp8);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.Communication.CallMessageInfo input = ((ReachingTypeAnalysis.Communication.CallMessageInfo)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.ArgumentsPossibleTypes, stream, typeof(System.Collections.Generic.IList<System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>>));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.CallNode, stream, typeof(ReachingTypeAnalysis.AnalysisCallNode));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Callee, stream, typeof(ReachingTypeAnalysis.MethodDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Caller, stream, typeof(ReachingTypeAnalysis.MethodDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.InstantiatedTypes, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.LHS, stream, typeof(ReachingTypeAnalysis.VariableNode));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.PropagationKind, stream, typeof(ReachingTypeAnalysis.PropagationKind));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.ReceiverPossibleTypes, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.Communication.CallMessageInfo result = new ReachingTypeAnalysis.Communication.CallMessageInfo();
+            object objResult = ((object)(result));
+            object temp1 = ((System.Collections.Generic.IList<System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.IList<System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>>), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.AnalysisCallNode)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.AnalysisCallNode), stream)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.MethodDescriptor), stream)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.MethodDescriptor), stream)));
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>), stream)));
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = ((ReachingTypeAnalysis.VariableNode)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.VariableNode), stream)));
+            fieldInfo6.SetValue(objResult, temp6);
+            object temp7 = ((ReachingTypeAnalysis.PropagationKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.PropagationKind), stream)));
+            fieldInfo7.SetValue(objResult, temp7);
+            object temp8 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>), stream)));
+            fieldInfo8.SetValue(objResult, temp8);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.Communication.CallMessageInfo), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<ArgumentsPossibleTypes>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo2 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<CallNode>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo3 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<Callee>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo4 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<Caller>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo5 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<InstantiatedTypes>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo6 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<LHS>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo7 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<PropagationKind>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo8 = typeof(ReachingTypeAnalysis.Communication.CallMessageInfo).GetField("<ReceiverPossibleTypes>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_Communication_ReturnMessageInfoSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        private static System.Reflection.FieldInfo fieldInfo2;
+        
+        private static System.Reflection.FieldInfo fieldInfo3;
+        
+        private static System.Reflection.FieldInfo fieldInfo4;
+        
+        private static System.Reflection.FieldInfo fieldInfo5;
+        
+        private static System.Reflection.FieldInfo fieldInfo6;
+        
+        private static System.Reflection.FieldInfo fieldInfo7;
+        
+        static ReachingTypeAnalysis_Communication_ReturnMessageInfoSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.Communication.ReturnMessageInfo input = ((ReachingTypeAnalysis.Communication.ReturnMessageInfo)(original));
+            ReachingTypeAnalysis.Communication.ReturnMessageInfo result = new ReachingTypeAnalysis.Communication.ReturnMessageInfo();
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = ((ReachingTypeAnalysis.AnalysisCallNode)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.CallNode)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Callee)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Caller)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.InstatiatedTypes)));
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = ((ReachingTypeAnalysis.VariableNode)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.LHS)));
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = input.PropagationKind;
+            fieldInfo6.SetValue(objResult, temp6);
+            object temp7 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ResultPossibleTypes)));
+            fieldInfo7.SetValue(objResult, temp7);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.Communication.ReturnMessageInfo input = ((ReachingTypeAnalysis.Communication.ReturnMessageInfo)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.CallNode, stream, typeof(ReachingTypeAnalysis.AnalysisCallNode));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Callee, stream, typeof(ReachingTypeAnalysis.MethodDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Caller, stream, typeof(ReachingTypeAnalysis.MethodDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.InstatiatedTypes, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.LHS, stream, typeof(ReachingTypeAnalysis.VariableNode));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.PropagationKind, stream, typeof(ReachingTypeAnalysis.PropagationKind));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.ResultPossibleTypes, stream, typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.Communication.ReturnMessageInfo result = new ReachingTypeAnalysis.Communication.ReturnMessageInfo();
+            object objResult = ((object)(result));
+            object temp1 = ((ReachingTypeAnalysis.AnalysisCallNode)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.AnalysisCallNode), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.MethodDescriptor), stream)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((ReachingTypeAnalysis.MethodDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.MethodDescriptor), stream)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>), stream)));
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = ((ReachingTypeAnalysis.VariableNode)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.VariableNode), stream)));
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = ((ReachingTypeAnalysis.PropagationKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.PropagationKind), stream)));
+            fieldInfo6.SetValue(objResult, temp6);
+            object temp7 = ((System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.ISet<ReachingTypeAnalysis.TypeDescriptor>), stream)));
+            fieldInfo7.SetValue(objResult, temp7);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<CallNode>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo2 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<Callee>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo3 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<Caller>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo4 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<InstatiatedTypes>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo5 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<LHS>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo6 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<PropagationKind>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo7 = typeof(ReachingTypeAnalysis.Communication.ReturnMessageInfo).GetField("<ResultPossibleTypes>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }
@@ -1274,6 +1382,80 @@ namespace OrleansInterfacesSerializers
         {
             global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.LocationDescriptor), DeepCopier, Serializer, Deserializer);
             fieldInfo1 = typeof(ReachingTypeAnalysis.LocationDescriptor).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_TypeDescriptorSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        private static System.Reflection.FieldInfo fieldInfo2;
+        
+        private static System.Reflection.FieldInfo fieldInfo3;
+        
+        private static System.Reflection.FieldInfo fieldInfo4;
+        
+        static ReachingTypeAnalysis_TypeDescriptorSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(original));
+            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = input.IsConcreteType;
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = input.IsReferenceType;
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = input.Kind;
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = input.TypeName;
+            fieldInfo4.SetValue(objResult, temp4);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.IsConcreteType, stream, typeof(bool));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.IsReferenceType, stream, typeof(bool));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.SerializableTypeKind));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.TypeName, stream, typeof(string));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
+            object objResult = ((object)(result));
+            object temp1 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((ReachingTypeAnalysis.SerializableTypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.SerializableTypeKind), stream)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo4.SetValue(objResult, temp4);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.TypeDescriptor), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsConcreteType>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo2 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsReferenceType>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo3 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<Kind>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo4 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<TypeName>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }

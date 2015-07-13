@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;
+using ReachingTypeAnalysis.Communication;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -52,7 +53,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetCallees()
+        public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
         {
             var result = new HashSet<IMethodEntityGrain>();
             var codeProvider = this.codeProvider;
@@ -61,7 +62,7 @@ namespace ReachingTypeAnalysis.Analysis
             return CallGraphQueryInterface.CalleesAsync(this.methodEntity, codeProvider);
         }
 
-        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo()
+        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
             return CallGraphQueryInterface.GetCalleesInfo(this.methodEntity, this.codeProvider);
         }
@@ -73,7 +74,7 @@ namespace ReachingTypeAnalysis.Analysis
             return TaskDone.Done;
         }
 
-        public async Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor)
+        public async Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor)
         {
             Contract.Assert(methodEntity != null);
             this.orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
@@ -88,24 +89,24 @@ namespace ReachingTypeAnalysis.Analysis
             await State.WriteStateAsync();
         }
 
-        public Task<IEntityDescriptor> GetDescriptor()
-        {
-            return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
-        }
+        //public Task<IEntityDescriptor> GetDescriptor()
+        //{
+        //    return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
+        //}
 
-        public Task<MethodDescriptor> GetMethodDescriptor()
-        {
-            return Task.FromResult<MethodDescriptor>(this.orleansEntityDescriptor.MethodDescriptor);
-        }
+        //public Task<MethodDescriptor> GetMethodDescriptor()
+        //{
+        //    return Task.FromResult<MethodDescriptor>(this.orleansEntityDescriptor.MethodDescriptor);
+        //}
 
-        public Task SetDescriptor(IEntityDescriptor descriptor)
-        {
-            var orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
+        //public Task SetDescriptor(IEntityDescriptor descriptor)
+        //{
+        //    var orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
 
-            Contract.Assert(this.State != null);
-            this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
-            return State.WriteStateAsync();
-        }
+        //    Contract.Assert(this.State != null);
+        //    this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
+        //    return State.WriteStateAsync();
+        //}
 
         public  Task<IEntity> GetMethodEntity()
         {
@@ -165,14 +166,13 @@ namespace ReachingTypeAnalysis.Analysis
             return propagationEffects;
         }
 
-        public async Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> receiverTypes, 
-            IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind)
+        public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
             if (!this.methodEntity.CanBeAnalized) return new PropagationEffects(new HashSet<CallInfo>(), false);
 
             if (this.methodEntity.ThisRef != null)
             {
-                await this.methodEntity.PropGraph.DiffPropAsync(receiverTypes, this.methodEntity.ThisRef, propKind);
+                await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ReceiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
             }
 
             for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
@@ -181,18 +181,23 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (parameterNode != null)
                 {
-                    await this.methodEntity.PropGraph.DiffPropAsync(argumentsPossibleTypes[i], parameterNode, propKind);
+                    await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ArgumentsPossibleTypes[i], parameterNode, callMessageInfo.PropagationKind);
                 }
             }
-            var effects = await PropagateAsync(propKind);
+
+            var context = new CallContext(callMessageInfo.Caller, callMessageInfo.LHS, callMessageInfo.CallNode);
+            this.methodEntity.AddToCallers(context);
+
+
+            var effects = await PropagateAsync(callMessageInfo.PropagationKind);
             return effects;
         }
 
-        public async Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind)
+        public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
             //PropGraph.Add(lhs, retValues);
-            await this.methodEntity.PropGraph.DiffPropAsync(returnValues,lhs, propKind);
-            var effects = await PropagateAsync(propKind);
+            await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes,returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
+            var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             return effects;
         }
 
@@ -244,13 +249,13 @@ namespace ReachingTypeAnalysis.Analysis
 						possibleCallees.Add(methodDescriptor);
 					}
 				}
-				else
-				{
-					// We don't have any possibleType for the receiver,
-					// so we just use the receiver's declared type to
-					// identify the calle method implementation
-					possibleCallees.Add(methodCallInfo.Method);
-				}
+                //else
+                //{
+                //    // We don't have any possibleType for the receiver,
+                //    // so we just use the receiver's declared type to
+                //    // identify the calle method implementation
+                //    possibleCallees.Add(methodCallInfo.Method);
+                //}
 			}
 
 			return possibleCallees;

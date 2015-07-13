@@ -278,28 +278,28 @@ namespace ReachingTypeAnalysis
         }*/
         [TestMethod]
         [TestCategory("Generation")]
-        [TestCategory("OnDemandOrleans")]
+        //[TestCategory("OnDemandOrleans")]
         public void AnalyzeGenerationOnDemandOrleans1()
         {
             AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 10);
         }
         [TestMethod]
         [TestCategory("Generation")]
-        [TestCategory("OnDemandOrleans")]
+        //[TestCategory("OnDemandOrleans")]
         public void AnalyzeGenerationOnDemandOrleans2()
         {
             AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 50);
         }
         [TestMethod]
         [TestCategory("Generation")]
-        [TestCategory("OnDemandOrleans")]
+        //[TestCategory("OnDemandOrleans")]
         public void AnalyzeGenerationOnDemandOrleans3()
         {
             AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 100);
         }
         [TestMethod]
         [TestCategory("Generation")]
-        [TestCategory("OnDemandOrleans")]
+        //[TestCategory("OnDemandOrleans")]
         public void AnalyzeGenerationOnDemandOrleans4()
         {
             AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 1000);

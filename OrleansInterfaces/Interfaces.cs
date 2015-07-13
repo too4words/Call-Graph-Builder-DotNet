@@ -1,4 +1,5 @@
 ﻿using ReachingTypeAnalysis;
+using ReachingTypeAnalysis.Communication;
 using System.Threading.Tasks;
 using Orleans;
 using System.Collections.Generic;
@@ -15,32 +16,26 @@ namespace OrleansInterfaces
 
     public interface IMethodEntityGrain :  IGrainWithStringKey, IEntity
     {
-        Task<IEntityDescriptor> GetDescriptor();
-        Task<MethodDescriptor> GetMethodDescriptor();
+        //Task<IEntityDescriptor> GetDescriptor();
+        //Task<MethodDescriptor> GetMethodDescriptor();
 
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
 
 
-        Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> receiverTypes, 
-            IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind);
-        Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind);
-
-        //Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
-        //Task DoAnalysisAsync();
-        ////Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
-        //Task<IEntityProcessor> GetEntityWithProcessorAsync();
+        Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
+        Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
 
         Task<bool> IsInitialized();
 
         Task<IEntity> GetMethodEntity();
 
-        Task SetMethodEntity(IEntity methodEntity, IEntityDescriptor descriptor);
+        Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
 
-        Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
+        //Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
 
-        Task<IEnumerable<MethodDescriptor>> GetCallees();
+        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
 
-        Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo();
+        Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
 
     }
 

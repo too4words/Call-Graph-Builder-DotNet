@@ -124,8 +124,8 @@ namespace ReachingTypeAnalysis.Analysis
 			var entityDescriptor = new MethodEntityDescriptor(callee);
 			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
 
-            var propagationEffects = await methodEntityGrain.PropagateAsync(callerMessage.CallMessageInfo.ReceiverPossibleTypes, 
-                                                                callerMessage.CallMessageInfo.ArgumentsPossibleTypes, propKind);
+            var propagationEffects = await methodEntityGrain.PropagateAsync(callerMessage.CallMessageInfo);
+
             await DoPropagationOnEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
@@ -178,7 +178,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var entityDescriptor = new MethodEntityDescriptor(caller);
 			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
 
-			var propagationEffects = await methodEntityGrain.PropagateAsync(calleeMessage.ReturnMessageInfo.ResultPossibleTypes, calleeMessage.ReturnMessageInfo.LHS, propKind);
+			var propagationEffects = await methodEntityGrain.PropagateAsync(calleeMessage.ReturnMessageInfo);
 			await DoPropagationOnEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
@@ -199,8 +199,8 @@ namespace ReachingTypeAnalysis.Analysis
                 ////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
                 methodEntity = await AnalysisOrchestator.CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
                 Contract.Assert(methodEntity != null);
-                await methodEntityGrain.SetMethodEntity(methodEntity, entityDescriptor);
-                await methodEntityGrain.SetDescriptor(entityDescriptor);
+                await methodEntityGrain.SetMethodEntityAsync(methodEntity, entityDescriptor);
+                //await methodEntityGrain.SetDescriptor(entityDescriptor);
                 return methodEntityGrain;
             }
             else
@@ -244,7 +244,7 @@ namespace ReachingTypeAnalysis.Analysis
                 Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}",currentMethodDescriptor);
 
                 var currentGrain = await CreateMethodEntityGrain(new MethodEntityDescriptor(currentMethodDescriptor));
-                var calleesInfoForMethod = await currentGrain.GetCalleesInfo();
+                var calleesInfoForMethod = await currentGrain.GetCalleesInfoAsync();
   
                 foreach (var entry in calleesInfoForMethod)
                 {

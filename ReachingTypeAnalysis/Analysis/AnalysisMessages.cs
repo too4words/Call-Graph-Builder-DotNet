@@ -6,6 +6,19 @@ using System;
 namespace ReachingTypeAnalysis.Analysis
 {
     [Serializable]
+    public abstract class Message : IMessage
+    {
+        public IEntityDescriptor Source { get; private set; }
+
+        internal Message(IEntityDescriptor source)
+        {
+            this.Source = source;
+        }
+
+        public abstract MessageHandler Handler();
+    }
+
+    [Serializable]
     internal class CallerMessage : Message
     {
         public CallMessageInfo CallMessageInfo { get; private set; }

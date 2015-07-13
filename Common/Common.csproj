@@ -100,6 +100,7 @@
     <Compile Include="AnalysisTypes.cs" />
     <Compile Include="CallInfo.cs" />
     <Compile Include="Interfaces.cs" />
+    <Compile Include="Messages.cs" />
     <Compile Include="PropagationEffects.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
