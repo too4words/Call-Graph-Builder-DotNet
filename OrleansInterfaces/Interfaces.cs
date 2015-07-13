@@ -20,10 +20,11 @@ namespace OrleansInterfaces
 
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
 
-        Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> receiverTypes,
+
+        Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> receiverTypes, 
             IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind);
         Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind);
- 
+
         //Task ProcessMessaggeAsync(IEntityDescriptor source, IMessage message);
         //Task DoAnalysisAsync();
         ////Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
