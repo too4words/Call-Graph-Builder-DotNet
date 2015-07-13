@@ -147,29 +147,29 @@ namespace ReachingTypeAnalysis
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandAsync1()
+        public void AnalyzeGenerationSolutionOnDemandAsync1()
         {
-            AnalyzeSimpleSolution1(AnalysisStrategy.ONDEMAND_ORLEANS);
+            AnalyzeGenerationSolution1(AnalysisStrategy.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandSync1()
+        public void AnalyzeGenerationSolutionOnDemandSync1()
         {
-            AnalyzeSimpleSolution1(AnalysisStrategy.ONDEMAND_SYNC);
+            AnalyzeGenerationSolution1(AnalysisStrategy.ONDEMAND_SYNC);
         }
 
-        public void AnalyzeSimpleSolution1(AnalysisStrategy strategy)
+        public void AnalyzeGenerationSolution(AnalysisStrategy strategy, int size)
         {
-            var callgraph = GenerateCallGraph(10);
+            var callgraph = GenerateCallGraph(size);
             var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
-            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution1", "source code: {0}", code);
-            var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-            Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution1", "solution filename: {0}", solution.FilePath);
-            var solAnalyzer = new SolutionAnalyzer(solution);
-            solAnalyzer.Analyze(strategy);
-            var resolved = solAnalyzer.GenerateCallGraph();
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeGenerationSolution1", "source code: {0}", code);
+            //var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
+            //Logger.Instance.Log("CallGraphGenerator", "AnalyzeGenerationSolution1", "solution filename: {0}", solution.FilePath);
+            var solAnalyzer = new SolutionAnalyzer(code);
+            var resolved = solAnalyzer.Analyze(strategy);
+            //var resolved = solAnalyzer.GenerateCallGraph();
             var resolvedNodes = resolved.GetNodes().Count();
             var callgraphNodes = callgraph.GetNodes().Count();
             Assert.IsTrue(resolvedNodes == callgraphNodes);
@@ -183,139 +183,74 @@ namespace ReachingTypeAnalysis
                 var resolvedCallees = resolved.GetCallees(node);
                 Assert.IsTrue(callees.Count == resolvedCallees.Count, "Mismatched callee counts for " + node);
             }
-           
             Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
         }
 
-        [TestMethod]
-        [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandAsync2() {
-            AnalyzeSimpleSolution2(AnalysisStrategy.ONDEMAND_ASYNC);
+        public void AnalyzeGenerationSolution1(AnalysisStrategy strategy)
+        {
+            AnalyzeGenerationSolution(strategy, 10);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandSync2()
-        {
-            AnalyzeSimpleSolution2(AnalysisStrategy.ONDEMAND_SYNC);
-        }
-
-        public void AnalyzeSimpleSolution2(AnalysisStrategy strategy)
-        {
-            var callgraph = GenerateCallGraph(50);
-            var syntax = GenerateCode(callgraph);
-            var code = syntax.ToFullString();
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution2", "source code: {0}", code);
-			var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution2", "solution filename: {0}", solution.FilePath);
-            var solAnalyzer = new SolutionAnalyzer(solution);
-            solAnalyzer.Analyze(strategy);
-            var resolved = solAnalyzer.GenerateCallGraph();
-            var resolvedNodes = resolved.GetNodes().Count();
-            var callgraphNodes = callgraph.GetNodes().Count();
-            Assert.IsTrue(resolvedNodes == callgraphNodes);
-            var resolveEdgeCount = resolved.GetEdges().Count();
-            var callgraphEdgeCount = callgraph.GetEdges().Count();
-
-            foreach (var node in resolved.GetNodes())
-            {
-                //var callees = callgraph.GetCallees(node.Name);
-                var callees = callgraph.GetCallees(node.MethodName);
-                var resolvedCallees = resolved.GetCallees(node);
-                Assert.IsTrue(callees.Count() == resolvedCallees.Count(), "Mismatched callee counts for " + node);
-            }
-
-            Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
+        public void AnalyzeGenerationSolutionOnDemandAsync2() {
+            AnalyzeGenerationSolution2(AnalysisStrategy.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandAsync3()
+        public void AnalyzeGenerationSolutionOnDemandSync2()
         {
-            AnalyzeSimpleSolution3(AnalysisStrategy.ONDEMAND_ASYNC);
+            AnalyzeGenerationSolution2(AnalysisStrategy.ONDEMAND_SYNC);
+        }
+
+        public void AnalyzeGenerationSolution2(AnalysisStrategy strategy)
+        {
+            AnalyzeGenerationSolution(strategy, 50);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandSync3()
+        public void AnalyzeGenerationSolutionOnDemandAsync3()
         {
-            AnalyzeSimpleSolution3(AnalysisStrategy.ONDEMAND_SYNC);
-        }
-
-        public void AnalyzeSimpleSolution3(AnalysisStrategy strategy)
-        {
-            var callgraph = GenerateCallGraph(100);
-            var syntax = GenerateCode(callgraph);
-            var code = syntax.ToFullString();
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution3", "source code: {0}", code);
-			var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution3", "solution filename: {0}", solution.FilePath);
-            var solAnalyzer = new SolutionAnalyzer(solution);
-            solAnalyzer.Analyze(strategy);
-            var resolved = solAnalyzer.GenerateCallGraph();
-            var resolvedNodes = resolved.GetNodes().Count();
-            var callgraphNodes = callgraph.GetNodes().Count();
-            Assert.IsTrue(resolvedNodes == callgraphNodes);
-            var resolveEdgeCount = resolved.GetEdges().Count();
-            var callgraphEdgeCount = callgraph.GetEdges().Count();
-
-            foreach (var node in resolved.GetNodes())
-            {
-                //var callees = callgraph.GetCallees(node.Name);
-                var callees = callgraph.GetCallees(node.MethodName);
-                var resolvedCallees = resolved.GetCallees(node);
-                Assert.IsTrue(callees.Count() == resolvedCallees.Count(), "Mismatched callee counts for " + node);
-            }
-
-            Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
+            AnalyzeGenerationSolution3(AnalysisStrategy.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandAsync4()
+        public void AnalyzeGenerationSolutionOnDemandSync3()
         {
-            AnalyzeSimpleSolution4(AnalysisStrategy.ONDEMAND_ASYNC);
+            AnalyzeGenerationSolution3(AnalysisStrategy.ONDEMAND_SYNC);
+        }
+
+        public void AnalyzeGenerationSolution3(AnalysisStrategy strategy)
+        {
+            AnalyzeGenerationSolution(strategy, 100);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolutionOnDemandSync4()
+        public void AnalyzeGenerationSolutionOnDemandAsync4()
         {
-            AnalyzeSimpleSolution4(AnalysisStrategy.ONDEMAND_SYNC);
+            AnalyzeGenerationSolution4(AnalysisStrategy.ONDEMAND_ASYNC);
         }
 
-        public void AnalyzeSimpleSolution4(AnalysisStrategy strategy)
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void AnalyzeGenerationSolutionOnDemandSync4()
         {
-            var callgraph = GenerateCallGraph(1000);
-            var syntax = GenerateCode(callgraph);
-            var code = syntax.ToFullString();
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution4", "source code: {0}", code);
-			var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
-			Logger.Instance.Log("CallGraphGenerator", "AnalyzeSimpleSolution4", "solution filename: {0}", solution.FilePath);
-            var solAnalyzer = new SolutionAnalyzer(solution);
-            solAnalyzer.Analyze(strategy);
-            var resolved = solAnalyzer.GenerateCallGraph();
-            var resolvedNodes = resolved.GetNodes().Count();
-            var callgraphNodes = callgraph.GetNodes().Count();
-            Assert.IsTrue(resolvedNodes == callgraphNodes);
-            var resolveEdgeCount = resolved.GetEdges().Count();
-            var callgraphEdgeCount = callgraph.GetEdges().Count();
+            AnalyzeGenerationSolution4(AnalysisStrategy.ONDEMAND_SYNC);
+        }
 
-            foreach (var node in resolved.GetNodes())
-            {
-                //var callees = callgraph.GetCallees(node.Name);
-                var callees = callgraph.GetCallees(node.MethodName);
-                var resolvedCallees = resolved.GetCallees(node);
-                Assert.IsTrue(callees.Count() == resolvedCallees.Count(), "Mismatched callee counts for " + node);
-            }
-
-            Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
+        public void AnalyzeGenerationSolution4(AnalysisStrategy strategy)
+        {
+            AnalyzeGenerationSolution(strategy, 1000);
         }
 
         /*
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeSimpleSolution5()
+        public void AnalyzeGenerationSolution5()
         {
             var callgraph = GenerateCallGraph(10000);
             var syntax = GenerateCode(callgraph);
@@ -341,5 +276,34 @@ namespace ReachingTypeAnalysis
 
             Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
         }*/
+        [TestMethod]
+        [TestCategory("Generation")]
+        [TestCategory("OnDemandOrleans")]
+        public void AnalyzeGenerationOnDemandOrleans1()
+        {
+            AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 10);
+        }
+        [TestMethod]
+        [TestCategory("Generation")]
+        [TestCategory("OnDemandOrleans")]
+        public void AnalyzeGenerationOnDemandOrleans2()
+        {
+            AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 50);
+        }
+        [TestMethod]
+        [TestCategory("Generation")]
+        [TestCategory("OnDemandOrleans")]
+        public void AnalyzeGenerationOnDemandOrleans3()
+        {
+            AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 100);
+        }
+        [TestMethod]
+        [TestCategory("Generation")]
+        [TestCategory("OnDemandOrleans")]
+        public void AnalyzeGenerationOnDemandOrleans4()
+        {
+            AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 1000);
+        }
     }
+
 }
