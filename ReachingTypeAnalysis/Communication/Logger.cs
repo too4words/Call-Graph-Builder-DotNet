@@ -47,6 +47,8 @@ namespace ReachingTypeAnalysis
 
 			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
 
+			Debug.WriteLine(message);
+			//Console.WriteLine(message);
             orleansLog.Info(0, message);
         }
 
@@ -69,7 +71,7 @@ namespace ReachingTypeAnalysis
                         writer.WriteLine(message);
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.WriteLine("Error writing log");
                 }
