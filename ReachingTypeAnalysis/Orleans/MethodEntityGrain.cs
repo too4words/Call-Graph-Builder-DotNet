@@ -165,10 +165,10 @@ namespace ReachingTypeAnalysis.Analysis
             return propagationEffects;
         }
 
-		public async Task UpdateMethodArgumentsAsync(ISet<TypeDescriptor> receiverTypes, 
+        public async Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> receiverTypes, 
             IList<ISet<TypeDescriptor>> argumentsPossibleTypes, PropagationKind propKind)
         {
-            if (!this.methodEntity.CanBeAnalized) return;
+            if (!this.methodEntity.CanBeAnalized) return new PropagationEffects(new HashSet<CallInfo>(), false);
 
             if (this.methodEntity.ThisRef != null)
             {
@@ -184,25 +184,16 @@ namespace ReachingTypeAnalysis.Analysis
                     await this.methodEntity.PropGraph.DiffPropAsync(argumentsPossibleTypes[i], parameterNode, propKind);
                 }
             }
+            var effects = await PropagateAsync(propKind);
+            return effects;
         }
 
-        public async Task UpdateMethodReturnAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind)
+        public async Task<PropagationEffects> PropagateAsync(ISet<TypeDescriptor> returnValues, VariableNode lhs, PropagationKind propKind)
         {
             //PropGraph.Add(lhs, retValues);
             await this.methodEntity.PropGraph.DiffPropAsync(returnValues,lhs, propKind);
-            // This should be Async
-            //switch (retMesssageInfo.PropagationKind)
-            //{
-            //    case PropagationKind.ADD_TYPES:
-            //        Propagate();
-            //        break;
-            //    case PropagationKind.REMOVE_TYPES:
-            //        PropagateDelete();
-            //        break;
-            //    default:
-            //        throw new ArgumentException();
-            //}
-            //return;
+            var effects = await PropagateAsync(propKind);
+            return effects;
         }
 
 		private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)

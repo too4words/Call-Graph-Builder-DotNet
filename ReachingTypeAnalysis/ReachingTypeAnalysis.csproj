@@ -255,9 +255,6 @@
   <ItemGroup>
     <Compile Include="Analysis\AnalysisMessages.cs" />
     <Compile Include="Analysis\AnalysisOrchestator.cs" />
-    <Compile Include="Analysis\AnalysisTypes.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Analysis\Graph\Graph.cs" />
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
     <Compile Include="Analysis\Graph\IGraph.cs" />
