@@ -111367,7 +111367,7 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 46, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategy.ONDEMAND_ASYNC);
+            }, AnalysisStrategy.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -112400,7 +112400,7 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 589, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategy.ONDEMAND_ASYNC);
+            }, AnalysisStrategy.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -122436,7 +122436,7 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 5990, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategy.ONDEMAND_ASYNC);
+            }, AnalysisStrategy.ONDEMAND_ORLEANS);
         }
 
         [TestCategory("VeryLongRunning")]
@@ -222470,7 +222470,7 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 59989, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategy.ONDEMAND_ASYNC);
+            }, AnalysisStrategy.ONDEMAND_ORLEANS);
         }
     }
 }

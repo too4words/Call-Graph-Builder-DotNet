@@ -304,6 +304,13 @@ namespace ReachingTypeAnalysis
         {
             AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 1000);
         }
+        [TestMethod]
+        [TestCategory("Generation")]
+        //[TestCategory("OnDemandOrleans")]
+        public void AnalyzeGenerationOnDemandOrleans5()
+        {
+            AnalyzeGenerationSolution(AnalysisStrategy.ONDEMAND_SYNC, 10000);
+        }
     }
 
 }
