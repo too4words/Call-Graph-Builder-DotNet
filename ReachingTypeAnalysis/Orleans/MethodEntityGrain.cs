@@ -50,12 +50,12 @@ namespace ReachingTypeAnalysis.Analysis
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
 				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);
+                await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
             }
         }
 
         public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
         {
-            var result = new HashSet<IMethodEntityGrain>();
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
 
@@ -85,6 +85,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
             this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+
+            await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
 
             await State.WriteStateAsync();
         }
@@ -118,7 +120,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
-            var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
+            //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
             var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
 
             foreach (var calleeInfo in propagationEffects.CalleesInfo)
@@ -362,6 +364,49 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<bool> IsInitialized()
         {
             return Task.FromResult(this.methodEntity != null);
+        }
+    }
+
+    public class MethodEntityGrainWrapper : IMethodEntityWithPropagator
+    {
+        IMethodEntityGrain grainRef;
+        public MethodEntityGrainWrapper(IMethodEntityGrain grainRef)
+        {
+            this.grainRef = grainRef;
+        }
+        public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+        {
+            return this.grainRef.PropagateAsync(propKind);
+        }
+
+        public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+        {
+            return this.grainRef.PropagateAsync(callMessageInfo);
+        }
+
+        public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
+        {
+            return this.grainRef.PropagateAsync(returnMessageInfo);
+        }
+
+        public Task<bool> IsInitialized()
+        {
+            return this.grainRef.IsInitialized();
+        }
+
+        public Task<IEntity> GetMethodEntity()
+        {
+            return this.grainRef.GetMethodEntity();
+        }
+
+        public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
+        {
+            return this.grainRef.GetCalleesAsync();
+        }
+
+        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+        {
+            return this.grainRef.GetCalleesInfoAsync();
         }
     }
 }

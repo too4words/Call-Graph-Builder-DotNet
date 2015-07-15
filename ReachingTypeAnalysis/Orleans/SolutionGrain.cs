@@ -10,6 +10,7 @@ using ReachingTypeAnalysis.Roslyn;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    // TODO: Add instantiated types
     public interface ISolutionState : IGrainState
     {
         string SolutionFullPath { get; set; }
@@ -20,14 +21,15 @@ namespace ReachingTypeAnalysis.Analysis
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
         [NonSerialized]
-        private Dictionary<MethodDescriptor, IProjectCodeProviderGrain> MethodDescriptors;
+        private Dictionary<MethodDescriptor, IProjectCodeProviderGrain> methodDescriptors2Project;
+        private ISet<TypeDescriptor> instantiadtedTypes;
         [NonSerialized]
         private Microsoft.CodeAnalysis.Solution solution;
 
         public override Task OnActivateAsync()
         {
-            MethodDescriptors = new Dictionary<MethodDescriptor, IProjectCodeProviderGrain>();
-
+            methodDescriptors2Project = new Dictionary<MethodDescriptor, IProjectCodeProviderGrain>();
+            instantiadtedTypes = new HashSet<TypeDescriptor>();
 			//if (this.State.MethodDescriptors == null)
 			//{
 			//	this.State.MethodDescriptors = new List<MethodDescriptor>();
@@ -65,18 +67,27 @@ namespace ReachingTypeAnalysis.Analysis
         {
 
             IProjectCodeProviderGrain projectCodeProviderGrain;
-            if (this.MethodDescriptors.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
+            if (this.methodDescriptors2Project.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
             {
                 return projectCodeProviderGrain;
             }
             else
             {
                 projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution);
-                this.MethodDescriptors.Add(methodDescriptor, projectCodeProviderGrain);
+                this.methodDescriptors2Project.Add(methodDescriptor, projectCodeProviderGrain);
                 await this.State.WriteStateAsync();
             }
 			
             return projectCodeProviderGrain;
+        }
+        public async Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
+        {
+            instantiadtedTypes.UnionWith(types);
+            await this.State.WriteStateAsync();
+        }
+        public async Task<ISet<TypeDescriptor>>  InstantiatedTypes()
+        {
+            return await Task.FromResult(instantiadtedTypes);
         }
 
         public Task<IEnumerable<MethodDescriptor>> GetRoots()
@@ -84,4 +95,25 @@ namespace ReachingTypeAnalysis.Analysis
             return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
         }
     }
+    public class SolutionGrainWrapper : ISolution
+    {
+        ISolutionGrain grainRef;
+        public SolutionGrainWrapper(ISolutionGrain grainRef)
+        {
+            this.grainRef = grainRef;
+        }
+        public Task<IEnumerable<MethodDescriptor>> GetRoots()
+        {
+            return this.grainRef.GetRoots();
+        }
+        public Task<ISet<TypeDescriptor>>  InstantiatedTypes()
+        {
+            return this.grainRef.InstantiatedTypes();
+        }
+        public Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
+        {
+            return this.grainRef.AddInstantiatedTypes(types);
+        }
+    }
+
 }

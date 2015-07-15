@@ -87,7 +87,24 @@ namespace ReachingTypeAnalysis
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
-                        AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
+                        //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
+
+                        var cancellationSource = new CancellationTokenSource();
+                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
+                        if (triple != null)
+                        {
+                            var solutionManager = new SolutionManager(this.Solution);
+                            var provider = triple.Item1;
+                            var mainSymbol = triple.Item2;
+                            Contract.Assert(mainSymbol != null);
+                            var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
+                            var mainMethodEntityDescriptor = mainMethodDescriptor;
+                            MethodEntityFactory.UsingOrleans = false;
+                            MethodEntityFactory.methodEntities.Clear();
+                            AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
+                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
+                            return callGraph;
+                        }
                         
                         return this.GenerateCallGraph();
                     }
@@ -159,9 +176,11 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-
+                            MethodEntityFactory.UsingOrleans = true;
                             AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
-                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionGrain).Result;
+                            
+                            var solutionManager = new SolutionGrainWrapper(solutionGrain);
+                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
 
                             hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;

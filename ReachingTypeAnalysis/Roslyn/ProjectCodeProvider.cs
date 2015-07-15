@@ -62,13 +62,17 @@ namespace ReachingTypeAnalysis.Roslyn
 
         async internal static Task<MethodEntity> FindProviderAndCreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
+            return (await FindCodeProviderAndEntity(methodDescriptor)).Item2;
+        }
+        async internal static Task<Tuple<ProjectCodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor)
+        {
             MethodEntity methodEntity = null;
-
+            ProjectCodeProvider provider=null;
             var pair = await ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor);
 
             if (pair != null)
             {
-                var provider = pair.Item1;
+                provider = pair.Item1;
                 var tree = pair.Item2;
                 var model = provider.Compilation.GetSemanticModel(tree);
                 var methodEntityGenerator = new MethodSyntaxProcessor(model, provider, tree, methodDescriptor);
@@ -79,7 +83,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
                 methodEntity = libraryMethodVisitor.ParseLibraryMethod();
             }
-            return methodEntity;
+            return new Tuple<ProjectCodeProvider,MethodEntity>(provider, methodEntity);
         }
 
         async internal  Task<MethodEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)

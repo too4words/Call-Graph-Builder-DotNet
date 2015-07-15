@@ -178,6 +178,9 @@ namespace ReachingTypeAnalysis
             }
             return new PropagationEffects(calls, retModified);
         }
+
+        // DIEGO 
+        // TODO: ADD Here the instantiated types
         internal async Task<ISet<TypeDescriptor>> GetPotentialTypesAsync(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
         {
             var result = new HashSet<TypeDescriptor>();

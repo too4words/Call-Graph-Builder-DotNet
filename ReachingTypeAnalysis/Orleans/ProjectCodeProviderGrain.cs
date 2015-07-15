@@ -7,6 +7,8 @@ using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
+using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -119,6 +121,31 @@ namespace ReachingTypeAnalysis.Analysis
         {
             throw new NotImplementedException();
             //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
+        }
+    }
+
+    internal class SolutionManager : ISolution
+    {
+        public static SolutionManager Instance = null;
+        private Solution solution;
+        private ISet<TypeDescriptor> instantiatedTypes = new HashSet<TypeDescriptor>();
+        public SolutionManager(Solution solution)
+        {
+            this.solution = solution;
+            Instance = this;
+        }
+        public Task<IEnumerable<MethodDescriptor>> GetRoots()
+        {
+            return Task.FromResult(ProjectCodeProvider.GetMainMethods(solution));
+        }
+        public Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
+        {
+            instantiatedTypes.UnionWith(types);
+            return TaskDone.Done;
+        }
+        public Task<ISet<TypeDescriptor>> InstantiatedTypes()
+        {
+            return Task.FromResult(instantiatedTypes);
         }
     }
 }

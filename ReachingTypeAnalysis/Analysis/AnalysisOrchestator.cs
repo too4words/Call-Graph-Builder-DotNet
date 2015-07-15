@@ -24,8 +24,8 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 
 			var entityDescriptor = new MethodEntityDescriptor(method);
-			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
-            var propagationEffects = await methodEntityGrain.PropagateAsync(PropagationKind.ADD_TYPES);
+			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
+            var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 			await DoPropagationOnEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 		}
 
@@ -54,6 +54,7 @@ namespace ReachingTypeAnalysis.Analysis
 					// But actually for some reason the ordering is affecting the result
 					// I think the problem is the conservative treatment when types(receiver).Count = 0 
 					// (FIXED??)
+                    
 					var task = DispatchCallMessageForMethodCallAsync(calleeInfo as MethodCallInfo, propKind);
 					//await task;
 					tasks.Add(task);
@@ -122,9 +123,9 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
 			var entityDescriptor = new MethodEntityDescriptor(callee);
-			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
+			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
 
-            var propagationEffects = await methodEntityGrain.PropagateAsync(callerMessage.CallMessageInfo);
+            var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
 
             await DoPropagationOnEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 
@@ -176,60 +177,20 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
 			var entityDescriptor = new MethodEntityDescriptor(caller);
-			var methodEntityGrain = await AnalysisOrchestator.CreateMethodEntityGrain(entityDescriptor);
+			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
 
-			var propagationEffects = await methodEntityGrain.PropagateAsync(calleeMessage.ReturnMessageInfo);
+			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
 			await DoPropagationOnEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
-        internal static async Task<IMethodEntityGrain> CreateMethodEntityGrain(MethodEntityDescriptor entityDescriptor)
-        {
-            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", entityDescriptor);
+        
 
-            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(entityDescriptor.MethodDescriptor.ToString());
-            var methodEntity = await methodEntityGrain.GetMethodEntity();
 
-            // check if the result is initialized
-            if (methodEntity == null)
-            {
-                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
-                Contract.Assert(entityDescriptor.MethodDescriptor != null);
-                ////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-                methodEntity = await AnalysisOrchestator.CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
-                Contract.Assert(methodEntity != null);
-                await methodEntityGrain.SetMethodEntityAsync(methodEntity, entityDescriptor);
-                //await methodEntityGrain.SetDescriptor(entityDescriptor);
-                return methodEntityGrain;
-            }
-            else
-            {
-                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
-                return methodEntityGrain;
-            }
-        }
+        
 
-        internal static async Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
-        {
-            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
-
-            MethodEntity methodEntity = null;
-            var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-            IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
-            if (providerGrain == null)
-            {
-                var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodProcessor(methodDescriptor);
-                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
-            }
-            else
-            {
-                methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
-            }
-            return methodEntity;
-        }
-
-        internal static async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraph(ISolutionGrain solution)
+        internal static async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraph(ISolution solution)
         {
             Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
@@ -243,8 +204,8 @@ namespace ReachingTypeAnalysis.Analysis
                 visited.Add(currentMethodDescriptor);
                 Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}",currentMethodDescriptor);
 
-                var currentGrain = await CreateMethodEntityGrain(new MethodEntityDescriptor(currentMethodDescriptor));
-                var calleesInfoForMethod = await currentGrain.GetCalleesInfoAsync();
+                var currentProc = await MethodEntityFactory.ObtainMethodEntityAsync(new MethodEntityDescriptor(currentMethodDescriptor));
+                var calleesInfoForMethod = await currentProc.GetCalleesInfoAsync();
   
                 foreach (var entry in calleesInfoForMethod)
                 {
@@ -317,6 +278,77 @@ namespace ReachingTypeAnalysis.Analysis
                 calleesPerEntity[calleeNode] = await CalleesAsync(methodEntity, calleeNode, codeProvider);
             }
             return calleesPerEntity;
+        }
+    }
+
+    internal static class MethodEntityFactory
+    {
+        public static bool UsingOrleans = false;
+        public static IDictionary<MethodDescriptor, MethodEntityWithPropagator> methodEntities = new Dictionary<MethodDescriptor, MethodEntityWithPropagator>();
+        internal static async Task<IMethodEntityWithPropagator> ObtainMethodEntityAsync(MethodEntityDescriptor entityDescriptor)
+        {
+            if (UsingOrleans)
+            {
+                var methodEntityGrainRef = await ObtainMethodEntityGrainAsync(entityDescriptor);
+                return new MethodEntityGrainWrapper(methodEntityGrainRef);
+            }
+            else
+            {
+                MethodEntityWithPropagator methodEntityPropagator = null;
+                lock (methodEntities)
+                {
+                    if (!methodEntities.TryGetValue(entityDescriptor.MethodDescriptor, out methodEntityPropagator))
+                    {
+                        methodEntityPropagator = new MethodEntityWithPropagator(entityDescriptor.MethodDescriptor);
+                        methodEntities.Add(entityDescriptor.MethodDescriptor, methodEntityPropagator);
+                    }
+                }
+                return methodEntityPropagator;
+            }
+        }
+        internal static async Task<IMethodEntityGrain> ObtainMethodEntityGrainAsync(MethodEntityDescriptor entityDescriptor)
+        {
+            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", entityDescriptor);
+
+            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(entityDescriptor.MethodDescriptor.ToString());
+            var methodEntity = await methodEntityGrain.GetMethodEntity();
+
+            // check if the result is initialized
+            if (methodEntity == null)
+            {
+                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", entityDescriptor);
+                Contract.Assert(entityDescriptor.MethodDescriptor != null);
+                ////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+                methodEntity = await MethodEntityFactory.CreateMethodEntityUsingGrainsAsync(entityDescriptor.MethodDescriptor);
+                Contract.Assert(methodEntity != null);
+                await methodEntityGrain.SetMethodEntityAsync(methodEntity, entityDescriptor);
+                //await methodEntityGrain.SetDescriptor(entityDescriptor);
+                return methodEntityGrain;
+            }
+            else
+            {
+                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", entityDescriptor);
+                return methodEntityGrain;
+            }
+        }
+
+        internal static async Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)
+        {
+            Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityUsingGrainsAsync", "Creating new MethodEntity for {0}", methodDescriptor);
+
+            MethodEntity methodEntity = null;
+            var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            IProjectCodeProviderGrain providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+            if (providerGrain == null)
+            {
+                var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodProcessor(methodDescriptor);
+                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            }
+            else
+            {
+                methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
+            }
+            return methodEntity;
         }
     }
 }

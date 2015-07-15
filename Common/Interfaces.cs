@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ReachingTypeAnalysis.Communication;
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
@@ -12,6 +14,18 @@ namespace ReachingTypeAnalysis
     public interface IEntity
     {
         //IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
+    }
+
+    public interface IMethodEntityWithPropagator: IEntity
+    {
+        Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
+        Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
+        Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
+        Task<bool> IsInitialized();
+        Task<IEntity> GetMethodEntity();
+        //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
+        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
+        Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
     }
 
     public interface IEntityProcessor
@@ -33,6 +47,13 @@ namespace ReachingTypeAnalysis
         MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
     
     }
+    public interface ISolution
+    {
+        Task<IEnumerable<MethodDescriptor>> GetRoots();
+        Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types);
+        Task<ISet<TypeDescriptor>> InstantiatedTypes();
+    }
+
 
     public delegate void MessageHandler(IMessage message);
 
