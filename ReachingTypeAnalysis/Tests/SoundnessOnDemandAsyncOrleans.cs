@@ -11,7 +11,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestSimpleCallOnDemandOrleans()
         {
-            TestSimpleCall(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -19,7 +19,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestRecursionOnDemandOrleans()
         {
-            TestRecursion(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestRecursion(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestIfOnDemandOrleans()
         {
-            TestIf(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestIf(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestVirtualCallViaSuperClassOnDemandOrleans()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallViaInterfaceOnDemandOrleans()
         {
-            TestCallViaInterface(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestForLoopOnDemandOrleans()
         {
-            TestForLoop(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestForLoop(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestFieldAccessOnDemandOrleans()
         {
-            TestFieldAccess(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallStaticDelegateOnDemandOrleans()
         {
-            TestCallStaticDelegate(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallInterfaceDelegateOnDemandOrleans()
         {
-            TestCallInterfaceDelegate(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestClassesWithSameFieldNameOnDemandOrleans()
         {
-            TestClassesWithSameFieldName(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestFieldLoadInCalleeOnDemandOrleans()
         {
-            TestFieldLoadInCallee(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestPropertyOnDemandOrleans()
         {
-            TestProperty(AnalysisStrategy.ONDEMAND_ORLEANS);
+            TestProperty(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
     }
 }

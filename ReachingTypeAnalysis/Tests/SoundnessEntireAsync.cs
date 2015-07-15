@@ -11,7 +11,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestSimpleCallEntireAsync()
         {
-            TestSimpleCall(AnalysisStrategy.ENTIRE_ASYNC);
+            TestSimpleCall(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -19,7 +19,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestRecursionEntireAsync()
         {
-            TestRecursion(AnalysisStrategy.ENTIRE_ASYNC);
+            TestRecursion(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestIfEntireAsync()
         {
-            TestIf(AnalysisStrategy.ENTIRE_ASYNC);
+            TestIf(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestVirtualCallViaSuperClassEntireAsync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategy.ENTIRE_ASYNC);
+            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallViaInterfaceEntireAsync()
         {
-            TestCallViaInterface(AnalysisStrategy.ENTIRE_ASYNC);
+            TestCallViaInterface(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestForLoopEntireAsync()
         {
-            TestForLoop(AnalysisStrategy.ENTIRE_ASYNC);
+            TestForLoop(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestFieldAccessEntireAsync()
         {
-            TestFieldAccess(AnalysisStrategy.ENTIRE_ASYNC);
+            TestFieldAccess(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallStaticDelegateEntireAsync()
         {
-            TestCallStaticDelegate(AnalysisStrategy.ENTIRE_ASYNC);
+            TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallInterfaceDelegateEntireAsync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategy.ENTIRE_ASYNC);
+            TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestClassesWithSameFieldNameEntireAsync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategy.ENTIRE_ASYNC);
+            TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestFieldLoadInCalleeEntireAsync()
         {
-            TestFieldLoadInCallee(AnalysisStrategy.ENTIRE_ASYNC);
+            TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestPropertyEntireAsync()
         {
-            TestProperty(AnalysisStrategy.ENTIRE_ASYNC);
+            TestProperty(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
     }
 }

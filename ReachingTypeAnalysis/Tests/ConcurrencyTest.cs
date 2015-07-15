@@ -8,7 +8,7 @@ namespace ReachingTypeAnalysis
     {
         [TestMethod]
         [TestCategory("Concurrency")]
-        public void TestTaskStart(AnalysisStrategy strategy)
+        public void TestTaskStart(AnalysisStrategyKind strategy)
         {
             var task = Task<string>.Factory.StartNew(() => { return "hello"; });
             Assert.IsTrue(task.Result.Equals("hello"));
@@ -16,7 +16,7 @@ namespace ReachingTypeAnalysis
 
         [TestMethod]
         [TestCategory("Concurrency")]
-        public void TestContinueWith(AnalysisStrategy strategy)
+        public void TestContinueWith(AnalysisStrategyKind strategy)
         {
             var task = Task<string>.Factory.StartNew(() => { return "hello"; });
             task.ContinueWith((t) => t.Result + " ben" );
@@ -26,7 +26,7 @@ namespace ReachingTypeAnalysis
 
         [TestMethod]
         [TestCategory("Concurrency")]
-        public void TestContinueWith2(AnalysisStrategy strategy)
+        public void TestContinueWith2(AnalysisStrategyKind strategy)
         {
             var task = Task<string>.Factory.StartNew(() => { return "hello"; });
             var task2 = task.ContinueWith((t) => t.Result + " ben");

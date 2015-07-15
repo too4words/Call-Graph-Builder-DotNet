@@ -20,16 +20,10 @@ namespace ReachingTypeAnalysis.Analysis
     //[Reentrant]
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
-		private const bool conservativeWithTypes = false;
-
-		private MethodEntityDescriptor orleansEntityDescriptor;
-
         [NonSerialized]
         private MethodEntity methodEntity;
         [NonSerialized]
         private ICodeProvider codeProvider;
-        //[NonSerialized]
-        //private MethodEntityProcessor methodEntityProcessor;
         [NonSerialized]
         private IProjectCodeProviderGrain codeProviderGrain;
         [NonSerialized]
@@ -43,9 +37,8 @@ namespace ReachingTypeAnalysis.Analysis
 	        // Shold not be null..
             if (this.State.Etag!= null)
             {
-				codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+				this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
                 this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
-                var orleansEntityDesc = new MethodEntityDescriptor(this.State.MethodDescriptor);
                 // TODO: do we need to check and restore methodEntity
                 // To restore the full entity state we need to save propagation data
                 // or repropagate
@@ -74,20 +67,18 @@ namespace ReachingTypeAnalysis.Analysis
             return TaskDone.Done;
         }
 
-		public async Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor)
+		public async Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(methodEntity != null);
-			this.orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
-			this.methodEntity = (MethodEntity) methodEntity;
+			this.methodEntity = (MethodEntity)methodEntity;
+
 			Contract.Assert(this.State != null);
+			this.State.MethodDescriptor = methodDescriptor;
 
-			this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
-
-			codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+			codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
 			this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
 			await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
-
 			await State.WriteStateAsync();
 		}
 

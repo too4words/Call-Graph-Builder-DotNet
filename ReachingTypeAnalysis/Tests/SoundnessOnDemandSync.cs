@@ -12,7 +12,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestSimpleCallOnDemandSync()
         {
-            TestSimpleCall(AnalysisStrategy.ONDEMAND_SYNC);
+            TestSimpleCall(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestRecursionOnDemandSync()
         {
-           TestRecursion(AnalysisStrategy.ONDEMAND_SYNC);
+           TestRecursion(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -28,7 +28,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestIfOnDemandSync()
         {
-             TestIf(AnalysisStrategy.ONDEMAND_SYNC);
+             TestIf(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestVirtualCallViaSuperClassOnDemandSync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategy.ONDEMAND_SYNC);
+            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestCallViaInterfaceOnDemandSync()
         {
-            TestCallViaInterface(AnalysisStrategy.ONDEMAND_SYNC);
+            TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestForLoopOnDemandSync()
         {
-            TestForLoop(AnalysisStrategy.ONDEMAND_SYNC);
+            TestForLoop(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestFieldAccessOnDemandSync()
         {
-           TestFieldAccess(AnalysisStrategy.ONDEMAND_SYNC);
+           TestFieldAccess(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestCallStaticDelegateOnDemandSync()
         {
-            TestCallStaticDelegate(AnalysisStrategy.ONDEMAND_SYNC);
+            TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestCallInterfaceDelegateOnDemandSync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategy.ONDEMAND_SYNC);
+            TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestClassesWithSameFieldNameOnDemandSync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategy.ONDEMAND_SYNC);
+            TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestFieldLoadInCalleeOnDemandSync()
         {
-            TestFieldLoadInCallee(AnalysisStrategy.ONDEMAND_SYNC);
+            TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandSync")]
         public void TestPropertyOnDemandSync()
         {
-            TestProperty(AnalysisStrategy.ONDEMAND_SYNC);
+            TestProperty(AnalysisStrategyKind.ONDEMAND_SYNC);
         }        
     }
 }

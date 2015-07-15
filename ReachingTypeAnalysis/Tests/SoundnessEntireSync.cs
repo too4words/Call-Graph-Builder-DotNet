@@ -11,7 +11,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestSimpleCallEntireSync()
         {
-            TestSimpleCall(AnalysisStrategy.ENTIRE_SYNC);
+            TestSimpleCall(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -19,7 +19,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestRecursionEntireSync()
         {
-            TestRecursion(AnalysisStrategy.ENTIRE_SYNC);
+            TestRecursion(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestIfEntireSync()
         {
-            TestIf(AnalysisStrategy.ENTIRE_SYNC);
+            TestIf(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestVirtualCallViaSuperClassEntireSync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategy.ENTIRE_SYNC);
+            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallViaInterfaceEntireSync()
         {
-            TestCallViaInterface(AnalysisStrategy.ENTIRE_SYNC);
+            TestCallViaInterface(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestForLoopEntireSync()
         {
-            TestForLoop(AnalysisStrategy.ENTIRE_SYNC);
+            TestForLoop(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestFieldAccessEntireSync()
         {
-            TestFieldAccess(AnalysisStrategy.ENTIRE_SYNC);
+            TestFieldAccess(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallStaticDelegateEntireSync()
         {
-            TestCallStaticDelegate(AnalysisStrategy.ENTIRE_SYNC);
+            TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallInterfaceDelegateEntireSync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategy.ENTIRE_SYNC);
+            TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestClassesWithSameFieldNameEntireSync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategy.ENTIRE_SYNC);
+            TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestFieldLoadInCalleeEntireSync()
         {
-            TestFieldLoadInCallee(AnalysisStrategy.ENTIRE_SYNC);
+            TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestPropertyEntireSync()
         {
-            TestProperty(AnalysisStrategy.ENTIRE_SYNC);
+            TestProperty(AnalysisStrategyKind.ENTIRE_SYNC);
         }
     }
 
