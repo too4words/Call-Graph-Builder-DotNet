@@ -32,7 +32,7 @@ namespace ReachingTypeAnalysis.Communication
         internal AsyncDispatcher()
             : base(true)
         {
-            this.Async = true;
+            this.IsAsync = true;
         }
 
         //long iterations = 0L;

@@ -26,7 +26,7 @@ namespace OrleansInterfaces
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
         Task<bool> IsInitialized();
         Task<IEntity> GetMethodEntity();
-        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
     }
 

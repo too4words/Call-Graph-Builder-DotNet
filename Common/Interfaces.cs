@@ -21,10 +21,10 @@ namespace ReachingTypeAnalysis
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
-        Task<bool> IsInitialized();
-        Task<IEntity> GetMethodEntity();
+        Task<bool> IsInitializedAsync();
+        Task<IEntity> GetMethodEntityAsync();
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
-        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
     }
 

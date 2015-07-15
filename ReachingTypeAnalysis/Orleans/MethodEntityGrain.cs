@@ -54,7 +54,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
+        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
@@ -74,22 +74,22 @@ namespace ReachingTypeAnalysis.Analysis
             return TaskDone.Done;
         }
 
-        public async Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor)
-        {
-            Contract.Assert(methodEntity != null);
-            this.orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
-            this.methodEntity = (MethodEntity) methodEntity;
-            Contract.Assert(this.State != null);
+		public async Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor)
+		{
+			Contract.Assert(methodEntity != null);
+			this.orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
+			this.methodEntity = (MethodEntity) methodEntity;
+			Contract.Assert(this.State != null);
 
-            this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
+			this.State.MethodDescriptor = this.orleansEntityDescriptor.MethodDescriptor;
 
-            codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
-            this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+			codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
+			this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
-            await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+			await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
 
-            await State.WriteStateAsync();
-        }
+			await State.WriteStateAsync();
+		}
 
         //public Task<IEntityDescriptor> GetDescriptor()
         //{
@@ -343,24 +343,6 @@ namespace ReachingTypeAnalysis.Analysis
             return this.methodEntity.PropGraph.GetDelegates(node);
         }
 
-        ///// <summary>
-        ///// We use this to obtain a processor directly from the grain
-        ///// If we make it public we require the processor to be serializable
-        ///// One option is making this private and implemente 
-        ///// DoAnalysisAsync and ProcessMessageAsync in the grain
-        ///// </summary>
-        ///// <returns></returns>
-        //public async Task<IEntityProcessor> GetEntityWithProcessorAsync()
-        //{
-        //    Contract.Assert(this.methodEntity != null);
-        //    if(this.methodEntityProcessor==null)
-        //    {
-        //        var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(methodEntity.MethodDescriptor);
-        //        methodEntityProcessor = new MethodEntityProcessor(this.methodEntity, this.dispatcher, codeProvider);
-        //    }
-        //    return methodEntityProcessor;
-        //}
-
         public Task<bool> IsInitialized()
         {
             return Task.FromResult(this.methodEntity != null);
@@ -389,17 +371,17 @@ namespace ReachingTypeAnalysis.Analysis
             return this.grainRef.PropagateAsync(returnMessageInfo);
         }
 
-        public Task<bool> IsInitialized()
+        public Task<bool> IsInitializedAsync()
         {
             return this.grainRef.IsInitialized();
         }
 
-        public Task<IEntity> GetMethodEntity()
+        public Task<IEntity> GetMethodEntityAsync()
         {
             return this.grainRef.GetMethodEntity();
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
+        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
             return this.grainRef.GetCalleesAsync();
         }

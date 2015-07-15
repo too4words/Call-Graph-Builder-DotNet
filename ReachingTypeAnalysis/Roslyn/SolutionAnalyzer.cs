@@ -102,7 +102,7 @@ namespace ReachingTypeAnalysis
                             MethodEntityFactory.UsingOrleans = false;
                             MethodEntityFactory.methodEntities.Clear();
                             AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
-                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
+                            var callGraph = AnalysisOrchestator.GenerateCallGraphAsync(solutionManager).Result;
                             return callGraph;
                         }
                         
@@ -180,7 +180,7 @@ namespace ReachingTypeAnalysis
                             AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
-                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
+                            var callGraph = AnalysisOrchestator.GenerateCallGraphAsync(solutionManager).Result;
 
                             hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;
