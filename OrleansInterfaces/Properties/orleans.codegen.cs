@@ -349,10 +349,10 @@ namespace OrleansInterfaces
                 return MethodEntityGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetMethodEntityAsync(ReachingTypeAnalysis.IEntity @methodEntity, ReachingTypeAnalysis.IEntityDescriptor @descriptor)
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.SetMethodEntityAsync(ReachingTypeAnalysis.IEntity @methodEntity, ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
             {
 
-                return base.InvokeMethodAsync<object>(1170896751, new object[] {@methodEntity, @descriptor} );
+                return base.InvokeMethodAsync<object>(-2094452342, new object[] {@methodEntity, @methodDescriptor} );
             }
             
             System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> OrleansInterfaces.IMethodEntityGrain.PropagateAsync(ReachingTypeAnalysis.PropagationKind @propKind)
@@ -385,10 +385,10 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-538316126, null );
             }
             
-            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesAsync()
+            System.Threading.Tasks.Task<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesAsync()
             {
 
-                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(412610256, null );
+                return base.InvokeMethodAsync<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>(412610256, null );
             }
             
             System.Threading.Tasks.Task<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode, System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>> OrleansInterfaces.IMethodEntityGrain.GetCalleesInfoAsync()
@@ -423,8 +423,8 @@ namespace OrleansInterfaces
                     case 898358989:  // IMethodEntityGrain
                         switch (methodId)
                         {
-                            case 1170896751: 
-                                return ((IMethodEntityGrain)grain).SetMethodEntityAsync((IEntity)arguments[0], (IEntityDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -2094452342: 
+                                return ((IMethodEntityGrain)grain).SetMethodEntityAsync((IEntity)arguments[0], (MethodDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1262137734: 
                                 return ((IMethodEntityGrain)grain).PropagateAsync((PropagationKind)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1023082020: 
@@ -468,7 +468,7 @@ namespace OrleansInterfaces
                 case 898358989:  // IMethodEntityGrain
                     switch (methodId)
                     {
-                        case 1170896751:
+                        case -2094452342:
                             return "SetMethodEntityAsync";
                     case 1262137734:
                             return "PropagateAsync";

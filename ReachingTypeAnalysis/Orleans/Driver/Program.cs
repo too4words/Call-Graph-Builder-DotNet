@@ -69,7 +69,7 @@ namespace ReachingTypeAnalysis
             var timerLocal = new Stopwatch();
             timerLocal.Start();
             // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-            analyzer.Analyze(AnalysisStrategy.ONDEMAND_ORLEANS);
+            analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
             timerLocal.Stop();
 
             return analyzer.GenerateCallGraph();
@@ -81,7 +81,7 @@ namespace ReachingTypeAnalysis
             var timerLocal = new Stopwatch();
             timerLocal.Start();
             // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-            analyzerLocal.Analyze(AnalysisStrategy.ONDEMAND_SYNC);
+            analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
             timerLocal.Stop();
             var callgraphLocal = analyzerLocal.GenerateCallGraph();
             Logger.Instance.Log("Program", "CompareDispatchers", "Local analysis time: {0}", timerLocal.Elapsed);
@@ -89,7 +89,7 @@ namespace ReachingTypeAnalysis
             var analyzerParallel = new SolutionAnalyzer(solution);
             var timerQueuing = new Stopwatch();
             timerQueuing.Start();
-            analyzerParallel.Analyze(AnalysisStrategy.ONDEMAND_ASYNC);
+            analyzerParallel.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
 
             /*           
             using (var queryingDispatcher = new QueueingDispatcher(solution))

@@ -18,7 +18,7 @@ using SolutionTraversal.Callgraph;
 
 namespace ReachingTypeAnalysis
 {
-    public enum AnalysisStrategy
+    public enum AnalysisStrategyKind
     {
         ONDEMAND_SYNC,
         ENTIRE_SYNC,
@@ -57,33 +57,33 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		/// <param name="dispatcher"></param>
         public CallGraph<MethodDescriptor, LocationDescriptor>
-            Analyze(AnalysisStrategy strategy = AnalysisStrategy.NONE, bool produceCallGraph = true)
+            Analyze(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE, bool produceCallGraph = true)
         {
-            if (strategy == AnalysisStrategy.NONE)
+            if (strategyKind == AnalysisStrategyKind.NONE)
             {
-                strategy = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
+                strategyKind = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
             }
 
 
             // TOOD: hack -- set the global solution
             ProjectCodeProvider.Solution = this.Solution;
 
-            switch (strategy)
+            switch (strategyKind)
             {
-                case AnalysisStrategy.ONDEMAND_SYNC:
+                case AnalysisStrategyKind.ONDEMAND_SYNC:
                     {
                         this.Dispatcher = new OnDemandSyncDispatcher();
                         AnalyzeOnDemand();
                         return this.GenerateCallGraph();
                     }
-                case AnalysisStrategy.ENTIRE_SYNC:
+                case AnalysisStrategyKind.ENTIRE_SYNC:
                     {
                         this.Dispatcher = new SynchronousLocalDispatcher();
                         AnalyzeEntireSolution();
 
                         return this.GenerateCallGraph();
                     }
-                case AnalysisStrategy.ONDEMAND_ASYNC:
+                case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
@@ -99,16 +99,16 @@ namespace ReachingTypeAnalysis
                             Contract.Assert(mainSymbol != null);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-                            MethodEntityFactory.UsingOrleans = false;
-                            MethodEntityFactory.methodEntities.Clear();
-                            AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
-                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
+							var strategy = new AnalysisStrategy();
+							var orchestator = new AnalysisOrchestator(strategy);
+							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
+							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
                             return callGraph;
                         }
                         
                         return this.GenerateCallGraph();
                     }
-                case AnalysisStrategy.ONDEMAND_ORLEANS:
+                case AnalysisStrategyKind.ONDEMAND_ORLEANS:
                     {
                         //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
                         var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
@@ -176,11 +176,12 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-                            MethodEntityFactory.UsingOrleans = true;
-                            AnalysisOrchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
+							var strategy = new OrleansAnalysisStrategy();
+							var orchestator = new AnalysisOrchestator(strategy);
+							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
-                            var callGraph = AnalysisOrchestator.GenerateCallGraph(solutionManager).Result;
+							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
 
                             hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;
@@ -188,7 +189,7 @@ namespace ReachingTypeAnalysis
 
                         return null;
                     }
-                case AnalysisStrategy.ENTIRE_ASYNC:
+                case AnalysisStrategyKind.ENTIRE_ASYNC:
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
                         this.Dispatcher = new AsyncDispatcher();
@@ -224,29 +225,29 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private static AnalysisStrategy ConvertToEnum(string strategy)
+        private static AnalysisStrategyKind ConvertToEnum(string strategy)
 		{
 			switch (strategy)
 			{
 				case "OnDemandSync":
 					{
-						return AnalysisStrategy.ONDEMAND_SYNC;
+						return AnalysisStrategyKind.ONDEMAND_SYNC;
 					}
 				case "EntireSync":
 					{
-						return AnalysisStrategy.ENTIRE_SYNC;
+						return AnalysisStrategyKind.ENTIRE_SYNC;
 					}
 				case "OnDemandAsync":
 					{
-						return AnalysisStrategy.ONDEMAND_ASYNC;
+						return AnalysisStrategyKind.ONDEMAND_ASYNC;
 					}
                 case "OrleansAsync":
                     {
-                        return AnalysisStrategy.ONDEMAND_ORLEANS;
+                        return AnalysisStrategyKind.ONDEMAND_ORLEANS;
                     }
                 case "EntireAsync":
 					{
-						return AnalysisStrategy.ENTIRE_ASYNC;
+						return AnalysisStrategyKind.ENTIRE_ASYNC;
 					}
 				default:
 					{
@@ -422,7 +423,7 @@ namespace ReachingTypeAnalysis
 		/// Try to get the roslyn methods on the fly
 		/// Currently works with one project.
 		/// </summary>
-		public async Task AnalyzeOnDemandAsync(AnalysisStrategy strategy)
+		public async Task AnalyzeOnDemandAsync(AnalysisStrategyKind strategyKind)
 		{
 			Contract.Assert(this.Dispatcher != null);
 			var cancellationSource = new CancellationTokenSource();
@@ -443,10 +444,12 @@ namespace ReachingTypeAnalysis
                 var mainMethodEntityDescriptor = mainMethodDescriptor;
 
                 IEntityProcessor mainMethodEntityProcessor = null;
-                switch(strategy)
+                switch(strategyKind)
                 {
-                    case AnalysisStrategy.ONDEMAND_ORLEANS:
-                        await AnalysisOrchestator.AnalyzeAsync(mainMethodDescriptor);
+                    case AnalysisStrategyKind.ONDEMAND_ORLEANS:
+						var strategy = new OrleansAnalysisStrategy();
+						var orchestator = new AnalysisOrchestator(strategy);
+                        await orchestator.AnalyzeAsync(mainMethodDescriptor);
                         
                         //var methodEntityGrain = await OrleansDispatcher.CreateMethodEntityGrain((OrleansEntityDescriptor)mainMethodEntityDescriptor);
                         // Option 1: Direcly using the Grain
@@ -455,7 +458,7 @@ namespace ReachingTypeAnalysis
                         //mainMethodEntityProcessor = await methodEntityGrain.GetEntityWithProcessorAsync();
                         //await mainMethodEntityProcessor.DoAnalysisAsync();
                         break;
-                    case AnalysisStrategy.ONDEMAND_ASYNC:
+                    case AnalysisStrategyKind.ONDEMAND_ASYNC:
                         mainMethodEntityProcessor = await this.Dispatcher.GetEntityWithProcessorAsync(new MethodEntityDescriptor(mainMethodEntityDescriptor));
 					    var mainMethodEntity = ((MethodEntityProcessor)mainMethodEntityProcessor).MethodEntity;
                         this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);

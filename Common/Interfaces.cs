@@ -16,15 +16,20 @@ namespace ReachingTypeAnalysis
         //IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
     }
 
+	public interface IAnalysisStrategy
+	{
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+	}
+
     public interface IMethodEntityWithPropagator: IEntity
     {
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
-        Task<bool> IsInitialized();
-        Task<IEntity> GetMethodEntity();
+        Task<bool> IsInitializedAsync();
+        Task<IEntity> GetMethodEntityAsync();
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
-        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
     }
 

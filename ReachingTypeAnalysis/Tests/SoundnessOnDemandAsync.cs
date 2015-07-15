@@ -11,7 +11,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestSimpleCallOnDemandAsync()
         {
-            TestSimpleCall(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -19,7 +19,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestRecursionOnDemandAsync()
         {
-            TestRecursion(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestRecursion(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestIfOnDemandAsync()
         {
-            TestIf(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestIf(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestVirtualCallViaSuperClassOnDemandAsync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallViaInterfaceOnDemandAsync()
         {
-            TestCallViaInterface(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestForLoopOnDemandAsync()
         {
-            TestForLoop(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestForLoop(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestFieldAccessOnDemandAsync()
         {
-            TestFieldAccess(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallStaticDelegateOnDemandAsync()
         {
-            TestCallStaticDelegate(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallInterfaceDelegateOnDemandAsync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestClassesWithSameFieldNameOnDemandAsync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestFieldLoadInCalleeOnDemandAsync()
         {
-            TestFieldLoadInCallee(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestPropertyOnDemandAsync()
         {
-            TestProperty(AnalysisStrategy.ONDEMAND_ASYNC);
+            TestProperty(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
     }
 }

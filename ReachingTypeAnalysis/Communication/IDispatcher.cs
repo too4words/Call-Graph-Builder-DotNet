@@ -7,14 +7,14 @@ namespace ReachingTypeAnalysis
 {
 	public abstract class Dispatcher : IDispatcher
     {
-        public bool Async { get; protected set; }
+		private IDictionary<IEntityDescriptor, IEntity> entityMapping;
+        public bool IsAsync { get; protected set; }
 
         public Dispatcher(bool async)
         {
-            this.Async = async;
+            this.IsAsync = async;
+			this.entityMapping = new Dictionary<IEntityDescriptor, IEntity>();
         }
-
-        private IDictionary<IEntityDescriptor, IEntity> entityMapping = new Dictionary<IEntityDescriptor, IEntity>();
 
         public void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity)
         {
@@ -35,7 +35,6 @@ namespace ReachingTypeAnalysis
             return entity;
         }
 
-
         public async virtual Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
         {
             var entity = (Analysis.MethodEntity)await GetEntityAsync(entityDesc);
@@ -46,6 +45,7 @@ namespace ReachingTypeAnalysis
             }
             return null;
         }
+
         public  virtual IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc)
         {
             var entity = (Analysis.MethodEntity)GetEntity(entityDesc);
@@ -61,12 +61,14 @@ namespace ReachingTypeAnalysis
         {
             return entityMapping.Values.ToImmutableHashSet();
         }
+
         public ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors()
         {
             return entityMapping.Keys.ToImmutableHashSet();
         }
 
         public abstract void DeliverMessage(IEntityDescriptor destination, IMessage message);
+
         public abstract Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
     }
 }

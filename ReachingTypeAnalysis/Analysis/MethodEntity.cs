@@ -250,6 +250,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.MethodDescriptor.ToString();
 		}
 	}
+
     [Serializable]
 	internal class MethodEntityDescriptor : IEntityDescriptor
 	{
@@ -315,6 +316,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.codeProvider = providerEntity.Item1;
             SolutionManager.Instance.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
         }
+
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             Logger.LogS( "MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
@@ -546,13 +548,13 @@ namespace ReachingTypeAnalysis.Analysis
             return this.methodEntity.PropGraph.GetDelegates(node);
         }
 
-        public Task<IEntity> GetMethodEntity()
+        public Task<IEntity> GetMethodEntityAsync()
         {
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetCalleesAsync()
+        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
@@ -563,7 +565,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return CallGraphQueryInterface.GetCalleesInfo(this.methodEntity, this.codeProvider);
         }
-        public Task<bool> IsInitialized()
+        public Task<bool> IsInitializedAsync()
         {
             return Task.FromResult(this.methodEntity != null);
         }

@@ -20,13 +20,13 @@ namespace OrleansInterfaces
         //Task<MethodDescriptor> GetMethodDescriptor();
         //Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
 
-        Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
+		Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor);
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
         Task<bool> IsInitialized();
         Task<IEntity> GetMethodEntity();
-        Task<IEnumerable<MethodDescriptor>> GetCalleesAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
     }
 

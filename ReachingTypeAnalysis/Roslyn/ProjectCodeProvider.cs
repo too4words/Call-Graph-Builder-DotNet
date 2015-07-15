@@ -279,6 +279,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			{
 				var finder = new MethodFinder(mainSymbol, compilation.GetSemanticModel(tree));
 				finder.Visit(tree.GetRoot());
+
 				if (finder.Result != null)
 				{
 					return new ProjectCodeProvider(project, compilation);
@@ -293,6 +294,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
             var compilation = project.GetCompilationAsync().Result;
 			var mainSymbol = compilation.GetEntryPoint(cancellationToken);
+
 			if (mainSymbol == null)
 			{
 				return null;
@@ -327,24 +329,17 @@ namespace ReachingTypeAnalysis.Roslyn
 		internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(Solution solution, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			var projectIDs = solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken);
-			var continuations = new BlockingCollection<Task<Tuple<ProjectCodeProvider, IMethodSymbol>>>();
+			
 			foreach (var projectId in projectIDs)
 			{
 				var project = solution.GetProject(projectId);
 				var pair = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(project);
+				
 				if (pair != null)
 				{
 					return pair;
 				}
 			}
-
-			//foreach (var continuation in continuations) {
-			//	var pair = await continuation;
-			//	if (pair != null)
-			//	{
-			//		return pair;
-			//	}
-			//}
 
 			return null;
 		}
@@ -364,31 +359,5 @@ namespace ReachingTypeAnalysis.Roslyn
 
             return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
         }
-
-        /*
-		var cancellationToken = new System.Threading.CancellationToken();
-			var projectIDs = this.Solution.GetProjectDependencyGraph().GetTopologicallySortedProjects();
-			Project project = null;
-			Compilation compilation = null;
-			foreach (var projectID in projectIDs)
-			{
-				var candidateProject = Solution.GetProject(projectID);
-				compilation = candidateProject.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics().Where(e => e.Severity == DiagnosticSeverity.Error);
-				if (diag.Count() > 0)
-				{
-					throw new ArgumentException("Errors: {0}", string.Join("\n", diag));
-				}
-				if (compilation.GetEntryPoint(cancellationToken) != null)
-				{
-					project = candidateProject;
-					break;
-				}
-			}
-
-			var roslynMainMethod = compilation.GetEntryPoint(cancellationToken);
-	*/
-
-    }
-  
+    }  
 }
