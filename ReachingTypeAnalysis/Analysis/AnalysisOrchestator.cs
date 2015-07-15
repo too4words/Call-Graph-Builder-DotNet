@@ -25,7 +25,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var entityDescriptor = new MethodEntityDescriptor(method);
 			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
-            var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+            try
+            {
+                var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Failed a call to PropagateAsync " + e.Message);
+            }
 			await DoPropagationOnEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 		}
 
@@ -125,8 +132,14 @@ namespace ReachingTypeAnalysis.Analysis
 			var entityDescriptor = new MethodEntityDescriptor(callee);
 			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
 
-            var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-
+            try
+            {
+                var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Failed a call to PropagateAsync " + e.Message);
+            }
             await DoPropagationOnEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
@@ -179,16 +192,18 @@ namespace ReachingTypeAnalysis.Analysis
 			var entityDescriptor = new MethodEntityDescriptor(caller);
 			var methodEntityProc = await MethodEntityFactory.ObtainMethodEntityAsync(entityDescriptor);
 
-			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			await DoPropagationOnEffectsAsync(propagationEffects, propKind);
+            try
+            {
+                var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
+            }
+            catch (Exception e)
+            {
+                Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Failed a call to PropagateAsync " + e.Message);
+            }
+            await DoPropagationOnEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
-
-        
-
-
-        
 
         internal static async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraph(ISolution solution)
         {
