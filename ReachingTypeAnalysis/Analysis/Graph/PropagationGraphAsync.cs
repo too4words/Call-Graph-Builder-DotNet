@@ -240,6 +240,12 @@ namespace ReachingTypeAnalysis
             }
             return calleesForNode;
         }
+        /// <summary>
+        ///  C
+        /// </summary>
+        /// <param name="invoInfo"></param>
+        /// <param name="codeProvider"></param>
+        /// <returns></returns>
         internal Task<ISet<MethodDescriptor>> ComputeCalleesForNodeAsync(CallInfo invoInfo, ICodeProvider codeProvider)
         {
             //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
