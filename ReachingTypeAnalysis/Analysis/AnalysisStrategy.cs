@@ -5,27 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using OrleansInterfaces;
 using System.Diagnostics.Contracts;
+using Microsoft.CodeAnalysis;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	internal class AnalysisStrategy : IAnalysisStrategy
+	internal class OndemandAsyncStrategy : IAnalysisStrategy
 	{
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
-
-		public AnalysisStrategy()
+        private Solution solution;
+		public OndemandAsyncStrategy(Solution solution)
 		{
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
+            this.solution = solution;
 		}
 
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			IMethodEntityWithPropagator methodEntityPropagator = null;
-
 			lock (methodEntities)
 			{
 				if (!methodEntities.TryGetValue(methodDescriptor, out methodEntityPropagator))
 				{
-					methodEntityPropagator = new MethodEntityWithPropagator(methodDescriptor);
+					methodEntityPropagator = new MethodEntityWithPropagator(methodDescriptor,solution);
 					methodEntities.Add(methodDescriptor, methodEntityPropagator);
 				}
 			}
@@ -34,7 +35,7 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 	}
 
-	internal class OrleansAnalysisStrategy : IAnalysisStrategy
+	internal class OnDemandOrleansStrategy : IAnalysisStrategy
 	{
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
@@ -47,15 +48,16 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", methodDescriptor);
 
 			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.ToString());
-			var methodEntity = await methodEntityGrain.GetMethodEntity();
-
+			
+            // var methodEntity = await methodEntityGrain.GetMethodEntity();
+            var isInitialized = await methodEntityGrain.IsInitialized();
 			// check if the result is initialized
-			if (methodEntity == null)
+			if (!isInitialized)
 			{
-				Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", methodDescriptor);
+                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", methodDescriptor);
 				Contract.Assert(methodDescriptor != null);
 				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-				methodEntity = await CreateMethodEntityUsingGrainsAsync(methodDescriptor);
+				var methodEntity = await CreateMethodEntityUsingGrainsAsync(methodDescriptor);
 				Contract.Assert(methodEntity != null);
 				await methodEntityGrain.SetMethodEntityAsync(methodEntity, methodDescriptor);
 				//await methodEntityGrain.SetDescriptor(entityDescriptor);
@@ -75,16 +77,18 @@ namespace ReachingTypeAnalysis.Analysis
 			MethodEntity methodEntity = null;
 			var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
 			var providerGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
-			
-			if (providerGrain == null)
-			{
-				var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodProcessor(methodDescriptor);
-				methodEntity = libraryMethodVisitor.ParseLibraryMethod();
-			}
-			else
-			{
-				methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
-			}
+            Contract.Assert(providerGrain != null);
+            methodEntity = (MethodEntity) await providerGrain.CreateMethodEntityAsync(methodDescriptor);
+
+            //if (providerGrain == null)
+            //{
+            //    var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodProcessor(methodDescriptor);
+            //    methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            //}
+            //else
+            //{
+            //    methodEntity = (MethodEntity)await providerGrain.CreateMethodEntityAsync(methodDescriptor);
+            //}
 
 			return methodEntity;
 		}

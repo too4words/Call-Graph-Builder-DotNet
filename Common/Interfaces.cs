@@ -1,4 +1,5 @@
-﻿using ReachingTypeAnalysis.Communication;
+﻿using ReachingTypeAnalysis;
+using ReachingTypeAnalysis.Communication;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,6 +51,7 @@ namespace ReachingTypeAnalysis
         Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+        Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
     
     }
     public interface ISolution

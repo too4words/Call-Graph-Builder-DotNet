@@ -1,4 +1,5 @@
-﻿using Orleans;
+﻿using Microsoft.CodeAnalysis;
+using Orleans;
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
@@ -309,9 +310,13 @@ namespace ReachingTypeAnalysis.Analysis
         private MethodEntity methodEntity;
         private ICodeProvider codeProvider;
         //private Orleans.Runtime.Logger logger = GrainClient.Logger;
-        public MethodEntityWithPropagator(MethodDescriptor methodDescriptor)
+        public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, Solution solution)
         {
-            var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptor).Result;
+            //var providerAndSyntax = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution).Result;
+            //this.codeProvider = providerAndSyntax.Item1;
+            //this.methodEntity = (MethodEntity)codeProvider.CreateMethodEntityAsync(methodDescriptor).Result;
+
+            var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptor,solution).Result;
             this.methodEntity = providerEntity.Item2;
             this.codeProvider = providerEntity.Item1;
             SolutionManager.Instance.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);

@@ -176,6 +176,7 @@ namespace ReachingTypeAnalysis
                 var ts = GetTypesMS(n);
                 var removed = ts.ExceptWith(types);
             }
+
             return new PropagationEffects(calls, retModified);
         }
 

@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis
                             Contract.Assert(mainSymbol != null);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new AnalysisStrategy();
+							var strategy = new OndemandAsyncStrategy(this.Solution);
 							var orchestator = new AnalysisOrchestator(strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
@@ -176,7 +176,7 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new OrleansAnalysisStrategy();
+							var strategy = new OnDemandOrleansStrategy();
 							var orchestator = new AnalysisOrchestator(strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
@@ -447,7 +447,7 @@ namespace ReachingTypeAnalysis
                 switch(strategyKind)
                 {
                     case AnalysisStrategyKind.ONDEMAND_ORLEANS:
-						var strategy = new OrleansAnalysisStrategy();
+						var strategy = new OnDemandOrleansStrategy();
 						var orchestator = new AnalysisOrchestator(strategy);
                         await orchestator.AnalyzeAsync(mainMethodDescriptor);
                         

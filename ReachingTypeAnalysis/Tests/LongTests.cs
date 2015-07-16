@@ -111372,7 +111372,30 @@ class C
 
         [TestMethod]
         [TestCategory("Generated")]
-        public void LongGeneratedTestAsync2()
+                public void LongGeneratedTestDemandAsync2()
+        {
+            LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+        [TestMethod]
+        [TestCategory("Generated")]
+        public void LongGeneratedTestOrleansAsync2()
+        {
+            LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+
+        [TestMethod]
+        [TestCategory("Generated")]
+        public void LongGeneratedTestDemandAsync3()
+        {
+            LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+        [TestMethod]
+        [TestCategory("Generated")]
+        public void LongGeneratedTestOrleansAsync3()
+        {
+            LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+        public void LongGeneratedTestAsync2(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C
@@ -112400,12 +112423,10 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 589, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            }, strategy);
         }
 
-        [TestMethod]
-        [TestCategory("Generated")]
-        public void LongGeneratedTestAsync3()
+        public void LongGeneratedTestAsync3(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C
@@ -122436,12 +122457,12 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 5990, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategyKind.ONDEMAND_ASYNC);
+            }, strategy);
         }
 
         [TestCategory("VeryLongRunning")]
         [TestMethod]
-        public void LongGeneratedTestAsync4()
+        public void LongGeneratedTestAsync4(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C
@@ -222470,7 +222491,7 @@ class C
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 59989, string.Format("Found {0} edges", edgeCount));
-            }, AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            }, strategy);
         }
     }
 }

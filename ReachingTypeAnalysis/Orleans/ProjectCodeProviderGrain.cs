@@ -25,7 +25,7 @@ namespace ReachingTypeAnalysis.Analysis
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
-        private ProjectCodeProvider projectCodeProvider;
+        private ICodeProvider projectCodeProvider;
 
         public override async Task OnActivateAsync()
         {
@@ -41,8 +41,15 @@ namespace ReachingTypeAnalysis.Analysis
                     Contract.Assert(this.State.Name != null);
                     this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution,this.State.Name);                    
                 }
+                else
+                {
+                    if(this.GetPrimaryKeyString().Equals("DUMMY"))
+                    {
+                        this.projectCodeProvider = new DummyCodeProvider();
+                    }
+                }
             }
-
+            
         }
 
         public async Task SetProjectPath(string fullPath)
@@ -121,6 +128,10 @@ namespace ReachingTypeAnalysis.Analysis
         {
             throw new NotImplementedException();
             //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
+        }
+        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+        {
+            return projectGrain.CreateMethodEntityAsync(methodDescriptor);
         }
     }
 

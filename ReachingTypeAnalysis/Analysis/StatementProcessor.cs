@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public StatementProcessor(MethodDescriptor m,
 			PropGraphNodeDescriptor rv, PropGraphNodeDescriptor thisRef,
 			IEnumerable<PropGraphNodeDescriptor> parameters,
-            ProjectCodeProvider codeProvider)
+            ICodeProvider codeProvider)
 		{
 			// this.containerEntity = containerEntity;
 			this.ReturnVariable = rv;

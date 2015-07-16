@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis
         //public IDispatcher Dispatcher { get; private set; }
         //private AMethod analysisMethod;
 
-        protected ProjectCodeProvider codeProvider;
+        protected ICodeProvider codeProvider;
 
         public MethodDescriptor MethodDescriptor { get;  protected set; }
 
