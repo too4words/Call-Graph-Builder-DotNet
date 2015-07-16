@@ -43,31 +43,34 @@ namespace ReachingTypeAnalysis.Analysis
 			return new MethodEntityGrainWrapper(methodEntityGrain);
 		}
 
-		private async Task<IMethodEntityGrain> GetMethodEntityGrainAsync(MethodDescriptor methodDescriptor)
+		private Task<IMethodEntityGrain> GetMethodEntityGrainAsync(MethodDescriptor methodDescriptor)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", methodDescriptor);
 
-			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.ToString());
-			
-            // var methodEntity = await methodEntityGrain.GetMethodEntity();
-            var isInitialized = await methodEntityGrain.IsInitialized();
-			// check if the result is initialized
-			if (!isInitialized)
-			{
-                Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", methodDescriptor);
-				Contract.Assert(methodDescriptor != null);
-				////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
-				var methodEntity = await CreateMethodEntityUsingGrainsAsync(methodDescriptor);
-				Contract.Assert(methodEntity != null);
-				await methodEntityGrain.SetMethodEntityAsync(methodEntity, methodDescriptor);
-				//await methodEntityGrain.SetDescriptor(entityDescriptor);
-				return methodEntityGrain;
-			}
-			else
-			{
-				Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", methodDescriptor);
-				return methodEntityGrain;
-			}
+			var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+
+			// Now on activation the method entity is created in the grain
+            // We no longer need to create them externally
+            //var isInitialized = await methodEntityGrain.IsInitialized();
+            //// check if the result is initialized
+            //// Now 
+            //if (!isInitialized)
+            //{
+            //    Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} does not exist", methodDescriptor);
+            //    Contract.Assert(methodDescriptor != null);
+            //    ////  methodEntity = await providerGrain.CreateMethodEntityAsync(grainDesc.MethodDescriptor);
+            //    var methodEntity = await CreateMethodEntityUsingGrainsAsync(methodDescriptor);
+            //    Contract.Assert(methodEntity != null);
+            //    await methodEntityGrain.SetMethodEntityAsync(methodEntity, methodDescriptor);
+            //    //await methodEntityGrain.SetDescriptor(entityDescriptor);
+            //    return methodEntityGrain;
+            //}
+            //else
+            //{
+            //    Logger.Instance.Log("AnalysisOrchestator", "CreateMethodEntityGrain", "MethodEntityGrain for {0} already exists", methodDescriptor);
+            //    return methodEntityGrain;
+            //}
+            return Task.FromResult(methodEntityGrain);
 		}
 
 		private async Task<MethodEntity> CreateMethodEntityUsingGrainsAsync(MethodDescriptor methodDescriptor)

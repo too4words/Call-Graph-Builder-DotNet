@@ -137,6 +137,15 @@ namespace ReachingTypeAnalysis
         {
             return this.Name;
         }
+        public string Marshall()
+        {
+            return this.NamespaceName + "+" +this.ClassName + "+" + this.MethodName + "+" + this.IsStatic;
+        }
+        public static MethodDescriptor DeMarsall(string md)
+        {
+            var tokens = md.Split('+');
+            return new MethodDescriptor(tokens[0],tokens[1],tokens[2],bool.Parse(tokens[3]));
+        }
     }
 
     [Serializable]

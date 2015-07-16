@@ -34,17 +34,22 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
             solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            MethodDescriptor methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
+
 	        // Shold not be null..
             if (this.State.Etag!= null)
             {
-				this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(this.State.MethodDescriptor);
-                this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
-                // TODO: do we need to check and restore methodEntity
-                // To restore the full entity state we need to save propagation data
-                // or repropagate
-				this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(this.State.MethodDescriptor);
-                await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+                methodDescriptor = this.State.MethodDescriptor;
             }
+
+
+            this.State.MethodDescriptor = methodDescriptor;
+            this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+            this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+
+            this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptor);
+            await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+            await State.WriteStateAsync();
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
