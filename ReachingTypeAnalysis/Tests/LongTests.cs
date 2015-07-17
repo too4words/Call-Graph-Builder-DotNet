@@ -111395,6 +111395,20 @@ class C
         {
             LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+        public void LongGeneratedTestDemandAsync4()
+        {
+            LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+        public void LongGeneratedTestOrleansAsync4()
+        {
+            LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+
+
         public void LongGeneratedTestAsync2(AnalysisStrategyKind strategy)
         {
             var source = @"       

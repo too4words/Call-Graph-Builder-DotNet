@@ -17,7 +17,8 @@ namespace ReachingTypeAnalysis.Analysis
         string SourceCode { get; set; }
     }
 
-    [StorageProvider(ProviderName = "TestStore")]
+    //[StorageProvider(ProviderName = "FileStore")]
+    [StorageProvider(ProviderName = "MemoryStore")]
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
         [NonSerialized]

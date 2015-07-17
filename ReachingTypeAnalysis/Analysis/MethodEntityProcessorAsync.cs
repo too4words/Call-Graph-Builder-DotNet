@@ -53,8 +53,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("MethodEntityProcessor", "ProcessCallMessageAsync", callerMesssage);
 			// Propagate this to the callee (RTA)
-			this.MethodEntity.InstantiatedTypes.UnionWith(
-				Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
+            //this.MethodEntity.InstantiatedTypes.UnionWith(
+            //    Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
 			// "Event" handler: Do the propagation of caller info
 			await HandleCallEventAsync(callerMesssage.CallMessageInfo);
 		}
@@ -65,8 +65,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var retMsgInfo = returnMesssage.ReturnMessageInfo;
 			// Propagate types from the callee (RTA)
-			this.MethodEntity.InstantiatedTypes
-				.UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
+            //this.MethodEntity.InstantiatedTypes
+            //    .UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
 			// "Event" handler: Do the propagation of callee info
 			await HandleReturnEventAsync(retMsgInfo);
 		}

@@ -21,7 +21,8 @@ namespace ReachingTypeAnalysis.Analysis
 
     }
 
-    [StorageProvider(ProviderName = "TestStore")]
+    //[StorageProvider(ProviderName = "FileStore")]
+    [StorageProvider(ProviderName = "MemoryStore")]
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
 using SolutionTraversal.Callgraph;
+using System.Linq;
+using Orleans;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -20,12 +22,34 @@ namespace ReachingTypeAnalysis.Analysis
     internal class AnalysisOrchestator
 	{
 		private IAnalysisStrategy strategy;
+        //private ISet<Message> messageWorkList = new HashSet<Message>();
+        private Queue<Message> messageWorkList = new Queue<Message>();
 
 		public AnalysisOrchestator(IAnalysisStrategy strategy)
 		{
 			this.strategy = strategy;
 		}
 
+        private async Task ProcessMessages()
+        {
+            while(messageWorkList.Count>0)
+            {
+                var message = messageWorkList.Dequeue();
+                //var message = messageWorkList.First();
+                //messageWorkList.Remove(message);
+                if (message is CallerMessage)
+                {
+                    var callerMessage = (CallerMessage)message;
+                    var callerMessageInfo = callerMessage.CallMessageInfo;
+                    await AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
+                }
+                else if(message is CalleeMessage)
+                {
+                    var calleeMessage = (CalleeMessage)message;
+                    await AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller,calleeMessage,calleeMessage.ReturnMessageInfo.PropagationKind);
+                }
+            }
+        }
 		public async Task AnalyzeAsync(MethodDescriptor method)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
@@ -34,6 +58,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var methodEntityProc = await strategy.GetMethodEntityAsync(method);
             var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+            await ProcessMessages();
 		}
 
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind)
@@ -112,8 +137,10 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
-
-			return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
+            this.messageWorkList.Enqueue(callerMessage);
+            //this.messageWorkList.Add(callerMessage);
+            return TaskDone.Done;
+			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
 		/// <summary>
@@ -162,8 +189,10 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
 			var calleeMessage = new CalleeMessage(source, returnMessageInfo);
-
-			return AnalyzeReturnAsync(returnMessageInfo.Caller, calleeMessage, propKind);
+            this.messageWorkList.Enqueue(calleeMessage);
+            //this.messageWorkList.Add(calleeMessage);
+            return TaskDone.Done;
+			//return AnalyzeReturnAsync(returnMessageInfo.Caller, calleeMessage, propKind);
 		}
 
 		/// <summary>

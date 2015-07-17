@@ -11,12 +11,95 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using ReachingTypeAnalysis.Analysis;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace ReachingTypeAnalysis
 {
-    public class Program
+    public class Program : IDisposable
     {
+        StreamWriter file;
+        public Program(string fileName)
+        {
+            file = File.CreateText(fileName);
+            file.WriteLine("Test, Avg, Max, Min");
+        }
+        public void Dispose()
+        {
+            file.Dispose();
+        }
+
         static void Main(string[] args)
+        {
+            //RunProgramWithOrleans(args);
+
+            if (args[0].EndsWith(".playlist"))
+            {
+                RunTests(args);
+            }
+            else
+            {
+                RunTestFromCmdLine(args);
+            }
+            Console.WriteLine("Done");
+            Console.ReadKey();
+        }
+        private static void RunTests(string[] args)
+        {
+            var program = new Program("stats-edgard.txt");
+            
+            var playListName = args[0];
+            var iterations = int.Parse(args[1]);
+
+            var xdoc = XDocument.Load(playListName);
+            var tests = from lv1 in xdoc.Descendants("Add")
+                       select lv1.Attribute("Test").Value;
+            foreach(var test in tests)
+            {
+                var name = test.Substring(test.LastIndexOf('.')+1);
+                program.RunOneTest(name, iterations);
+            }
+        }
+
+        private static void RunTestFromCmdLine(string[] args)
+        {
+            var program = new Program("stats-edgard.txt");
+
+            var testToExecute = args[0];
+            var iterations = int.Parse(args[1]);
+            program.RunOneTest(testToExecute, iterations);
+
+        }
+
+        private void RunOneTest(string testToExecute, int iterations)
+        {
+
+            Console.WriteLine("Executing {0}", testToExecute);
+            var minTime = long.MaxValue;
+            var maxTime = 0L;
+            var acumTime = 0D;
+            for (int i = 0; i < iterations; i++)
+            {
+                Console.WriteLine("Iteration {0}", i); 
+                var watch = new Stopwatch();
+                var test = new Tests();
+                var methodToExecute = test.GetType().GetMethod(testToExecute);
+                watch.Start();
+                methodToExecute.Invoke(test, new object[0]);
+                watch.Stop();
+                var time = watch.ElapsedMilliseconds;
+                if (time > maxTime)
+                    maxTime = time;
+                if (time < minTime)
+                    minTime = time;
+                acumTime += time;
+            }
+            var avgTime = acumTime / iterations;
+            file.WriteLine("{3}, {0}, {1}, {2}", avgTime, maxTime, minTime,testToExecute);
+            file.Flush();
+        }
+
+        private static void RunProgramWithOrleans(string[] args)
         {
             var hostDomain = AppDomain.CreateDomain("OrleansHost", null, new AppDomainSetup
             {
@@ -69,10 +152,10 @@ namespace ReachingTypeAnalysis
             var timerLocal = new Stopwatch();
             timerLocal.Start();
             // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-            analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            var callgraph = analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
             timerLocal.Stop();
 
-            return analyzer.GenerateCallGraph();
+            return callgraph;
         }
 
         private static bool CompareDispatchers(Solution solution)
@@ -124,7 +207,5 @@ namespace ReachingTypeAnalysis
             // seems like they are the same
             return true;
         }
-
-        
     }
 }

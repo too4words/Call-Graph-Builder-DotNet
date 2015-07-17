@@ -100,9 +100,9 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.Instance.Log("MethodEntityProcessor", "ProcessCallMessage", callerMesssage);
             // Propagate this to the callee (RTA)
-            this.MethodEntity.InstantiatedTypes
-                .UnionWith(
-                    Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
+            //this.MethodEntity.InstantiatedTypes
+            //    .UnionWith(
+            //        Demarshaler.Demarshal(callerMesssage.CallMessageInfo.InstantiatedTypes));
             // "Event" handler: Do the propagation of caller info
             HandleCallEvent(callerMesssage.CallMessageInfo);
         }
@@ -111,8 +111,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var retMsgInfo = returnMessage.ReturnMessageInfo;
             // Propagate types from the callee (RTA)
-            this.MethodEntity.InstantiatedTypes
-                .UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
+            //this.MethodEntity.InstantiatedTypes
+            //    .UnionWith(Demarshaler.Demarshal(retMsgInfo.InstatiatedTypes));
             // "Event" handler: Do the propagation of callee info
             HandleReturnEvent(retMsgInfo);
         }
@@ -196,8 +196,9 @@ namespace ReachingTypeAnalysis.Analysis
             /// Every invocation that was "touched" by a propagation is signaled to propagate the new data
             foreach (var invocationInfo in invocationsToProcess)
             {
-                ///  Add instanciated types
-                invocationInfo.InstantiatedTypes = this.MethodEntity.InstantiatedTypes;
+                ///  Add instanciated types. 
+                ///  Removed: we no longer send RTA info in the messages!
+                //invocationInfo.InstantiatedTypes = this.MethodEntity.InstantiatedTypes;
                 // I hate to do this. Need to Refactor!
                 if (invocationInfo is MethodCallInfo)
                 {

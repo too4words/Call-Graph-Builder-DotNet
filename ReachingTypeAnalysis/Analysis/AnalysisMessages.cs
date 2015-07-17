@@ -39,6 +39,16 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.CallMessageInfo.ToString();
         }
+        public override bool Equals(object obj)
+        {
+            var other = (CallerMessage)obj;
+            return base.Equals(obj)  && this.CallMessageInfo.Equals(other.CallMessageInfo);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() + this.CallMessageInfo.GetHashCode();
+        }
+
     }
 
     [Serializable]
@@ -60,5 +70,14 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.ReturnMessageInfo.ToString();
 		}
+        public override bool Equals(object obj)
+        {
+            var other = (CalleeMessage)obj;
+            return base.Equals(other) && this.ReturnMessageInfo.Equals(other.ReturnMessageInfo);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() + this.ReturnMessageInfo.GetHashCode(); 
+        }
 	}
 }

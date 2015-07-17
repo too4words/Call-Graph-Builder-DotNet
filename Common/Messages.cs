@@ -17,7 +17,7 @@ namespace ReachingTypeAnalysis.Communication
 		public IList<ISet<TypeDescriptor>> ArgumentsPossibleTypes { get; private set; }
 		public ISet<TypeDescriptor> ReceiverPossibleTypes { get; private set; }
 		public VariableNode LHS { get; private set; }
-		public ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
+		//public ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
 		public PropagationKind PropagationKind { get; private set; }
 
 		public CallMessageInfo() { }
@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis.Communication
             this.ArgumentsPossibleTypes = argumentsPossibleTypes;
             this.ReceiverPossibleTypes = receiverPossibleTypes;
             this.LHS = lhs;
-            this.InstantiatedTypes = instantiatedTypes;
+            //this.InstantiatedTypes = instantiatedTypes;
             this.PropagationKind = propKind;
             this.CallNode = callNode;
         }
@@ -40,6 +40,19 @@ namespace ReachingTypeAnalysis.Communication
         {
             return string.Format("CallMessageInfo: {0}(...) -> {1}", this.Caller, this.Callee);
         }
+
+        public override bool Equals(object obj)
+        {
+            var other = (CallMessageInfo)obj;
+            return base.Equals(other);
+            /// TODO: Complete EQUALS AND HASH
+            //return this.ArgumentsPossibleTypes.Equals(other.ArgumentsPossibleTypes) 
+            //    && this.Callee.Equals(oth;
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     /// <summary>
@@ -52,7 +65,7 @@ namespace ReachingTypeAnalysis.Communication
 		public MethodDescriptor Caller { get; private set; }
 		public ISet<TypeDescriptor> ResultPossibleTypes { get; private set; }
         public VariableNode LHS { get; private set; }
-		public ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
+		//public ISet<TypeDescriptor> InstatiatedTypes { get; private set; }
 		public PropagationKind PropagationKind { get; private set; }
 		public AnalysisCallNode CallNode { get; private set; }
 
@@ -66,7 +79,7 @@ namespace ReachingTypeAnalysis.Communication
 			this.LHS = lhs;
 			this.ResultPossibleTypes = resultPossibleTypes;
             this.PropagationKind = propKind;
-			this.InstatiatedTypes = instantiatedTypes;
+			//this.InstatiatedTypes = instantiatedTypes;
             this.CallNode = callNode;
         }
 

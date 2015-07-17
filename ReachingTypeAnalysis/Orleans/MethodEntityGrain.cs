@@ -8,6 +8,7 @@ using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -16,7 +17,8 @@ namespace ReachingTypeAnalysis.Analysis
         MethodDescriptor MethodDescriptor { get; set; }
     }
 
-    [StorageProvider(ProviderName = "TestStore")]
+    //[StorageProvider(ProviderName = "FileStore")]
+    [StorageProvider(ProviderName = "MemoryStore")]
     //[Reentrant]
     internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
@@ -114,9 +116,13 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            if (!this.methodEntity.CanBeAnalized) return new PropagationEffects(new HashSet<CallInfo>(), false);
+            Logger.Log(this.GetLogger(), "MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
-            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+            Stopwatch sw = new Stopwatch();
+
+            sw.Start();
+
+            if (!this.methodEntity.CanBeAnalized) return new PropagationEffects(new HashSet<CallInfo>(), false);
 
             //var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
             var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
@@ -126,7 +132,8 @@ namespace ReachingTypeAnalysis.Analysis
                 //  Add instanciated types! 
                 /// Diego: Ben. This may not work well in parallel... 
                 /// We need a different way to update this info
-                calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+                /// Removed: we no longer send RTA info between methods
+                //calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
 
                 // TODO: This is because of the refactor
                 if (calleeInfo is MethodCallInfo)
@@ -161,7 +168,9 @@ namespace ReachingTypeAnalysis.Analysis
 					propagationEffects.CallersInfo.Add(returnInfo);
 				}
 			}
-            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
+            sw.Stop();
+
+            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0}. Time elapsed {1} ", this.methodEntity.MethodDescriptor,sw.Elapsed);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }

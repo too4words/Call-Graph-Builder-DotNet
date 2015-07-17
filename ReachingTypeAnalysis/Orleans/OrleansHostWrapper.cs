@@ -139,6 +139,8 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             siloHost = new SiloHost(siloName);
+            
+            //siloHost = new SiloHost(siloName);
             siloHost.ConfigFileName = configFileName;
             if (deploymentId != null)
             {
