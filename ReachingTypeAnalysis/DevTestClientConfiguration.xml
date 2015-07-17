@@ -10,5 +10,7 @@
   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log">
     <TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
   </Tracing>
+  <Messaging ResponseTimeout="50s" ClientSenderBuckets="8192" MaxResendCount="0"/>
+
 
 </ClientConfiguration>
