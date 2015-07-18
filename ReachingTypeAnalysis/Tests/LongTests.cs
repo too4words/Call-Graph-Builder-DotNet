@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ReachingTypeAnalysis
 {
-	public partial class Tests
+	public partial class BasicTests
     {
         [TestMethod]
         [TestCategory("Generated")]
@@ -111376,12 +111376,7 @@ class C
         {
             LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-        [TestMethod]
-        [TestCategory("Generated")]
-        public void LongGeneratedTestOrleansAsync2()
-        {
-            LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        }
+        
 
         [TestMethod]
         [TestCategory("Generated")]
@@ -111389,27 +111384,17 @@ class C
         {
             LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-        [TestMethod]
-        [TestCategory("Generated")]
-        public void LongGeneratedTestOrleansAsync3()
-        {
-            LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        }
+
+
         [TestMethod]
         [TestCategory("VeryLongRunning")]
         public void LongGeneratedTestDemandAsync4()
         {
             LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-        [TestMethod]
-        [TestCategory("VeryLongRunning")]
-        public void LongGeneratedTestOrleansAsync4()
-        {
-            LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        }
 
 
-        public void LongGeneratedTestAsync2(AnalysisStrategyKind strategy)
+        public static void LongGeneratedTestAsync2(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C
@@ -112440,7 +112425,7 @@ class C
             }, strategy);
         }
 
-        public void LongGeneratedTestAsync3(AnalysisStrategyKind strategy)
+        public static void LongGeneratedTestAsync3(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C
@@ -122476,7 +122461,7 @@ class C
 
         [TestCategory("VeryLongRunning")]
         [TestMethod]
-        public void LongGeneratedTestAsync4(AnalysisStrategyKind strategy)
+        public static void LongGeneratedTestAsync4(AnalysisStrategyKind strategy)
         {
             var source = @"       
 class C

@@ -4,14 +4,15 @@ using System;
 
 namespace ReachingTypeAnalysis
 {
-    public partial class Tests
+    [TestClass]
+    public partial class AsyncTests
     {
         [TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestSimpleCallOnDemandAsync()
         {
-            TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -19,7 +20,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestRecursionOnDemandAsync()
         {
-            TestRecursion(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestRecursion(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -27,7 +28,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestIfOnDemandAsync()
         {
-            TestIf(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestIf(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestVirtualCallViaSuperClassOnDemandAsync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -43,7 +44,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallViaInterfaceOnDemandAsync()
         {
-            TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -51,7 +52,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestForLoopOnDemandAsync()
         {
-            TestForLoop(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestForLoop(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestFieldAccessOnDemandAsync()
         {
-            TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -67,7 +68,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallStaticDelegateOnDemandAsync()
         {
-            TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestCallInterfaceDelegateOnDemandAsync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -83,7 +84,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestClassesWithSameFieldNameOnDemandAsync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestFieldLoadInCalleeOnDemandAsync()
         {
-            TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
@@ -99,7 +100,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandAsync")]
         public void TestPropertyOnDemandAsync()
         {
-            TestProperty(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestProperty(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
     }
 }

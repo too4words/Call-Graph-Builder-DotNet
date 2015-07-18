@@ -4,14 +4,15 @@ using System;
 
 namespace ReachingTypeAnalysis
 {
-    public partial class Tests
+    [TestClass]
+    public partial class EntireAsyncTests
     {
         [TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("EntireAsync")]
         public void TestSimpleCallEntireAsync()
         {
-            TestSimpleCall(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestSimpleCall(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -19,7 +20,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestRecursionEntireAsync()
         {
-            TestRecursion(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestRecursion(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -27,7 +28,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestIfEntireAsync()
         {
-            TestIf(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestIf(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestVirtualCallViaSuperClassEntireAsync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -43,7 +44,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallViaInterfaceEntireAsync()
         {
-            TestCallViaInterface(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestCallViaInterface(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -51,7 +52,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestForLoopEntireAsync()
         {
-            TestForLoop(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestForLoop(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestFieldAccessEntireAsync()
         {
-            TestFieldAccess(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestFieldAccess(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -67,7 +68,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallStaticDelegateEntireAsync()
         {
-            TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestCallInterfaceDelegateEntireAsync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -83,7 +84,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestClassesWithSameFieldNameEntireAsync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestFieldLoadInCalleeEntireAsync()
         {
-            TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
 
         [TestMethod]
@@ -99,7 +100,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireAsync")]
         public void TestPropertyEntireAsync()
         {
-            TestProperty(AnalysisStrategyKind.ENTIRE_ASYNC);
+            BasicTests.TestProperty(AnalysisStrategyKind.ENTIRE_ASYNC);
         }
     }
 }

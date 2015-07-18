@@ -1,17 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Orleans.TestingHost;
 using System;
 
 namespace ReachingTypeAnalysis
 {
-    public partial class Tests
+    [TestClass]
+    public partial class OrleansTests : TestingSiloHost
     {
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            // Optional. 
+            // By default, the next test class which uses TestignSiloHost will
+            // cause a fresh Orleans silo environment to be created.
+            StopAllSilos();
+        }
+
         [TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandOrleans")]
         public void TestSimpleCallOnDemandOrleans()
         {
-            TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -19,7 +30,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestRecursionOnDemandOrleans()
         {
-            TestRecursion(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestRecursion(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -27,7 +38,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestIfOnDemandOrleans()
         {
-            TestIf(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestIf(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -35,7 +46,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestVirtualCallViaSuperClassOnDemandOrleans()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestVirtualCallViaSuperClass(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -43,7 +54,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallViaInterfaceOnDemandOrleans()
         {
-            TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestCallViaInterface(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -51,7 +62,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestForLoopOnDemandOrleans()
         {
-            TestForLoop(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestForLoop(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -59,7 +70,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestFieldAccessOnDemandOrleans()
         {
-            TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestFieldAccess(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -67,7 +78,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallStaticDelegateOnDemandOrleans()
         {
-            TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestCallStaticDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -75,7 +86,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestCallInterfaceDelegateOnDemandOrleans()
         {
-            TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestCallInterfaceDelegate(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -83,7 +94,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestClassesWithSameFieldNameOnDemandOrleans()
         {
-            TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestClassesWithSameFieldName(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -91,7 +102,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestFieldLoadInCalleeOnDemandOrleans()
         {
-            TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestFieldLoadInCallee(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
@@ -99,7 +110,27 @@ namespace ReachingTypeAnalysis
         [TestCategory("OnDemandOrleans")]
         public void TestPropertyOnDemandOrleans()
         {
-            TestProperty(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            BasicTests.TestProperty(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
+
+        [TestMethod]
+        [TestCategory("Generated")]
+        public void LongGeneratedTestOrleansAsync2()
+        {
+            BasicTests.LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+        [TestMethod]
+        [TestCategory("Generated")]
+        public void LongGeneratedTestOrleansAsync3()
+        {
+            BasicTests.LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+        public void LongGeneratedTestOrleansAsync4()
+        {
+            BasicTests.LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+
     }
 }

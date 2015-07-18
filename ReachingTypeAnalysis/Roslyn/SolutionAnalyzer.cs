@@ -110,38 +110,41 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
                     {
-                        //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-                        var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
-                        //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
-                        var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
+                        /*                        //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+                                                var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
+                                                //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                                                //var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
+                                                var applicationPath = System.Environment.CurrentDirectory;
 
-                        var appDomainSetup = new AppDomainSetup
-                        {
-                            AppDomainInitializer = InitSilo,
-                            //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
-                            ApplicationBase = applicationPath,
-                            ApplicationName = "ReachingTypeAnalysis",
-                            AppDomainInitializerArguments = new string[] { },
-                            ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
-                        };
-                        // set up the Orleans silo
-                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
+                                                var appDomainSetup = new AppDomainSetup
+                                                {
+                                                    AppDomainInitializer = InitSilo,
+                                                    //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                                                    ApplicationBase = applicationPath,
+                                                    ApplicationName = "ReachingTypeAnalysis",
+                                                    AppDomainInitializerArguments = new string[] { },
+                                                    //ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
+                                                    ConfigurationFile = "ReachingTypeAnalysis.exe.config"
+                                                };
+                                                // set up the Orleans silo
+                                                var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
 
-                        var xmlConfig = "DevTestClientConfiguration.xml";
-                        Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
-                        try
-                        {
-                            GrainClient.Initialize(xmlConfig);
-                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
-                            throw e;
-                            //break;
-                        }
+                                                var xmlConfig = "ClientConfigurationForTesting.xml";
+                                                Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
+                                                try
+                                                {
+                                                    GrainClient.Initialize(xmlConfig);
+                                                    Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
+                                                    throw e;
+                                                    //break;
+                                                }
+                         */
                         // Create a Grain for the solution
-                        ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+                        var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
                         Contract.Assert(solutionGrain != null);
                         if (SourceCode != null)
                         {
@@ -183,7 +186,7 @@ namespace ReachingTypeAnalysis
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
 
-                            hostDomain.DoCallBack(ShutdownSilo);
+                            //hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;
                         }
 

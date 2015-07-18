@@ -16,10 +16,10 @@ using System.Xml.Linq;
 
 namespace ReachingTypeAnalysis
 {
-    public class Program : IDisposable
+    public class OldDriver : IDisposable
     {
         StreamWriter file;
-        public Program(string fileName)
+        public OldDriver(string fileName)
         {
             file = File.CreateText(fileName);
             file.WriteLine("Test, Avg, Max, Min");
@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis
         }
         private static void RunTests(string[] args)
         {
-            var program = new Program("stats-edgard.txt");
+            var program = new OldDriver("stats-edgard.txt");
             
             var playListName = args[0];
             var iterations = int.Parse(args[1]);
@@ -63,7 +63,7 @@ namespace ReachingTypeAnalysis
 
         private static void RunTestFromCmdLine(string[] args)
         {
-            var program = new Program("stats-edgard.txt");
+            var program = new OldDriver("stats-edgard.txt");
 
             var testToExecute = args[0];
             var iterations = int.Parse(args[1]);
@@ -107,7 +107,7 @@ namespace ReachingTypeAnalysis
                 AppDomainInitializerArguments = new string[] { },
             });
 
-            GrainClient.Initialize("DevTestClientConfiguration.xml");
+            GrainClient.Initialize("ClientConfigurationForTesting.xml");
 
             if (args.Length == 0)
             {

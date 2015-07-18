@@ -4,14 +4,15 @@ using System;
 
 namespace ReachingTypeAnalysis
 {
-    public partial class Tests
+    [TestClass]
+    public partial class EntireTests
     {
         [TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("EntireSync")]
         public void TestSimpleCallEntireSync()
         {
-            TestSimpleCall(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestSimpleCall(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -19,7 +20,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestRecursionEntireSync()
         {
-            TestRecursion(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestRecursion(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -27,7 +28,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestIfEntireSync()
         {
-            TestIf(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestIf(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestVirtualCallViaSuperClassEntireSync()
         {
-            TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestVirtualCallViaSuperClass(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -43,7 +44,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallViaInterfaceEntireSync()
         {
-            TestCallViaInterface(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestCallViaInterface(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -51,7 +52,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestForLoopEntireSync()
         {
-            TestForLoop(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestForLoop(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestFieldAccessEntireSync()
         {
-            TestFieldAccess(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestFieldAccess(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -67,7 +68,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallStaticDelegateEntireSync()
         {
-            TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestCallStaticDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestCallInterfaceDelegateEntireSync()
         {
-            TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestCallInterfaceDelegate(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -83,7 +84,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestClassesWithSameFieldNameEntireSync()
         {
-            TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestClassesWithSameFieldName(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestFieldLoadInCalleeEntireSync()
         {
-            TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestFieldLoadInCallee(AnalysisStrategyKind.ENTIRE_SYNC);
         }
 
         [TestMethod]
@@ -99,7 +100,7 @@ namespace ReachingTypeAnalysis
         [TestCategory("EntireSync")]
         public void TestPropertyEntireSync()
         {
-            TestProperty(AnalysisStrategyKind.ENTIRE_SYNC);
+            BasicTests.TestProperty(AnalysisStrategyKind.ENTIRE_SYNC);
         }
     }
 

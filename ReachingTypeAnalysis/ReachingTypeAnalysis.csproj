@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{31E6307F-30AF-46D4-B9B5-195C54408204}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ReachingTypeAnalysis</RootNamespace>
     <AssemblyName>ReachingTypeAnalysis</AssemblyName>
@@ -338,12 +338,13 @@
     <Content Include="ClientConfiguration.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="DevTestServerConfiguration.xml">
+    <Content Include="OrleansConfigurationForTesting.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="DevTestClientConfiguration.xml">
+    <Content Include="ClientConfigurationForTesting.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -371,33 +372,8 @@
     <Error Condition="!Exists('..\packages\Microsoft.Orleans.Templates.Grains.1.0.8\build\Microsoft.Orleans.Templates.Grains.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Orleans.Templates.Grains.1.0.8\build\Microsoft.Orleans.Templates.Grains.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>if exist "$(OrleansSDK)\LocalSilo" (
-        if not exist "$(OrleansSDK)\LocalSilo\Applications" (md "$(OrleansSDK)\LocalSilo\Applications")
-        if not exist  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)" (md "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)")
-if not exist  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications" (md "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications")
-
-        copy /y *.exe  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications\"
-        copy /y *.dll  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications\"
-        copy /y *.pdb  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications\"
-        copy /y *.config  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\Applications\"
-        )
-if exist "$(OrleansSDK)\LocalSilo" (
-        if not exist "$(OrleansSDK)\LocalSilo\Applications" (md "$(OrleansSDK)\LocalSilo\Applications")
-        if not exist  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)" (md "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)")
-        copy /y *.exe  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\"
-        copy /y *.dll  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\"
-        copy /y *.pdb  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\"
-        copy /y *.config  "$(OrleansSDK)\LocalSilo\Applications\$(RootNamespace)\"
-        )
-if exist "$(OrleansSDK)\Binaries" (
-        if not exist "$(OrleansSDK)\Binaries\Applications" (md "$(OrleansSDK)\Binaries\Applications")
-        if not exist  "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)" (md "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)")
-        copy /y *.exe "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)\"
-         copy /y *.dll "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)\"
-         copy /y *.pdb "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)\"
-         copy /y *.config "$(OrleansSDK)\Binaries\Applications\$(RootNamespace)\"
-        )
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Microsoft.Orleans.Templates.Grains.1.0.8\build\Microsoft.Orleans.Templates.Grains.targets" Condition="Exists('..\packages\Microsoft.Orleans.Templates.Grains.1.0.8\build\Microsoft.Orleans.Templates.Grains.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

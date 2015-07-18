@@ -3,9 +3,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace ReachingTypeAnalysis
-{    public partial class BasicTests
+{    public partial class Tests
     {
-        public static void TestSimpleCall(AnalysisStrategyKind strategy)
+        public void TestSimpleCall(AnalysisStrategyKind strategy)
         {
             var source = @"
 using System;
@@ -56,7 +56,7 @@ class Program
             }, strategy);
         }
 
-        public static  void TestRecursion(AnalysisStrategyKind strategy)
+        public void TestRecursion(AnalysisStrategyKind strategy)
         {
             var source = @"
 using System;
@@ -97,7 +97,7 @@ class Program
             }, strategy);
         }
 
-        public static void TestIf(AnalysisStrategyKind strategy)
+        public void TestIf(AnalysisStrategyKind strategy)
         {
             var source = @"
 public class D:C
@@ -136,7 +136,7 @@ class Program
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m1"), callgraph));
             }, strategy);
         }
-        public static void TestVirtualCallViaSuperClass(AnalysisStrategyKind strategy)
+        public void TestVirtualCallViaSuperClass(AnalysisStrategyKind strategy)
         {
             String source =
 @"class MainClass {
@@ -162,7 +162,7 @@ class Program
             },strategy);
         }
 
-        public static  void TestCallViaInterface(AnalysisStrategyKind strategy)
+        public void TestCallViaInterface(AnalysisStrategyKind strategy)
         {
             String source =
 @"class MainClass {
@@ -188,7 +188,7 @@ class Program
             }, strategy);
         }
 
-        public static void TestForLoop(AnalysisStrategyKind strategy)
+        public void TestForLoop(AnalysisStrategyKind strategy)
         {
             String source =
 @"class C
@@ -228,7 +228,7 @@ class Program
             }, strategy);
         }
 
-        public static void TestForLoopQueuing(AnalysisStrategyKind strategy)
+        public void TestForLoopQueuing(AnalysisStrategyKind strategy)
         {
             String source =
 @"class C
@@ -273,7 +273,7 @@ class Program
             }, strategy);
         }
 
-        public static void TestFieldAccess(AnalysisStrategyKind strategy)
+        public void TestFieldAccess(AnalysisStrategyKind strategy)
         {
             String source =
 @"class D : C
@@ -337,7 +337,7 @@ class C
             }, strategy);
         }
 
-        public static  void TestCallStaticDelegate(AnalysisStrategyKind strategy)
+        public void TestCallStaticDelegate(AnalysisStrategyKind strategy)
         {
             // Test to ensure that static methods called via delegates are reachable
 
@@ -370,7 +370,7 @@ class C
             }, strategy);
         }
 
-        public static void TestCallInterfaceDelegate(AnalysisStrategyKind strategy)
+        public void TestCallInterfaceDelegate(AnalysisStrategyKind strategy)
         {
             // Test to ensure that interface methods called via interfaces are reachable
 
@@ -402,7 +402,7 @@ class C
             }, strategy);
         }
 
-        public static void TestClassesWithSameFieldName(AnalysisStrategyKind strategy)
+        public void TestClassesWithSameFieldName(AnalysisStrategyKind strategy)
         {
             var source = @"
 using System;
@@ -448,7 +448,7 @@ class Program
                 Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
             }, strategy);
         }
-        public static  void TestFieldLoadInCallee(AnalysisStrategyKind strategy)
+        public void TestFieldLoadInCallee(AnalysisStrategyKind strategy)
         {
             var source = @"
 public class D
@@ -486,7 +486,7 @@ class Program
             }, strategy);
         }
 
-        public static  void TestProperty(AnalysisStrategyKind strategy)
+        public void TestProperty(AnalysisStrategyKind strategy)
         {
             var source = @"
 using System;

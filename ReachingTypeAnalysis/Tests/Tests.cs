@@ -14,7 +14,7 @@ using System.Linq;
 namespace ReachingTypeAnalysis
 {
     [TestClass]
-    public partial class Tests
+    public partial class BasicTests
     {
         delegate void RunChecks(SolutionAnalyzer s, CallGraph<MethodDescriptor, LocationDescriptor> callgraph);
 

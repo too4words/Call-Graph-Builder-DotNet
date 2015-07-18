@@ -75,7 +75,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             string deploymentId = null;
 
-            string configFileName = "DevTestServerConfiguration.xml";
+            string configFileName = "OrleansConfigurationForTesting.xml";
             string siloName = Dns.GetHostName(); // Default to machine name
 
             int argPos = 1;
