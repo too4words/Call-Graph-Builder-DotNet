@@ -7,8 +7,8 @@
   <GatewayProvider ProviderType="Config"/>
   <Gateway Address="localhost" Port="40000"/>
   <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true"/>
-  <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log">
-    <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning" />
+  <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log">
+    <TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
   </Tracing>
   <Messaging ResponseTimeout="50s" ClientSenderBuckets="8192" MaxResendCount="0"/>
 
