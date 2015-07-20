@@ -11,12 +11,14 @@ namespace ReachingTypeAnalysis
 {
     public class Program : IDisposable
     {
-        StreamWriter file;
+        private StreamWriter file;
+
         public Program(string fileName)
         {
             file = File.CreateText(fileName);
             file.WriteLine("Test, Avg, Max, Min");
         }
+
         public void Dispose()
         {
             file.Dispose();
@@ -26,6 +28,11 @@ namespace ReachingTypeAnalysis
         {
             //RunProgramWithOrleans(args);
 
+			args = new string[]
+			{
+				@"..\..\..\TestPlaylists\OnDemandAsync.playlist", "10"
+			};
+
             if (args[0].EndsWith(".playlist"))
             {
                 RunTests(args);
@@ -34,13 +41,13 @@ namespace ReachingTypeAnalysis
             {
                 RunTestFromCmdLine(args);
             }
+
             Console.WriteLine("Done");
-            //Console.ReadKey();
+            Console.ReadKey();
         }
+
         private static void RunTests(string[] args)
         {
-            
-            
             var playListName = args[0];
             var iterations = int.Parse(args[1]);
 
@@ -60,8 +67,6 @@ namespace ReachingTypeAnalysis
 
         private static void RunTestFromCmdLine(string[] args)
         {
-
-
             var testToExecute = args[0];
             var iterations = int.Parse(args[1]);
             
@@ -70,16 +75,15 @@ namespace ReachingTypeAnalysis
             var program = new Program(testToExecute+".csv");
 
             program.RunOneTest(className,method, iterations);
-
         }
 
         private void RunOneTest(string testClass, string testMethod, int iterations)
         {
-
             Console.WriteLine("Executing {0}", testMethod);
             var minTime = long.MaxValue;
             var maxTime = 0L;
             var acumTime = 0D;
+
             for (int i = 0; i < iterations; i++)
             {
                 Console.WriteLine("Iteration {0}", i); 
@@ -87,16 +91,18 @@ namespace ReachingTypeAnalysis
                 var testType = Type.GetType(testClass+", ReachingTypeAnalysis");
                 var test = Activator.CreateInstance(testType);
                 var methodToExecute = test.GetType().GetMethod(testMethod);
-                watch.Start();
+                
+				watch.Start();
                 methodToExecute.Invoke(test, new object[0]);
                 watch.Stop();
                 var time = watch.ElapsedMilliseconds;
-                if (time > maxTime)
-                    maxTime = time;
-                if (time < minTime)
-                    minTime = time;
+
+                if (time > maxTime) maxTime = time;
+                if (time < minTime) minTime = time;
+
                 acumTime += time;
             }
+
             var avgTime = acumTime / iterations;
             file.WriteLine("{3}, {0}, {1}, {2}", avgTime, maxTime, minTime,testMethod);
             file.Flush();
