@@ -61,7 +61,7 @@ namespace ReachingTypeAnalysis
         {
             if (strategyKind == AnalysisStrategyKind.NONE)
             {
-                strategyKind = ConvertToEnum(ConfigurationManager.AppSettings["Strategy"]);
+                strategyKind = StringToAnalysisStrategy(ConfigurationManager.AppSettings["Strategy"]);
             }
 
 
@@ -228,7 +228,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private static AnalysisStrategyKind ConvertToEnum(string strategy)
+        public static AnalysisStrategyKind StringToAnalysisStrategy(string strategy)
 		{
 			switch (strategy)
 			{

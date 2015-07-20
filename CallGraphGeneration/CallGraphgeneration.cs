@@ -20,8 +20,13 @@ namespace CallGraphGeneration
                 throw new ArgumentException("Not enough parameters to main");
             }
             var solutionPath = args[0];
+            var strategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
+            if(args.Length>1)
+            {
+                strategyKind = SolutionAnalyzer.StringToAnalysisStrategy(args[1]);
+            }
             var solution = ReadSolution(solutionPath);
-            var callGraph = BuildCallGraph(solution);
+            var callGraph = BuildCallGraph(solution,strategyKind);
             callGraph.Save("cg.dot");
         }
 
@@ -50,12 +55,13 @@ namespace CallGraphGeneration
         }
 
         //public static CallGraph<IMethodSymbol,Location> BuildCallGraph(Solution solution)
-		public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
+		public static CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution, 
+            AnalysisStrategyKind strategyKind)
         {
             var analyzer = new SolutionAnalyzer(solution);
-            analyzer.Analyze();
+            var callgraph = analyzer.Analyze(strategyKind);
             //analyzer.GenerateCallGraph();
-            var callgraph = analyzer.GenerateCallGraph();
+            //var callgraph = analyzer.GenerateCallGraph();
             Console.WriteLine("Reachable methods={0}", callgraph.GetReachableMethods().Count);
             return callgraph;
         }
