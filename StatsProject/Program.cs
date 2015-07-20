@@ -30,7 +30,7 @@ namespace ReachingTypeAnalysis
 
 			args = new string[]
 			{
-				@"..\..\..\TestPlaylists\OnDemandAsync.playlist", "10"
+				@"..\..\..\TestPlaylists\OnDemandOrleans.playlist", "10"
 			};
 
             if (args[0].EndsWith(".playlist"))
@@ -55,27 +55,42 @@ namespace ReachingTypeAnalysis
 
             var xdoc = XDocument.Load(playListName);
             var tests = from lv1 in xdoc.Descendants("Add")
-                       select lv1.Attribute("Test").Value;
-            foreach(var test in tests)
+                        select lv1.Attribute("Test").Value;
+
+            foreach (var test in tests)
             {
                 var className = test.Substring(0,test.LastIndexOf('.'));
                 var method = test.Substring(test.LastIndexOf('.') + 1);
 
-                program.RunOneTest(className, method, iterations);
+				try
+				{
+					program.RunOneTest(className, method, iterations);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex);
+				}
             }
         }
 
-        private static void RunTestFromCmdLine(string[] args)
-        {
-            var testToExecute = args[0];
-            var iterations = int.Parse(args[1]);
-            
-            var className = testToExecute.Substring(0, testToExecute.LastIndexOf('.'));
-            var method = testToExecute.Substring(testToExecute.LastIndexOf('.') + 1);
-            var program = new Program(testToExecute+".csv");
+		private static void RunTestFromCmdLine(string[] args)
+		{
+			var testToExecute = args[0];
+			var iterations = int.Parse(args[1]);
 
-            program.RunOneTest(className,method, iterations);
-        }
+			var className = testToExecute.Substring(0, testToExecute.LastIndexOf('.'));
+			var method = testToExecute.Substring(testToExecute.LastIndexOf('.') + 1);
+			var program = new Program(testToExecute + ".csv");
+
+			try
+			{
+				program.RunOneTest(className, method, iterations);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex);
+			}
+		}
 
         private void RunOneTest(string testClass, string testMethod, int iterations)
         {
