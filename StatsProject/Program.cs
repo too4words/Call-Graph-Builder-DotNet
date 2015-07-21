@@ -30,7 +30,8 @@ namespace ReachingTypeAnalysis
 
 			args = new string[]
 			{
-				@"..\..\..\TestPlaylists\OnDemandOrleans.playlist", "10"
+				@"..\..\..\TestPlaylists\Generated.playlist", "10"
+				//@"ReachingTypeAnalysis.BasicTests.LongGeneratedTestAsync", "10"
 			};
 
             if (args[0].EndsWith(".playlist"))

@@ -113,18 +113,27 @@ namespace ReachingTypeAnalysis
             BasicTests.TestProperty(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
+		[TestMethod]
+		[TestCategory("Generated")]
+		public void LongGeneratedTestOrleansAsync1()
+		{
+			BasicTests.LongGeneratedTestAsync1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
         [TestMethod]
         [TestCategory("Generated")]
         public void LongGeneratedTestOrleansAsync2()
         {
             BasicTests.LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
+
         [TestMethod]
         [TestCategory("Generated")]
         public void LongGeneratedTestOrleansAsync3()
         {
             BasicTests.LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
+
         [TestMethod]
         [TestCategory("VeryLongRunning")]
         public void LongGeneratedTestOrleansAsync4()
