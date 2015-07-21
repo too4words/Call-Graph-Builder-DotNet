@@ -263,6 +263,7 @@
     <Compile Include="Analysis\MethodEntityProcessorAsync.cs" />
     <Compile Include="Analysis\MethodEntityProcessor.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
+    <Compile Include="CallGraph\DGMLGraphDataAdapter.cs" />
     <Compile Include="CallGraph\GraphVizGraphDataAdapter .cs" />
     <Compile Include="Communication\IEntity.cs" />
     <Compile Include="Communication\IEntityProcessor.cs" />

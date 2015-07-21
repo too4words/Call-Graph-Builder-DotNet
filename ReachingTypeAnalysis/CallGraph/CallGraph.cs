@@ -170,8 +170,10 @@ namespace SolutionTraversal.Callgraph
 		}
 
 		public void Save(string path)
-		{
-			this.graph.Save(new GraphVizGraphDataAdapter(path));
+		{			
+			//var adapter = new GraphVizGraphDataAdapter(path);
+			var adapter = new DGMLGraphDataAdapter(path);
+			this.graph.Save(adapter);
 		}
 
 		internal void Clear()

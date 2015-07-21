@@ -25,6 +25,13 @@ namespace CallGraphGeneration
 
         static void Main(string[] args)
         {
+			args = new string[]
+			{
+				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
+				@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+				//@"C:\Users\t-edzopp\Desktop\Roslyn\RoslynLight.sln", "OnDemandAsync"
+			};
+
 			if (args.Length == 2)
 			{
 				try
@@ -32,7 +39,7 @@ namespace CallGraphGeneration
 					var solutionFileName = args[0];
 					var strategyName = args[1];
 					var strategyKind = SolutionAnalyzer.StringToAnalysisStrategy(strategyName);
-					var outputFileName = Path.ChangeExtension(solutionFileName, ".dot");
+					var outputFileName = Path.ChangeExtension(solutionFileName, ".dgml");
 
 					var program = new Program(strategyKind);
 					var callGraph = program.Analyze(solutionFileName);
@@ -113,10 +120,10 @@ namespace CallGraphGeneration
 				AppDomainInitializer = InitSilo,
 				//ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
 				ApplicationBase = applicationPath,
-				ApplicationName = "ReachingTypeAnalysis",
+				ApplicationName = "CallGraphGeneration",
 				AppDomainInitializerArguments = new string[] { },
 				//ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
-				ConfigurationFile = "ReachingTypeAnalysis.exe.config"
+				ConfigurationFile = "CallGraphGeneration.exe.config"
 			};
 
 			// set up the Orleans silo

@@ -244,7 +244,7 @@ namespace ReachingTypeAnalysis
 					{
 						return AnalysisStrategyKind.ONDEMAND_ASYNC;
 					}
-                case "OrleansAsync":
+				case "OnDemandOrleans":
                     {
                         return AnalysisStrategyKind.ONDEMAND_ORLEANS;
                     }

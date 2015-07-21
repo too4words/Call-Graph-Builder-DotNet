@@ -16,26 +16,25 @@ namespace SolutionTraversal.Callgraph
     {
         private readonly string _outputFile;
 
-        public GraphVizGraphDataAdapter(
-            string outputFile
-        )
+        public GraphVizGraphDataAdapter(string outputFile)
         {
             _outputFile = outputFile;
         }
 
-        public Graph Load() { throw new NotImplementedException(); }
+        public Graph Load()
+		{
+			throw new NotImplementedException();
+		}
 
-        public void Save(
-            Graph graph
-        )
+        public void Save(Graph graph)
         {
-            using (StreamWriter writer = File.CreateText(_outputFile))
+            using (var writer = File.CreateText(_outputFile))
             {
                 writer.WriteLine("digraph G {");
                 writer.WriteLine(@"node [label="""",shape=""point"",style=""filled"",fillcolor=""gray"",width=""0.1""];");
                 writer.WriteLine(@"edge [arrowhead=""none""];");
 
-                foreach (Vertex v in graph.EnumerateVertices())
+                foreach (var v in graph.EnumerateVertices())
                 {
                     // var method = v["M"] as IMethodSymbol;
                     var method = v["M"] as MethodDescriptor;
@@ -46,7 +45,7 @@ namespace SolutionTraversal.Callgraph
                     writer.WriteLine(@"{0} [shape=""box"",label=""{1}"",fillcolor=""gray""];", v.Id, dclass + "." + name);
                 }
 
-                foreach (Edge edge in graph.EnumerateEdges())
+                foreach (var edge in graph.EnumerateEdges())
                 {
                     var locationMethod = (KeyValuePair<LocationDescriptor, MethodDescriptor>)edge["L"];
                     //var locString = locationMethod.Key.Location != null ? locationMethod.Key.Location.GetLineSpan().StartLinePosition.ToString() : "?";
@@ -55,6 +54,7 @@ namespace SolutionTraversal.Callgraph
                     //var locationMethod = (KeyValuePair<Location, IMethodSymbol>)edge["L"];
                     //writer.WriteLine(@"{0} [label=""{1}""];", edge,locationMethod.Key.GetLineSpan().StartLinePosition);
                 }
+
                 writer.WriteLine("}");
             }
         }

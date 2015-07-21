@@ -197,13 +197,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ClientConfigurationForTesting.xml">
+    <Content Include="..\ReachingTypeAnalysis\ClientConfigurationForTesting.xml">
+      <Link>ClientConfigurationForTesting.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
     </Content>
-    <Content Include="OrleansConfigurationForTesting.xml">
+    <Content Include="..\ReachingTypeAnalysis\OrleansConfigurationForTesting.xml">
+      <Link>OrleansConfigurationForTesting.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
