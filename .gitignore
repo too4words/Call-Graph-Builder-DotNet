@@ -198,3 +198,4 @@ FakesAssemblies/
 /TestPlaylists/OnDemandAsync.csv
 /TestPlaylists/OnDemandOrleans.csv
 /TestPlaylists/OnDemandSync.csv
+*.csv

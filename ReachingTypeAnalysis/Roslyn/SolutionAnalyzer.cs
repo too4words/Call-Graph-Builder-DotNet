@@ -38,13 +38,13 @@ namespace ReachingTypeAnalysis
         internal string SourceCode { get; private set; }
 		public SolutionAnalyzer(Solution solution)
 		{
-			Solution = solution;
+			this.Solution = solution;
 			//dispatcher = new SynchronousLocalDispatcher();
 		}
 
         public SolutionAnalyzer(string sourceCode)
         {
-            Solution = Utils.CreateSolution(sourceCode);
+            this.Solution = Utils.CreateSolution(sourceCode);
             this.SourceCode = sourceCode;
             //dispatcher = new SynchronousLocalDispatcher();
         }

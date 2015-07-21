@@ -11,17 +11,17 @@ namespace ReachingTypeAnalysis
 {
     public class Program : IDisposable
     {
-        private StreamWriter file;
+        private StreamWriter outputWriter;
 
-        public Program(string fileName)
+        public Program(string outputFileName)
         {
-            file = File.CreateText(fileName);
-            file.WriteLine("Test, Avg, Max, Min");
+            outputWriter = File.CreateText(outputFileName);
+            outputWriter.WriteLine("Test, Avg, Max, Min");
         }
 
         public void Dispose()
         {
-            file.Dispose();
+            outputWriter.Dispose();
         }
 
         static void Main(string[] args)
@@ -30,98 +30,92 @@ namespace ReachingTypeAnalysis
 
 			args = new string[]
 			{
-				@"..\..\..\TestPlaylists\Generated.playlist", "10"
-				//@"ReachingTypeAnalysis.BasicTests.LongGeneratedTestAsync", "10"
+				//@"..\..\..\TestPlaylists\Generated.playlist", "10"
+				@"ReachingTypeAnalysis.OrleansTests.LongGeneratedTestOrleansAsync4", "1"
 			};
 
-            if (args[0].EndsWith(".playlist"))
-            {
-                RunTests(args);
-            }
-            else
-            {
-                RunTestFromCmdLine(args);
-            }
+			if (args.Length == 2)
+			{
+				var inputName = args[0];
+				var iterations = Convert.ToInt32(args[1]);
 
-            Console.WriteLine("Done");
+				if (inputName.EndsWith(".playlist"))
+				{
+					var outputFileName = Path.ChangeExtension(inputName, ".csv");
+					var program = new Program(outputFileName);
+
+					program.RunTestPlaylist(inputName, iterations);
+				}
+				else
+				{
+					var outputFileName = string.Concat(inputName, ".csv");
+					var program = new Program(outputFileName);
+
+					program.RunSingleTest(inputName, iterations);
+				}
+			}
+
+            Console.WriteLine("Done!");
             Console.ReadKey();
         }
 
-        private static void RunTests(string[] args)
+        private void RunTestPlaylist(string playlistName, int iterations)
         {
-            var playListName = args[0];
-            var iterations = int.Parse(args[1]);
-
-            var program = new Program(Path.ChangeExtension(playListName,"csv"));
-
-            var xdoc = XDocument.Load(playListName);
+            var xdoc = XDocument.Load(playlistName);
             var tests = from lv1 in xdoc.Descendants("Add")
                         select lv1.Attribute("Test").Value;
 
-            foreach (var test in tests)
+			foreach (var test in tests)
             {
-                var className = test.Substring(0,test.LastIndexOf('.'));
-                var method = test.Substring(test.LastIndexOf('.') + 1);
-
-				try
-				{
-					program.RunOneTest(className, method, iterations);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
-				}
+				this.RunSingleTest(test, iterations);
             }
         }
 
-		private static void RunTestFromCmdLine(string[] args)
+		public void RunSingleTest(string testFullName, int iterations)
 		{
-			var testToExecute = args[0];
-			var iterations = int.Parse(args[1]);
+			var index = testFullName.LastIndexOf('.');
+			var testClass = testFullName.Substring(0, index);
+			var testMethod = testFullName.Substring(index + 1);
 
-			var className = testToExecute.Substring(0, testToExecute.LastIndexOf('.'));
-			var method = testToExecute.Substring(testToExecute.LastIndexOf('.') + 1);
-			var program = new Program(testToExecute + ".csv");
+			this.RunSingleTest(testClass, testMethod, iterations);
+		}
 
+        public void RunSingleTest(string testClass, string testMethod, int iterations)
+        {
 			try
 			{
-				program.RunOneTest(className, method, iterations);
+				Console.WriteLine("Executing {0}", testMethod);
+				var minTime = long.MaxValue;
+				var maxTime = 0L;
+				var acumTime = 0D;
+
+				for (var i = 0; i < iterations; i++)
+				{
+					Console.WriteLine("Iteration {0}", i); 
+					var watch = new Stopwatch();
+					var testType = Type.GetType(testClass+", ReachingTypeAnalysis");
+					var test = Activator.CreateInstance(testType);
+					var methodToExecute = test.GetType().GetMethod(testMethod);
+                
+					watch.Start();
+					methodToExecute.Invoke(test, new object[0]);
+					watch.Stop();
+
+					var time = watch.ElapsedMilliseconds;
+					if (time > maxTime) maxTime = time;
+					if (time < minTime) minTime = time;
+
+					acumTime += time;
+				}
+
+				var avgTime = acumTime / iterations;
+				outputWriter.WriteLine("{3}, {0}, {1}, {2}", avgTime, maxTime, minTime,testMethod);
+				outputWriter.Flush();
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex);
 			}
-		}
-
-        private void RunOneTest(string testClass, string testMethod, int iterations)
-        {
-            Console.WriteLine("Executing {0}", testMethod);
-            var minTime = long.MaxValue;
-            var maxTime = 0L;
-            var acumTime = 0D;
-
-            for (int i = 0; i < iterations; i++)
-            {
-                Console.WriteLine("Iteration {0}", i); 
-                var watch = new Stopwatch();
-                var testType = Type.GetType(testClass+", ReachingTypeAnalysis");
-                var test = Activator.CreateInstance(testType);
-                var methodToExecute = test.GetType().GetMethod(testMethod);
-                
-				watch.Start();
-                methodToExecute.Invoke(test, new object[0]);
-                watch.Stop();
-                var time = watch.ElapsedMilliseconds;
-
-                if (time > maxTime) maxTime = time;
-                if (time < minTime) minTime = time;
-
-                acumTime += time;
-            }
-
-            var avgTime = acumTime / iterations;
-            file.WriteLine("{3}, {0}, {1}, {2}", avgTime, maxTime, minTime,testMethod);
-            file.Flush();
         }
 
         //private static void RunProgramWithOrleans(string[] args)
