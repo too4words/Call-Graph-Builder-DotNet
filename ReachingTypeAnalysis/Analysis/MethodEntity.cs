@@ -425,6 +425,15 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
             return effects;
         }
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+        {
+            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
+        }
+        public Task<int> GetInvocationCountAsync()
+        {
+            return  Task.FromResult(methodEntity.PropGraph.CallNodes.Count());
+        }
 
         private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)
         {

@@ -246,7 +246,7 @@ namespace ReachingTypeAnalysis
                                                 @"CallGraphQueryInterface",
                                                 SyntaxFactory.TriviaList())),
                                         SyntaxFactory.IdentifierName(
-                                            @"GetCalleesAsync"))
+                                            @"GetCalleesOrleansAsync"))
                                     .WithOperatorToken(
                                         SyntaxFactory.Token(
                                             SyntaxKind.DotToken)))

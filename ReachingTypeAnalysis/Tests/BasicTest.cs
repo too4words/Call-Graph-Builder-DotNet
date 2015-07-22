@@ -55,9 +55,12 @@ class Program
                 Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
                 Assert.IsTrue(result.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
 
-                Assert.IsTrue(CallGraphQueryInterface.GetInvocationCount(new MethodDescriptor("C", "m1"), "MyProject").Result == 2);
+                Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountAsync(result.Strategy, new MethodDescriptor("C", "m1")).Result == 2);
+
+                //Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountOrleansAsync(new MethodDescriptor("C", "m1"), "MyProject").Result == 2);
                 // I don't know why I started numbering by 1
-                var callees = CallGraphQueryInterface.GetCalleesAsync(new MethodDescriptor("C", "m1"), 1, "MyProject").Result;
+                //var callees = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "m1"), 1, "MyProject").Result;
+                var callees = CallGraphQueryInterface.GetCalleesAsync(result.Strategy, new MethodDescriptor("C", "m1"), 1).Result;
                 Assert.IsTrue(callees.Contains(new MethodDescriptor("D", "m2")));
 
             }, strategy);

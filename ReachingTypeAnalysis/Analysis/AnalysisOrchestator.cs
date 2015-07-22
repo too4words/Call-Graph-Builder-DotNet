@@ -256,6 +256,65 @@ namespace ReachingTypeAnalysis.Analysis
 
     public static class CallGraphQueryInterface
     {
+        /// These 2 method can work either with Orleans or OndDemandAsync Strategy
+        /// <summary>
+        /// Return the calless for a given call site
+        /// </summary>
+        /// <param name="strategy"></param>
+        /// <param name="methodDescriptor"></param>
+        /// <param name="invocationPosition"></param>
+        /// <returns></returns>
+        public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor, int invocationPosition)
+        {
+            var entityProxy = await strategy.GetMethodEntityAsync(methodDescriptor);
+            return await entityProxy.GetCalleesAsync(invocationPosition);
+        }
+        /// <summary>
+        ///  Return the numnber of calls sites for a 
+        /// </summary>
+        /// <param name="methodDescriptor"></param>
+        /// <param name="projectName"></param>
+        /// <returns></returns>
+        public static async Task<int> GetInvocationCountAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor)
+        {
+            var entityWithPropagator = await strategy.GetMethodEntityAsync(methodDescriptor);
+            return await entityWithPropagator.GetInvocationCountAsync();
+        }
+
+        /// This version is Orleans ONLY
+
+        /// <summary>
+        /// This method used Orleans Grain to obtain the set of calless of a call site
+        /// </summary>
+        /// <param name="methodDescriptor"></param>
+        /// <param name="invocationPosition"></param>
+        /// <param name="projectName"></param>
+        /// <returns></returns>
+        public static async Task<ISet<MethodDescriptor>> GetCalleesOrleansAsync(MethodDescriptor methodDescriptor, int invocationPosition, string projectName)
+        {
+            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
+            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            return await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper);
+        }
+        /// <summary>
+        ///  Return the numnber of calls sites for a 
+        /// </summary>
+        /// <param name="methodDescriptor"></param>
+        /// <param name="projectName"></param>
+        /// <returns></returns>
+        public static async Task<int> GetInvocationCountOrleansAsync(MethodDescriptor methodDescriptor, string projectName)
+        {
+            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
+            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            return methodEntity.PropGraph.CallNodes.Count();
+        }
+
         /// <summary>
         /// Compute all the calless of this method entities
         /// </summary>
@@ -272,25 +331,6 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
         }
 
-        public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodDescriptor methodDescriptor, int invocationPosition, string projectName) 
-        {
-            var projectGrain =  ProjectCodeProviderGrainFactory.GetGrain(projectName);
-            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
-            var methodGrain =  MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
-
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
-            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
-            return await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper); 
-        }
-
-        public static async Task<int> GetInvocationCount(MethodDescriptor methodDescriptor, string projectName)
-        {
-            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
-            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
-            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
-            return methodEntity.PropGraph.CallNodes.Count();
-        }
 
         /// <summary>
         /// Computes all the potential callees for a particular method invocation

@@ -32,6 +32,8 @@ namespace ReachingTypeAnalysis
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
+        Task<int> GetInvocationCountAsync();
     }
 
     public interface IEntityProcessor

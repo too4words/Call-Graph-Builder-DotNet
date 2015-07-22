@@ -9,6 +9,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+    //internal abstract class AnalysisStrategy: IAnalysisStrategy
+    //{
+    //    public abstract  Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+    //}
 	internal class OndemandAsyncStrategy : IAnalysisStrategy
 	{
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
@@ -40,8 +45,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
             var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
-			// var methodEntityGrain = await GetMethodEntityGrainAsync(methodDescriptor);
-			//return new MethodEntityGrainWrapper(methodEntityGrain);
             return await Task.FromResult(new MethodEntityGrainWrapper(methodEntityGrain));
 		}
 

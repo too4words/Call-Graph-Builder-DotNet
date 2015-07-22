@@ -210,6 +210,18 @@ namespace ReachingTypeAnalysis.Analysis
             return effects;
         }
 
+        public async Task<ISet<MethodDescriptor>> GetCalleesOrleansAsync(int invocationPosition)
+        {
+            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
+        }
+        public Task<int> GetInvocationCountAsync()
+        {
+            return  Task.FromResult(methodEntity.PropGraph.CallNodes.Count);
+        }
+
+
+
 		private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)
 		{
 			var possibleCallees = new HashSet<MethodDescriptor>();
@@ -396,6 +408,15 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
             return this.grainRef.GetCalleesInfoAsync();
+        }
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+        {
+            return await this.grainRef.GetCalleesOrleansAsync(invocationPosition);
+        }
+
+        public Task<int> GetInvocationCountAsync()
+        {
+            return this.grainRef.GetInvocationCountAsync();
         }
     }
 }

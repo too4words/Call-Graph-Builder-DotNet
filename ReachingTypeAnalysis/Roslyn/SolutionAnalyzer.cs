@@ -99,8 +99,8 @@ namespace ReachingTypeAnalysis
                             Contract.Assert(mainSymbol != null);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new OndemandAsyncStrategy(this.Solution);
-							var orchestator = new AnalysisOrchestator(strategy);
+							this.Strategy = new OndemandAsyncStrategy(this.Solution);
+							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
                             return callGraph;
@@ -181,8 +181,8 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new OnDemandOrleansStrategy();
-							var orchestator = new AnalysisOrchestator(strategy);
+							this.Strategy = new OnDemandOrleansStrategy();
+							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
@@ -829,5 +829,7 @@ namespace ReachingTypeAnalysis
         #endregion
 
         public static int MessageCounter { get; private set; }
+
+        internal IAnalysisStrategy Strategy { get; private set; }
     }
 }
