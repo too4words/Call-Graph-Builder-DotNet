@@ -420,12 +420,12 @@ namespace ReachingTypeAnalysis
 	public class AnalysisCallNode : PropGraphNodeDescriptor
 	{
  		public LocationDescriptor LocationDescriptor { get; private set; }
-        public int InMethodOrder { get; private set; }
+        public int InMethodPosition { get; private set; }
 		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location)
             : base(methodName, declaredType)
 		{
 			this.LocationDescriptor = location;
-            this.InMethodOrder = location.InMethodOrder;
+            this.InMethodPosition = location.InMethodOrder;
         }
 
 		/// <summary>

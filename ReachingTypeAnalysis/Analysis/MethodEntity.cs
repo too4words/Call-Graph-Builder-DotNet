@@ -250,7 +250,20 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.MethodDescriptor.ToString();
 		}
-	}
+
+        internal AnalysisCallNode GetCallSiteByOrdinal(int invocationPosition)
+        {
+            foreach(var callNode in this.PropGraph.CallNodes)
+            {
+                if(callNode.InMethodPosition==invocationPosition)
+                {
+                    return callNode;
+                }
+            }
+            throw new ArgumentException();
+            //return null;
+        }
+    }
 
     [Serializable]
 	internal class MethodEntityDescriptor : IEntityDescriptor
@@ -563,7 +576,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
-            return CallGraphQueryInterface.CalleesAsync(this.methodEntity, codeProvider);
+            return CallGraphQueryInterface.GetCalleesAsync(this.methodEntity, codeProvider);
         }
 
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()

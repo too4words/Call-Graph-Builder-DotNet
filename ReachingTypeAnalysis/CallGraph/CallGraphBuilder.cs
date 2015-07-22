@@ -143,7 +143,7 @@ namespace ReachingTypeAnalysis
 			foreach (var callContex in methodEntity.Callers)
 			{
 				//int order = GetInvocationNumber(callContex.Caller.RoslynMethod, callContex.Invocation.Expression);
-                int order = callContex.CallNode.InMethodOrder;
+                int order = callContex.CallNode.InMethodPosition;
                 result.Add(new KeyValuePair<int, MethodDescriptor>(order, callContex.Caller));
 			}
 			return result;

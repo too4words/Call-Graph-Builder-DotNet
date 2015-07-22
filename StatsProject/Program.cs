@@ -109,7 +109,7 @@ namespace ReachingTypeAnalysis
 				}
 
 				var avgTime = acumTime / iterations;
-				outputWriter.WriteLine("{3}, {0}, {1}, {2}", avgTime, maxTime, minTime,testMethod);
+				outputWriter.WriteLine("{3}, {0}, {1}, {2} {4]", avgTime, maxTime, minTime,testMethod, SolutionAnalyzer.MessageCounter);
 				outputWriter.Flush();
 			}
 			catch (Exception ex)

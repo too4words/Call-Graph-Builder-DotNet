@@ -254,22 +254,42 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
 
-    internal static class CallGraphQueryInterface
+    public static class CallGraphQueryInterface
     {
         /// <summary>
         /// Compute all the calless of this method entities
         /// </summary>
         /// <returns></returns>
-        static async internal Task<ISet<MethodDescriptor>> CalleesAsync(MethodEntity methodEntity, ICodeProvider codeProvider)
+        internal static async  Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, ICodeProvider codeProvider)
         {
             var result = new HashSet<MethodDescriptor>();
 
             foreach (var callNode in methodEntity.PropGraph.CallNodes)
             {
-                result.UnionWith(await CalleesAsync(methodEntity, callNode, codeProvider));
+                result.UnionWith(await GetCalleesAsync(methodEntity, callNode, codeProvider));
             }
 
             return result;
+        }
+
+        public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodDescriptor methodDescriptor, int invocationPosition, string projectName) 
+        {
+            var projectGrain =  ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
+            var methodGrain =  MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            return await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper); 
+        }
+
+        public static async Task<int> GetInvocationCount(MethodDescriptor methodDescriptor, string projectName)
+        {
+            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
+            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            return methodEntity.PropGraph.CallNodes.Count();
         }
 
         /// <summary>
@@ -277,7 +297,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        static internal async Task<ISet<MethodDescriptor>> CalleesAsync(MethodEntity methodEntity, PropGraphNodeDescriptor node, ICodeProvider codeProvider)
+        internal static  async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, PropGraphNodeDescriptor node, ICodeProvider codeProvider)
         {
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
@@ -305,7 +325,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             foreach (var calleeNode in methodEntity.PropGraph.CallNodes)
             {
-                calleesPerEntity[calleeNode] = await CalleesAsync(methodEntity, calleeNode, codeProvider);
+                calleesPerEntity[calleeNode] = await GetCalleesAsync(methodEntity, calleeNode, codeProvider);
             }
 
             return calleesPerEntity;

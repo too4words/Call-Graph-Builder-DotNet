@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
 
-            return CallGraphQueryInterface.CalleesAsync(this.methodEntity, codeProvider);
+            return CallGraphQueryInterface.GetCalleesAsync(this.methodEntity, codeProvider);
         }
 
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()

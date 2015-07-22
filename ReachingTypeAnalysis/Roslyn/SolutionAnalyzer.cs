@@ -144,6 +144,8 @@ namespace ReachingTypeAnalysis
                                                 }
                          */
                         // Create a Grain for the solution
+                        SolutionAnalyzer.MessageCounter = 0;
+                        GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
                         var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
                         Contract.Assert(solutionGrain != null);
                         if (SourceCode != null)
@@ -186,6 +188,8 @@ namespace ReachingTypeAnalysis
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
 
+                            Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+
                             //hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;
                         }
@@ -205,6 +209,12 @@ namespace ReachingTypeAnalysis
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
                     }
             }
+        }
+
+        private void OnClientInvokeCallBack(Orleans.CodeGeneration.InvokeMethodRequest arg1, IGrain arg2)
+        {
+            // TODO: Check. Because this is static.
+            MessageCounter++;
         }
 
         private static OrleansHostWrapper hostWrapper;
@@ -491,7 +501,7 @@ namespace ReachingTypeAnalysis
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
-                    int countCG = CallGraphQueryInterface.CalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
+                    int countCG = CallGraphQueryInterface.GetCalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
                     if (invExp is MethodCallInfo)
                     {
@@ -817,5 +827,7 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
         #endregion
+
+        public static int MessageCounter { get; private set; }
     }
 }
