@@ -1,5 +1,6 @@
-﻿using SolutionTraversal.Callgraph;
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
+//using SolutionTraversal.Callgraph;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -109,7 +110,7 @@ namespace ReachingTypeAnalysis
 				}
 
 				var avgTime = acumTime / iterations;
-				outputWriter.WriteLine("{3}, {0}, {1}, {2} {4]", avgTime, maxTime, minTime,testMethod, SolutionAnalyzer.MessageCounter);
+                //outputWriter.WriteLine("{3}, {0}, {1}, {2} {4]", avgTime, maxTime, minTime, testMethod, SolutionAnalyzer.MessageCounter);
 				outputWriter.Flush();
 			}
 			catch (Exception ex)

@@ -260,7 +260,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// Compute all the calless of this method entities
         /// </summary>
         /// <returns></returns>
-        internal static async  Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, ICodeProvider codeProvider)
+        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, ICodeProvider codeProvider)
         {
             var result = new HashSet<MethodDescriptor>();
 

@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,11 +20,9 @@ namespace ReachingTypeAnalysis
     [TestClass]
     public class CallGraphGenerator
     {
-        public CallGraphGenerator() { }
-
-        internal static CallGraph<string,int> GenerateCallGraph(int n)
+        public static CallGraph<string, int> GenerateCallGraph(int n)
         {
-            var result = new CallGraph<string,int>();
+            var result = new CallGraph<string, int>();
             for (var i = 0; i < n; i++)
             {
                 result.Add(string.Format("N{0}", i));
@@ -48,7 +47,7 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
-        internal static SyntaxNode GenerateCode(CallGraph<string,int> callgraph)
+        public static SyntaxNode GenerateCode(CallGraph<string,int> callgraph)
         {
             List<MethodDeclarationSyntax> methods = new List<MethodDeclarationSyntax>();
             foreach (var vertex in callgraph.GetNodes())
@@ -67,6 +66,317 @@ namespace ReachingTypeAnalysis
                             SyntaxFactory.List<MemberDeclarationSyntax>(methods)
                         )))
                 .NormalizeWhitespace();
+        }
+
+        /// <summary>
+        /// The idea here is to produce queries agains the call graph. The plan is to make these
+        /// queries uniformly distributed against the methods of the call graph. 
+        /// </summary>
+        /// <param name="callgraph"></param>
+        /// <param name="queryCount"></param>
+        /// <returns></returns>
+        public static CompilationUnitSyntax GenerateQueries(CallGraph<string, int> callgraph, int queryCount)
+        {
+            List<StatementSyntax> calls = new List<StatementSyntax>();
+            var r = new Random();
+            foreach (var vertex in callgraph.GetNodes())
+            {
+                var callees = callgraph.GetCallees(vertex);
+                // query: GetCallees(random(1..callees.Count))
+                // project: "MyProject"
+                var ordinal = r.Next(callees.Count) + 1;
+                //CallGraphQueryInterface.GetCalleesAsync(
+                //    new MethodEntityDescriptor("C", vertex), ordinal, "MyProject");
+                var invocation = GetQueryCall(vertex, ordinal);
+                calls.Add(invocation);
+            }
+            
+            return
+                SyntaxFactory.CompilationUnit()
+                .WithUsings(
+                    SyntaxFactory.SingletonList<UsingDirectiveSyntax>(
+                        SyntaxFactory.UsingDirective(
+                            SyntaxFactory.QualifiedName(
+                                SyntaxFactory.IdentifierName(
+                                    @"System"),
+                                SyntaxFactory.IdentifierName(
+                                    @"Diagnostics"))
+                            .WithDotToken(
+                                SyntaxFactory.Token(
+                                    SyntaxKind.DotToken)))
+                        .WithUsingKeyword(
+                            SyntaxFactory.Token(
+                                SyntaxKind.UsingKeyword))
+                        .WithSemicolonToken(
+                            SyntaxFactory.Token(
+                                SyntaxKind.SemicolonToken))))
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration(
+                            SyntaxFactory.Identifier(
+                                SyntaxFactory.TriviaList(),
+                                @"Q",
+                                SyntaxFactory.TriviaList(
+                                    SyntaxFactory.Space)))
+                        .WithModifiers(
+                            SyntaxFactory.TokenList(
+                                SyntaxFactory.Token(
+                                    SyntaxFactory.TriviaList(),
+                                    SyntaxKind.PublicKeyword,
+                                    SyntaxFactory.TriviaList(
+                                        SyntaxFactory.Space)),
+                                SyntaxFactory.Token(
+                                    SyntaxFactory.TriviaList(),
+                                    SyntaxKind.StaticKeyword,
+                                    SyntaxFactory.TriviaList(
+                                        SyntaxFactory.Space))))
+                        .WithKeyword(
+                            SyntaxFactory.Token(
+                                SyntaxFactory.TriviaList(),
+                                SyntaxKind.ClassKeyword,
+                                SyntaxFactory.TriviaList(
+                                    SyntaxFactory.Space)))
+                        .WithOpenBraceToken(
+                            SyntaxFactory.Token(
+                                SyntaxFactory.TriviaList(),
+                                SyntaxKind.OpenBraceToken,
+                                SyntaxFactory.TriviaList(
+                                    SyntaxFactory.LineFeed)))
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.MethodDeclaration(
+                                    SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier(
+                                            @"IEnumerable"))
+                                    .WithTypeArgumentList(
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                SyntaxFactory.IdentifierName(
+                                                    @"StopWatch")))
+                                        .WithLessThanToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.LessThanToken))
+                                        .WithGreaterThanToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.GreaterThanToken))),
+                                    SyntaxFactory.Identifier(
+                                        @"DoQueries"))
+                                .WithModifiers(
+                                    SyntaxFactory.TokenList(
+                                        new[]{
+                                            SyntaxFactory.Token(
+                                                SyntaxFactory.TriviaList(
+                                                    SyntaxFactory.Whitespace(
+                                                        @"    ")),
+                                                SyntaxKind.PublicKeyword,
+                                                SyntaxFactory.TriviaList(
+                                                    SyntaxFactory.Space)),
+                                            SyntaxFactory.Token(
+                                                SyntaxFactory.TriviaList(),
+                                                SyntaxKind.StaticKeyword,
+                                                SyntaxFactory.TriviaList(
+                                                    SyntaxFactory.Space))}))
+                                .WithParameterList(
+                                    SyntaxFactory.ParameterList()
+                                    .WithOpenParenToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxKind.OpenParenToken))
+                                    .WithCloseParenToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxKind.CloseParenToken)))
+                                .WithBody(
+                                    SyntaxFactory.Block(
+                                        SyntaxFactory.List<StatementSyntax>(calls)))))))
+                .NormalizeWhitespace();
+        }
+
+        private static StatementSyntax GetQueryCall(string methodName, int ordinal)
+        {
+            return
+                SyntaxFactory.Block(
+                    SyntaxFactory.List<StatementSyntax>(
+                        new StatementSyntax[] 
+                        {
+                             SyntaxFactory.LocalDeclarationStatement(
+                                            SyntaxFactory.VariableDeclaration(
+                                                SyntaxFactory.IdentifierName(
+                                                    @"var"))
+                                            .WithVariables(
+                                                SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(
+                                                    SyntaxFactory.VariableDeclarator(
+                                                        SyntaxFactory.Identifier(
+                                                            @"sw"))
+                                                    .WithInitializer(
+                                                        SyntaxFactory.EqualsValueClause(
+                                                            SyntaxFactory.InvocationExpression(
+                                                                SyntaxFactory.MemberAccessExpression(
+                                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                                    SyntaxFactory.IdentifierName(
+                                                                        @"Stopwatch"),
+                                                                    SyntaxFactory.IdentifierName(
+                                                                        @"StartNew"))
+                                                                .WithOperatorToken(
+                                                                    SyntaxFactory.Token(
+                                                                        SyntaxKind.DotToken)))
+                                                            .WithArgumentList(
+                                                                SyntaxFactory.ArgumentList()
+                                                                .WithOpenParenToken(
+                                                                    SyntaxFactory.Token(
+                                                                        SyntaxKind.OpenParenToken))
+                                                                .WithCloseParenToken(
+                                                                    SyntaxFactory.Token(
+                                                                        SyntaxKind.CloseParenToken))))
+                                                        .WithEqualsToken(
+                                                            SyntaxFactory.Token(
+                                                                SyntaxKind.EqualsToken))))))
+                                        .WithSemicolonToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.SemicolonToken)),
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName(
+                                            SyntaxFactory.Identifier(
+                                                SyntaxFactory.TriviaList(
+                                                    SyntaxFactory.Whitespace(
+                                                        @"    ")),
+                                                @"CallGraphQueryInterface",
+                                                SyntaxFactory.TriviaList())),
+                                        SyntaxFactory.IdentifierName(
+                                            @"GetCalleesAsync"))
+                                    .WithOperatorToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxKind.DotToken)))
+                                .WithArgumentList(
+                                    SyntaxFactory.ArgumentList(
+                                        SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                            new SyntaxNodeOrToken[]{
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.ObjectCreationExpression(
+                                                        SyntaxFactory.IdentifierName(
+                                                            @"MethodDescriptor"))
+                                                    .WithNewKeyword(
+                                                        SyntaxFactory.Token(
+                                                            SyntaxFactory.TriviaList(
+                                                                SyntaxFactory.Whitespace(
+                                                                    @"        ")),
+                                                            SyntaxKind.NewKeyword,
+                                                            SyntaxFactory.TriviaList(
+                                                                SyntaxFactory.Space)))
+                                                    .WithArgumentList(
+                                                        SyntaxFactory.ArgumentList(
+                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                                new SyntaxNodeOrToken[]{
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.StringLiteralExpression,
+                                                                            SyntaxFactory.Literal(
+                                                                                SyntaxFactory.TriviaList(),
+                                                                                @"""C""",
+                                                                                @"""C""",
+                                                                                SyntaxFactory.TriviaList()))),
+                                                                    SyntaxFactory.Token(
+                                                                        SyntaxFactory.TriviaList(),
+                                                                        SyntaxKind.CommaToken,
+                                                                        SyntaxFactory.TriviaList(
+                                                                            SyntaxFactory.Space)),
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.StringLiteralExpression,
+                                                                            SyntaxFactory.Literal(
+                                                                                SyntaxFactory.TriviaList(),
+                                                                                "\"" + methodName + "\"",
+                                                                                "\"" + methodName +"\"" ,
+                                                                                SyntaxFactory.TriviaList()))
+                                                                         )}))
+                                                        .WithOpenParenToken(
+                                                            SyntaxFactory.Token(
+                                                                SyntaxKind.OpenParenToken))
+                                                        .WithCloseParenToken(
+                                                            SyntaxFactory.Token(
+                                                                SyntaxKind.CloseParenToken)))),
+                                                SyntaxFactory.Token(
+                                                    SyntaxFactory.TriviaList(),
+                                                    SyntaxKind.CommaToken,
+                                                    SyntaxFactory.TriviaList(
+                                                        SyntaxFactory.Space)),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.NumericLiteralExpression,
+                                                                            SyntaxFactory.Literal(
+                                                                                SyntaxFactory.TriviaList(),
+                                                                                ordinal.ToString(),
+                                                                                ordinal,
+                                                                                SyntaxFactory.TriviaList()))),
+                                                SyntaxFactory.Token(
+                                                    SyntaxFactory.TriviaList(),
+                                                    SyntaxKind.CommaToken,
+                                                    SyntaxFactory.TriviaList(
+                                                        SyntaxFactory.Space)),
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.LiteralExpression(
+                                                        SyntaxKind.StringLiteralExpression,
+                                                        SyntaxFactory.Literal(
+                                                            SyntaxFactory.TriviaList(),
+                                                            @"""MyProject""",
+                                                            @"""MyProject""",
+                                                            SyntaxFactory.TriviaList())))}))
+                                    .WithOpenParenToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxFactory.TriviaList(),
+                                            SyntaxKind.OpenParenToken,
+                                            SyntaxFactory.TriviaList(
+                                                SyntaxFactory.LineFeed)))
+                                    .WithCloseParenToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxKind.CloseParenToken))),
+                                    SyntaxFactory.IdentifierName(
+                                        @"Result"))
+                                    .WithOperatorToken(
+                                        SyntaxFactory.Token(
+                                            SyntaxKind.DotToken)))
+                                    .WithSemicolonToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.SemicolonToken)),
+                                        SyntaxFactory.ExpressionStatement(
+                                            SyntaxFactory.InvocationExpression(
+                                                SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.IdentifierName(
+                                                        @"sw"),
+                                                    SyntaxFactory.IdentifierName(
+                                                        @"Stop"))
+                                                .WithOperatorToken(
+                                                    SyntaxFactory.Token(
+                                                        SyntaxKind.DotToken)))
+                                            .WithArgumentList(
+                                                SyntaxFactory.ArgumentList()
+                                                .WithOpenParenToken(
+                                                    SyntaxFactory.Token(
+                                                        SyntaxKind.OpenParenToken))
+                                                .WithCloseParenToken(
+                                                    SyntaxFactory.Token(
+                                                        SyntaxKind.CloseParenToken))))
+                                        .WithSemicolonToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.SemicolonToken)),
+                                        SyntaxFactory.YieldStatement(
+                                            SyntaxKind.YieldReturnStatement,
+                                            SyntaxFactory.IdentifierName(
+                                                @"sw"))
+                                        .WithYieldKeyword(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.YieldKeyword))
+                                        .WithReturnOrBreakKeyword(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.ReturnKeyword))
+                                        .WithSemicolonToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.SemicolonToken))
+                        }));
         }
 
         private static MethodDeclarationSyntax GetMain(IEnumerable<string> methods)
@@ -139,27 +449,30 @@ namespace ReachingTypeAnalysis
         {
             var callgraph = GenerateCallGraph(10);
             var syntax = GenerateCode(callgraph);
+            var queries = GenerateQueries(callgraph, 5);
             var code = syntax.ToFullString();
-			Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "source code: {0}", code);
-			var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
+            var queryCode = queries.ToFullString();
+            Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "source code: {0}", code);
+            Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "query code: {0}", queryCode);
+            var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
 			Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "solution filename: {0}", solution.FilePath);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandAsync1()
+        public static void AnalyzeGenerationSolutionOnDemandAsync1()
         {
             AnalyzeGenerationSolution1(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandSync1()
+        public static void AnalyzeGenerationSolutionOnDemandSync1()
         {
             AnalyzeGenerationSolution1(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
-        public void AnalyzeGenerationSolution(AnalysisStrategyKind strategy, int size)
+        public static void AnalyzeGenerationSolution(AnalysisStrategyKind strategy, int size)
         {
             var callgraph = GenerateCallGraph(size);
             var syntax = GenerateCode(callgraph);
@@ -186,63 +499,63 @@ namespace ReachingTypeAnalysis
             Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
         }
 
-        public void AnalyzeGenerationSolution1(AnalysisStrategyKind strategy)
+        public static void AnalyzeGenerationSolution1(AnalysisStrategyKind strategy)
         {
             AnalyzeGenerationSolution(strategy, 10);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandAsync2() {
+        public static void AnalyzeGenerationSolutionOnDemandAsync2() {
             AnalyzeGenerationSolution2(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandSync2()
+        public static void AnalyzeGenerationSolutionOnDemandSync2()
         {
             AnalyzeGenerationSolution2(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
-        public void AnalyzeGenerationSolution2(AnalysisStrategyKind strategy)
+        public static void AnalyzeGenerationSolution2(AnalysisStrategyKind strategy)
         {
             AnalyzeGenerationSolution(strategy, 50);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandAsync3()
+        public static void AnalyzeGenerationSolutionOnDemandAsync3()
         {
             AnalyzeGenerationSolution3(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandSync3()
+        public static void AnalyzeGenerationSolutionOnDemandSync3()
         {
             AnalyzeGenerationSolution3(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
-        public void AnalyzeGenerationSolution3(AnalysisStrategyKind strategy)
+        public static void AnalyzeGenerationSolution3(AnalysisStrategyKind strategy)
         {
             AnalyzeGenerationSolution(strategy, 100);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandAsync4()
+        public static void AnalyzeGenerationSolutionOnDemandAsync4()
         {
             AnalyzeGenerationSolution4(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void AnalyzeGenerationSolutionOnDemandSync4()
+        public static void AnalyzeGenerationSolutionOnDemandSync4()
         {
             AnalyzeGenerationSolution4(AnalysisStrategyKind.ONDEMAND_SYNC);
         }
 
-        public void AnalyzeGenerationSolution4(AnalysisStrategyKind strategy)
+        public static void AnalyzeGenerationSolution4(AnalysisStrategyKind strategy)
         {
             AnalyzeGenerationSolution(strategy, 1000);
         }
@@ -279,35 +592,35 @@ namespace ReachingTypeAnalysis
         [TestMethod]
         [TestCategory("Generation")]
         //[TestCategory("OnDemandOrleans")]
-        public void AnalyzeGenerationOnDemandOrleans1()
+        public static void AnalyzeGenerationOnDemandOrleans1()
         {
             AnalyzeGenerationSolution(AnalysisStrategyKind.ONDEMAND_SYNC, 10);
         }
         [TestMethod]
         [TestCategory("Generation")]
         //[TestCategory("OnDemandOrleans")]
-        public void AnalyzeGenerationOnDemandOrleans2()
+        public static void AnalyzeGenerationOnDemandOrleans2()
         {
             AnalyzeGenerationSolution(AnalysisStrategyKind.ONDEMAND_SYNC, 50);
         }
         [TestMethod]
         [TestCategory("Generation")]
         //[TestCategory("OnDemandOrleans")]
-        public void AnalyzeGenerationOnDemandOrleans3()
+        public static void AnalyzeGenerationOnDemandOrleans3()
         {
             AnalyzeGenerationSolution(AnalysisStrategyKind.ONDEMAND_SYNC, 100);
         }
         [TestMethod]
         [TestCategory("Generation")]
         //[TestCategory("OnDemandOrleans")]
-        public void AnalyzeGenerationOnDemandOrleans4()
+        public static void AnalyzeGenerationOnDemandOrleans4()
         {
             AnalyzeGenerationSolution(AnalysisStrategyKind.ONDEMAND_SYNC, 1000);
         }
         [TestMethod]
         [TestCategory("Generation")]
         //[TestCategory("OnDemandOrleans")]
-        public void AnalyzeGenerationOnDemandOrleans5()
+        public static void AnalyzeGenerationOnDemandOrleans5()
         {
             AnalyzeGenerationSolution(AnalysisStrategyKind.ONDEMAND_SYNC, 10000);
         }
