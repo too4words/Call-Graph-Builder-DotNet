@@ -327,7 +327,20 @@ namespace ReachingTypeAnalysis
                                                                 "\"" + methodName + "\"",
                                                                 "\"" + methodName +"\"" ,
                                                                 SyntaxFactory.TriviaList()))
-                                                            )}))
+                                                            ), 
+                                                            SyntaxFactory.Token(
+                                                                        SyntaxKind.CommaToken),
+                                                                    SyntaxFactory.Argument(
+                                                                        SyntaxFactory.LiteralExpression(
+                                                                            SyntaxKind.TrueLiteralExpression)
+                                                                        .WithToken(
+                                                                            SyntaxFactory.Token(
+                                                                                SyntaxKind.TrueKeyword)))
+                                                //SyntaxFactory.Argument(
+                                                //SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression, 
+                                                //                                SyntaxFactory.Literal("true"))
+                                                //                      )
+                                                }))
                                         .WithOpenParenToken(
                                             SyntaxFactory.Token(
                                                 SyntaxKind.OpenParenToken))

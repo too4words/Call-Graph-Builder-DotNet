@@ -318,11 +318,24 @@ namespace ReachingTypeAnalysis.Analysis
 		public IDictionary<string, PropGraphNodeDescriptor> InputData { get; internal set; }
 	}
 
+
+    /// <summary>
+    /// This Classs plays the role of the MethodEntityProcessor but it is used by the OndemandAnalysisAsync
+    /// and OnDemandOrleans
+    /// This should replace the MethodEntityProcessor when we get rid of the MethodEntityProccesor
+    /// </summary>
     internal class MethodEntityWithPropagator : IMethodEntityWithPropagator
     {
         private MethodEntity methodEntity;
         private ICodeProvider codeProvider;
         //private Orleans.Runtime.Logger logger = GrainClient.Logger;
+        
+        /// <summary>
+        /// This build a MethodEntityPropagator with a solution
+        /// The solution provides its CodeProvicer
+        /// </summary>
+        /// <param name="methodDescriptor"></param>
+        /// <param name="solution"></param>
         public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, Solution solution)
         {
             //var providerAndSyntax = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution).Result;
@@ -333,6 +346,18 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity = providerEntity.Item2;
             this.codeProvider = providerEntity.Item1;
             SolutionManager.Instance.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+        }
+
+        /// <summary>
+        /// Creates the Propagator using directly an entity and a provider
+        /// This can be used by the MethodEntityGrain
+        /// </summary>
+        /// <param name="methodEntity"></param>
+        /// <param name="provider"></param>
+        public MethodEntityWithPropagator(MethodEntity methodEntity, ICodeProvider provider)
+        {
+            this.codeProvider = provider;
+            this.methodEntity = methodEntity;
         }
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
