@@ -397,10 +397,10 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IDictionary<ReachingTypeAnalysis.AnalysisCallNode,System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>>(-65115232, null );
             }
             
-            System.Threading.Tasks.Task<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesOrleansAsync(int @invocationPosition)
+            System.Threading.Tasks.Task<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesAsync(int @invocationPosition)
             {
 
-                return base.InvokeMethodAsync<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>(1997389462, new object[] {@invocationPosition} );
+                return base.InvokeMethodAsync<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>>(-526083791, new object[] {@invocationPosition} );
             }
             
             System.Threading.Tasks.Task<int> OrleansInterfaces.IMethodEntityGrain.GetInvocationCountAsync()
@@ -451,8 +451,8 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).GetCalleesAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -65115232: 
                                 return ((IMethodEntityGrain)grain).GetCalleesInfoAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 1997389462: 
-                                return ((IMethodEntityGrain)grain).GetCalleesOrleansAsync((Int32)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -526083791: 
+                                return ((IMethodEntityGrain)grain).GetCalleesAsync((Int32)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1748235903: 
                                 return ((IMethodEntityGrain)grain).GetInvocationCountAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
@@ -500,8 +500,8 @@ namespace OrleansInterfaces
                             return "GetCalleesAsync";
                     case -65115232:
                             return "GetCalleesInfoAsync";
-                    case 1997389462:
-                            return "GetCalleesOrleansAsync";
+                    case -526083791:
+                            return "GetCalleesAsync";
                     case -1748235903:
                             return "GetInvocationCountAsync";
                     

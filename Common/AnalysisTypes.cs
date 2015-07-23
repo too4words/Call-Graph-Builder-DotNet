@@ -124,6 +124,7 @@ namespace ReachingTypeAnalysis
             bool nEq = (this.NamespaceName == "" || md.NamespaceName == "") || this.NamespaceName.Equals(md.NamespaceName);
             bool cEq = this.ClassName.Equals(md.ClassName);
             bool mEq = this.MethodName.Equals(md.MethodName);
+            bool isStatic = this.IsStatic == md.IsStatic;
 
             return nEq && cEq && mEq;
         }

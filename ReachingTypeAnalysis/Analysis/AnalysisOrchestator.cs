@@ -8,6 +8,7 @@ using ReachingTypeAnalysis.Communication;
 using SolutionTraversal.Callgraph;
 using System.Linq;
 using Orleans;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -266,8 +267,18 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
         public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor, int invocationPosition)
         {
-            var entityProxy = await strategy.GetMethodEntityAsync(methodDescriptor);
-            return await entityProxy.GetCalleesAsync(invocationPosition);
+            var totalStopWatch = Stopwatch.StartNew();
+
+            var stopWatch = Stopwatch.StartNew();
+
+            var entityWithPropagator = await strategy.GetMethodEntityAsync(methodDescriptor);
+            Meausure("GetMethodEntityProp", stopWatch);
+
+            var result = await entityWithPropagator.GetCalleesAsync(invocationPosition);
+            Meausure("entProp.GetCalleesAsync", stopWatch);
+
+            Meausure("Total GetCalleesAsync", totalStopWatch);
+            return result;
         }
         /// <summary>
         ///  Return the numnber of calls sites for a 
@@ -277,8 +288,18 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
         public static async Task<int> GetInvocationCountAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor)
         {
+            var totalStopWatch = Stopwatch.StartNew();
+
+            var stopWatch = Stopwatch.StartNew();
+
             var entityWithPropagator = await strategy.GetMethodEntityAsync(methodDescriptor);
-            return await entityWithPropagator.GetInvocationCountAsync();
+            Meausure("GetMethodEntityProp", stopWatch);
+
+            var result = await entityWithPropagator.GetInvocationCountAsync();
+            Meausure("entProp.GetInvocationCountAsync", stopWatch);
+
+            Meausure("Total GetInvocationCountAsync", totalStopWatch);
+            return result;
         }
 
         /// This version is Orleans ONLY
@@ -292,14 +313,42 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
         public static async Task<ISet<MethodDescriptor>> GetCalleesOrleansAsync(MethodDescriptor methodDescriptor, int invocationPosition, string projectName)
         {
+            var totalStopWatch = Stopwatch.StartNew();
+            var stopWatch = Stopwatch.StartNew();
+
             var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            Meausure("GetProjectGrain", stopWatch);
+
             var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
+            Meausure("GetProjectGrainWrapper", stopWatch);
+
             var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+            Meausure("GetMethodGrain", stopWatch);
 
             var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            Meausure("GetMethodEntity", stopWatch);
+
             var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
-            return await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper);
+            Meausure("GetCallSiteByOrdinal", stopWatch);
+
+            var result = await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper);
+            Meausure("GetCalleesAsync", stopWatch);
+
+            Meausure("Total GetCalleesOrleansAsync", totalStopWatch);
+
+            return result;
         }
+
+        private static void Meausure(string label, Stopwatch timer)
+        {
+            timer.Stop();
+            var timeMS = timer.ElapsedMilliseconds;
+            var ticks = timer.ElapsedTicks;
+            Debug.WriteLine("{0}: {1} ms, {2} ticks", label, timeMS, ticks);
+            timer.Reset();
+            timer.Start();
+        }
+
         /// <summary>
         ///  Return the numnber of calls sites for a 
         /// </summary>
@@ -331,21 +380,28 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
         }
 
-
         /// <summary>
         /// Computes all the potential callees for a particular method invocation
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        internal static  async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, PropGraphNodeDescriptor node, ICodeProvider codeProvider)
+        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, AnalysisCallNode node, ICodeProvider codeProvider)
         {
+            var stopWatch = Stopwatch.StartNew();
+
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
             var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+
+            Meausure("ME.PG.GetInvocationInfo", stopWatch);
+
             Contract.Assert(invExp != null);
             Contract.Assert(codeProvider != null);
 
             var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
+
+            Meausure("ME.PG.ComputeCalleesForNode", stopWatch);
+
             calleesForNode.UnionWith(calleeResult);
             
             //calleesForNode.UnionWith(invExp.ComputeCalleesForNode(this.MethodEntity.PropGraph,this.codeProvider));

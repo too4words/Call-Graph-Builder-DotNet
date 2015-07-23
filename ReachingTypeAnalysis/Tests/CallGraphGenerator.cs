@@ -152,7 +152,7 @@ namespace ReachingTypeAnalysis
                                         SyntaxFactory.TypeArgumentList(
                                             SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
                                                 SyntaxFactory.IdentifierName(
-                                                    @"StopWatch")))
+                                                    @"Stopwatch")))
                                         .WithLessThanToken(
                                             SyntaxFactory.Token(
                                                 SyntaxKind.LessThanToken))
@@ -456,6 +456,7 @@ namespace ReachingTypeAnalysis
             Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "query code: {0}", queryCode);
             var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
 			Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "solution filename: {0}", solution.FilePath);
+
         }
 
         [TestMethod]

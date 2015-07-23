@@ -428,7 +428,16 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
         {
             var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
-            return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
+            ISet<MethodDescriptor> result;
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)invocationNode);
+            Contract.Assert(invExp != null);
+            Contract.Assert(codeProvider != null);
+            var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
+            calleesForNode.UnionWith(calleeResult);
+            result = calleesForNode;
+            return result;
+            // return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
         }
         public Task<int> GetInvocationCountAsync()
         {
