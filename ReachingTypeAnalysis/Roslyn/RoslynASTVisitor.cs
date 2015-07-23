@@ -297,7 +297,7 @@ namespace ReachingTypeAnalysis
     internal class MethodSyntaxVisitor : CSharpSyntaxVisitor<object>
     {
         protected IMethodSymbol roslynMethod;
-        internal int InvocationOrder { get; set; }
+        internal int InvocationPosition { get; set; }
 
         public MethodDescriptor MethodDescriptor { get; private set; }
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
@@ -352,7 +352,7 @@ namespace ReachingTypeAnalysis
             this.roslynMethod = model.GetDeclaredSymbol(this.methodNode);
 
             this.expressionsVisitor = new ExpressionVisitor(this.model, this.StatementProcessor, this);
-            this.InvocationOrder = 0;
+            this.InvocationPosition = 0;
         }
 		
 		public override object VisitCompilationUnit(CompilationUnitSyntax node)

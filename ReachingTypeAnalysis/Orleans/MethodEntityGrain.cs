@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptor);
             await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
-            await State.WriteStateAsync();
+            await this.WriteStateAsync();
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
 
-            return CallGraphQueryInterface.CalleesAsync(this.methodEntity, codeProvider);
+            return CallGraphQueryInterface.GetCalleesAsync(this.methodEntity, codeProvider);
         }
 
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
 			await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
-			await State.WriteStateAsync();
+			await this.WriteStateAsync();
 		}
 
         //public Task<IEntityDescriptor> GetDescriptor()
@@ -209,6 +209,29 @@ namespace ReachingTypeAnalysis.Analysis
             var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             return effects;
         }
+
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+        {
+            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            //return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
+
+            ISet<MethodDescriptor> result;
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)invocationNode);
+            Contract.Assert(invExp != null);
+            Contract.Assert(codeProvider != null);
+            var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
+            calleesForNode.UnionWith(calleeResult);
+            result = calleesForNode;
+            return result;
+
+        }
+        public Task<int> GetInvocationCountAsync()
+        {
+            return  Task.FromResult(methodEntity.PropGraph.CallNodes.Count);
+        }
+
+
 
 		private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)
 		{
@@ -396,6 +419,15 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
             return this.grainRef.GetCalleesInfoAsync();
+        }
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+        {
+            return await this.grainRef.GetCalleesAsync(invocationPosition);
+        }
+
+        public Task<int> GetInvocationCountAsync()
+        {
+            return this.grainRef.GetInvocationCountAsync();
         }
     }
 }

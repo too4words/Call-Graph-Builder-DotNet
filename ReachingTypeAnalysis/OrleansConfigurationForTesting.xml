@@ -1,21 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <OrleansConfiguration xmlns="urn:orleans">
   <Globals>
     <StorageProviders>
-      <Provider Type="Samples.StorageProviders.OrleansFileStorage" Name="FileStore" RootDirectory=".\Samples.FileStorage"/>
       <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
-      <!-- To use Azure storage, uncomment one of the following lines: -->
-      <!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />-->
-      <!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=MYACCOUNTNAME;AccountKey=MYACCOUNTKEY" />-->
+      <!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" />-->
     </StorageProviders>
-    <SeedNode Address="localhost" Port="22222" />
+    <SeedNode Address="localhost" Port="22222"/>
+    <Messaging ResponseTimeout="30s"/>
   </Globals>
   <Defaults>
-    <Networking Address="localhost" Port="22222" />
+    <Networking Address="localhost" Port="22222"/>
     <ProxyingGateway Address="localhost" Port="40000" />
-    <Tracing DefaultTraceLevel="Error" TraceToConsole="true" TraceToFile="{0}-{1}.log">
-      <TraceLevelOverride LogPrefix="Application" TraceLevel="Error" />
+    <Tracing DefaultTraceLevel="Error" TraceToConsole="true" TraceToFile="{0}-{1}.log" PropagateActivityId="false" BulkMessageLimit="1000">
+       <TraceLevelOverride LogPrefix="Application" TraceLevel="Error" />
+       <!--
+       <TraceLevelOverride LogPrefix="Runtime.Dispatcher" TraceLevel="Verbose" />
+       <TraceLevelOverride LogPrefix="AssemblyLoader.Silo" TraceLevel="Warning" />
+       -->
     </Tracing>
-    <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true"/>
+    <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
   </Defaults>
 </OrleansConfiguration>
+
+

@@ -19,7 +19,6 @@
 namespace ReachingTypeAnalysis.Analysis
 {
     using ReachingTypeAnalysis;
-    using Orleans.CodeGeneration;
     using Orleans;
     using System;
     using System.Runtime.InteropServices;
@@ -28,11 +27,11 @@ namespace ReachingTypeAnalysis.Analysis
     using System.Collections.Generic;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [SerializableAttribute()]
-    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.ReachingTypeAnalysis.Analysis.MethodEntityGrain")]
-    public class MethodEntityGrainState : global::Orleans.CodeGeneration.GrainState, IOrleansEntityState
+    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.MethodEntityGrain")]
+    public class MethodEntityGrainState : global::Orleans.GrainState, IOrleansEntityState
     {
         
 
@@ -91,12 +90,11 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [SerializableAttribute()]
-    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.ReachingTypeAnalysis.Analysis.ProjectCodeProviderGr" +
-        "ain")]
-    public class ProjectCodeProviderGrainState : global::Orleans.CodeGeneration.GrainState, IProjectState
+    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.ProjectCodeProviderGrain")]
+    public class ProjectCodeProviderGrainState : global::Orleans.GrainState, IProjectState
     {
         
 
@@ -165,11 +163,11 @@ namespace ReachingTypeAnalysis.Analysis
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [SerializableAttribute()]
-    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.ReachingTypeAnalysis.Analysis.SolutionGrain")]
-    public class SolutionGrainState : global::Orleans.CodeGeneration.GrainState, ISolutionState
+    [global::Orleans.CodeGeneration.GrainStateAttribute("ReachingTypeAnalysis.Analysis.SolutionGrain")]
+    public class SolutionGrainState : global::Orleans.GrainState, ISolutionState
     {
         
 

@@ -57,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.State.FullPath = fullPath;
             this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
-            await this.State.WriteStateAsync();
+            await this.WriteStateAsync();
             return;
         }
 
@@ -68,7 +68,7 @@ namespace ReachingTypeAnalysis.Analysis
             // To do: Hack
             this.State.Name = "MyProject";
             this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution, this.State.Name);                    
-            await this.State.WriteStateAsync();
+            await this.WriteStateAsync();
             return;
         }
 

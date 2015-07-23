@@ -64,7 +64,6 @@ namespace ReachingTypeAnalysis
                 strategyKind = StringToAnalysisStrategy(ConfigurationManager.AppSettings["Strategy"]);
             }
 
-
             // TOOD: hack -- set the global solution
             ProjectCodeProvider.Solution = this.Solution;
 
@@ -89,6 +88,9 @@ namespace ReachingTypeAnalysis
                         this.Dispatcher = new AsyncDispatcher();
                         //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
 
+                        this.Strategy = new OndemandAsyncStrategy(this.Solution);
+
+
                         var cancellationSource = new CancellationTokenSource();
                         var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
                         if (triple != null)
@@ -99,8 +101,7 @@ namespace ReachingTypeAnalysis
                             Contract.Assert(mainSymbol != null);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new OndemandAsyncStrategy(this.Solution);
-							var orchestator = new AnalysisOrchestator(strategy);
+							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
                             return callGraph;
@@ -143,6 +144,15 @@ namespace ReachingTypeAnalysis
                                                     //break;
                                                 }
                          */
+                        
+                        
+                        
+                        this.Strategy = new OnDemandOrleansStrategy();
+
+                        SolutionAnalyzer.MessageCounter = 0;
+                        GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+
+
                         // Create a Grain for the solution
                         var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
                         Contract.Assert(solutionGrain != null);
@@ -179,12 +189,14 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var strategy = new OnDemandOrleansStrategy();
-							var orchestator = new AnalysisOrchestator(strategy);
+
+							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
                             var solutionManager = new SolutionGrainWrapper(solutionGrain);
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
+
+                            Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
 
                             //hostDomain.DoCallBack(ShutdownSilo);
                             return callGraph;
@@ -205,6 +217,12 @@ namespace ReachingTypeAnalysis
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
                     }
             }
+        }
+
+        private void OnClientInvokeCallBack(Orleans.CodeGeneration.InvokeMethodRequest arg1, IGrain arg2)
+        {
+            // TODO: Check. Because this is static.
+            MessageCounter++;
         }
 
         private static OrleansHostWrapper hostWrapper;
@@ -491,7 +509,7 @@ namespace ReachingTypeAnalysis
 
                 foreach (var callNode in methodEntity.PropGraph.CallNodes)
                 {
-                    int countCG = CallGraphQueryInterface.CalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
+                    int countCG = CallGraphQueryInterface.GetCalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
                     var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
                     if (invExp is MethodCallInfo)
                     {
@@ -817,5 +835,9 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
         #endregion
+
+        public static int MessageCounter { get; private set; }
+
+        internal IAnalysisStrategy Strategy { get; private set; }
     }
 }

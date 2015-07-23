@@ -124,6 +124,7 @@ namespace ReachingTypeAnalysis
             bool nEq = (this.NamespaceName == "" || md.NamespaceName == "") || this.NamespaceName.Equals(md.NamespaceName);
             bool cEq = this.ClassName.Equals(md.ClassName);
             bool mEq = this.MethodName.Equals(md.MethodName);
+            bool isStatic = this.IsStatic == md.IsStatic;
 
             return nEq && cEq && mEq;
         }
@@ -421,12 +422,12 @@ namespace ReachingTypeAnalysis
 	public class AnalysisCallNode : PropGraphNodeDescriptor
 	{
  		public LocationDescriptor LocationDescriptor { get; private set; }
-        public int InMethodOrder { get; private set; }
+        public int InMethodPosition { get; private set; }
 		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location)
             : base(methodName, declaredType)
 		{
 			this.LocationDescriptor = location;
-            this.InMethodOrder = location.InMethodOrder;
+            this.InMethodPosition = location.InMethodOrder;
         }
 
 		/// <summary>

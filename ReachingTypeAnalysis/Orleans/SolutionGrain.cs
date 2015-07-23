@@ -54,14 +54,14 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.State.SolutionFullPath = solutionPath;
             this.solution = Utils.ReadSolution(solutionPath);
-            return this.State.WriteStateAsync();
+            return this.WriteStateAsync();
         }
 
         public Task SetSolutionSource(string solutionSource)
         {
             this.State.SourceCode = solutionSource;
             this.solution = Utils.CreateSolution(solutionSource);
-            return this.State.WriteStateAsync();
+            return this.WriteStateAsync();
         }
 
         public async Task<IProjectCodeProviderGrain> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
@@ -84,7 +84,7 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
         {
             instantiadtedTypes.UnionWith(types);
-            await this.State.WriteStateAsync();
+            await this.WriteStateAsync();
         }
         public async Task<ISet<TypeDescriptor>>  InstantiatedTypes()
         {

@@ -28,6 +28,8 @@ namespace OrleansInterfaces
         Task<IEntity> GetMethodEntity();
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
+        Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
+        Task<int> GetInvocationCountAsync();
     }
 
     public interface IProjectCodeProviderGrain : IGrainWithStringKey

@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis
 		/// </summary>
 		private ISet<AnalysisCallNode> callNodes;
 
-		public IEnumerable<AnalysisCallNode> CallNodes
+		public ICollection<AnalysisCallNode> CallNodes
 		{
 			get { return callNodes; }
 			//private set { callNodes = value; }
