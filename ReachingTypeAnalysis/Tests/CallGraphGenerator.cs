@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Diagnostics.Contracts;
 
 namespace ReachingTypeAnalysis
 {
@@ -101,7 +102,8 @@ namespace ReachingTypeAnalysis
             if (calls.Count > queryCount)
             {
                 // truncate
-                calls.Take(queryCount);
+                calls.RemoveRange(queryCount, calls.Count - queryCount);
+                Contract.Assert(calls.Count == queryCount);
             }
 
             return
