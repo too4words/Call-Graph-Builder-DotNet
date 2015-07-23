@@ -26,44 +26,47 @@ namespace OrleansInterfaces
     using System.Collections.Generic;
     using Orleans;
     using Orleans.Runtime;
+    using Orleans.Core;
     using System.Collections;
     using ReachingTypeAnalysis;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class SolutionGrainFactory
     {
         
 
-                        public static OrleansInterfaces.ISolutionGrain GetGrain(System.String primaryKey)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<ISolutionGrain> instead.")]
+                        public static ISolutionGrain GetGrain(System.String primaryKey)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.ISolutionGrain), -1646659855, primaryKey));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(ISolutionGrain), primaryKey));
                         }
 
-                        public static OrleansInterfaces.ISolutionGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<ISolutionGrain> instead.")]
+                        public static ISolutionGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.ISolutionGrain), -1646659855, primaryKey, grainClassNamePrefix));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(ISolutionGrain), primaryKey, grainClassNamePrefix));
                         }
 
-            public static OrleansInterfaces.ISolutionGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static ISolutionGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
                 return SolutionGrainReference.Cast(grainRef);
             }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
         [System.SerializableAttribute()]
-        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.ISolutionGrain")]
+        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.ISolutionGrain")]
         internal class SolutionGrainReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.ISolutionGrain
         {
             
 
-            public static OrleansInterfaces.ISolutionGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static ISolutionGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
-                return (OrleansInterfaces.ISolutionGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(OrleansInterfaces.ISolutionGrain), (global::Orleans.Runtime.GrainReference gr) => { return new SolutionGrainReference(gr);}, grainRef, -1646659855);
+                return (ISolutionGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(ISolutionGrain), (global::Orleans.Runtime.GrainReference gr) => { return new SolutionGrainReference(gr);}, grainRef, -1646659855);
             }
             
             protected internal SolutionGrainReference(global::Orleans.Runtime.GrainReference reference) : 
@@ -88,7 +91,7 @@ namespace OrleansInterfaces
             {
                 get
                 {
-                    return "OrleansInterfaces.OrleansInterfaces.ISolutionGrain";
+                    return "OrleansInterfaces.ISolutionGrain";
                 }
             }
             
@@ -161,9 +164,9 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.ISolutionGrain", -1646659855)]
+    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.ISolutionGrain", -1646659855)]
     internal class SolutionGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
     {
         
@@ -256,40 +259,42 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class MethodEntityGrainFactory
     {
         
 
-                        public static OrleansInterfaces.IMethodEntityGrain GetGrain(System.String primaryKey)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IMethodEntityGrain> instead.")]
+                        public static IMethodEntityGrain GetGrain(System.String primaryKey)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IMethodEntityGrain), 898358989, primaryKey));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IMethodEntityGrain), primaryKey));
                         }
 
-                        public static OrleansInterfaces.IMethodEntityGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IMethodEntityGrain> instead.")]
+                        public static IMethodEntityGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IMethodEntityGrain), 898358989, primaryKey, grainClassNamePrefix));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IMethodEntityGrain), primaryKey, grainClassNamePrefix));
                         }
 
-            public static OrleansInterfaces.IMethodEntityGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static IMethodEntityGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
                 return MethodEntityGrainReference.Cast(grainRef);
             }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
         [System.SerializableAttribute()]
-        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.IMethodEntityGrain")]
+        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.IMethodEntityGrain")]
         internal class MethodEntityGrainReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.IMethodEntityGrain
         {
             
 
-            public static OrleansInterfaces.IMethodEntityGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static IMethodEntityGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
-                return (OrleansInterfaces.IMethodEntityGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(OrleansInterfaces.IMethodEntityGrain), (global::Orleans.Runtime.GrainReference gr) => { return new MethodEntityGrainReference(gr);}, grainRef, 898358989);
+                return (IMethodEntityGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(IMethodEntityGrain), (global::Orleans.Runtime.GrainReference gr) => { return new MethodEntityGrainReference(gr);}, grainRef, 898358989);
             }
             
             protected internal MethodEntityGrainReference(global::Orleans.Runtime.GrainReference reference) : 
@@ -314,7 +319,7 @@ namespace OrleansInterfaces
             {
                 get
                 {
-                    return "OrleansInterfaces.OrleansInterfaces.IMethodEntityGrain";
+                    return "OrleansInterfaces.IMethodEntityGrain";
                 }
             }
             
@@ -411,9 +416,9 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.IMethodEntityGrain", 898358989)]
+    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.IMethodEntityGrain", 898358989)]
     internal class MethodEntityGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
     {
         
@@ -522,40 +527,42 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class ProjectCodeProviderGrainFactory
     {
         
 
-                        public static OrleansInterfaces.IProjectCodeProviderGrain GetGrain(System.String primaryKey)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
+                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IProjectCodeProviderGrain), 306204708, primaryKey));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey));
                         }
 
-                        public static OrleansInterfaces.IProjectCodeProviderGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
+                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
                         {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(OrleansInterfaces.IProjectCodeProviderGrain), 306204708, primaryKey, grainClassNamePrefix));
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey, grainClassNamePrefix));
                         }
 
-            public static OrleansInterfaces.IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
                 return ProjectCodeProviderGrainReference.Cast(grainRef);
             }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
         [System.SerializableAttribute()]
-        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.OrleansInterfaces.IProjectCodeProviderGrain")]
+        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.IProjectCodeProviderGrain")]
         internal class ProjectCodeProviderGrainReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.IProjectCodeProviderGrain
         {
             
 
-            public static OrleansInterfaces.IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
             {
                 
-                return (OrleansInterfaces.IProjectCodeProviderGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(OrleansInterfaces.IProjectCodeProviderGrain), (global::Orleans.Runtime.GrainReference gr) => { return new ProjectCodeProviderGrainReference(gr);}, grainRef, 306204708);
+                return (IProjectCodeProviderGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(IProjectCodeProviderGrain), (global::Orleans.Runtime.GrainReference gr) => { return new ProjectCodeProviderGrainReference(gr);}, grainRef, 306204708);
             }
             
             protected internal ProjectCodeProviderGrainReference(global::Orleans.Runtime.GrainReference reference) : 
@@ -580,7 +587,7 @@ namespace OrleansInterfaces
             {
                 get
                 {
-                    return "OrleansInterfaces.OrleansInterfaces.IProjectCodeProviderGrain";
+                    return "OrleansInterfaces.IProjectCodeProviderGrain";
                 }
             }
             
@@ -647,9 +654,9 @@ namespace OrleansInterfaces
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.OrleansInterfaces.IProjectCodeProviderGrain", 306204708)]
+    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.IProjectCodeProviderGrain", 306204708)]
     internal class ProjectCodeProviderGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
     {
         
@@ -750,7 +757,7 @@ namespace OrleansInterfacesSerializers
     using System.Runtime.InteropServices;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_MethodDescriptorSerialization
@@ -860,7 +867,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_TypeDescriptorSerialization
@@ -934,7 +941,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_PropagationEffectsSerialization
@@ -979,7 +986,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_ReturnInfoSerialization
@@ -1047,7 +1054,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_CallContextSerialization
@@ -1112,7 +1119,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_VariableNodeSerialization
@@ -1168,7 +1175,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_Communication_CallMessageInfoSerialization
@@ -1269,7 +1276,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_Communication_ReturnMessageInfoSerialization
@@ -1361,7 +1368,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_AnalysisCallNodeSerialization
@@ -1435,7 +1442,7 @@ namespace OrleansInterfacesSerializers
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.8.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
     internal class ReachingTypeAnalysis_LocationDescriptorSerialization

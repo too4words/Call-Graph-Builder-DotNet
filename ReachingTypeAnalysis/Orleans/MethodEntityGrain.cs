@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptor);
             await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
-            await State.WriteStateAsync();
+            await this.WriteStateAsync();
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
 			await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
-			await State.WriteStateAsync();
+			await this.WriteStateAsync();
 		}
 
         //public Task<IEntityDescriptor> GetDescriptor()

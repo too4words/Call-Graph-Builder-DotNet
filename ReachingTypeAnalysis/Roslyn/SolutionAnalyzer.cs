@@ -64,7 +64,6 @@ namespace ReachingTypeAnalysis
                 strategyKind = StringToAnalysisStrategy(ConfigurationManager.AppSettings["Strategy"]);
             }
 
-
             // TOOD: hack -- set the global solution
             ProjectCodeProvider.Solution = this.Solution;
 
@@ -89,6 +88,9 @@ namespace ReachingTypeAnalysis
                         this.Dispatcher = new AsyncDispatcher();
                         //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
 
+                        this.Strategy = new OndemandAsyncStrategy(this.Solution);
+
+
                         var cancellationSource = new CancellationTokenSource();
                         var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
                         if (triple != null)
@@ -99,7 +101,6 @@ namespace ReachingTypeAnalysis
                             Contract.Assert(mainSymbol != null);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							this.Strategy = new OndemandAsyncStrategy(this.Solution);
 							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
 							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
@@ -143,9 +144,16 @@ namespace ReachingTypeAnalysis
                                                     //break;
                                                 }
                          */
-                        // Create a Grain for the solution
+                        
+                        
+                        
+                        this.Strategy = new OnDemandOrleansStrategy();
+
                         SolutionAnalyzer.MessageCounter = 0;
                         GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+
+
+                        // Create a Grain for the solution
                         var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
                         Contract.Assert(solutionGrain != null);
                         if (SourceCode != null)
@@ -181,7 +189,7 @@ namespace ReachingTypeAnalysis
                             //var model = provider.Compilation.GetSemanticModel(tree);
                             var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
                             var mainMethodEntityDescriptor = mainMethodDescriptor;
-							this.Strategy = new OnDemandOrleansStrategy();
+
 							var orchestator = new AnalysisOrchestator(Strategy);
 							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
                             
