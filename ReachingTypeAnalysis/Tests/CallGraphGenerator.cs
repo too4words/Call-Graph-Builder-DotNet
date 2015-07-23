@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ReachingTypeAnalysis.Communication;
 using SolutionTraversal.Callgraph;
 using System;
 using System.Collections.Generic;
@@ -79,16 +78,30 @@ namespace ReachingTypeAnalysis
         {
             List<StatementSyntax> calls = new List<StatementSyntax>();
             var r = new Random();
-            foreach (var vertex in callgraph.GetNodes())
+            var nodes = callgraph.GetNodes();
+            var nodeCount = nodes.Count();
+            // we need to sample from the nodes to get queryCount as a result
+            var prob = (1.0*queryCount)/(1.0*nodeCount);
+            if (prob > 1.0) { prob = 1.0; }
+
+            Debug.WriteLine("Sampling with probability {0}", prob);
+
+            foreach (var vertex in nodes)
             {
                 var callees = callgraph.GetCallees(vertex);
                 // query: GetCallees(random(1..callees.Count))
                 // project: "MyProject"
                 var ordinal = r.Next(callees.Count) + 1;
-                //CallGraphQueryInterface.GetCalleesAsync(
-                //    new MethodEntityDescriptor("C", vertex), ordinal, "MyProject");
-                var invocation = GetQueryCall(vertex, ordinal);
-                calls.Add(invocation);
+                if (r.NextDouble() < prob)
+                {
+                    var invocation = GetQueryCall(vertex, ordinal);
+                    calls.Add(invocation);
+                }
+            }
+            if (calls.Count > queryCount)
+            {
+                // truncate
+                calls.Take(queryCount);
             }
 
             return
@@ -212,7 +225,8 @@ namespace ReachingTypeAnalysis
 
         private static StatementSyntax GetQueryCall(string methodName, int ordinal)
         {
-            var s1 = SyntaxFactory.LocalDeclarationStatement(
+            var s1 = // initialize the stopwatch 
+                    SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
                         SyntaxFactory.IdentifierName(
                             @"var"))
@@ -244,11 +258,12 @@ namespace ReachingTypeAnalysis
                                 .WithEqualsToken(
                                     SyntaxFactory.Token(
                                         SyntaxKind.EqualsToken))))))
-                .WithSemicolonToken(
-                    SyntaxFactory.Token(
-                        SyntaxKind.SemicolonToken));
+                    .WithSemicolonToken(
+                        SyntaxFactory.Token(
+                            SyntaxKind.SemicolonToken));
 
-            var s2 = SyntaxFactory.LocalDeclarationStatement(
+            var s2 = // call the query interface and discard the result 
+                    SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
                         SyntaxFactory.IdentifierName(
                             @"var"))
@@ -260,23 +275,23 @@ namespace ReachingTypeAnalysis
                                     @"_"))
                             .WithInitializer(
                                 SyntaxFactory.EqualsValueClause(
-                SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(
-                            SyntaxFactory.Identifier(
-                                SyntaxFactory.TriviaList(
-                                    SyntaxFactory.Whitespace(
-                                        @"    ")),
-                                @"CallGraphQueryInterface",
-                                SyntaxFactory.TriviaList())),
-                        SyntaxFactory.IdentifierName(
-                            @"GetCalleesAsync"))
-                    .WithOperatorToken(
-                        SyntaxFactory.Token(
-                            SyntaxKind.DotToken)))
+                                    SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.InvocationExpression(
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName(
+                                                SyntaxFactory.Identifier(
+                                                    SyntaxFactory.TriviaList(
+                                                        SyntaxFactory.Whitespace(
+                                                            @"    ")),
+                                                    @"CallGraphQueryInterface",
+                                                    SyntaxFactory.TriviaList())),
+                                            SyntaxFactory.IdentifierName(
+                                                @"GetCalleesAsync"))
+                                        .WithOperatorToken(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.DotToken)))
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(
                         SyntaxFactory.SeparatedList<ArgumentSyntax>(
@@ -328,25 +343,20 @@ namespace ReachingTypeAnalysis
                                                                 "\"" + methodName +"\"" ,
                                                                 SyntaxFactory.TriviaList()))
                                                             ), 
-                                                            SyntaxFactory.Token(
-                                                                        SyntaxKind.CommaToken),
+                                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                                     SyntaxFactory.Argument(
                                                                         SyntaxFactory.LiteralExpression(
                                                                             SyntaxKind.TrueLiteralExpression)
                                                                         .WithToken(
                                                                             SyntaxFactory.Token(
                                                                                 SyntaxKind.TrueKeyword)))
-                                                //SyntaxFactory.Argument(
-                                                //SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression, 
-                                                //                                SyntaxFactory.Literal("true"))
-                                                //                      )
-                                                }))
-                                        .WithOpenParenToken(
-                                            SyntaxFactory.Token(
-                                                SyntaxKind.OpenParenToken))
-                                        .WithCloseParenToken(
-                                            SyntaxFactory.Token(
-                                                SyntaxKind.CloseParenToken)))),
+                                                } ) )
+                                .WithOpenParenToken(
+                                    SyntaxFactory.Token(
+                                        SyntaxKind.OpenParenToken))
+                                .WithCloseParenToken(
+                                    SyntaxFactory.Token(
+                                        SyntaxKind.CloseParenToken)))),
                                 SyntaxFactory.Token(
                                     SyntaxFactory.TriviaList(),
                                     SyntaxKind.CommaToken,
@@ -354,12 +364,12 @@ namespace ReachingTypeAnalysis
                                         SyntaxFactory.Space)),
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.LiteralExpression(
-                                                            SyntaxKind.NumericLiteralExpression,
-                                                            SyntaxFactory.Literal(
-                                                                SyntaxFactory.TriviaList(),
-                                                                ordinal.ToString(),
-                                                                ordinal,
-                                                                SyntaxFactory.TriviaList()))),
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(
+                                            SyntaxFactory.TriviaList(),
+                                            ordinal.ToString(),
+                                            ordinal,
+                                            SyntaxFactory.TriviaList()))),
                                 SyntaxFactory.Token(
                                     SyntaxFactory.TriviaList(),
                                     SyntaxKind.CommaToken,
@@ -373,25 +383,26 @@ namespace ReachingTypeAnalysis
                                             @"""MyProject""",
                                             @"""MyProject""",
                                             SyntaxFactory.TriviaList())))
-                            }))
-            .WithOpenParenToken(
-                SyntaxFactory.Token(
-                    SyntaxFactory.TriviaList(),
-                    SyntaxKind.OpenParenToken,
-                    SyntaxFactory.TriviaList(
-                        SyntaxFactory.LineFeed)))
-            .WithCloseParenToken(
-                SyntaxFactory.Token(
-                    SyntaxKind.CloseParenToken))),
-            SyntaxFactory.IdentifierName(
-                @"Result"))
-            .WithOperatorToken(
-                SyntaxFactory.Token(
-                    SyntaxKind.DotToken)))
-            ))))
-            .WithSemicolonToken(
-                    SyntaxFactory.Token(
-                        SyntaxKind.SemicolonToken));
+                            }   // arguments
+                        ))
+                        .WithOpenParenToken(
+                            SyntaxFactory.Token(
+                                SyntaxFactory.TriviaList(),
+                                SyntaxKind.OpenParenToken,
+                                SyntaxFactory.TriviaList(
+                                    SyntaxFactory.LineFeed)))
+                        .WithCloseParenToken(
+                            SyntaxFactory.Token(
+                                SyntaxKind.CloseParenToken))),
+                        SyntaxFactory.IdentifierName(
+                            @"Result"))
+                        .WithOperatorToken(
+                            SyntaxFactory.Token(
+                                SyntaxKind.DotToken)))
+                ))))
+                .WithSemicolonToken(
+                        SyntaxFactory.Token(
+                            SyntaxKind.SemicolonToken));
 
             var s3 = // stop the stopwatch
                 SyntaxFactory.ExpressionStatement(
@@ -449,42 +460,42 @@ namespace ReachingTypeAnalysis
         {
             return
                 SyntaxFactory.MethodDeclaration(
-                                SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.VoidKeyword)),
-                                    SyntaxFactory.Identifier("Main"))
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.PublicKeyword),
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.StaticKeyword)))
-                            .WithBody(
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.List<StatementSyntax>(
-                                        GetCallees(methods)
-                                   )));
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(
+                            SyntaxKind.VoidKeyword)),
+                        SyntaxFactory.Identifier("Main"))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(
+                            SyntaxKind.PublicKeyword),
+                        SyntaxFactory.Token(
+                            SyntaxKind.StaticKeyword)))
+                .WithBody(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.List<StatementSyntax>(
+                            GetCallees(methods)
+                        )));
         }
 
         private static MethodDeclarationSyntax GetMethod(string name, IEnumerable<string> callees)
         {
             return
                 SyntaxFactory.MethodDeclaration(
-                                SyntaxFactory.PredefinedType(
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.VoidKeyword)),
-                                SyntaxFactory.Identifier(name))
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.PublicKeyword),
-                                    SyntaxFactory.Token(
-                                        SyntaxKind.StaticKeyword)))
-                            .WithBody(
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.List<StatementSyntax>(
-                                        GetCallees(callees)
-                                   )));
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(
+                            SyntaxKind.VoidKeyword)),
+                    SyntaxFactory.Identifier(name))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(
+                            SyntaxKind.PublicKeyword),
+                        SyntaxFactory.Token(
+                            SyntaxKind.StaticKeyword)))
+                .WithBody(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.List<StatementSyntax>(
+                            GetCallees(callees)
+                        )));
         }
 
         private static IEnumerable<StatementSyntax> GetCallees(IEnumerable<string> callees)
@@ -493,9 +504,9 @@ namespace ReachingTypeAnalysis
             {
                 yield return
                     SyntaxFactory.ExpressionStatement(
-                                            SyntaxFactory.InvocationExpression(
-                                                SyntaxFactory.IdentifierName(
-                                                    callee)));
+                            SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.IdentifierName(
+                                    callee)));
             }
         }
 
