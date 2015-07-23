@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Configuration;
 using Orleans;
+using System.Diagnostics;
 
 namespace CallGraphGeneration
 {
@@ -28,8 +29,8 @@ namespace CallGraphGeneration
 			args = new string[]
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
-				@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-				//@"C:\Users\t-edzopp\Desktop\Roslyn\RoslynLight.sln", "OnDemandAsync"
+				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+				@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 			};
 
 			if (args.Length == 2)
@@ -71,12 +72,13 @@ namespace CallGraphGeneration
 
             var ws = MSBuildWorkspace.Create();
 			var solution = ws.OpenSolutionAsync(solutionFileName).Result;
+
+			/*
+			// http://stackoverflow.com/questions/29523473/roslyn-compilation-doesnt-resolve-mscorlib-references
             var pathNetFramework = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-            var pathToDll = pathNetFramework + @"Facades\";
-            //@"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\Facades\";
-            // Didn't work
-            pathToDll = ConfigurationManager.AppSettings["PathToDLLs"];
-            Contract.Assert(Directory.Exists(pathToDll));
+            var pathToDll = Path.Combine(pathNetFramework, "Facades");
+
+			Debug.Assert(Directory.Exists(pathToDll));
 
             var references = new string[]
 			{
@@ -85,15 +87,17 @@ namespace CallGraphGeneration
 				"System.Reflection.dll",
 				"System.Text.Encoding.dll"
 			};
-					
+			
 			var metadataReferences = references.Select(s => MetadataReference.CreateFromFile(pathToDll + s));
 
 			foreach (var projectId in solution.ProjectIds)
             {
                 solution = solution.AddMetadataReferences(projectId, metadataReferences);
             }
+			*/
 
-            return solution;
+			Console.WriteLine("Solution loaded successfully", solutionName);
+			return solution;
         }
 
 		private CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
@@ -112,17 +116,16 @@ namespace CallGraphGeneration
 		private void Initialize()
 		{
 			if (strategyKind != AnalysisStrategyKind.ONDEMAND_ORLEANS) return;
+			Console.WriteLine("Initializing Orleans silo...");
 
 			var applicationPath = System.Environment.CurrentDirectory;
 
 			var appDomainSetup = new AppDomainSetup
 			{
 				AppDomainInitializer = InitSilo,
-				//ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
 				ApplicationBase = applicationPath,
 				ApplicationName = "CallGraphGeneration",
 				AppDomainInitializerArguments = new string[] { },
-				//ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
 				ConfigurationFile = "CallGraphGeneration.exe.config"
 			};
 
@@ -133,7 +136,7 @@ namespace CallGraphGeneration
 			Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
 
 			GrainClient.Initialize(xmlConfig);
-			Console.WriteLine("Orleans silo initialized");
+			Console.WriteLine("Orleans silo initialized successfully");
 		}
 
 		private void Cleanup()
