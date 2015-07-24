@@ -378,16 +378,16 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(-1329787351, new object[] {@returnMessageInfo} );
             }
             
-            System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitialized()
+            System.Threading.Tasks.Task<bool> OrleansInterfaces.IMethodEntityGrain.IsInitializedAsync()
             {
 
-                return base.InvokeMethodAsync<System.Boolean>(-1831544886, null );
+                return base.InvokeMethodAsync<System.Boolean>(1375290350, null );
             }
             
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> OrleansInterfaces.IMethodEntityGrain.GetMethodEntity()
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> OrleansInterfaces.IMethodEntityGrain.GetMethodEntityAsync()
             {
 
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-538316126, null );
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(596954776, null );
             }
             
             System.Threading.Tasks.Task<System.Collections.Generic.ISet<ReachingTypeAnalysis.MethodDescriptor>> OrleansInterfaces.IMethodEntityGrain.GetCalleesAsync()
@@ -448,10 +448,10 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).PropagateAsync((ReachingTypeAnalysis.Communication.CallMessageInfo)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1329787351: 
                                 return ((IMethodEntityGrain)grain).PropagateAsync((ReachingTypeAnalysis.Communication.ReturnMessageInfo)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -1831544886: 
-                                return ((IMethodEntityGrain)grain).IsInitialized().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -538316126: 
-                                return ((IMethodEntityGrain)grain).GetMethodEntity().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1375290350: 
+                                return ((IMethodEntityGrain)grain).IsInitializedAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 596954776: 
+                                return ((IMethodEntityGrain)grain).GetMethodEntityAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 412610256: 
                                 return ((IMethodEntityGrain)grain).GetCalleesAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -65115232: 
@@ -497,10 +497,10 @@ namespace OrleansInterfaces
                             return "PropagateAsync";
                     case -1329787351:
                             return "PropagateAsync";
-                    case -1831544886:
-                            return "IsInitialized";
-                    case -538316126:
-                            return "GetMethodEntity";
+                    case 1375290350:
+                            return "IsInitializedAsync";
+                    case 596954776:
+                            return "GetMethodEntityAsync";
                     case 412610256:
                             return "GetCalleesAsync";
                     case -65115232:

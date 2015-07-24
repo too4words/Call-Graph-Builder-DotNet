@@ -152,12 +152,15 @@ namespace ReachingTypeAnalysis
 
 
                         // Create a Grain for the solution
-                        var solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+                        var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+                        
+                        //SolutionGrainFactory.GetGrain("Solution");
+
                         Contract.Assert(solutionGrain != null);
                         if (SourceCode != null)
                         {
                             solutionGrain.SetSolutionSource(SourceCode).Wait();
-                            IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain("MyProject");
+                            IProjectCodeProviderGrain projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("MyProject");
                             projectGrain.SetProjectSourceCode(SourceCode);
                         }
                         else
@@ -166,7 +169,7 @@ namespace ReachingTypeAnalysis
                             solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
                             foreach (var project in this.Solution.Projects)
                             {
-                                IProjectCodeProviderGrain projectGrain = ProjectCodeProviderGrainFactory.GetGrain(project.Name);
+                                IProjectCodeProviderGrain projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
                                 projectGrain.SetProjectPath(project.FilePath).Wait();
                             }
                         }

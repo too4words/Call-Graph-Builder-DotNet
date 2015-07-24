@@ -328,16 +328,16 @@ namespace ReachingTypeAnalysis.Analysis
             var totalStopWatch = Stopwatch.StartNew();
             var stopWatch = Stopwatch.StartNew();
 
-            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(projectName);
             Meausure("GetProjectGrain", stopWatch);
 
             var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
             Meausure("GetProjectGrainWrapper", stopWatch);
 
-            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+            var methodGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
             Meausure("GetMethodGrain", stopWatch);
 
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntityAsync();
             Meausure("GetMethodEntity", stopWatch);
 
             var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
@@ -369,10 +369,10 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
         public static async Task<int> GetInvocationCountOrleansAsync(MethodDescriptor methodDescriptor, string projectName)
         {
-            var projectGrain = ProjectCodeProviderGrainFactory.GetGrain(projectName);
+            var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(projectName);
             var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
-            var methodGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntity();
+            var methodGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntityAsync();
             return methodEntity.PropGraph.CallNodes.Count();
         }
 
