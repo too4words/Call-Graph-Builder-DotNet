@@ -23,11 +23,9 @@ namespace ReachingTypeAnalysis
             return new MethodDescriptor(
                 method.ContainingNamespace.Name,
                 method.ContainingType.Name, method.Name, method.IsStatic, 
-                Utils.CreateTypeDescriptor(method.ContainingType),
-                new List<TypeDescriptor>(method.Parameters
-                                .Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type))),
+                method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
                 Utils.CreateTypeDescriptor(method.ReturnType)
-                );            
+				);            
         }
 
         public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
@@ -77,12 +75,6 @@ namespace ReachingTypeAnalysis
                     type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
-
-        internal static MethodDescriptor FindMethodDescriptorForType(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-        {
-            return new MethodDescriptor(typeDescriptor.TypeName, methodDescriptor.MethodName);
-            // throw new NotImplementedException("To implement this method we need type resolution");
-        }
 
 		internal static IMethodSymbol FindMethodImplementation(IMethodSymbol method, ITypeSymbol rType)
 		{

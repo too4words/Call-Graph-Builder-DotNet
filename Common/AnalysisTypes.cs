@@ -63,45 +63,34 @@ namespace ReachingTypeAnalysis
                 return (!IsStatic)? ContainerType: null;
             }
         }
+
 		public MethodDescriptor() : this("","")
 		{
-
 		}
 
-        public MethodDescriptor(string namespaceName, string className, string methodName, 
-                                    bool isStatic = false, 
-                                    TypeDescriptor containingType = null, 
-                                    List<TypeDescriptor> parameters = null, 
-                                    TypeDescriptor returnType = null)
-        {
-            this.NamespaceName = namespaceName;
-            this.ClassName = className;
-            this.MethodName = methodName;
-            this.name = className + "." + methodName;
-            this.Parameters = new List<TypeDescriptor>();
-            this.IsStatic = isStatic;
-            this.ReturnType = returnType;
-        }
+		public MethodDescriptor(string namespaceName, string className, string methodName,
+									bool isStatic = false,
+									IEnumerable<TypeDescriptor> parameters = null,
+									TypeDescriptor returnType = null)
+		{
+			this.NamespaceName = namespaceName;
+			this.ClassName = className;
+			this.MethodName = methodName;
+			this.name = className + "." + methodName;
+			this.IsStatic = isStatic;
+			this.ReturnType = returnType;
 
-        public MethodDescriptor(string className, string methodName, bool isStatic = false, TypeDescriptor containingType = null, List<TypeDescriptor> parameters = null, TypeDescriptor returnType = null)
-        {
-            this.NamespaceName = "";
-            this.ClassName = className;
-            this.MethodName = methodName;
-            this.name = className + "." + methodName;
-            this.Parameters = new List<TypeDescriptor>();
-            this.IsStatic = isStatic;
-            this.ReturnType = returnType;
-        }
+			if (parameters != null)
+			{
+				this.Parameters = new List<TypeDescriptor>(parameters);
+			}
+		}
 
-        public MethodDescriptor(string namespaceName, string className, string methodName, bool isStatic = false)
+        public MethodDescriptor(string className, string methodName, bool isStatic = false)
+			: this("", className, methodName, isStatic)
         {
-            this.NamespaceName = namespaceName;
-            this.ClassName = className;
-            this.MethodName = methodName;
-            this.Parameters = new List<TypeDescriptor>();
-            this.IsStatic = isStatic;
-        }    
+            //this.Parameters = new List<TypeDescriptor>();
+        }
 
         //public bool SameAsMethodSymbol(IMethodSymbol method)
         //{

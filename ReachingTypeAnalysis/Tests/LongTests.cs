@@ -167,28 +167,28 @@ class C
 
 			AnalyzeExample(source, (s, callgraph) =>
 			{
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N1"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N2"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N3"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N4"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N5"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N6"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N7"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N8"), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N9"), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N1", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N2", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N3", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N4", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N5", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N6", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N7", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N8", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N9", true), callgraph));
 
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N4"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N8"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N7"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N0"), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N4", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N8", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N7", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N0", true), callgraph));
 
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N6"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N2"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N3"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N7"), callgraph));
-				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N4"), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N6", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N2", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N3", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N7", true), callgraph));
+				Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N4", true), callgraph));
 
 				Assert.IsTrue(callgraph.GetNodes().Count() == 11);
 				var edgeCount = callgraph.GetEdges().Count();
@@ -1200,30 +1200,30 @@ class C
 
 			AnalyzeExample(source, (s, callgraph) =>
             {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N1"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N2"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N3"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N4"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N5"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N6"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N7"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N8"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N9"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N1", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N2", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N3", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N4", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N5", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N6", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N7", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N8", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N9", true), callgraph));
 
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N4")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N8")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N7")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N0")));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N4", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N8", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N7", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N0", true)));
 
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N6")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N2")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N3")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N7")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N4")));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N6", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N2", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N3", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N7", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N4", true)));
 
-                Assert.IsTrue(callgraph.GetNodes().Count() == 101);
+				Assert.IsTrue(callgraph.GetNodes().Count() == 101);
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 589, string.Format("Found {0} edges", edgeCount));
@@ -11236,30 +11236,30 @@ class C
             AnalyzeExample(source, (s, callgraph) =>
             {
                 var reachable = s.GetReachableMethods(callgraph);
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N0")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N1")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N2")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N3")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N4")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N5")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N6")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N7")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N8")));
-                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N9")));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N0", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N1", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N2", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N3", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N4", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N5", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N6", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N7", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N8", true)));
+                Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N9", true)));
 
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N4")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N8")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N7")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8"), new MethodDescriptor("C", "N0")));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N4", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N8", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N7", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N0", true)));
 
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N6")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N2")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N3")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N7")));
-                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5"), new MethodDescriptor("C", "N4")));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N6", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N2", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N3", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N7", true)));
+				//Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N4", true)));
 
-                Assert.IsTrue(callgraph.GetNodes().Count() == 1001);
+				Assert.IsTrue(callgraph.GetNodes().Count() == 1001);
                 var edgeCount = callgraph.GetEdges().Count();
                 //s.Callgraph.Save(@"c:\temp\test.dot");
                 Assert.IsTrue(edgeCount == 5990, string.Format("Found {0} edges", edgeCount));

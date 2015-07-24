@@ -51,7 +51,7 @@ class Program
             {
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsTrue(result.IsReachable(new MethodDescriptor("System","Object", "Equals",false), callgraph));
+                Assert.IsTrue(result.IsReachable(new MethodDescriptor("System", "Object", "Equals", false), callgraph));
                 Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
                 Assert.IsTrue(result.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
 
@@ -95,12 +95,12 @@ class Program
 
             AnalyzeExample(source, (s,callgraph) =>
             {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r"), new MethodDescriptor("C", "r"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r"), new MethodDescriptor("C", "q"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "q"), new MethodDescriptor("C", "r"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "q"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("Program", "Main"), new MethodDescriptor("C", "r"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r", true), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "r", true), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "q", true), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "q", true), new MethodDescriptor("C", "r", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "q", true), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("Program", "Main", true), new MethodDescriptor("C", "r", true), callgraph));
             }, strategy);
         }
 
@@ -191,7 +191,7 @@ class Program
             AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("MainClass", "Main"), new MethodDescriptor("SubClass", "M"), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("MainClass", "Main", true), new MethodDescriptor("SubClass", "M"), callgraph));
             }, strategy);
         }
 
@@ -275,7 +275,7 @@ class Program
                 // Need to include support for properties
                 // Assert.IsTrue(s.IsReachable("C", "Inc"));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Main"), new MethodDescriptor("C", "Bound"), callgraph));
+                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Main", true), new MethodDescriptor("C", "Bound"), callgraph));
                 Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Bound"), new MethodDescriptor("C", "testMethod"), callgraph));
             }, strategy);
         }
@@ -336,10 +336,10 @@ class C
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", ".ctor"), callgraph));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", ".ctor"), callgraph));
                 Assert.IsTrue(s.IsCalled(
-                    new MethodDescriptor("C", "Main"),
+                    new MethodDescriptor("C", "Main", true),
                     new MethodDescriptor("C", "Bound"), callgraph));
                 Assert.IsTrue(!s.IsCalled(
-                    new MethodDescriptor("C", "Main"),
+                    new MethodDescriptor("C", "Main", true),
                     new MethodDescriptor("D", "testMethod"), callgraph));
             }, strategy);
         }
@@ -371,9 +371,9 @@ class C
             {
                 // Should not fail but it wrongly computes MainClass.HasS.S
                 // This is because it does not understand "s" in "s.S"
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("M", "S"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("M", "S", true), callgraph));
 
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("M", "Unreachable"), callgraph));
+                Assert.IsFalse(s.IsReachable(new MethodDescriptor("M", "Unreachable", true), callgraph));
             }, strategy);
         }
 
