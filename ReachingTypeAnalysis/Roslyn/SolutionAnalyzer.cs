@@ -89,10 +89,8 @@ namespace ReachingTypeAnalysis
                         //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
 
                         this.Strategy = new OndemandAsyncStrategy(this.Solution);
+                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution).Result;
 
-
-                        var cancellationSource = new CancellationTokenSource();
-                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
                         if (triple != null)
                         {
                             var solutionManager = new SolutionManager(this.Solution);
@@ -179,8 +177,7 @@ namespace ReachingTypeAnalysis
                         //this.Dispatcher = new OrleansDispatcher();
                         this.Dispatcher = null;
                         // run
-                        var cancellationSource = new CancellationTokenSource();
-                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token).Result;
+                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution).Result;
                         if (triple != null)
                         {
                             // cancel out outstanding processing tasks
@@ -301,7 +298,6 @@ namespace ReachingTypeAnalysis
 				foreach (var tree in compilation.SyntaxTrees)
 				{
                     var model = compilation.GetSemanticModel(tree);
-					var codeProvider = new ProjectCodeProvider(project, compilation);
 					var allMethodsVisitor = new AllMethodsVisitor(model, tree, this.Dispatcher);
 					allMethodsVisitor.Visit(tree.GetRoot());
 				}
@@ -450,8 +446,8 @@ namespace ReachingTypeAnalysis
 		public async Task AnalyzeOnDemandAsync(AnalysisStrategyKind strategyKind)
 		{
 			Contract.Assert(this.Dispatcher != null);
-			var cancellationSource = new CancellationTokenSource();
-			var triple = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution, cancellationSource.Token);
+			var triple = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution);
+			
 			if (triple != null)
 			{
 				// cancel out outstanding processing tasks
@@ -468,6 +464,7 @@ namespace ReachingTypeAnalysis
                 var mainMethodEntityDescriptor = mainMethodDescriptor;
 
                 IEntityProcessor mainMethodEntityProcessor = null;
+
                 switch(strategyKind)
                 {
                     case AnalysisStrategyKind.ONDEMAND_ORLEANS:
@@ -489,6 +486,7 @@ namespace ReachingTypeAnalysis
                         await mainMethodEntityProcessor.DoAnalysisAsync();
                         break;
                 }
+
                 //await Task.WhenAll(mainMethodEntityProcessor.DoAnalysisAsync());
                 //Thread.Sleep(1000);
 				Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemandAsync", "--- Done with propagation ---");

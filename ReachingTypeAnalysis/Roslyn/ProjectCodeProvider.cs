@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using OrleansInterfaces;
 using Orleans;
 using ReachingTypeAnalysis.Analysis;
+using System.IO;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -19,42 +20,51 @@ namespace ReachingTypeAnalysis.Roslyn
         internal Project Project { get; private set; }
         //public SemanticModel SemanticModel { get; private set; }
         public static Solution Solution { get; internal set; }
-
         
         internal ProjectCodeProvider(Project project, Compilation compilation)
         {
             this.Project = project;
-            this.Compilation = project.GetCompilationAsync().Result;
+            this.Compilation = compilation;
         }
 
-        async internal static Task<ProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
+        internal static async Task<ProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
         {
+			var cancellationTokenSource = new CancellationTokenSource();
             var project = await Utils.ReadProjectAsync(fullPath);
-            if(project!=null)
+
+            if (project !=  null)
             {
-                return new ProjectCodeProvider(project, await project.GetCompilationAsync());
+				var compilation = await CompileProjectAsync(project, cancellationTokenSource.Token);
+                return new ProjectCodeProvider(project, compilation);
             }
-            //foreach (var id in Solution.ProjectIds)
-            //{
-            //    var project = Solution.GetProject(id);
-            //    if(project.FilePath.Equals(fullPath))
-            //    {
-            //        return new ProjectCodeProvider(project, await project.GetCompilationAsync());
-            //    }
-            //}
-            Contract.Assert(false, "Can't find path = " + fullPath);
+			//foreach (var id in Solution.ProjectIds)
+			//{
+			//    var project = Solution.GetProject(id);
+			//    if(project.FilePath.Equals(fullPath))
+			//    {
+			//        var compilation = await CompileProjectAsync(project, cancellationTokenSource.Token);
+			//        return new ProjectCodeProvider(project, compilation);
+			//    }
+			//}
+			Contract.Assert(false, "Can't find path = " + fullPath);
             return null;
         }
-        async internal static Task<ProjectCodeProvider> ProjectCodeProviderByNameAsync(Solution solution, string name)
+
+        internal static async Task<ProjectCodeProvider> ProjectCodeProviderByNameAsync(Solution solution, string name)
         {
+			var cancellationTokenSource = new CancellationTokenSource();
+
             foreach (var id in solution.ProjectIds)
             {
                 var project = solution.GetProject(id);
+
                 if (project.Name.Equals(name)) 
                 {
-                    return new ProjectCodeProvider(project, await project.GetCompilationAsync());
+					var compilation = await CompileProjectAsync(project, cancellationTokenSource.Token);
+                    return new ProjectCodeProvider(project, compilation);
                 }
             }
+
             Contract.Assert(false, "Can't find project named = " + name);
             return null;
         }
@@ -64,10 +74,12 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return (await FindCodeProviderAndEntity(methodDescriptor)).Item2;
         }
+
         async internal static Task<Tuple<ICodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor)
         {
             return await FindCodeProviderAndEntity(methodDescriptor, ProjectCodeProvider.Solution);
         }
+
         async internal static Task<Tuple<ICodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor, Solution solution)
         {
             MethodEntity methodEntity = null;
@@ -90,18 +102,15 @@ namespace ReachingTypeAnalysis.Roslyn
             return new Tuple<ICodeProvider,MethodEntity>(provider, methodEntity);
         }
 
-        async public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             MethodEntity methodEntity = null;
             var tree = await this.GetSyntaxAsync(methodDescriptor);
-            if(tree==null)
-            { }
             var model = this.Compilation.GetSemanticModel(tree);
             var methodEntityGenerator = new MethodSyntaxProcessor(model, this, tree, methodDescriptor);
             methodEntity = methodEntityGenerator.ParseMethod();
             return methodEntity;
         }
-
 
         /*
 		public static BaseMethodDeclarationSyntax FindMethodSyntax(SemanticModel model, SyntaxTree tree, MethodDescriptor method, out IMethodSymbol symbol)
@@ -118,11 +127,15 @@ namespace ReachingTypeAnalysis.Roslyn
 
         public static IEnumerable<MethodDescriptor> GetMainMethods(Solution solution)
 		{
-			var cancellationToken = new System.Threading.CancellationToken();
+			var cancellationTokenSource = new CancellationTokenSource();
+
 			foreach (var project in solution.Projects)
 			{
-				var compilation = project.GetCompilationAsync().Result;
-				var mainMethod = compilation.GetEntryPoint(cancellationToken);
+				var compilation = CompileProjectAsync(project, cancellationTokenSource.Token).Result;
+				if (compilation == null) continue;
+
+				var mainMethod = compilation.GetEntryPoint(cancellationTokenSource.Token);
+
 				if (mainMethod != null)
 				{
 					// only return if there's a main method
@@ -130,28 +143,33 @@ namespace ReachingTypeAnalysis.Roslyn
 				}
 			}
 		}
-
-        public async static Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Solution solution)
+		
+        public static async Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Solution solution)
         {
-            var cancellationToken = new System.Threading.CancellationToken();
-            var continuations = new List<Task<Compilation>>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var tasks = new List<Task<Compilation>>();
+
             foreach (var project in solution.Projects)
             {
-                var compilation = project.GetCompilationAsync();
-                continuations.Add(compilation);                
+                var compilation = CompileProjectAsync(project, cancellationTokenSource.Token);
+                tasks.Add(compilation);                
             }
-            await Task.WhenAll(continuations);
+
+            await Task.WhenAll(tasks);
             var result = new HashSet<MethodDescriptor>();
 
-            foreach (var getCompilitacionTask in continuations)
+            foreach (var task in tasks)
             {
-                var mainMethod = getCompilitacionTask.Result.GetEntryPoint(cancellationToken);
+                var mainMethod = task.Result.GetEntryPoint(cancellationTokenSource.Token);
+
                 if (mainMethod != null)
                 {
-                    // only return if there's a main method
-                    result.Add(Utils.CreateMethodDescriptor(mainMethod));
+					// only return if there's a main method
+					var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
+                    result.Add(methodDescriptor);
                 }
             }
+
             return result;
         }
 
@@ -164,9 +182,11 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return Task.FromResult<MethodDescriptor>(FindMethodImplementation(methodDescriptor, typeDescriptor));
         }
+
         public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
             var roslynMethod = FindMethod(methodDescriptor);
+
             if (roslynMethod != null)
             {
                 var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
@@ -174,12 +194,12 @@ namespace ReachingTypeAnalysis.Roslyn
                 Contract.Assert(implementedMethod != null);
                 return Utils.CreateMethodDescriptor(implementedMethod);
             }
+
             // If we cannot resolve the method, we return the same method.
             return methodDescriptor;
         }
 
-		public static async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(
-            SemanticModel model, SyntaxTree tree, MethodDescriptor method)
+		public static async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(SemanticModel model, SyntaxTree tree, MethodDescriptor method)
 		{
 			var root = await tree.GetRootAsync();
 			var visitor = new MethodFinder(method, model);
@@ -187,10 +207,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			if (visitor.Result != null)
 			{
-				return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(
-					visitor.Result,
-					(IMethodSymbol)model.GetDeclaredSymbol(visitor.Result)
-					);
+				return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result, (IMethodSymbol)model.GetDeclaredSymbol(visitor.Result));
 			}
 			else
 			{
@@ -203,19 +220,24 @@ namespace ReachingTypeAnalysis.Roslyn
 			Contract.Assert(ProjectCodeProvider.Solution != null);
 			return await GetProjectProviderAndSyntaxAsync(methodDescriptor,ProjectCodeProvider.Solution);
 		}
+
 		internal static async Task<Tuple<ICodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor, Solution solution)
 		{
 			Contract.Assert(solution != null);
 			var cancellationSource = new CancellationTokenSource();
 			var continuations = new List<Task<Compilation>>();
+
 			foreach (var project in solution.Projects)
 			{
-				var compilation = await project.GetCompilationAsync(cancellationSource.Token);                
+				var compilation = await CompileProjectAsync(project, cancellationSource.Token);
+				if (compilation == null) continue;
+
 				foreach (var tree in compilation.SyntaxTrees)
 				{
                     var model = compilation.GetSemanticModel(tree);
                     var codeProvider = new ProjectCodeProvider(project, compilation);
 					var pair = await ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, methodDescriptor);
+
 					if (pair != null)
 					{
 						// found it
@@ -224,6 +246,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					}
 				}
 			}
+
             // In some cases (e.g, default constructors or library methods, we are not going to find the code in the solution)
             // We should not throw an exception. Maybe return a dummy code Provider to let the analysis evolve
             // or an informative message in order to let the caller continue. We can declare the exception
@@ -234,68 +257,82 @@ namespace ReachingTypeAnalysis.Roslyn
         internal async Task<SyntaxTree> GetSyntaxAsync(MethodDescriptor methodDescriptor)
         {
             var cancellationSource = new CancellationTokenSource();
+
             foreach (var tree in this.Compilation.SyntaxTrees)
             {
                 var model = this.Compilation.GetSemanticModel(tree);
                 var pair = await ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, methodDescriptor);
+
                 if (pair != null)
                 {
                     // found it
-                    cancellationSource.Cancel();
                     return tree;
                 }
             }
+
             return null;
         }
 
         public static async Task<IProjectCodeProviderGrain> GetCodeProviderGrainAsync(MethodDescriptor methodDescriptor, Solution solution)
         {
-            var cancellationSource = new CancellationTokenSource();
+			var cancellationTokenSource = new CancellationTokenSource();
             var continuations = new List<Task<Compilation>>();
+
             foreach (var project in solution.Projects)
             {
-                var compilation = await project.GetCompilationAsync(cancellationSource.Token);
+                var compilation = await CompileProjectAsync(project, cancellationTokenSource.Token);
 
                 foreach (var tree in compilation.SyntaxTrees)
                 {
                     var model = compilation.GetSemanticModel(tree);
                     var codeProvider = new ProjectCodeProvider(project, compilation);
                     var pair = await ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, methodDescriptor);
-                    if (pair != null)
+
+					if (pair != null)
                     {
                         // found it
-                        cancellationSource.Cancel();
-                        var codeProviderGrain = ProjectCodeProviderGrainFactory.GetGrain(project.Name);
+                        var codeProviderGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
                         return codeProviderGrain;
                     }
                 }
             }
-            return ProjectCodeProviderGrainFactory.GetGrain("DUMMY");
+
+            return GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
         }
 
-		internal static ProjectCodeProvider GetProviderContainingEntryPoint(Project project, out IMethodSymbol mainSymbol)
+		private static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)
 		{
-            var compilation = project.GetCompilationAsync().Result;
-			mainSymbol = compilation.GetEntryPoint(new System.Threading.CancellationToken());
+			Console.WriteLine("Project language {0}", project.Language);
+			if (project.Language == "Visual Basic") return null;
 
-			foreach (var tree in compilation.SyntaxTrees)
+			var compilation = await project.GetCompilationAsync(cancellationToken);
+			var diagnostics = compilation.GetDiagnostics();
+
+			// print compilation errors and warnings
+			var errors = from diagnostic in diagnostics
+						 where diagnostic.Severity == DiagnosticSeverity.Error
+						 select diagnostic.ToString();
+
+			if (errors.Any())
 			{
-				var finder = new MethodFinder(mainSymbol, compilation.GetSemanticModel(tree));
-				finder.Visit(tree.GetRoot());
+				Console.WriteLine("Failed to compile project {0}", project.Name);
+				var fileName = string.Format("roslyn compilation errors for {0}.txt", project.Name);
 
-				if (finder.Result != null)
-				{
-					return new ProjectCodeProvider(project, compilation);
-				}
+				File.WriteAllLines(fileName, errors);
+			}
+			else
+			{
+				Console.WriteLine("Project {0} compiled successfully", project.Name);
 			}
 
-			return null;
+			return compilation;
 		}
 
-		internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(
-            Project project, CancellationToken cancellationToken = default(CancellationToken))
+		internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(Project project, CancellationToken cancellationToken)
 		{
-            var compilation = project.GetCompilationAsync().Result;
+			var compilation = await CompileProjectAsync(project, cancellationToken);
+			if (compilation == null) return null;
+
 			var mainSymbol = compilation.GetEntryPoint(cancellationToken);
 
 			if (mainSymbol == null)
@@ -310,13 +347,15 @@ namespace ReachingTypeAnalysis.Roslyn
 					{
 						var finder = new MethodFinder(mainSymbol, compilation.GetSemanticModel(tree));
 						var root = await tree.GetRootAsync(cancellationToken);
+
 						finder.Visit(root);
+
 						if (finder.Result != null)
 						{
 							return new Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>
-                                (
-                                    new ProjectCodeProvider(project, compilation), mainSymbol, tree
-                                );
+                            (
+                                new ProjectCodeProvider(project, compilation), mainSymbol, tree
+                            );
 						}
 					}
 				}
@@ -329,14 +368,16 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 		}
 
-		internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+		internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(Solution solution)
 		{
-			var projectIDs = solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken);
+			var cancellationTokenSource = new CancellationTokenSource();
+			var dependencyGraph = solution.GetProjectDependencyGraph();
+			var projectIds = dependencyGraph.GetTopologicallySortedProjects(cancellationTokenSource.Token);
 			
-			foreach (var projectId in projectIDs)
+			foreach (var projectId in projectIds)
 			{
 				var project = solution.GetProject(projectId);
-				var pair = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(project);
+				var pair = await ProjectCodeProvider.GetProviderContainingEntryPointAsync(project, cancellationTokenSource.Token);
 				
 				if (pair != null)
 				{
