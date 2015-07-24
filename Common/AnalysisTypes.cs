@@ -157,7 +157,8 @@ namespace ReachingTypeAnalysis
         Delegate,
         TypeParameter,
         Array,
-        Struct
+        Struct,
+		Module
     }
 
     [Serializable]

@@ -46,7 +46,8 @@ namespace ReachingTypeAnalysis
                 case Microsoft.CodeAnalysis.TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
                 case Microsoft.CodeAnalysis.TypeKind.Array: return SerializableTypeKind.Array;
                 case Microsoft.CodeAnalysis.TypeKind.Struct: return SerializableTypeKind.Struct;
-                default: throw new ArgumentException("Can't convert " + kind);
+				case Microsoft.CodeAnalysis.TypeKind.Module: return SerializableTypeKind.Module;
+				default: throw new ArgumentException("Can't convert " + kind);
             }
         }
 
