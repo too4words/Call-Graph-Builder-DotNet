@@ -92,15 +92,27 @@ namespace ReachingTypeAnalysis.Roslyn
 	/// </summary>
 	internal class Allocation : AnalysisExpression
 	{
-		internal Allocation(SyntaxNodeOrToken expression, ITypeSymbol type)
+		/// <summary>
+		/// A node in the PropGraph that represent the result returned by the allocation
+		/// </summary>
+		public VariableNode ReturnedVariableNode { get; private set; }
+
+		internal Allocation(SyntaxNodeOrToken expression, ITypeSymbol type, VariableNode returnedVariableNode)
 			: base(expression, type)
-		{ }
+		{
+			this.ReturnedVariableNode = returnedVariableNode;
+		}
 
 		public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
 		{
 			var allocType = this.GetAnalysisType();
 			methodVisitor.RegisterNewExpressionAssignment(lhsAnalysisNode, allocType);
 			//base.ProcessAssignment(lhsAnalysisNode, methodVisitor);
+		}
+
+		public override PropGraphNodeDescriptor GetAnalysisNode()
+		{
+			return this.ReturnedVariableNode;
 		}
 	}
 
@@ -183,7 +195,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
         public override AnalysisExpression ProcessArgument(ArgumentSyntax argNode, ExpressionVisitor visitor)
         {
-            return  visitor.AnalyzeProperty(argNode.Expression, visitor.ThisRef , null, this);
+            return visitor.AnalyzeProperty(argNode.Expression, visitor.ThisRef , null, this);
         }
     }
 
@@ -445,7 +457,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					return new Identifier(node, type, symbol);
 				case SymbolKind.Parameter:
 					// I need to return the already created parameter node
-					int i = 0;
+					var i = 0;
 					foreach (var parameterNode in this.statementProcessor.ParameterNodes)
 					{
 						Contract.Assert(parameterNode != null);
@@ -489,8 +501,9 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             var type = this.model.GetTypeInfo(node);
             var symbol = this.model.GetSymbolInfo(node).Symbol;
-            // Create an allocation expression
-            var allocAnalysisExpression = new Allocation(node, type.Type);
+			// Create an allocation expression
+			var lhs = CreateAndRegisterTemporaryLHVar(node, type.Type);
+			var allocAnalysisExpression = new Allocation(node, type.Type, lhs);
             // Process the constructor as a call
             if (symbol != null)
             {

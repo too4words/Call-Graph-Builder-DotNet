@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Text;
 
 namespace ReachingTypeAnalysis
 {
@@ -67,36 +68,36 @@ namespace ReachingTypeAnalysis
 
 		}
 
-        public MethodDescriptor(string namespaceName, string classname, string methodName, 
+        public MethodDescriptor(string namespaceName, string className, string methodName, 
                                     bool isStatic = false, 
                                     TypeDescriptor containingType = null, 
                                     List<TypeDescriptor> parameters = null, 
                                     TypeDescriptor returnType = null)
         {
             this.NamespaceName = namespaceName;
-            this.ClassName = classname;
+            this.ClassName = className;
             this.MethodName = methodName;
-            this.name = classname + "." + methodName;
+            this.name = className + "." + methodName;
             this.Parameters = new List<TypeDescriptor>();
             this.IsStatic = isStatic;
             this.ReturnType = returnType;
         }
-        public MethodDescriptor(string classname, string methodName, bool isStatic = false, TypeDescriptor containingType = null, List<TypeDescriptor> parameters = null, TypeDescriptor returnType = null)
+
+        public MethodDescriptor(string className, string methodName, bool isStatic = false, TypeDescriptor containingType = null, List<TypeDescriptor> parameters = null, TypeDescriptor returnType = null)
         {
             this.NamespaceName = "";
-            this.ClassName = classname;
+            this.ClassName = className;
             this.MethodName = methodName;
-            this.name = classname + "." + methodName;
+            this.name = className + "." + methodName;
             this.Parameters = new List<TypeDescriptor>();
             this.IsStatic = isStatic;
             this.ReturnType = returnType;
         }
 
-
-        public MethodDescriptor(string namespaceName, string classname, string methodName, bool isStatic = false)
+        public MethodDescriptor(string namespaceName, string className, string methodName, bool isStatic = false)
         {
             this.NamespaceName = namespaceName;
-            this.ClassName = classname;
+            this.ClassName = className;
             this.MethodName = methodName;
             this.Parameters = new List<TypeDescriptor>();
             this.IsStatic = isStatic;
@@ -121,12 +122,15 @@ namespace ReachingTypeAnalysis
         public override bool Equals(object obj)
         {
             var md = obj as MethodDescriptor;
-            bool nEq = (this.NamespaceName == "" || md.NamespaceName == "") || this.NamespaceName.Equals(md.NamespaceName);
-            bool cEq = this.ClassName.Equals(md.ClassName);
-            bool mEq = this.MethodName.Equals(md.MethodName);
-            bool isStatic = this.IsStatic == md.IsStatic;
+			if (md == null) return false;
 
-            return nEq && cEq && mEq;
+            var nEq = this.NamespaceName == "" || md.NamespaceName == "" || this.NamespaceName.Equals(md.NamespaceName);
+            var cEq = this.ClassName.Equals(md.ClassName);
+            var mEq = this.MethodName.Equals(md.MethodName);
+            var staticEq = this.IsStatic == md.IsStatic;
+			var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
+
+            return nEq && cEq && mEq && staticEq && pEq;
         }
 
         public override int GetHashCode()
@@ -140,12 +144,47 @@ namespace ReachingTypeAnalysis
         }
         public string Marshall()
         {
-            return this.NamespaceName + "+" +this.ClassName + "+" + this.MethodName + "+" + this.IsStatic;
+			var result = new StringBuilder();
+
+			result.Append(this.NamespaceName);
+			result.Append("+");
+			result.Append(this.ClassName);
+			result.Append("+");
+			result.Append(this.MethodName);
+			result.Append("+");
+			result.Append(this.IsStatic);
+
+			if (this.Parameters != null && this.Parameters.Count > 0)
+			{
+				foreach (var parameterType in this.Parameters)
+				{
+					result.Append("+");
+					result.Append(parameterType.TypeName);
+				}
+			}
+
+			return result.ToString();
         }
+
         public static MethodDescriptor DeMarsall(string md)
         {
             var tokens = md.Split('+');
-            return new MethodDescriptor(tokens[0],tokens[1],tokens[2],bool.Parse(tokens[3]));
+
+			var namespaceName = tokens[0];
+			var className = tokens[1];
+			var methodName = tokens[2];
+			var isStatic = Convert.ToBoolean(tokens[3]);
+			var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
+
+			for (var i = 4; i < tokens.Length; ++i)
+			{
+				var typeName = tokens[i];
+				var typeDescriptor = new TypeDescriptor(typeName);
+
+				methodDescriptor.Parameters.Add(typeDescriptor);
+			}
+
+			return methodDescriptor;
         }
     }
 
@@ -175,9 +214,9 @@ namespace ReachingTypeAnalysis
         public string TypeName { get; private set; }
         public bool IsConcreteType { get; private set; }
 
-        public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
+        public TypeDescriptor(string namespaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
         {
-            this.TypeName = nameSpaceName + '.' + className;
+            this.TypeName = namespaceName + '.' + className;
             this.IsReferenceType = isReferenceType;
             this.Kind = kind;
             this.IsConcreteType = isConcrete;
