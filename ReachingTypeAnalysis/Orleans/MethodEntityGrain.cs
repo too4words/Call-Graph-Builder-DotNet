@@ -35,7 +35,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
-            solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+            solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
+
             MethodDescriptor methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
 
 	        // Shold not be null..
@@ -108,7 +109,7 @@ namespace ReachingTypeAnalysis.Analysis
         //    return State.WriteStateAsync();
         //}
 
-        public  Task<IEntity> GetMethodEntity()
+        public  Task<IEntity> GetMethodEntityAsync()
         {
             // Contract.Assert(this.methodEntity != null);
             return Task.FromResult<IEntity>(this.methodEntity);
@@ -373,7 +374,7 @@ namespace ReachingTypeAnalysis.Analysis
             return this.methodEntity.PropGraph.GetDelegates(node);
         }
 
-        public Task<bool> IsInitialized()
+        public Task<bool> IsInitializedAsync()
         {
             return Task.FromResult(this.methodEntity != null);
         }
@@ -403,12 +404,12 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<bool> IsInitializedAsync()
         {
-            return this.grainRef.IsInitialized();
+            return this.grainRef.IsInitializedAsync();
         }
 
         public Task<IEntity> GetMethodEntityAsync()
         {
-            return this.grainRef.GetMethodEntity();
+            return this.grainRef.GetMethodEntityAsync();
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using OrleansInterfaces;
 using System.Diagnostics.Contracts;
 using Microsoft.CodeAnalysis;
+using Orleans;
+
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -44,7 +46,10 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-            var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+            var methodEntityGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+
+            //var methodEntityGrain = MethodEntityGrainFactory.GetGrain(methodDescriptor.Marshall());
+
             return await Task.FromResult(new MethodEntityGrainWrapper(methodEntityGrain));
 		}
 
