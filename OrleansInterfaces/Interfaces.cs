@@ -14,22 +14,22 @@ namespace OrleansInterfaces
     }
      */
 
-    public interface IMethodEntityGrain :  IGrainWithStringKey //, IMethodEntityWithPropagator
+    public interface IMethodEntityGrain :  IGrainWithStringKey, IMethodEntityWithPropagator
     {
         //Task<IEntityDescriptor> GetDescriptor();
         //Task<MethodDescriptor> GetMethodDescriptor();
         //Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);
 
 		Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor);
-        Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
-        Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
-        Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
-        Task<bool> IsInitializedAsync();
-        Task<IEntity> GetMethodEntityAsync();
-        Task<ISet<MethodDescriptor>> GetCalleesAsync();
-        Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
-        Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
-        Task<int> GetInvocationCountAsync();
+        //Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
+        //Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
+        //Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
+        //Task<bool> IsInitializedAsync();
+        //Task<IEntity> GetMethodEntityAsync();
+        //Task<ISet<MethodDescriptor>> GetCalleesAsync();
+        //Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
+        //Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
+        //Task<int> GetInvocationCountAsync();
     }
 
     public interface IProjectCodeProviderGrain : IGrainWithStringKey

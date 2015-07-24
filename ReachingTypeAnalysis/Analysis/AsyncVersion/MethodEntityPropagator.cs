@@ -53,7 +53,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            Logger.LogS("MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+            Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
             // var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
             var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
