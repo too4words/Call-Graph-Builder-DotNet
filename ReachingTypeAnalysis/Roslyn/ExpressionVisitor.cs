@@ -11,7 +11,7 @@ using System.Diagnostics.Contracts;
 namespace ReachingTypeAnalysis.Roslyn
 {
 	/// <summary>
-	/// This interface represent the way we model an expression from the AST in term of the our analysis strcture
+	/// This interface represent the way we model an expression from the AST in term of the our analysis structure
 	/// The analysis use to kinds of information:
 	///    - Types: Information about concrete types 
 	///    - Nodes: an element in the Propagation Graph (where concrete types flow). It represent a local variable, parameter or field
@@ -43,6 +43,10 @@ namespace ReachingTypeAnalysis.Roslyn
 
         protected virtual PropGraphNodeDescriptor CreateAnalysisNode()
         {
+			var type = this.GetType();
+
+			Console.WriteLine(type.Name);
+
 			throw new NotImplementedException();
         }
 
@@ -53,6 +57,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				//aType = new ConcreteType(Type);
                 typeDescriptor = Utils.CreateTypeDescriptor(this.Type);
 			}
+
 			return typeDescriptor;
         }
 
@@ -767,20 +772,24 @@ namespace ReachingTypeAnalysis.Roslyn
             //var tmpExp = SyntaxFactory.ParseName("T_" + tempLH.Count);
             if (!roslynMethod.ReturnsVoid && Utils.IsTypeForAnalysis(roslynMethod.ReturnType))
             {
-                // Creates the node that will hold the value returned by the call
-                tempRV = new VariableNode("T_" + tempLH.Count, Utils.CreateTypeDescriptor(roslynMethod.ReturnType));
-                //tempRV = (VariableNode)this.roslynMethodVisitor.CreateNodeForExpression(
-                //    roslynMethod.ReturnType,
-                //    tmpExp, 
-                //    roslynMethod.ContainingType);
-
-                tempLH[node] = tempRV;
-                statementProcessor.RegisterLocalVariable(tempRV);
+				tempRV = this.CreateAndRegisterTemporaryLHVar(node, roslynMethod.ReceiverType);
             }
+
             return tempRV;
         }
 
-        public override AnalysisExpression VisitThisExpression(ThisExpressionSyntax node)
+		private VariableNode CreateAndRegisterTemporaryLHVar(ExpressionSyntax node, ITypeSymbol roslynType)
+		{
+			// Creates the node that will hold the value returned by the call, new, etc
+			var tempRV = new VariableNode("T_" + tempLH.Count, Utils.CreateTypeDescriptor(roslynType));
+
+			tempLH[node] = tempRV;
+			statementProcessor.RegisterLocalVariable(tempRV);
+
+			return tempRV;
+		}
+
+		public override AnalysisExpression VisitThisExpression(ThisExpressionSyntax node)
         {
             if (this.ThisRef != null)
             {

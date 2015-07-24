@@ -10,6 +10,7 @@ using System.Linq;
 using System.Configuration;
 using Orleans;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace CallGraphGeneration
 {
@@ -70,7 +71,9 @@ namespace CallGraphGeneration
 			var solutionName = Path.GetFileName(solutionFileName);
 			Console.WriteLine("Loading solution {0}...", solutionName);
 
-            var ws = MSBuildWorkspace.Create();
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
+			var ws = MSBuildWorkspace.Create(props);
 			var solution = ws.OpenSolutionAsync(solutionFileName).Result;
 
 			/*
@@ -118,7 +121,7 @@ namespace CallGraphGeneration
 			if (strategyKind != AnalysisStrategyKind.ONDEMAND_ORLEANS) return;
 			Console.WriteLine("Initializing Orleans silo...");
 
-			var applicationPath = System.Environment.CurrentDirectory;
+			var applicationPath = Environment.CurrentDirectory;
 
 			var appDomainSetup = new AppDomainSetup
 			{

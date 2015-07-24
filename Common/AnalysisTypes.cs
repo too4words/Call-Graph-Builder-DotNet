@@ -158,8 +158,14 @@ namespace ReachingTypeAnalysis
         TypeParameter,
         Array,
         Struct,
-		Module
-    }
+		Module,
+		Enum,
+		Pointer,
+		Dynamic,
+		Error,
+		Submission,
+		Unknown
+	}
 
     [Serializable]
     public class TypeDescriptor

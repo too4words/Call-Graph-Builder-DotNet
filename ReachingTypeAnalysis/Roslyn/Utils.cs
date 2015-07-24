@@ -47,6 +47,12 @@ namespace ReachingTypeAnalysis
                 case Microsoft.CodeAnalysis.TypeKind.Array: return SerializableTypeKind.Array;
                 case Microsoft.CodeAnalysis.TypeKind.Struct: return SerializableTypeKind.Struct;
 				case Microsoft.CodeAnalysis.TypeKind.Module: return SerializableTypeKind.Module;
+				case Microsoft.CodeAnalysis.TypeKind.Enum: return SerializableTypeKind.Enum;
+				case Microsoft.CodeAnalysis.TypeKind.Pointer: return SerializableTypeKind.Pointer;
+				case Microsoft.CodeAnalysis.TypeKind.Dynamic: return SerializableTypeKind.Dynamic;
+				case Microsoft.CodeAnalysis.TypeKind.Error: return SerializableTypeKind.Error;
+				case Microsoft.CodeAnalysis.TypeKind.Submission: return SerializableTypeKind.Submission;
+				case Microsoft.CodeAnalysis.TypeKind.Unknown: return SerializableTypeKind.Unknown;
 				default: throw new ArgumentException("Can't convert " + kind);
             }
         }
