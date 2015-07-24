@@ -149,7 +149,8 @@ namespace ReachingTypeAnalysis
             Main();
         }
     }";
-#endregion 
+#endregion
+
             AnalyzeExample(source, (s, callgraph) =>
 			{
                 var queryTimes = Q.DoQueriesDeprecated();
@@ -259,6 +260,7 @@ namespace ReachingTypeAnalysis
         }
     }";
             #endregion
+
             AnalyzeExample(source, (s, callgraph) =>
             {
 
@@ -267,6 +269,7 @@ namespace ReachingTypeAnalysis
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
             }, strategy);
         }
+
         public static void TestQuery2(AnalysisStrategyKind strategy)
         {
             #region source code
@@ -367,9 +370,9 @@ namespace ReachingTypeAnalysis
         }
     }";
             #endregion
+
             AnalyzeExample(source, (s, callgraph) =>
             {
-
                 var queryTimes2 = Q.DoQueries2(s.Strategy);
                 var averageQueryTimes2 = queryTimes2.Average(t => t.Elapsed.Milliseconds);
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
@@ -377,7 +380,6 @@ namespace ReachingTypeAnalysis
         }
 
     }
-
 
     public static class Q
     {
@@ -446,15 +448,15 @@ namespace ReachingTypeAnalysis
                 yield return sw;
             }
 
-            //{
-            //    var sw = Stopwatch.StartNew();
-            //    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9"), 1, "MyProject").Result;
-            //    sw.Stop();
-            //    yield return sw;
-            //}
+			//{
+			//    var sw = Stopwatch.StartNew();
+			//    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
+			//    sw.Stop();
+			//    yield return sw;
+			//}
 
-            {
-                var sw = Stopwatch.StartNew();
+			{
+				var sw = Stopwatch.StartNew();
                 var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "Main", true), 8, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
@@ -526,15 +528,15 @@ namespace ReachingTypeAnalysis
                 yield return sw;
             }
 
-            //{
-            //    var sw = Stopwatch.StartNew();
-            //    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9"), 1, "MyProject").Result;
-            //    sw.Stop();
-            //    yield return sw;
-            //}
+			//{
+			//    var sw = Stopwatch.StartNew();
+			//    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
+			//    sw.Stop();
+			//    yield return sw;
+			//}
 
-            {
-                var sw = Stopwatch.StartNew();
+			{
+				var sw = Stopwatch.StartNew();
                 var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "Main", true), 8).Result;
                 sw.Stop();
                 yield return sw;
