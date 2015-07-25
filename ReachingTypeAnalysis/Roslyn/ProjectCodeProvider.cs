@@ -273,7 +273,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return null;
         }
 
-        public static async Task<IProjectCodeProviderGrain> GetCodeProviderGrainAsync(MethodDescriptor methodDescriptor, Solution solution)
+        public static async Task<IProjectCodeProviderGrain> GetCodeProviderGrainAsync(MethodDescriptor methodDescriptor, Solution solution, IGrainFactory grainFactory)
         {
 			var cancellationTokenSource = new CancellationTokenSource();
             var continuations = new List<Task<Compilation>>();
@@ -291,13 +291,13 @@ namespace ReachingTypeAnalysis.Roslyn
 					if (pair != null)
                     {
                         // found it
-                        var codeProviderGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
+                        var codeProviderGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
                         return codeProviderGrain;
                     }
                 }
             }
 
-            return GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
+            return grainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
         }
 
 		private static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)

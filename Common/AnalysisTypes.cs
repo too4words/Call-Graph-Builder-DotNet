@@ -165,13 +165,17 @@ namespace ReachingTypeAnalysis
 			var isStatic = Convert.ToBoolean(tokens[3]);
 			var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
 
-			for (var i = 4; i < tokens.Length; ++i)
-			{
-				var typeName = tokens[i];
-				var typeDescriptor = new TypeDescriptor(typeName);
+            if (tokens.Length > 4 && tokens[4].Length>0)
+            {
+                methodDescriptor.Parameters = new List<TypeDescriptor>();
+                for (var i = 4; i < tokens.Length; ++i)
+                {
+                    var typeName = tokens[i];
+                    var typeDescriptor = new TypeDescriptor(typeName);
 
-				methodDescriptor.Parameters.Add(typeDescriptor);
-			}
+                    methodDescriptor.Parameters.Add(typeDescriptor);
+                }
+            }
 
 			return methodDescriptor;
         }

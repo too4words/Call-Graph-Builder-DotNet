@@ -170,16 +170,19 @@ namespace ReachingTypeAnalysis
                 thisRef = new ThisNode(methodDescriptor.ThisType);
             }
             parameters = new List<ParameterNode>();
-            for (int i = 0; i < methodDescriptor.Parameters.Count(); i++)
+            if (methodDescriptor.Parameters != null)
             {
-                var parameterName = "P_" + i;
-                var parameterNode = new ParameterNode(parameterName, i,methodDescriptor.Parameters[i]);
-                parameters.Add(parameterNode);
-                //if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
+                for (int i = 0; i < methodDescriptor.Parameters.Count(); i++)
                 {
-                    outputs[parameterName] = parameterNode;
+                    var parameterName = "P_" + i;
+                    var parameterNode = new ParameterNode(parameterName, i, methodDescriptor.Parameters[i]);
+                    parameters.Add(parameterNode);
+                    //if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
+                    {
+                        outputs[parameterName] = parameterNode;
+                    }
+                    inputs[parameterName] = parameterNode;
                 }
-                inputs[parameterName] = parameterNode;
             }
 
             var methodInterfaceData = new MethodInterfaceData()

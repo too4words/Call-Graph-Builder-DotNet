@@ -74,7 +74,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
             else
             {
-                projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution);
+                projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution, GrainFactory);
                 this.methodDescriptors2Project.Add(methodDescriptor, projectCodeProviderGrain);
                 await TaskDone.Done; //this.State.WriteStateAsync();
             }
