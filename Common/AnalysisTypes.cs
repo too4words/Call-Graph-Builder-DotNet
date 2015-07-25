@@ -259,7 +259,8 @@ namespace ReachingTypeAnalysis
         // TODO: Fix the equals, but we need to resolve the default values
         public override int GetHashCode()
         {
-            return this.TypeName.GetHashCode() + this.Kind.GetHashCode();
+            return this.TypeName.GetHashCode()
+                + (this.Kind.Equals(SerializableTypeKind.Undefined) ? 0 : this.Kind.GetHashCode());
         }
 
         public override string ToString()
