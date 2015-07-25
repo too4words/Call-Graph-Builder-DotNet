@@ -31,8 +31,7 @@ namespace ReachingTypeAnalysis
         public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
         {
             //public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
-            return new TypeDescriptor(
-                type.MetadataName, type.IsReferenceType, Convert(type.TypeKind), isConcrete);
+            return new TypeDescriptor(type.MetadataName, type.IsReferenceType, Convert(type.TypeKind), isConcrete);
         }
 
         private static SerializableTypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {

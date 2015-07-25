@@ -63,9 +63,18 @@ namespace ReachingTypeAnalysis.Roslyn
                 var members = type.GetMembers(methodDescriptor.MethodName);
                 if (members.Count() > 0)
                 {
-                    var member = members.First() as IMethodSymbol;
-                    return member;
-                }
+					var methods = from member in members
+								  let methodSymbol = member as IMethodSymbol
+								  let descriptor = Utils.CreateMethodDescriptor(methodSymbol)
+								  where descriptor.Equals(methodDescriptor)
+								  select methodSymbol;
+
+					var method = methods.Single();
+					return method;
+
+					//var member = members.First() as IMethodSymbol;
+					//return member;
+				}
             }
             return null;
         }
