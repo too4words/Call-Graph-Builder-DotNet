@@ -117,10 +117,20 @@ namespace ReachingTypeAnalysis
             var cEq = this.ClassName.Equals(md.ClassName);
             var mEq = this.MethodName.Equals(md.MethodName);
             var staticEq = this.IsStatic == md.IsStatic;
-			var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
+            var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
 
             return nEq && cEq && mEq && staticEq && pEq;
         }
+        //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
+        //{
+        //    if(params1.Count()!=params2.Count()) return false;
+        //    for(var i = 0; i< params1.Count(); i++)
+        //    {
+        //        if(!params1[i].Equals(params2[i]))
+        //            return false;
+        //    }
+        //    return true;
+        //}
 
         public override int GetHashCode()
         {
@@ -196,7 +206,8 @@ namespace ReachingTypeAnalysis
 		Dynamic,
 		Error,
 		Submission,
-		Unknown
+		Unknown,
+        Undefined
 	}
 
     [Serializable]
@@ -207,7 +218,7 @@ namespace ReachingTypeAnalysis
         public string TypeName { get; private set; }
         public bool IsConcreteType { get; private set; }
 
-        public TypeDescriptor(string namespaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
+        public TypeDescriptor(string namespaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
         {
             this.TypeName = namespaceName + '.' + className;
             this.IsReferenceType = isReferenceType;
@@ -215,7 +226,7 @@ namespace ReachingTypeAnalysis
             this.IsConcreteType = isConcrete;
         }
 
-        public TypeDescriptor(string typeName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Class, bool isConcrete = true)
+        public TypeDescriptor(string typeName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
         {
             this.TypeName = typeName;
             this.IsReferenceType = isReferenceType;
@@ -231,14 +242,21 @@ namespace ReachingTypeAnalysis
             this.IsConcreteType = isConcrete;
         }
 
+        // TODO: Fix the equals, but we need to resolve the default values
         public override bool Equals(object obj)
         {
             TypeDescriptor typeDescriptor = (TypeDescriptor)obj;
+            bool eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
+                          this.Kind.Equals(SerializableTypeKind.Undefined) ||
+                          this.Kind.Equals(typeDescriptor.Kind);
+            bool eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
+            bool eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
+
             return this.TypeName.Equals(typeDescriptor.TypeName)
-                    && this.IsReferenceType == typeDescriptor.IsReferenceType
-                    && this.IsConcreteType == typeDescriptor.IsConcreteType
-                    && this.Kind.Equals(typeDescriptor.Kind);
+             //       && eqRef && eqConcrete
+                    && eqKind;
         }
+        // TODO: Fix the equals, but we need to resolve the default values
         public override int GetHashCode()
         {
             return this.TypeName.GetHashCode() + this.Kind.GetHashCode();
