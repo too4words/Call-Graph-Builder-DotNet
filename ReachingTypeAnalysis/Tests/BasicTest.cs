@@ -8,7 +8,8 @@ namespace ReachingTypeAnalysis
     {
         public static void TestSimpleCall(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 using System;
 public class D:C
 {
@@ -46,8 +47,9 @@ class Program
         d.Equals(c);
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (result, callgraph) =>
+			AnalyzeExample(source, (result, callgraph) =>
             {
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
@@ -65,7 +67,8 @@ class Program
 
         public static  void TestRecursion(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 using System;
 public class C 
 {
@@ -92,8 +95,9 @@ class Program
         var x = C.r(100);
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s,callgraph) =>
+			AnalyzeExample(source, (s,callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r", true), callgraph));
                 Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "r", true), callgraph));
@@ -106,7 +110,8 @@ class Program
 
         public static void TestIf(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 public class D:C
 {
     public  override C m1(C a)
@@ -136,16 +141,19 @@ class Program
         C j = h.m1(c);
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m1"), callgraph));
             }, strategy);
         }
+
         public static void TestVirtualCallViaSuperClass(AnalysisStrategyKind strategy)
         {
-            String source =
+			#region source code
+			var source =
 @"class MainClass {
     class SuperClass {
         public virtual void M() {
@@ -162,8 +170,9 @@ class Program
         oSub.M(); // SubClass.M() should be reachable.
     } 
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
             },strategy);
@@ -171,7 +180,8 @@ class Program
 
         public static  void TestCallViaInterface(AnalysisStrategyKind strategy)
         {
-            String source =
+			#region source code
+			var source =
 @"class MainClass {
     interface Interface {
         void M(int x);
@@ -187,8 +197,9 @@ class Program
         oSub.M(4); // SubClass.M() should be reachable.
     } 
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
                 Assert.IsTrue(s.IsCalled(new MethodDescriptor("MainClass", "Main", true), new MethodDescriptor("SubClass", "M"), callgraph));
@@ -196,8 +207,9 @@ class Program
         }
 
         public static void TestForLoop(AnalysisStrategyKind strategy)
-        {
-            String source =
+		{
+			#region source code
+			var source =
 @"class C
 {
     int f;
@@ -226,8 +238,9 @@ class Program
         }
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s,callgraph) =>
+			AnalyzeExample(source, (s,callgraph) =>
             {
                 // Need to include support for properties
                 // Assert.IsTrue(s.IsReachable("C", "Inc"));
@@ -237,7 +250,8 @@ class Program
 
         public static void TestForLoopQueuing(AnalysisStrategyKind strategy)
         {
-            String source =
+			#region source code
+			var source =
 @"class C
 {
     int f;
@@ -269,8 +283,9 @@ class Program
         }
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 // Need to include support for properties
                 // Assert.IsTrue(s.IsReachable("C", "Inc"));
@@ -282,7 +297,8 @@ class Program
 
         public static void TestFieldAccess(AnalysisStrategyKind strategy)
         {
-            String source =
+			#region source code
+			var source =
 @"class D : C
 {
     public void testMethod(){}
@@ -329,8 +345,9 @@ class C
 
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s,callgraph) =>
+			AnalyzeExample(source, (s,callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", ".ctor"), callgraph));
@@ -344,11 +361,11 @@ class C
             }, strategy);
         }
 
+		// Test to ensure that static methods called via delegates are reachable
         public static  void TestCallStaticDelegate(AnalysisStrategyKind strategy)
-        {
-            // Test to ensure that static methods called via delegates are reachable
-
-            String source =
+        {			
+			#region source code
+			var source =
       @"class MainClass {
   delegate void DoSomethingDelegate();
  
@@ -367,7 +384,9 @@ class C
        d();
     }
 }";
-            AnalyzeExample(source, (s,callgraph) =>
+			#endregion
+
+			AnalyzeExample(source, (s,callgraph) =>
             {
                 // Should not fail but it wrongly computes MainClass.HasS.S
                 // This is because it does not understand "s" in "s.S"
@@ -377,11 +396,11 @@ class C
             }, strategy);
         }
 
+        // Test to ensure that interface methods called via interfaces are reachable
         public static void TestCallInterfaceDelegate(AnalysisStrategyKind strategy)
         {
-            // Test to ensure that interface methods called via interfaces are reachable
-
-            String source =
+			#region source code
+			var source =
       @"class MainClass {
   delegate void DoSomethingDelegate();
   interface HasS {
@@ -400,8 +419,9 @@ class C
        d();
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "S"), callgraph));
 
@@ -411,7 +431,8 @@ class C
 
         public static void TestClassesWithSameFieldName(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 using System;
 public class D
 {
@@ -447,8 +468,9 @@ class Program
 
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
@@ -457,7 +479,8 @@ class Program
         }
         public static  void TestFieldLoadInCallee(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 public class D
 {
     public void m2()
@@ -484,7 +507,9 @@ class Program
         c.m1();
     }
 }";
-            AnalyzeExample(source, (s, callgraph) =>
+			#endregion
+
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 callgraph.Save("cg.dot");
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
@@ -495,7 +520,8 @@ class Program
 
         public static  void TestProperty(AnalysisStrategyKind strategy)
         {
-            var source = @"
+			#region source code
+			var source = @"
 using System;
 public class D: C 
 {
@@ -529,8 +555,9 @@ class Program
         C h = c.m1(d);
     }
 }";
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 // This should be reachable

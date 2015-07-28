@@ -8,46 +8,51 @@ using System.Diagnostics;
 using ReachingTypeAnalysis.Analysis;
 using Orleans.TestingHost;
 
-
 namespace ReachingTypeAnalysis
 {
     [TestClass]
     public partial class QueryTestsOnDemandAsync 
     {
-        //[TestMethod]
-        //public void TestQueryAsync1()
-        //{
-        //    BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ASYNC);
-        //}
-        [TestMethod]
-        public void TestQueryAsync2()
+		//[TestMethod]
+		//[TestCategory("Query")]
+		//public void TestQueryAsync1()
+		//{
+		//    BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		//}
+
+		[TestMethod]
+		[TestCategory("Query")]
+		public void TestQueryAsync2()
         {
             BasicTests.TestQuery2(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
     }
 
-
     [TestClass]
     public partial class QueryTestsOrleans : TestingSiloHost
     {
         [TestMethod]
-        public void TestQueryOrleansDeprecated()
+		[TestCategory("Query")]
+		public void TestQueryOrleansDeprecated()
         {
             BasicTests.TestQueryDeprecated(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
+
         [TestMethod]
-        public void TestQueryOrleans1()
+		[TestCategory("Query")]
+		public void TestQueryOrleans1()
         {
             BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
-        public void TestQueryOrleans2()
+		[TestCategory("Query")]
+		public void TestQueryOrleans2()
         {
             BasicTests.TestQuery2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
-
     }
+
     public partial class BasicTests
     {
         public static void TestQueryDeprecated(AnalysisStrategyKind strategy)
@@ -378,7 +383,6 @@ namespace ReachingTypeAnalysis
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
             }, strategy);
         }
-
     }
 
     public static class Q
@@ -622,6 +626,5 @@ namespace ReachingTypeAnalysis
                 yield return sw;
             }
         }
-
     }
 }

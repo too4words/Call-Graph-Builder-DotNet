@@ -15,36 +15,17 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class MethodDescriptor
     {
-        public string ClassName { get; private set; }
+		private string name;
+		private TypeDescriptor containerType;
+
+		public string ClassName { get; private set; }
         public string MethodName { get; private set; }
         public string NamespaceName { get; private set; }
-
-        private string name;
-        private TypeDescriptor containerType;
-
         public IList<TypeDescriptor> Parameters { get; private set; }
         public TypeDescriptor ReturnType { get; private set; }
-
         public bool IsStatic { get; private set; }
 
-
-        public string Name
-        {
-            get
-            {
-                if (this.name == null)
-                {
-                    this.name = ClassName + "." + MethodName;
-                    if (this.NamespaceName != string.Empty)
-                    {
-                        this.name = NamespaceName + "." + this.name;
-                    }
-                }
-                return name;
-            }
-        }
-
-        public TypeDescriptor ContainerType
+		public TypeDescriptor ContainerType
         {
             get
             {
@@ -52,15 +33,38 @@ namespace ReachingTypeAnalysis
                 {
                     containerType = new TypeDescriptor(this.NamespaceName, this.ClassName);
                 }
+
                 return containerType;
             }
         }
+
+		public string Name
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(name))
+				{
+					var qualifiedName = new List<string>();
+
+					if (!string.IsNullOrEmpty(this.NamespaceName))
+					{
+						qualifiedName.Add(this.NamespaceName);
+					}
+
+					qualifiedName.Add(this.ClassName);
+					qualifiedName.Add(this.MethodName);
+					name = string.Join(".", qualifiedName);
+				}
+
+				return name;
+			}
+		}
 
         public TypeDescriptor ThisType
         {
             get
             {
-                return (!IsStatic)? ContainerType: null;
+                return !IsStatic ? ContainerType : null;
             }
         }
 
@@ -76,7 +80,6 @@ namespace ReachingTypeAnalysis
 			this.NamespaceName = namespaceName;
 			this.ClassName = className;
 			this.MethodName = methodName;
-			this.name = className + "." + methodName;
 			this.IsStatic = isStatic;
 			this.ReturnType = returnType;
 
@@ -121,6 +124,7 @@ namespace ReachingTypeAnalysis
 
             return nEq && cEq && mEq && staticEq && pEq;
         }
+
         //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
         //{
         //    if(params1.Count()!=params2.Count()) return false;
@@ -141,6 +145,7 @@ namespace ReachingTypeAnalysis
         {
             return this.Name;
         }
+
         public string Marshall()
         {
 			var result = new StringBuilder();
@@ -168,16 +173,16 @@ namespace ReachingTypeAnalysis
         public static MethodDescriptor DeMarsall(string md)
         {
             var tokens = md.Split('+');
-
 			var namespaceName = tokens[0];
 			var className = tokens[1];
 			var methodName = tokens[2];
 			var isStatic = Convert.ToBoolean(tokens[3]);
 			var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
 
-            if (tokens.Length > 4 && tokens[4].Length>0)
+            if (tokens.Length > 4 && tokens[4].Length > 0)
             {
                 methodDescriptor.Parameters = new List<TypeDescriptor>();
+
                 for (var i = 4; i < tokens.Length; ++i)
                 {
                     var typeName = tokens[i];
@@ -245,17 +250,18 @@ namespace ReachingTypeAnalysis
         // TODO: Fix the equals, but we need to resolve the default values
         public override bool Equals(object obj)
         {
-            TypeDescriptor typeDescriptor = (TypeDescriptor)obj;
-            bool eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
+            var typeDescriptor = (TypeDescriptor)obj;
+            var eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(typeDescriptor.Kind);
-            bool eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
-            bool eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
+            var eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
+            var eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
 
             return this.TypeName.Equals(typeDescriptor.TypeName)
              //       && eqRef && eqConcrete
                     && eqKind;
         }
+
         // TODO: Fix the equals, but we need to resolve the default values
         public override int GetHashCode()
         {
