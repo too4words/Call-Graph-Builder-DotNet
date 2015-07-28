@@ -38,7 +38,7 @@ namespace SolutionTraversal.Callgraph
                 {
                     var method = v["M"] as MethodDescriptor;
 					var id = Convert.ToString(v.Id);
-					var label = string.Format("{0}.{1}", method.ClassName, method.MethodName);
+					var label = method.Name;
 
 					writer.WriteStartElement("Node");
 					writer.WriteAttributeString("Id", id);
