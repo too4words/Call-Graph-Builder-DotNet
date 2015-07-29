@@ -561,6 +561,8 @@ namespace ReachingTypeAnalysis.Roslyn
         /// 
         public override AnalysisExpression VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
+            var lamdaSymbol = (IMethodSymbol) model.GetSymbolInfo(node).Symbol;
+            var lambdaMethodParser =  new LambdaMethodParser(model, node, lamdaSymbol);
             return null;
         }
 

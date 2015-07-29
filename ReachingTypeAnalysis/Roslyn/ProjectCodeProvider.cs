@@ -82,23 +82,25 @@ namespace ReachingTypeAnalysis.Roslyn
 
         async internal static Task<Tuple<ICodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor, Solution solution)
         {
-            MethodEntity methodEntity = null;
             var pair = await ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution);
             
             ICodeProvider provider = pair.Item1;
+            GeneralRoslynMethodParser syntaxProcessor = null;
+
             if (pair.Item2!=null)
             {
                 var PProvider = (ProjectCodeProvider)pair.Item1;
                 var tree = pair.Item2;
                 var model = PProvider.Compilation.GetSemanticModel(tree);
-                var methodEntityGenerator = new MethodSyntaxProcessor(model, PProvider, tree, methodDescriptor);
-                methodEntity = methodEntityGenerator.ParseMethod();
+                syntaxProcessor = new MethodParser(model, PProvider, tree, methodDescriptor);
             }
             else
             {
-                var libraryMethodVisitor = new LibraryMethodProcessor(methodDescriptor);
-                methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+                syntaxProcessor = new LibraryMethodParser(methodDescriptor);
             }
+                
+            var methodEntity = syntaxProcessor.ParseMethod();
+
             return new Tuple<ICodeProvider,MethodEntity>(provider, methodEntity);
         }
 
@@ -107,7 +109,7 @@ namespace ReachingTypeAnalysis.Roslyn
             MethodEntity methodEntity = null;
             var tree = await this.GetSyntaxAsync(methodDescriptor);
             var model = this.Compilation.GetSemanticModel(tree);
-            var methodEntityGenerator = new MethodSyntaxProcessor(model, this, tree, methodDescriptor);
+            var methodEntityGenerator = new MethodParser(model, this, tree, methodDescriptor);
             methodEntity = methodEntityGenerator.ParseMethod();
             return methodEntity;
         }
@@ -427,8 +429,8 @@ namespace ReachingTypeAnalysis.Roslyn
         }
         public  Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-            var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodProcessor(methodDescriptor);
-            var methodEntity = libraryMethodVisitor.ParseLibraryMethod();
+            var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodParser(methodDescriptor);
+            var methodEntity = libraryMethodVisitor.ParseMethod();
             return Task.FromResult((IEntity)methodEntity);
         }
     }

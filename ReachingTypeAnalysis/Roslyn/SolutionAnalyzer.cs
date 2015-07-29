@@ -409,7 +409,7 @@ namespace ReachingTypeAnalysis
 				{
                     var model = provider.Compilation.GetSemanticModel(tree);
 					cancellationToken.Cancel(); // cancel out outstanding processing tasks
-                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
+                    var methodVisitor = new MethodParser(model, tree, mainSymbol);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
                     this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
@@ -457,7 +457,7 @@ namespace ReachingTypeAnalysis
 				var mainSymbol = triple.Item2;
                 var tree = triple.Item3;
                 var model = provider.Compilation.GetSemanticModel(tree);
-				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
+				var methodVisitor = new MethodParser(model, tree, mainSymbol);
 
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
