@@ -566,5 +566,32 @@ class Program
                 // Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2")));
             }, strategy);
         }
+        public static void TestLambda(AnalysisStrategyKind strategy)
+        {
+            #region source code
+            var source = @"
+using System;
+class Program
+{
+
+    public static void Main()
+    {
+        Func<int, int> lambda = x => { var i = x + 1; return i * x;  }; 
+        var result = lambda(2);
+    }
+}";
+            #endregion
+
+            AnalyzeExample(source, (s, callgraph) =>
+            {
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main",true), callgraph));
+                // This should be reachable
+                //Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+                // This is reachable because of the problem with loadnodes
+                // Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2")));
+            }, strategy);
+            Func<int, int> lambda = x => { var i = x + 1; return i * x;  }; 
+
+        }
     }
 }
