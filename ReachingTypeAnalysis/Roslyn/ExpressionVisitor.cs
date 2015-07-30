@@ -172,13 +172,37 @@ namespace ReachingTypeAnalysis.Roslyn
     internal class Method : Identifier
     {
         public IMethodSymbol RoslynMethod { get; private set; }
-        public bool IsDelegate { get; private set; }
+        public bool IsDelegate { get; protected set; }
+        public MethodDescriptor MethodDescriptor { get; protected set; }
+
 		internal Method(SyntaxNodeOrToken expression, ITypeSymbol t, IMethodSymbol symbol)
 			: base(expression, symbol.ReturnType, symbol)
 		{
 			IsDelegate = false;
 			RoslynMethod = symbol as IMethodSymbol;
+            MethodDescriptor = Utils.CreateMethodDescriptor(RoslynMethod);
 		}
+        
+    }
+
+    internal class Lambda : Method
+    {
+        private MethodEntity methodEntity;
+        private IMethodSymbol methodSymbol;
+        public Lambda(SimpleLambdaExpressionSyntax expression, ITypeSymbol t, IMethodSymbol symbol, MethodEntity me) 
+            : base(expression, t, symbol)
+        {
+            this.methodEntity = me;
+            this.methodSymbol = symbol;
+            this.IsDelegate = true;
+        }
+        public override void ProcessAssignment(VariableNode lhsAnalysisNode, MethodSyntaxVisitor methodVisitor)
+        {
+            //methodVisitor.RegisterDelegate(lhsAnalysisNode, methodSymbol);
+            methodVisitor.RegisterDelegate(lhsAnalysisNode, this.methodEntity.MethodDescriptor);
+            methodVisitor.RegisterAssignment(lhsAnalysisNode, this);
+        }
+
     }
 
     internal class Property : Identifier
@@ -245,9 +269,9 @@ namespace ReachingTypeAnalysis.Roslyn
             // Check for delegate invocation (ie. x = s.Delegate())
             if (this.NameExpresion is Method)
             {
-                var delegateMethod = (this.NameExpresion as Method).RoslynMethod;
+                var methodDescriptor = (this.NameExpresion as Method).MethodDescriptor;
                 methodVisitor.RegisterAssignment(lhsAnalysisNode, this.ReferenceExpresion);
-                methodVisitor.RegisterDelegate(lhsAnalysisNode, delegateMethod);
+                methodVisitor.RegisterDelegate(lhsAnalysisNode, methodDescriptor);
             }
             else
             {
@@ -348,7 +372,6 @@ namespace ReachingTypeAnalysis.Roslyn
         private SemanticModel model;
         private StatementProcessor statementProcessor;
         private MethodSyntaxVisitor roslynMethodVisitor;
-        
         // This mapping is used for the temporary variables used in nested calls 
         private IDictionary<ExpressionSyntax, PropGraphNodeDescriptor> tempLH = new Dictionary<ExpressionSyntax, PropGraphNodeDescriptor>();
 
@@ -562,8 +585,17 @@ namespace ReachingTypeAnalysis.Roslyn
         public override AnalysisExpression VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
             var lamdaSymbol = (IMethodSymbol) model.GetSymbolInfo(node).Symbol;
-            var lambdaMethodParser =  new LambdaMethodParser(model, node, lamdaSymbol);
-            return null;
+            var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lamdaSymbol);
+            var baseMethodDescriptor = this.statementProcessor.Method;
+            var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor,
+                                                    lambdaMethodDescriptor.Parameters,
+                                                    lambdaMethodDescriptor.ReturnType);
+            var lambdaMethodParser =  new LambdaMethodParser(model, node, lamdaSymbol, methodDescriptor);
+            var methodEntity = lambdaMethodParser.ParseMethod();
+
+            statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
+
+            return new Lambda(node,lamdaSymbol.ReturnType, lamdaSymbol, methodEntity);
         }
 
         public override AnalysisExpression VisitExpressionStatement(ExpressionStatementSyntax node)

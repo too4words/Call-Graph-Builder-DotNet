@@ -19,10 +19,14 @@ namespace ReachingTypeAnalysis
         public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
         {
             Contract.Assert(method != null);
-
+            var name = method.Name;
+            //if(method.MethodKind.Equals(MethodKind.AnonymousFunction))
+            //{
+            //    name = "Anonymous" ;
+            //}
             return new MethodDescriptor(
                 method.ContainingNamespace.Name,
-                method.ContainingType.Name, method.Name, method.IsStatic, 
+                method.ContainingType.Name, name, method.IsStatic, 
                 method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
                 Utils.CreateTypeDescriptor(method.ReturnType)
 				);            

@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis
         //public IDispatcher Dispatcher { get; private set; }
         //private AMethod analysisMethod;
 
-        protected ICodeProvider codeProvider;
+        //protected ICodeProvider codeProvider;
 
         public MethodDescriptor MethodDescriptor { get;  protected set; }
 
@@ -56,12 +56,13 @@ namespace ReachingTypeAnalysis
             this.RoslynMethod = roslynMethod;
             this.MethodDescriptor = methodDescriptor;
             this.MethodInterfaceData = CreateMethodInterfaceData(roslynMethod);
-            var codeProvider = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(this.MethodDescriptor).Result.Item1; 
+            //var codeProvider = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(this.MethodDescriptor).Result.Item1; 
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
-				                            this.RetVar, this.ThisRef, this.Parameters,
-                                            codeProvider);
-            this.codeProvider = codeProvider;
+				                            this.RetVar, this.ThisRef, this.Parameters);
+                                            //,
+                                            //codeProvider);
+            //this.codeProvider = codeProvider;
         }
 
         public GeneralRoslynMethodParser(IMethodSymbol roslynMethod) 
@@ -78,9 +79,10 @@ namespace ReachingTypeAnalysis
             this.MethodInterfaceData = CreateMethodInterfaceData(this.RoslynMethod);
             // The statement processor generates the Prpagagation Graph
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor, 
-				                            this.RetVar, this.ThisRef, this.Parameters,
-                                            codeProvider);
-            this.codeProvider = codeProvider;
+				                            this.RetVar, this.ThisRef, this.Parameters);
+                                            //,
+                                            //codeProvider);
+            //this.codeProvider = codeProvider;
         }
         public GeneralRoslynMethodParser(MethodDescriptor methodDescriptor)
         {
@@ -88,8 +90,9 @@ namespace ReachingTypeAnalysis
             this.MethodDescriptor = methodDescriptor;
             this.MethodInterfaceData = CreateMethodInterfaceDataForNonAnalyzableMethod(methodDescriptor);
             this.StatementProcessor = new StatementProcessor(this.MethodDescriptor,
-                                            this.RetVar, this.ThisRef, this.Parameters,
-                                            null);
+                                            this.RetVar, this.ThisRef, this.Parameters);
+            //,
+            //                                null);
 
         }
 
@@ -297,7 +300,8 @@ namespace ReachingTypeAnalysis
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph, descriptor,
-                                                                    propGraphGenerator.InstantiatedTypes);
+                                                                    propGraphGenerator.InstantiatedTypes,
+                                                                    propGraphGenerator.StatementProcessor.AnonymousMethods);
             return methodEntity;
         }
     }
@@ -307,12 +311,14 @@ namespace ReachingTypeAnalysis
         private SimpleLambdaExpressionSyntax lambdaExpression;
         private SemanticModel model;
 
-        public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method)
-            : base(method)
+        public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method, MethodDescriptor methodDescriptor)
+            : base(method,methodDescriptor)
         {
             this.model = model;
             this.lambdaExpression = node;
+            this.MethodDescriptor = methodDescriptor;
         }
+
 
         public override MethodEntity ParseMethod()
         {
@@ -324,7 +330,8 @@ namespace ReachingTypeAnalysis
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                                     propGraphGenerator.MethodInterfaceData,
                                                                     propGraphGenerator.PropGraph, descriptor,
-                                                                    propGraphGenerator.InstantiatedTypes);
+                                                                    propGraphGenerator.InstantiatedTypes,
+                                                                    propGraphGenerator.StatementProcessor.AnonymousMethods);
             return methodEntity;
         }
     }
@@ -665,12 +672,11 @@ namespace ReachingTypeAnalysis
             this.StatementProcessor.RegisterCallLHS(callNode, lhsNode);
         }
 
-        internal void RegisterDelegate(VariableNode lhsNode, IMethodSymbol delegateMethod)
+        internal void RegisterDelegate(VariableNode lhsNode, MethodDescriptor delegateMethodDescriptor)
         {
             Contract.Assert(lhsNode is DelegateVariableNode);
             this.StatementProcessor.RegisterDelegateAssignment(
-                (DelegateVariableNode)lhsNode, 
-                Utils.CreateMethodDescriptor(delegateMethod));
+                (DelegateVariableNode)lhsNode, delegateMethodDescriptor);
         }
 
         //public ANode RegisterExpression(ExpressionSyntax lhs)

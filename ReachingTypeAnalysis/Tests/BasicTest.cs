@@ -598,18 +598,22 @@ class Program
 using System;
 class Program
 {
+	public static void Foo(int x)
+	{
+		Console.WriteLine(x);
+	}	
 
     public static void Main()
     {
-        Func<int, int> lambda = x => { var i = x + 1; return i * x;  }; 
-        var result = lambda(2);
+        Func<int, int> lambda = x => { var i = x + 1; Foo(i); return i * x;  }; 
+        var result = lambda(2);     
     }
 }";
             #endregion
 
             AnalyzeExample(source, (s, callgraph) =>
             {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
 			}, strategy);
         }
     }

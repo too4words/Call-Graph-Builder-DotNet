@@ -26,6 +26,12 @@ namespace ReachingTypeAnalysis.Analysis
         //private ISet<Message> messageWorkList = new HashSet<Message>();
         private Queue<Message> messageWorkList = new Queue<Message>();
 
+        private IDictionary<MethodDescriptor, MethodEntity> anonymousMethods = new Dictionary<MethodDescriptor, MethodEntity>();
+        public MethodEntity GetAnonymousMethodEntity(MethodDescriptor methodDescriptor)
+        {
+            return anonymousMethods[methodDescriptor];
+        }
+
 		public AnalysisOrchestator(IAnalysisStrategy strategy)
 		{
 			this.strategy = strategy;
@@ -131,7 +137,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
+		private async Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
 		{
 			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
 				callInfo.ArgumentsPossibleTypes, callInfo.InstantiatedTypes, callInfo.CallNode, callInfo.LHS, propKind);
@@ -139,9 +145,9 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
             this.messageWorkList.Enqueue(callerMessage);
-            //this.messageWorkList.Add(callerMessage);
-            return TaskDone.Done;
-			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
+                //this.messageWorkList.Add(callerMessage);
+            //return TaskDone.Done;
+			    //return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
 		/// <summary>

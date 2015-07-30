@@ -15,15 +15,15 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class MethodDescriptor
     {
-		private string name;
-		private TypeDescriptor containerType;
+		protected string name;
+		protected TypeDescriptor containerType;
 
-		public string ClassName { get; private set; }
-        public string MethodName { get; private set; }
-        public string NamespaceName { get; private set; }
-        public IList<TypeDescriptor> Parameters { get; private set; }
-        public TypeDescriptor ReturnType { get; private set; }
-        public bool IsStatic { get; private set; }
+		public string ClassName { get; protected set; }
+        public string MethodName { get; protected set; }
+        public string NamespaceName { get; protected set; }
+        public IList<TypeDescriptor> Parameters { get; protected set; }
+        public TypeDescriptor ReturnType { get; protected set; }
+        public bool IsStatic { get; protected set; }
 
 		public TypeDescriptor ContainerType
         {
@@ -68,6 +68,9 @@ namespace ReachingTypeAnalysis
             }
         }
 
+
+        public bool IsAnonymous { get; protected set; }
+
 		public MethodDescriptor() : this("","")
 		{
 		}
@@ -87,6 +90,7 @@ namespace ReachingTypeAnalysis
 			{
 				this.Parameters = new List<TypeDescriptor>(parameters);
 			}
+            IsAnonymous = false;
 		}
 
         public MethodDescriptor(string className, string methodName, bool isStatic = false)
@@ -146,7 +150,7 @@ namespace ReachingTypeAnalysis
             return this.Name;
         }
 
-        public string Marshall()
+        public virtual string Marshall()
         {
 			var result = new StringBuilder();
 
@@ -172,12 +176,34 @@ namespace ReachingTypeAnalysis
 
         public static MethodDescriptor DeMarsall(string md)
         {
+            var anonymousMD = "";
+            var i = md.IndexOf(':');
+            if(i>=0)
+            {
+                anonymousMD = md.Substring(0, i);
+                md = md.Substring(i+1);
+            }
+
+            var methodDescriptor = ParseMethodDescriptor(md);
+
+            if(anonymousMD.Length>0)
+            {
+                var anonymousMDContent = ParseMethodDescriptor(anonymousMD);
+                return new AnonymousMethodDescriptor(methodDescriptor, 
+                            anonymousMDContent.Parameters, anonymousMDContent.ReturnType);
+            }
+
+			return methodDescriptor;
+        }
+
+        private static MethodDescriptor ParseMethodDescriptor(string md)
+        {
             var tokens = md.Split('+');
-			var namespaceName = tokens[0];
-			var className = tokens[1];
-			var methodName = tokens[2];
-			var isStatic = Convert.ToBoolean(tokens[3]);
-			var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
+            var namespaceName = tokens[0];
+            var className = tokens[1];
+            var methodName = tokens[2];
+            var isStatic = Convert.ToBoolean(tokens[3]);
+            var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
 
             if (tokens.Length > 4 && tokens[4].Length > 0)
             {
@@ -192,8 +218,36 @@ namespace ReachingTypeAnalysis
                 }
             }
 
-			return methodDescriptor;
+            return methodDescriptor;
         }
+    }
+
+    [Serializable]
+    public class AnonymousMethodDescriptor: MethodDescriptor
+    {
+       public  MethodDescriptor BaseDescriptor { get; private set;}
+       public AnonymousMethodDescriptor(MethodDescriptor md,
+									IEnumerable<TypeDescriptor> parameters = null,
+									TypeDescriptor returnType = null)
+                        :base("","","")
+		{
+           this.BaseDescriptor = md;
+			this.MethodName = "Anonymous";
+	        IsAnonymous = true;
+		}
+       public override bool Equals(object obj)
+       {
+           var other = (AnonymousMethodDescriptor)obj;
+           return this.BaseDescriptor.Equals(other.BaseDescriptor) && this.MethodName.Equals(other.MethodName);
+       }
+       public override int GetHashCode()
+       {
+           return this.BaseDescriptor.GetHashCode()+this.MethodName.GetHashCode();
+       }
+       public override string Marshall()
+       {
+           return base.Marshall() + ":" + this.BaseDescriptor.Marshall();
+       }
     }
 
     [Serializable]

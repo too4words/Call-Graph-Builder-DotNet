@@ -46,7 +46,9 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-            var methodEntityGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+            var methodDescriptorToSearch = methodDescriptor;
+            
+            var methodEntityGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptorToSearch.Marshall());
             return await Task.FromResult(methodEntityGrain);
             //return await Task.FromResult(new MethodEntityGrainWrapper(methodEntityGrain));		
         }

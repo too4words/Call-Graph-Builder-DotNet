@@ -93,6 +93,9 @@ namespace ReachingTypeAnalysis.Analysis
         private PropagationGraph propGraph; 
 		///public PropagationGraph PropGraph { get; private set; }
         public PropagationGraph PropGraph { get { return propGraph; } }
+
+        private IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods = new Dictionary<AnonymousMethodDescriptor, MethodEntity>();
+
 		
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
@@ -126,7 +129,27 @@ namespace ReachingTypeAnalysis.Analysis
 			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
             this.CanBeAnalized = canBeAnalyzed;
 		}
+        public MethodEntity(MethodDescriptor methodDescriptor,
+            MethodInterfaceData mid,
+            PropagationGraph propGraph,
+            IEntityDescriptor descriptor,
+            IEnumerable<TypeDescriptor> instantiatedTypes,
+            IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods)
+            : this(methodDescriptor, mid, propGraph, descriptor, instantiatedTypes)
+        {
+            this.anonymousMethods = anonymousMethods;
+        }
 
+        public MethodEntity GetAnonymousMethodEntity(AnonymousMethodDescriptor methodDescriptor)
+        {
+            if (anonymousMethods.ContainsKey(methodDescriptor))
+            {
+                return anonymousMethods[methodDescriptor];
+            }
+            else 
+            { }
+            return null;
+        }
 		/// <summary>
 		/// Copy the information regarding parameters and callers from one entity and other
 		/// The PropGraph of the old entity is used but copied

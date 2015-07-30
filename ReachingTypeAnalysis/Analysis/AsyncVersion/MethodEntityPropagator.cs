@@ -32,10 +32,21 @@ namespace ReachingTypeAnalysis.Analysis
             //var providerAndSyntax = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution).Result;
             //this.codeProvider = providerAndSyntax.Item1;
             //this.methodEntity = (MethodEntity)codeProvider.CreateMethodEntityAsync(methodDescriptor).Result;
+            var methodDescriptorToSearch = methodDescriptor;
+            if(methodDescriptor.IsAnonymous)
+            {
+                methodDescriptorToSearch = ((AnonymousMethodDescriptor)methodDescriptor).BaseDescriptor;
+            }
 
-            var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptor, solution).Result;
+            var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptorToSearch, solution).Result;
             this.methodEntity = providerEntity.Item2;
             this.codeProvider = providerEntity.Item1;
+
+            if(methodDescriptor.IsAnonymous)
+            {
+                this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+            }
+
             SolutionManager.Instance.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
         }
 

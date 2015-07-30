@@ -19,11 +19,19 @@ namespace ReachingTypeAnalysis.Analysis
 		internal ISet<TypeDescriptor> InstantiatedTypes { get; private set; }
 		internal ISet<TypeDescriptor> RemovedTypes { get; private set; }
 
+        private IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods = new Dictionary<AnonymousMethodDescriptor, MethodEntity>();
+
+        internal IDictionary<AnonymousMethodDescriptor, MethodEntity> AnonymousMethods
+        {
+            get { return anonymousMethods; }
+        }
+
 		public StatementProcessor(MethodDescriptor m,
 			PropGraphNodeDescriptor rv, PropGraphNodeDescriptor thisRef,
-			IEnumerable<PropGraphNodeDescriptor> parameters,
-            ICodeProvider codeProvider)
-		{
+			IEnumerable<PropGraphNodeDescriptor> parameters) 
+        //    ,
+        //    ICodeProvider codeProvider)
+        {
 			// this.containerEntity = containerEntity;
 			this.ReturnVariable = rv;
 			this.Method = m;
@@ -126,6 +134,11 @@ namespace ReachingTypeAnalysis.Analysis
 			PropagationGraph.AddDelegate(lhs, m);
 			PropagationGraph.AddToWorkList(lhs);
 		}
+
+        internal void RegisterAnonymousMethod(AnonymousMethodDescriptor methodDescriptor, MethodEntity methodEntity)
+        {
+            this.anonymousMethods[methodDescriptor] = methodEntity;
+        }
 
 		public void RegisterStaticCall(MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments,
 			VariableNode lhs, AnalysisCallNode callNode)
