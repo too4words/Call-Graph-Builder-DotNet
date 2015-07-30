@@ -38,7 +38,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity = providerEntity.Item2;
             this.codeProvider = providerEntity.Item1;
 
-            if(methodDescriptor.IsAnonymousDescriptor)
+            if (methodDescriptor.IsAnonymousDescriptor)
             {
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
             }

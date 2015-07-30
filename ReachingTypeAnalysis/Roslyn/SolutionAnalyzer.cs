@@ -88,7 +88,7 @@ namespace ReachingTypeAnalysis
                         this.Dispatcher = new AsyncDispatcher();
                         //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
 
-                        this.Strategy = new OndemandAsyncStrategy(this.Solution);
+                        this.Strategy = new OnDemandAsyncStrategy(this.Solution);
                         var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution).Result;
 
                         if (triple != null)

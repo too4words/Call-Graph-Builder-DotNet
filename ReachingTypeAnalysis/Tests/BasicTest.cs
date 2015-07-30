@@ -613,7 +613,9 @@ class Program
 
             AnalyzeExample(source, (s, callgraph) =>
             {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+				// This should be reachable
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
 			}, strategy);
         }
     }

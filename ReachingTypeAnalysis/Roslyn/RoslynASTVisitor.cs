@@ -277,8 +277,7 @@ namespace ReachingTypeAnalysis
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-        public MethodParser(SemanticModel model, ProjectCodeProvider codeProvider, SyntaxTree tree, 
-                                    MethodDescriptor methodDescriptor)
+        public MethodParser(SemanticModel model, ProjectCodeProvider codeProvider, SyntaxTree tree, MethodDescriptor methodDescriptor)
             : base(methodDescriptor, codeProvider)
         {
             this.model = model;
@@ -312,13 +311,12 @@ namespace ReachingTypeAnalysis
         private SemanticModel model;
 
         public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method, MethodDescriptor methodDescriptor)
-            : base(method,methodDescriptor)
+            : base(method, methodDescriptor)
         {
             this.model = model;
             this.lambdaExpression = node;
             this.MethodDescriptor = methodDescriptor;
         }
-
 
         public override MethodEntity ParseMethod()
         {

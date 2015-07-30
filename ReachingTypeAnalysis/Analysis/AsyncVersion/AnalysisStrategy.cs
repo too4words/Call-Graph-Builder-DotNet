@@ -16,11 +16,12 @@ namespace ReachingTypeAnalysis.Analysis
     //    public abstract  Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
     //}
-	internal class OndemandAsyncStrategy : IAnalysisStrategy
+	internal class OnDemandAsyncStrategy : IAnalysisStrategy
 	{
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
         private Solution solution;
-		public OndemandAsyncStrategy(Solution solution)
+
+		public OnDemandAsyncStrategy(Solution solution)
 		{
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
             this.solution = solution;
@@ -29,6 +30,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			IMethodEntityWithPropagator methodEntityPropagator = null;
+
 			lock (methodEntities)
 			{
 				if (!methodEntities.TryGetValue(methodDescriptor, out methodEntityPropagator))
@@ -45,12 +47,9 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class OnDemandOrleansStrategy : IAnalysisStrategy
 	{
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
-		{
-            var methodDescriptorToSearch = methodDescriptor;
-            
-            var methodEntityGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptorToSearch.Marshall());
-            return await Task.FromResult(methodEntityGrain);
-            //return await Task.FromResult(new MethodEntityGrainWrapper(methodEntityGrain));		
+		{           
+            var methodEntityGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+            return await Task.FromResult(methodEntityGrain);	
         }
 	}
 }

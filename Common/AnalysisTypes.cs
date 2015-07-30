@@ -74,10 +74,9 @@ namespace ReachingTypeAnalysis
         public virtual MethodDescriptor BaseDescriptor 
         { 
             get { return this;  }
-            protected set { ; } 
+            protected set { } 
         }
-
-
+		
         public bool IsAnonymousDescriptor { get; protected set; }
 
 		public MethodDescriptor() : this("","")
@@ -94,12 +93,12 @@ namespace ReachingTypeAnalysis
 			this.MethodName = methodName;
 			this.IsStatic = isStatic;
 			this.ReturnType = returnType;
+			this.IsAnonymousDescriptor = false;
 
 			if (parameters != null)
 			{
 				this.Parameters = new List<TypeDescriptor>(parameters);
-			}
-            IsAnonymousDescriptor = false;
+			}            
 		}
 
         public MethodDescriptor(string className, string methodName, bool isStatic = false)
@@ -244,35 +243,27 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class AnonymousMethodDescriptor: MethodDescriptor
     {
-       public  override MethodDescriptor BaseDescriptor { get; protected set;}
+       public override MethodDescriptor BaseDescriptor { get; protected set; }
 
-       //public AnonymousMethodDescriptor(MethodDescriptor md,
-       //                             IEnumerable<TypeDescriptor> parameters = null,
-       //                             TypeDescriptor returnType = null)
-       //                 :base("","","")
-       // {
-       //    this.BaseDescriptor = baseMethodDescriptor;
-       //     this.MethodName = "Anonymous";
-       //     IsAnonymous = true;
-       // }
-
-       public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor,
-                                        MethodDescriptor anonymousMethodDescriptor)
+       public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor, MethodDescriptor anonymousMethodDescriptor)
            : base(anonymousMethodDescriptor)
        {
            this.BaseDescriptor = baseMethodDescriptor;
            this.MethodName = "Anonymous";
-           IsAnonymousDescriptor = true;
+           this.IsAnonymousDescriptor = true;
        }
+	
        public override bool Equals(object obj)
        {
            var other = (AnonymousMethodDescriptor)obj;
            return this.BaseDescriptor.Equals(other.BaseDescriptor) && this.MethodName.Equals(other.MethodName);
        }
+
        public override int GetHashCode()
        {
-           return this.BaseDescriptor.GetHashCode()+this.MethodName.GetHashCode();
+           return this.BaseDescriptor.GetHashCode() + this.MethodName.GetHashCode();
        }
+
        public override string Marshall()
        {
            return base.Marshall() + ":" + this.BaseDescriptor.Marshall();
