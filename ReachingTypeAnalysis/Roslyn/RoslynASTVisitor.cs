@@ -255,7 +255,7 @@ namespace ReachingTypeAnalysis
     /// </summary>
     internal class MethodParser : GeneralRoslynMethodParser
     {
-        private BaseMethodDeclarationSyntax MethodNode;
+        private BaseMethodDeclarationSyntax methodNode;
         private SemanticModel model;
         //private SyntaxTree Tree;
 
@@ -267,8 +267,8 @@ namespace ReachingTypeAnalysis
             var root = tree.GetRoot();
             var visitor = new MethodFinder(method, model);
             visitor.Visit(root);
-            this.MethodNode = visitor.Result;
-            Contract.Assert(this.MethodNode != null);
+            this.methodNode = visitor.Result;
+            Contract.Assert(this.methodNode != null);
 
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
@@ -280,20 +280,18 @@ namespace ReachingTypeAnalysis
         {
             this.model = model;
             var pair = ProjectCodeProvider.FindMethodSyntaxAsync(codeProvider.Compilation.GetSemanticModel(tree), tree, methodDescriptor).Result;
-            this.MethodNode = pair.Item1;
+            this.methodNode = pair.Item1;
             //this.Tree = tree;
             
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-
-
         public override MethodEntity ParseMethod()
         {
-            Contract.Assert(MethodNode != null);
+            Contract.Assert(this.methodNode != null);
             var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this);
-            propGraphGenerator.Visit(MethodNode);
+            propGraphGenerator.Visit(this.methodNode);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
@@ -318,11 +316,9 @@ namespace ReachingTypeAnalysis
 
         public override MethodEntity ParseMethod()
         {
-
-            //var propGraphGenerator = new MethodSyntaxVisitor(this.model, MethodNode, this);
-            var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this);
-
-            propGraphGenerator.Visit(lambdaExpression.Body);
+			Contract.Assert(this.lambdaExpression != null);
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this);
+            propGraphGenerator.Visit(this.lambdaExpression);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
@@ -331,7 +327,6 @@ namespace ReachingTypeAnalysis
                                                                     propGraphGenerator.InstantiatedTypes);
             return methodEntity;
         }
-
     }
 
     internal class MethodSyntaxVisitor : CSharpSyntaxVisitor<object>
@@ -346,6 +341,7 @@ namespace ReachingTypeAnalysis
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
+
         internal PropGraphNodeDescriptor ThisRef
         {
             get { return MethodInterfaceData.ThisRef; }
@@ -395,8 +391,6 @@ namespace ReachingTypeAnalysis
             this.InvocationPosition = 0;
         }
 
-
-
 		public override object VisitCompilationUnit(CompilationUnitSyntax node)
         {
             foreach (var member in node.Members)
@@ -408,34 +402,40 @@ namespace ReachingTypeAnalysis
 
         public override object VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            Visit(node.Body);
+			if (node.ExpressionBody != null)
+			{
+				Visit(node.ExpressionBody);
+			}
+
+			if (node.Body != null)
+			{
+				Visit(node.Body);
+			}
+
             return null;
         }
 
-        public override object VisitForEachStatement(ForEachStatementSyntax node)
-        {
-            var symbol = this.model.GetDeclaredSymbol(node);
-            var type = symbol.Type;
+		public override object VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+		{
+			var analysisExpression = expressionsVisitor.Visit(node.Expression);
+			this.ProcessReturnAnalysisExpression(analysisExpression);
+			return null;
+		}
 
-            // This is the declaration of the iterarion variable
-            var lhs = new Identifier(node.Identifier, type, symbol);
-            var rhs = expressionsVisitor.Visit(node.Expression);
-            this.RegisterAssignment(lhs, rhs);
-
-            // This is the body of the ForEach
-            Visit(node.Statement);
-
-            return null;
-            //return base.VisitForEachStatement(node);
-        }
+		public override object VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+		{
+			Visit(node.Body);
+			return null;
+		}
 
         public override object DefaultVisit(SyntaxNode node)
         {
             return base.DefaultVisit(node);
         }
 
-        #region Statements
-        public override object VisitBlock(BlockSyntax node)
+		#region Statements
+
+		public override object VisitBlock(BlockSyntax node)
         {
             foreach (var st in node.Statements)
             {
@@ -444,7 +444,24 @@ namespace ReachingTypeAnalysis
             return null;
         }
 
-        public override object VisitSwitchStatement(SwitchStatementSyntax node)
+		public override object VisitForEachStatement(ForEachStatementSyntax node)
+		{
+			var symbol = this.model.GetDeclaredSymbol(node);
+			var type = symbol.Type;
+
+			// This is the declaration of the iterarion variable
+			var lhs = new Identifier(node.Identifier, type, symbol);
+			var rhs = expressionsVisitor.Visit(node.Expression);
+			this.RegisterAssignment(lhs, rhs);
+
+			// This is the body of the ForEach
+			Visit(node.Statement);
+
+			return null;
+			//return base.VisitForEachStatement(node);
+		}
+
+		public override object VisitSwitchStatement(SwitchStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Expression);
             foreach (var section in node.Sections)
@@ -534,19 +551,24 @@ namespace ReachingTypeAnalysis
         public override object VisitExpressionStatement(ExpressionStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Expression);
-
             return null;
         }
 
         public override object VisitReturnStatement(ReturnStatementSyntax node)
         {
-            var returnValueAnalysisExpression = expressionsVisitor.Visit(node.Expression);
-            if (this.RetVar != null && returnValueAnalysisExpression != null)
-            {
-                returnValueAnalysisExpression.ProcessAssignment(this.RetVar, this);
-            }
+			var analysisExpression = expressionsVisitor.Visit(node.Expression);
+			this.ProcessReturnAnalysisExpression(analysisExpression);
             return null;
         }
+
+		private void ProcessReturnAnalysisExpression(AnalysisExpression analysisExpression)
+		{
+			if (this.RetVar != null && analysisExpression != null)
+			{
+				analysisExpression.ProcessAssignment(this.RetVar, this);
+			}
+		}
+
         #endregion
 
         public override object VisitConstructorDeclaration(ConstructorDeclarationSyntax node)

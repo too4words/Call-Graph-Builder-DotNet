@@ -102,13 +102,21 @@ namespace ReachingTypeAnalysis
         {
             BasicTests.TestProperty(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-        [TestMethod]
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestArrowMethodBodyOnDemandAsync()
+		{
+			BasicTests.TestArrowMethodBody(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestLambdaOnDemandAsync()
         {
             BasicTests.TestLambda(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-
-    }
+	}
 }
