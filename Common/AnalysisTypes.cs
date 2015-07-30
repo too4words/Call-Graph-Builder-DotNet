@@ -68,8 +68,17 @@ namespace ReachingTypeAnalysis
             }
         }
 
+        /// <summary>
+        ///  I include this just to simplify 
+        /// </summary>
+        public virtual MethodDescriptor BaseDescriptor 
+        { 
+            get { return this;  }
+            protected set { ; } 
+        }
 
-        public bool IsAnonymous { get; protected set; }
+
+        public bool IsAnonymousDescriptor { get; protected set; }
 
 		public MethodDescriptor() : this("","")
 		{
@@ -90,7 +99,7 @@ namespace ReachingTypeAnalysis
 			{
 				this.Parameters = new List<TypeDescriptor>(parameters);
 			}
-            IsAnonymous = false;
+            IsAnonymousDescriptor = false;
 		}
 
         public MethodDescriptor(string className, string methodName, bool isStatic = false)
@@ -114,6 +123,17 @@ namespace ReachingTypeAnalysis
         //        return result;
         //    }
         //}
+        public MethodDescriptor(MethodDescriptor original)
+        {
+            this.NamespaceName = original.NamespaceName;
+            this.containerType = original.containerType;
+            this.ClassName = original.ClassName;
+            this.MethodName = original.MethodName;
+            this.Parameters = original.Parameters;
+            this.ReturnType = original.ReturnType;
+            // this.ThisType = original.ThisType;
+
+        }
 
         public override bool Equals(object obj)
         {
@@ -189,8 +209,7 @@ namespace ReachingTypeAnalysis
             if(anonymousMD.Length>0)
             {
                 var anonymousMDContent = ParseMethodDescriptor(anonymousMD);
-                return new AnonymousMethodDescriptor(methodDescriptor, 
-                            anonymousMDContent.Parameters, anonymousMDContent.ReturnType);
+                return new AnonymousMethodDescriptor(methodDescriptor, anonymousMDContent);
             }
 
 			return methodDescriptor;
@@ -225,16 +244,26 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class AnonymousMethodDescriptor: MethodDescriptor
     {
-       public  MethodDescriptor BaseDescriptor { get; private set;}
-       public AnonymousMethodDescriptor(MethodDescriptor md,
-									IEnumerable<TypeDescriptor> parameters = null,
-									TypeDescriptor returnType = null)
-                        :base("","","")
-		{
-           this.BaseDescriptor = md;
-			this.MethodName = "Anonymous";
-	        IsAnonymous = true;
-		}
+       public  override MethodDescriptor BaseDescriptor { get; protected set;}
+
+       //public AnonymousMethodDescriptor(MethodDescriptor md,
+       //                             IEnumerable<TypeDescriptor> parameters = null,
+       //                             TypeDescriptor returnType = null)
+       //                 :base("","","")
+       // {
+       //    this.BaseDescriptor = baseMethodDescriptor;
+       //     this.MethodName = "Anonymous";
+       //     IsAnonymous = true;
+       // }
+
+       public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor,
+                                        MethodDescriptor anonymousMethodDescriptor)
+           : base(anonymousMethodDescriptor)
+       {
+           this.BaseDescriptor = baseMethodDescriptor;
+           this.MethodName = "Anonymous";
+           IsAnonymousDescriptor = true;
+       }
        public override bool Equals(object obj)
        {
            var other = (AnonymousMethodDescriptor)obj;

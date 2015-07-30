@@ -48,23 +48,17 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             this.State.MethodDescriptor = methodDescriptor;
-            var methodDescriptorToSearch = methodDescriptor;
-
-            if (methodDescriptor is AnonymousMethodDescriptor)
-            {
-                methodDescriptorToSearch = ((AnonymousMethodDescriptor)methodDescriptor).BaseDescriptor;
-            }
+            var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
 
             this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptorToSearch);
             this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
             this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptorToSearch);
 
-            if (methodDescriptor is AnonymousMethodDescriptor)
+            if (methodDescriptor.IsAnonymousDescriptor)
             {
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
             }
-
 
             await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
 

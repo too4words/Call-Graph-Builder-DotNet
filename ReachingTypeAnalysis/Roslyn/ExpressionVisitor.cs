@@ -587,9 +587,7 @@ namespace ReachingTypeAnalysis.Roslyn
             var lamdaSymbol = (IMethodSymbol) model.GetSymbolInfo(node).Symbol;
             var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lamdaSymbol);
             var baseMethodDescriptor = this.statementProcessor.Method;
-            var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor,
-                                                    lambdaMethodDescriptor.Parameters,
-                                                    lambdaMethodDescriptor.ReturnType);
+            var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
             var lambdaMethodParser =  new LambdaMethodParser(model, node, lamdaSymbol, methodDescriptor);
             var methodEntity = lambdaMethodParser.ParseMethod();
 
