@@ -627,11 +627,11 @@ using System;
 
 class C
 {
-	private int value;
+	protected int value;
 
-	public int GetValue()
+	public virtual int GetValue()
 	{
-		return this.value;
+		return 0;
 	}
 
 	public C(int v)
@@ -644,6 +644,10 @@ class D : C
 {
 	public D(int v) : base(v)
 	{
+	}
+	public override int GetValue()
+	{
+		return this.value;
 	}
 }
 

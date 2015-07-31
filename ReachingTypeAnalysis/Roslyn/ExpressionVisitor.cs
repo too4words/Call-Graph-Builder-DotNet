@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -540,6 +541,8 @@ namespace ReachingTypeAnalysis.Roslyn
 			// Create an allocation expression
 			var lhs = CreateAndRegisterTemporaryLHVar(node, type.Type);
 			var allocAnalysisExpression = new Allocation(node, type.Type, lhs);
+
+            this.statementProcessor.RegisterNewExpressionAssignment(lhs, allocAnalysisExpression.GetAnalysisType());
             // Process the constructor as a call
             if (symbol != null)
             {
@@ -561,14 +564,17 @@ namespace ReachingTypeAnalysis.Roslyn
         private IList<PropGraphNodeDescriptor> ProcessArguments(ArgumentListSyntax argumentListSyntax, 
 			ImmutableArray<IParameterSymbol> parameters)
         {
-            var args = new List<PropGraphNodeDescriptor>();
+            var paramList = parameters.ToList();
+            //var args = new List<PropGraphNodeDescriptor>(parameters.Length);
+            var args = new PropGraphNodeDescriptor[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
                 if (argumentListSyntax != null && argumentListSyntax.Arguments != null 
-					&& argumentListSyntax.Arguments.Count > i)
+                    && argumentListSyntax.Arguments.Count > i)
                 {
                     PropGraphNodeDescriptor anode = null;
-                    var a_prime = this.Visit(argumentListSyntax.Arguments[i]);
+                    var argSyntax = argumentListSyntax.Arguments[i];
+                    var a_prime = this.Visit(argSyntax);
                     if (a_prime != null)
                     {
                         if (a_prime is Call) // || a_prime is Property)
@@ -581,12 +587,18 @@ namespace ReachingTypeAnalysis.Roslyn
                             anode = a_prime.GetAnalysisNode();
                         }
                     }
-                    args.Add(anode);
+                    int pos = i;
+                    if(argSyntax.NameColon!=null)
+                    {
+                        var parName = argSyntax.NameColon.Name.ToString();
+                        pos = paramList.FindIndex( p => p.Name.Equals(parName));
+                    }
+                    args[pos]=anode;
                 }
-                else args.Add(null);
+                // else args[i]=null;
             }
-            Contract.Assert(args.Count == parameters.Length);
-            return args;
+            Contract.Assert(args.Length == parameters.Length);
+            return new List<PropGraphNodeDescriptor>(args);
         }
 
         /// <summary>
