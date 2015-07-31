@@ -651,12 +651,12 @@ class Program
 {
 	public static int Foo(C a, C x = null, C y = null)
 	{
-		return x.GetValue();
+		return y.GetValue();
 	}	
 
     public static void Main()
     {
-        Foo(new C(0), y: null, x: new D(30));     
+        Foo(new C(0), y: new D(30));     
     }
 }";
 			#endregion
