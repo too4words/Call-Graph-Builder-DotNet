@@ -130,6 +130,14 @@ namespace ReachingTypeAnalysis
 		}
 
 		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
+		public void TestNamedParametersOnDemandOrleans()
+		{
+			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
 		[TestCategory("Generated")]
 		public void LongGeneratedTestOrleansAsync1()
 		{

@@ -618,5 +618,56 @@ class Program
 				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
 			}, strategy);
         }
+
+		public static void TestNamedParameters(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+class C
+{
+	private int value;
+
+	public int GetValue()
+	{
+		return this.value;
+	}
+
+	public C(int v)
+	{
+		this.value = v;
+	}
+}
+
+class D : C
+{
+	public D(int v) : base(v)
+	{
+	}
+}
+
+class Program
+{
+	public static int Foo(C a, C x = null, C y = null)
+	{
+		return x.GetValue();
+	}	
+
+    public static void Main()
+    {
+        Foo(new C(0), y: null, x: new D(30));     
     }
+}";
+			#endregion
+
+			AnalyzeExample(source, (s, callgraph) =>
+			{
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+				// This should be reachable
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+				Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "GetValue"), callgraph));
+			}, strategy);
+		}
+	}
 }

@@ -119,5 +119,13 @@ namespace ReachingTypeAnalysis
 		{
 			BasicTests.TestLambda(AnalysisStrategyKind.ONDEMAND_SYNC);
 		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandSync")]
+		public void TestNamedParametersOnDemandSync()
+		{
+			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_SYNC);
+		}
 	}
 }
