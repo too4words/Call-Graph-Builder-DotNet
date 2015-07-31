@@ -24,7 +24,14 @@ namespace ReachingTypeAnalysis.Communication
             if (entity == null)
             {
                 MethodDescriptor methodDescriptor = GetMethodDescriptor(entityDesc);
-                var methodEntity = await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(methodDescriptor);
+
+                var methodEntity = await ProjectCodeProvider.FindProviderAndCreateMethodEntityAsync(methodDescriptor.BaseDescriptor);
+
+                if(methodDescriptor.IsAnonymousDescriptor)
+                {
+                    methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+                }
+
                 this.RegisterEntity(methodEntity.EntityDescriptor, methodEntity);
                 entity = methodEntity;
             }
