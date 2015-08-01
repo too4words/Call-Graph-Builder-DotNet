@@ -8,157 +8,166 @@ using System.Diagnostics;
 using ReachingTypeAnalysis.Analysis;
 using Orleans.TestingHost;
 
-
 namespace ReachingTypeAnalysis
 {
     [TestClass]
     public partial class QueryTestsOnDemandAsync 
     {
-        //[TestMethod]
-        //public void TestQueryAsync1()
-        //{
-        //    BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ASYNC);
-        //}
-        [TestMethod]
-        public void TestQueryAsync2()
+		//[TestMethod]
+		//[TestCategory("Query")]
+		//public void TestQueryAsync1()
+		//{
+		//    BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		//}
+
+		[TestMethod]
+		[TestCategory("Query")]
+		public void TestQueryAsync2()
         {
             BasicTests.TestQuery2(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
     }
 
-
     [TestClass]
     public partial class QueryTestsOrleans : TestingSiloHost
     {
+        #region deprecated
+        //[TestMethod]
+        //[TestCategory("Query")]
+        //public void TestQueryOrleansDeprecated()
+        //{
+        //    BasicTests.TestQueryDeprecated(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        //}
+        #endregion
+
         [TestMethod]
-        public void TestQueryOrleansDeprecated()
-        {
-            BasicTests.TestQueryDeprecated(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        }
-        [TestMethod]
-        public void TestQueryOrleans1()
+		[TestCategory("Query")]
+		public void TestQueryOrleans1()
         {
             BasicTests.TestQuery1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
-        public void TestQueryOrleans2()
+		[TestCategory("Query")]
+		public void TestQueryOrleans2()
         {
             BasicTests.TestQuery2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
-
     }
+
     public partial class BasicTests
     {
-        public static void TestQueryDeprecated(AnalysisStrategyKind strategy)
-        {
-            #region source code
-            var source = @"    class C
-    {
-        public static void N0()
-        {
-            N7();
-            N4();
-            N0();
-            N2();
-            N6();
-            N8();
-            N3();
-        }
+        #region deprecated
+        //        public static void TestQueryDeprecated(AnalysisStrategyKind strategy)
+//        {
+//            #region source code
+//            var source = @"    class C
+//    {
+//        public static void N0()
+//        {
+//            N7();
+//            N4();
+//            N0();
+//            N2();
+//            N6();
+//            N8();
+//            N3();
+//        }
+//
+//        public static void N1()
+//        {
+//            N6();
+//            N4();
+//            N5();
+//            N2();
+//        }
+//
+//        public static void N2()
+//        {
+//            N5();
+//            N0();
+//            N8();
+//            N1();
+//            N6();
+//        }
+//
+//        public static void N3()
+//        {
+//            N3();
+//        }
+//
+//        public static void N4()
+//        {
+//            N8();
+//            N4();
+//            N5();
+//            N6();
+//            N3();
+//        }
+//
+//        public static void N5()
+//        {
+//            N6();
+//            N4();
+//            N1();
+//        }
+//
+//        public static void N6()
+//        {
+//            N2();
+//            N0();
+//            N4();
+//            N1();
+//        }
+//
+//        public static void N7()
+//        {
+//            N5();
+//            N2();
+//            N4();
+//            N3();
+//            N6();
+//            N7();
+//            N0();
+//        }
+//
+//        public static void N8()
+//        {
+//            N0();
+//            N1();
+//            N7();
+//        }
+//
+//        public static void N9()
+//        {
+//        }
+//
+//        public static void Main()
+//        {
+//            N0();
+//            N1();
+//            N2();
+//            N3();
+//            N4();
+//            N5();
+//            N6();
+//            N7();
+//            N8();
+//            N9();
+//            Main();
+//        }
+//    }";
+//#endregion
 
-        public static void N1()
-        {
-            N6();
-            N4();
-            N5();
-            N2();
-        }
-
-        public static void N2()
-        {
-            N5();
-            N0();
-            N8();
-            N1();
-            N6();
-        }
-
-        public static void N3()
-        {
-            N3();
-        }
-
-        public static void N4()
-        {
-            N8();
-            N4();
-            N5();
-            N6();
-            N3();
-        }
-
-        public static void N5()
-        {
-            N6();
-            N4();
-            N1();
-        }
-
-        public static void N6()
-        {
-            N2();
-            N0();
-            N4();
-            N1();
-        }
-
-        public static void N7()
-        {
-            N5();
-            N2();
-            N4();
-            N3();
-            N6();
-            N7();
-            N0();
-        }
-
-        public static void N8()
-        {
-            N0();
-            N1();
-            N7();
-        }
-
-        public static void N9()
-        {
-        }
-
-        public static void Main()
-        {
-            N0();
-            N1();
-            N2();
-            N3();
-            N4();
-            N5();
-            N6();
-            N7();
-            N8();
-            N9();
-            Main();
-        }
-    }";
-#endregion
-
-            AnalyzeExample(source, (s, callgraph) =>
-			{
-                var queryTimes = Q.DoQueriesDeprecated();
-                var queryTimesMS = queryTimes.Select(t => t.Elapsed.Milliseconds);
-                Debug.WriteLine(String.Join(",", queryTimesMS));
-                Debug.WriteLine("Average Query Time {0} ", queryTimesMS.Average());
-            }, strategy);
-        }
+//            AnalyzeExample(source, (s, callgraph) =>
+//            {
+//                var queryTimes = Q.DoQueriesDeprecated();
+//                var queryTimesMS = queryTimes.Select(t => t.Elapsed.Milliseconds);
+//                Debug.WriteLine(String.Join(",", queryTimesMS));
+//                Debug.WriteLine("Average Query Time {0} ", queryTimesMS.Average());
+//            }, strategy);
+        //        }
+        #endregion
 
         public static void TestQuery1(AnalysisStrategyKind strategy)
         {
@@ -378,90 +387,91 @@ namespace ReachingTypeAnalysis
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
             }, strategy);
         }
-
     }
 
     public static class Q
     {
-        public static IEnumerable<Stopwatch> DoQueriesDeprecated()
-        {
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N0", true) , 4, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        #region deprecated
+        //public static IEnumerable<Stopwatch> DoQueriesDeprecated()
+        //{
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N0", true) , 4, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N1", true), 2, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N1", true), 2, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N2", true), 2, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N2", true), 2, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N3", true), 1, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N3", true), 1, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N4", true), 4, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N4", true), 4, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N5", true), 2, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N5", true), 2, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N6", true), 4, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N6", true), 4, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N7", true), 1, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N7", true), 1, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-            {
-                var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N8", true), 3, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N8", true), 3, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
 
-			//{
-			//    var sw = Stopwatch.StartNew();
-			//    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
-			//    sw.Stop();
-			//    yield return sw;
-			//}
+        //    //{
+        //    //    var sw = Stopwatch.StartNew();
+        //    //    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
+        //    //    sw.Stop();
+        //    //    yield return sw;
+        //    //}
 
-			{
-				var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "Main", true), 8, "MyProject").Result;
-                sw.Stop();
-                yield return sw;
-            }
-        }
+        //    {
+        //        var sw = Stopwatch.StartNew();
+        //        var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "Main", true), 8, "MyProject").Result;
+        //        sw.Stop();
+        //        yield return sw;
+        //    }
+        //}
+        #endregion
 
         public static IEnumerable<Stopwatch> DoQueries1(IAnalysisStrategy analysisStrategy)
         {
@@ -622,6 +632,5 @@ namespace ReachingTypeAnalysis
                 yield return sw;
             }
         }
-
     }
 }

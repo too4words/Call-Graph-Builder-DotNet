@@ -272,9 +272,6 @@
     <Compile Include="Analysis\AsyncVersion\AnalysisStrategy.cs" />
     <Compile Include="Orleans\MethodEntityGrain.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
-    <Content Include="ClientConfiguration.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Orleans\OrleansEntityDescriptor.cs" />
     <Compile Include="Orleans\OrleansHostWrapper.cs" />
     <Compile Include="Orleans\ProjectCodeProviderGrain.cs" />

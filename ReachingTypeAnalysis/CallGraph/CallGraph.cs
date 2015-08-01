@@ -18,15 +18,16 @@ namespace SolutionTraversal.Callgraph
 		{
 			this.graph = new Graph();
 			this.vertexIndex = new Dictionary<M, int>();
-
 		}
+
 		public void Add(M method)
 		{
 			int index;
 			Vertex vertex;
+
 			if (!this.vertexIndex.TryGetValue(method, out index))
 			{
-				int c = this.vertexIndex.Count();
+				var c = this.vertexIndex.Count();
 				this.vertexIndex[method] = c;
 				vertex = graph.AddVertex(c);
 				vertex["M"] = method;
@@ -141,29 +142,53 @@ namespace SolutionTraversal.Callgraph
 
 		public void AddRootMethod(M method)
 		{
+			//// TODO: remove this assert, it is just for debugging
+			//if (method.ToString().Contains("CommandLine.Program.Main"))
+			//{
+			//	System.Diagnostics.Debug.Assert(false, "AddRootMethod");
+			//}
+
 			roots.Add(method);
+			this.Add(method);
 		}
 
 		public void AddRootMethods(IEnumerable<M> methods)
 		{
-			roots.UnionWith(methods);
+			//// TODO: remove this assert, it is just for debugging
+			//var test = methods.ToList();
+
+			//if (test.Any(m => m.ToString().Contains("CommandLine.Program.Main")))
+			//{
+			//	System.Diagnostics.Debug.Assert(false, "AddRootMethods");
+			//}
+
+			//roots.UnionWith(methods);
+
+			foreach (var method in methods)
+			{
+				this.AddRootMethod(method);
+			}
 		}
 
 		public ISet<M> GetReachableMethods()
 		{
 			var result = new HashSet<M>();
+
 			foreach (var root in roots)
 			{
-				result.UnionWith(GetReachableMethods(root));
+				var reachableMethods = GetReachableMethods(root);
+                result.UnionWith(reachableMethods);
 			}
 
 			return result;
-			//return roots.Aggregate(new HashSet<M>(), (a,rm) => a.Union(ReachableMethods(rm) as HashSet<M>));
 		}
 
 		public IEnumerable<M> GetReachableMethods(M method)
 		{
-			int index = this.vertexIndex[method];
+			//// TODO: remove this assert, it is just for debugging
+			//System.Diagnostics.Debug.Assert(this.vertexIndex.ContainsKey(method), method.ToString());
+
+			var index = this.vertexIndex[method];
 			var vertex = this.graph.GetVertex(index);
 
 			return this.graph.EnumerateVerticesReachableBy(vertex).Select(v1 => (M)v1["M"]);

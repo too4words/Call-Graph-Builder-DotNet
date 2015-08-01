@@ -114,6 +114,30 @@ namespace ReachingTypeAnalysis
         }
 
 		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
+		public void TestArrowMethodBodyOnDemandOrleans()
+		{
+			BasicTests.TestArrowMethodBody(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
+		public void TestLambdaOnDemandOrleans()
+		{
+			BasicTests.TestLambda(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
+		public void TestNamedParametersOnDemandOrleans()
+		{
+			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
 		[TestCategory("Generated")]
 		public void LongGeneratedTestOrleansAsync1()
 		{

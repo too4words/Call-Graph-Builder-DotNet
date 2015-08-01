@@ -84,126 +84,99 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
-                        //this.Dispatcher = new QueueingDispatcher(this.Solution);
-                        this.Dispatcher = new AsyncDispatcher();
-                        //AnalyzeOnDemandAsync(AnalysisStrategy.ONDEMAND_ASYNC).Wait();
+						//this.Dispatcher = new AsyncDispatcher();
+						this.Dispatcher = null;
 
-                        this.Strategy = new OndemandAsyncStrategy(this.Solution);
-                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution).Result;
+						this.Strategy = new OnDemandAsyncStrategy(this.Solution);
+						var solutionManager = new SolutionManager(this.Solution);
+						var mainMethods = solutionManager.GetRoots().Result;
+						var orchestator = new AnalysisOrchestator(Strategy);
+						orchestator.AnalyzeAsync(mainMethods).Wait();
 
-                        if (triple != null)
-                        {
-                            var solutionManager = new SolutionManager(this.Solution);
-                            var provider = triple.Item1;
-                            var mainSymbol = triple.Item2;
-                            Contract.Assert(mainSymbol != null);
-                            var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
-                            var mainMethodEntityDescriptor = mainMethodDescriptor;
-							var orchestator = new AnalysisOrchestator(Strategy);
-							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
-							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
-                            return callGraph;
-                        }
-                        
-                        return this.GenerateCallGraph();
+						//var compilerMainMethod = new MethodDescriptor("Microsoft.CodeAnalysis.CSharp.CommandLine", "Program", "Main", true);
+						//Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
+						//orchestator.AnalyzeAsync(compilerMainMethod).Wait();
+
+						var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
+	                    return callGraph;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
-                    {
-                        /*                        //var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-                                                var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
-                                                //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
-                                                //var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
-                                                var applicationPath = System.Environment.CurrentDirectory;
+					{
+						/*
+						//var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
+                        var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
+                        //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
+                        //var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
+                        var applicationPath = System.Environment.CurrentDirectory;
 
-                                                var appDomainSetup = new AppDomainSetup
-                                                {
-                                                    AppDomainInitializer = InitSilo,
-                                                    //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
-                                                    ApplicationBase = applicationPath,
-                                                    ApplicationName = "ReachingTypeAnalysis",
-                                                    AppDomainInitializerArguments = new string[] { },
-                                                    //ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
-                                                    ConfigurationFile = "ReachingTypeAnalysis.exe.config"
-                                                };
-                                                // set up the Orleans silo
-                                                var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
+                        var appDomainSetup = new AppDomainSetup
+                        {
+                            AppDomainInitializer = InitSilo,
+                            //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
+                            ApplicationBase = applicationPath,
+                            ApplicationName = "ReachingTypeAnalysis",
+                            AppDomainInitializerArguments = new string[] { },
+                            //ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
+                            ConfigurationFile = "ReachingTypeAnalysis.exe.config"
+                        };
+                        // set up the Orleans silo
+                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
 
-                                                var xmlConfig = "ClientConfigurationForTesting.xml";
-                                                Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
-                                                try
-                                                {
-                                                    GrainClient.Initialize(xmlConfig);
-                                                    Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
-                                                }
-                                                catch (Exception e)
-                                                {
-                                                    Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
-                                                    throw e;
-                                                    //break;
-                                                }
+                        var xmlConfig = "ClientConfigurationForTesting.xml";
+                        Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
+                        try
+                        {
+                            GrainClient.Initialize(xmlConfig);
+                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
+                            throw e;
+                            //break;
+                        }
                          */
-                        
-                        
-                        
-                        this.Strategy = new OnDemandOrleansStrategy();
 
-                        SolutionAnalyzer.MessageCounter = 0;
-                        GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+						this.Strategy = new OnDemandOrleansStrategy();
 
+						SolutionAnalyzer.MessageCounter = 0;
+						GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
-                        // Create a Grain for the solution
-                        var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-                        
-                        //SolutionGrainFactory.GetGrain("Solution");
+						var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+						Contract.Assert(solutionGrain != null);
 
-                        Contract.Assert(solutionGrain != null);
-                        if (SourceCode != null)
-                        {
-                            solutionGrain.SetSolutionSource(SourceCode).Wait();
-                            IProjectCodeProviderGrain projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("MyProject");
-                            projectGrain.SetProjectSourceCode(SourceCode);
-                        }
-                        else
-                        {
-                            Contract.Assert(Solution.FilePath != null);
-                            solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
-                            foreach (var project in this.Solution.Projects)
-                            {
-                                IProjectCodeProviderGrain projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
-                                projectGrain.SetProjectPath(project.FilePath).Wait();
-                            }
-                        }
-                        // make a dispatcher
-                        //this.Dispatcher = new OrleansDispatcher();
-                        this.Dispatcher = null;
-                        // run
-                        var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(this.Solution).Result;
-                        if (triple != null)
-                        {
-                            // cancel out outstanding processing tasks
-                            //cancellationSource.Cancel();	
-                            var provider = triple.Item1;
-                            var mainSymbol = triple.Item2;
-                            Contract.Assert(mainSymbol != null);
-                            //var tree = triple.Item3;
-                            //var model = provider.Compilation.GetSemanticModel(tree);
-                            var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);
-                            var mainMethodEntityDescriptor = mainMethodDescriptor;
+						if (this.SourceCode != null)
+						{
+							solutionGrain.SetSolutionSource(this.SourceCode).Wait();
+							var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("MyProject");
+							projectGrain.SetProjectSourceCode(this.SourceCode);
+						}
+						else
+						{
+							Contract.Assert(this.Solution.FilePath != null);
+							solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
 
-							var orchestator = new AnalysisOrchestator(Strategy);
-							orchestator.AnalyzeAsync(mainMethodEntityDescriptor).Wait();
-                            
-                            var solutionManager = new SolutionGrainWrapper(solutionGrain);
-							var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
+							foreach (var project in this.Solution.Projects)
+							{
+								var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
+								projectGrain.SetProjectPath(project.FilePath).Wait();
+							}
+						}
 
-                            Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+						this.Dispatcher = null;
 
-                            //hostDomain.DoCallBack(ShutdownSilo);
-                            return callGraph;
-                        }
+						var mainMethods = solutionGrain.GetRoots().Result;
+						var orchestator = new AnalysisOrchestator(Strategy);
+						orchestator.AnalyzeAsync(mainMethods).Wait();
 
-                        return null;
-                    }
+						var solutionManager = new SolutionGrainWrapper(solutionGrain);
+						var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
+
+						Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+
+						//hostDomain.DoCallBack(ShutdownSilo);
+						return callGraph;
+					}
                 case AnalysisStrategyKind.ENTIRE_ASYNC:
                     {
                         //this.Dispatcher = new QueueingDispatcher(this.Solution);
@@ -409,7 +382,7 @@ namespace ReachingTypeAnalysis
 				{
                     var model = provider.Compilation.GetSemanticModel(tree);
 					cancellationToken.Cancel(); // cancel out outstanding processing tasks
-                    var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
+                    var methodVisitor = new MethodParser(model, tree, mainSymbol);
 
 					var mainMethodEntity = methodVisitor.ParseMethod();
                     this.Dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
@@ -457,7 +430,7 @@ namespace ReachingTypeAnalysis
 				var mainSymbol = triple.Item2;
                 var tree = triple.Item3;
                 var model = provider.Compilation.GetSemanticModel(tree);
-				var methodVisitor = new MethodSyntaxProcessor(model, tree, mainSymbol);
+				var methodVisitor = new MethodParser(model, tree, mainSymbol);
 
 				//var mainMethodEntity = methodVisitor.ParseMethod();
                 var mainMethodDescriptor = Utils.CreateMethodDescriptor(mainSymbol);

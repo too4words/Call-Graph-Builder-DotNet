@@ -48,10 +48,18 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             this.State.MethodDescriptor = methodDescriptor;
-            this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+            var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
+
+            this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptorToSearch);
             this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
-            this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptor);
+            this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptorToSearch);
+
+            if (methodDescriptor.IsAnonymousDescriptor)
+            {
+                this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
+            }
+
             await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
 
             // This take cares of doing the progation of types

@@ -15,36 +15,17 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class MethodDescriptor
     {
-        public string ClassName { get; private set; }
-        public string MethodName { get; private set; }
-        public string NamespaceName { get; private set; }
+		protected string name;
+		protected TypeDescriptor containerType;
 
-        private string name;
-        private TypeDescriptor containerType;
+		public string ClassName { get; protected set; }
+        public string MethodName { get; protected set; }
+        public string NamespaceName { get; protected set; }
+        public IList<TypeDescriptor> Parameters { get; protected set; }
+        public TypeDescriptor ReturnType { get; protected set; }
+        public bool IsStatic { get; protected set; }
 
-        public IList<TypeDescriptor> Parameters { get; private set; }
-        public TypeDescriptor ReturnType { get; private set; }
-
-        public bool IsStatic { get; private set; }
-
-
-        public string Name
-        {
-            get
-            {
-                if (this.name == null)
-                {
-                    this.name = ClassName + "." + MethodName;
-                    if (this.NamespaceName != string.Empty)
-                    {
-                        this.name = NamespaceName + "." + this.name;
-                    }
-                }
-                return name;
-            }
-        }
-
-        public TypeDescriptor ContainerType
+		public TypeDescriptor ContainerType
         {
             get
             {
@@ -52,17 +33,51 @@ namespace ReachingTypeAnalysis
                 {
                     containerType = new TypeDescriptor(this.NamespaceName, this.ClassName);
                 }
+
                 return containerType;
             }
         }
+
+		public string Name
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(name))
+				{
+					var qualifiedName = new List<string>();
+
+					if (!string.IsNullOrEmpty(this.NamespaceName))
+					{
+						qualifiedName.Add(this.NamespaceName);
+					}
+
+					qualifiedName.Add(this.ClassName);
+					qualifiedName.Add(this.MethodName);
+					name = string.Join(".", qualifiedName);
+				}
+
+				return name;
+			}
+		}
 
         public TypeDescriptor ThisType
         {
             get
             {
-                return (!IsStatic)? ContainerType: null;
+                return !IsStatic ? ContainerType : null;
             }
         }
+
+        /// <summary>
+        ///  I include this just to simplify 
+        /// </summary>
+        public virtual MethodDescriptor BaseDescriptor 
+        { 
+            get { return this;  }
+            protected set { } 
+        }
+		
+        public bool IsAnonymousDescriptor { get; protected set; }
 
 		public MethodDescriptor() : this("","")
 		{
@@ -76,14 +91,14 @@ namespace ReachingTypeAnalysis
 			this.NamespaceName = namespaceName;
 			this.ClassName = className;
 			this.MethodName = methodName;
-			this.name = className + "." + methodName;
 			this.IsStatic = isStatic;
 			this.ReturnType = returnType;
+			this.IsAnonymousDescriptor = false;
 
 			if (parameters != null)
 			{
 				this.Parameters = new List<TypeDescriptor>(parameters);
-			}
+			}            
 		}
 
         public MethodDescriptor(string className, string methodName, bool isStatic = false)
@@ -107,6 +122,17 @@ namespace ReachingTypeAnalysis
         //        return result;
         //    }
         //}
+        public MethodDescriptor(MethodDescriptor original)
+        {
+            this.NamespaceName = original.NamespaceName;
+            this.containerType = original.containerType;
+            this.ClassName = original.ClassName;
+            this.MethodName = original.MethodName;
+            this.Parameters = original.Parameters;
+            this.ReturnType = original.ReturnType;
+            // this.ThisType = original.ThisType;
+
+        }
 
         public override bool Equals(object obj)
         {
@@ -121,6 +147,7 @@ namespace ReachingTypeAnalysis
 
             return nEq && cEq && mEq && staticEq && pEq;
         }
+
         //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
         //{
         //    if(params1.Count()!=params2.Count()) return false;
@@ -141,7 +168,8 @@ namespace ReachingTypeAnalysis
         {
             return this.Name;
         }
-        public string Marshall()
+
+        public virtual string Marshall()
         {
 			var result = new StringBuilder();
 
@@ -167,17 +195,38 @@ namespace ReachingTypeAnalysis
 
         public static MethodDescriptor DeMarsall(string md)
         {
+            var anonymousMD = "";
+            var i = md.IndexOf(':');
+            if(i>=0)
+            {
+                anonymousMD = md.Substring(0, i);
+                md = md.Substring(i+1);
+            }
+
+            var methodDescriptor = ParseMethodDescriptor(md);
+
+            if(anonymousMD.Length>0)
+            {
+                var anonymousMDContent = ParseMethodDescriptor(anonymousMD);
+                return new AnonymousMethodDescriptor(methodDescriptor, anonymousMDContent);
+            }
+
+			return methodDescriptor;
+        }
+
+        private static MethodDescriptor ParseMethodDescriptor(string md)
+        {
             var tokens = md.Split('+');
+            var namespaceName = tokens[0];
+            var className = tokens[1];
+            var methodName = tokens[2];
+            var isStatic = Convert.ToBoolean(tokens[3]);
+            var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
 
-			var namespaceName = tokens[0];
-			var className = tokens[1];
-			var methodName = tokens[2];
-			var isStatic = Convert.ToBoolean(tokens[3]);
-			var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
-
-            if (tokens.Length > 4 && tokens[4].Length>0)
+            if (tokens.Length > 4 && tokens[4].Length > 0)
             {
                 methodDescriptor.Parameters = new List<TypeDescriptor>();
+
                 for (var i = 4; i < tokens.Length; ++i)
                 {
                     var typeName = tokens[i];
@@ -187,8 +236,38 @@ namespace ReachingTypeAnalysis
                 }
             }
 
-			return methodDescriptor;
+            return methodDescriptor;
         }
+    }
+
+    [Serializable]
+    public class AnonymousMethodDescriptor: MethodDescriptor
+    {
+       public override MethodDescriptor BaseDescriptor { get; protected set; }
+
+       public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor, MethodDescriptor anonymousMethodDescriptor)
+           : base(anonymousMethodDescriptor)
+       {
+           this.BaseDescriptor = baseMethodDescriptor;
+           this.MethodName = "Anonymous";
+           this.IsAnonymousDescriptor = true;
+       }
+	
+       public override bool Equals(object obj)
+       {
+           var other = (AnonymousMethodDescriptor)obj;
+           return this.BaseDescriptor.Equals(other.BaseDescriptor) && this.MethodName.Equals(other.MethodName);
+       }
+
+       public override int GetHashCode()
+       {
+           return this.BaseDescriptor.GetHashCode() + this.MethodName.GetHashCode();
+       }
+
+       public override string Marshall()
+       {
+           return base.Marshall() + ":" + this.BaseDescriptor.Marshall();
+       }
     }
 
     [Serializable]
@@ -245,17 +324,18 @@ namespace ReachingTypeAnalysis
         // TODO: Fix the equals, but we need to resolve the default values
         public override bool Equals(object obj)
         {
-            TypeDescriptor typeDescriptor = (TypeDescriptor)obj;
-            bool eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
+            var typeDescriptor = (TypeDescriptor)obj;
+            var eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(typeDescriptor.Kind);
-            bool eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
-            bool eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
+            var eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
+            var eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
 
             return this.TypeName.Equals(typeDescriptor.TypeName)
              //       && eqRef && eqConcrete
                     && eqKind;
         }
+
         // TODO: Fix the equals, but we need to resolve the default values
         public override int GetHashCode()
         {

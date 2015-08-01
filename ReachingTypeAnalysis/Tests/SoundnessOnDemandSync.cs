@@ -102,6 +102,30 @@ namespace ReachingTypeAnalysis
         public void TestPropertyOnDemandSync()
         {
             BasicTests.TestProperty(AnalysisStrategyKind.ONDEMAND_SYNC);
-        }        
-    }
+        }
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandSync")]
+		public void TestArrowMethodBodyOnDemandSync()
+		{
+			BasicTests.TestArrowMethodBody(AnalysisStrategyKind.ONDEMAND_SYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandSync")]
+		public void TestLambdaOnDemandSync()
+		{
+			BasicTests.TestLambda(AnalysisStrategyKind.ONDEMAND_SYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandSync")]
+		public void TestNamedParametersOnDemandSync()
+		{
+			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_SYNC);
+		}
+	}
 }

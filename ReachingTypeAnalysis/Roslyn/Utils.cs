@@ -19,9 +19,15 @@ namespace ReachingTypeAnalysis
         public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
         {
             Contract.Assert(method != null);
+			var namespaceName = string.Empty;
 
-            return new MethodDescriptor(
-                method.ContainingNamespace.Name,
+			if (!method.ContainingNamespace.IsGlobalNamespace)
+			{
+				namespaceName = method.ContainingNamespace.ToDisplayString();
+			}
+
+			return new MethodDescriptor(
+				namespaceName,
                 method.ContainingType.Name, method.Name, method.IsStatic, 
                 method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
                 Utils.CreateTypeDescriptor(method.ReturnType)

@@ -779,6 +779,8 @@ namespace OrleansInterfacesSerializers
         
         private static System.Reflection.FieldInfo fieldInfo8;
         
+        private static System.Reflection.FieldInfo fieldInfo9;
+        
         static ReachingTypeAnalysis_MethodDescriptorSerialization()
         {
             Register();
@@ -792,20 +794,22 @@ namespace OrleansInterfacesSerializers
             object objResult = ((object)(result));
             object temp1 = input.ClassName;
             fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = input.IsStatic;
+            object temp2 = input.IsAnonymousDescriptor;
             fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = input.MethodName;
+            object temp3 = input.IsStatic;
             fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = input.NamespaceName;
+            object temp4 = input.MethodName;
             fieldInfo4.SetValue(objResult, temp4);
-            object temp5 = ((System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Parameters)));
+            object temp5 = input.NamespaceName;
             fieldInfo5.SetValue(objResult, temp5);
-            object temp6 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReturnType)));
+            object temp6 = ((System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.Parameters)));
             fieldInfo6.SetValue(objResult, temp6);
-            object temp7 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(fieldInfo7.GetValue(input))));
+            object temp7 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReturnType)));
             fieldInfo7.SetValue(objResult, temp7);
-            object temp8 = fieldInfo8.GetValue(input);
+            object temp8 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(fieldInfo8.GetValue(input))));
             fieldInfo8.SetValue(objResult, temp8);
+            object temp9 = fieldInfo9.GetValue(input);
+            fieldInfo9.SetValue(objResult, temp9);
             return objResult;
         }
         
@@ -813,13 +817,14 @@ namespace OrleansInterfacesSerializers
         {
             ReachingTypeAnalysis.MethodDescriptor input = ((ReachingTypeAnalysis.MethodDescriptor)(untypedInput));
             Orleans.Serialization.SerializationManager.SerializeInner(input.ClassName, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.IsAnonymousDescriptor, stream, typeof(bool));
             Orleans.Serialization.SerializationManager.SerializeInner(input.IsStatic, stream, typeof(bool));
             Orleans.Serialization.SerializationManager.SerializeInner(input.MethodName, stream, typeof(string));
             Orleans.Serialization.SerializationManager.SerializeInner(input.NamespaceName, stream, typeof(string));
             Orleans.Serialization.SerializationManager.SerializeInner(input.Parameters, stream, typeof(System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>));
             Orleans.Serialization.SerializationManager.SerializeInner(input.ReturnType, stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
-            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo7.GetValue(input), stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
-            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo8.GetValue(input), stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo8.GetValue(input), stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
+            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo9.GetValue(input), stream, typeof(string));
         }
         
         public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
@@ -830,18 +835,20 @@ namespace OrleansInterfacesSerializers
             fieldInfo1.SetValue(objResult, temp1);
             object temp2 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
             fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            object temp3 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
             fieldInfo3.SetValue(objResult, temp3);
             object temp4 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             fieldInfo4.SetValue(objResult, temp4);
-            object temp5 = ((System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>), stream)));
+            object temp5 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             fieldInfo5.SetValue(objResult, temp5);
-            object temp6 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
+            object temp6 = ((System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>), stream)));
             fieldInfo6.SetValue(objResult, temp6);
             object temp7 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
             fieldInfo7.SetValue(objResult, temp7);
-            object temp8 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            object temp8 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
             fieldInfo8.SetValue(objResult, temp8);
+            object temp9 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo9.SetValue(objResult, temp9);
             return objResult;
         }
         
@@ -850,19 +857,21 @@ namespace OrleansInterfacesSerializers
             global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.MethodDescriptor), DeepCopier, Serializer, Deserializer);
             fieldInfo1 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<ClassName>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo2 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<IsStatic>k__BackingField", (System.Reflection.BindingFlags.Instance 
+            fieldInfo2 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<IsAnonymousDescriptor>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo3 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<MethodName>k__BackingField", (System.Reflection.BindingFlags.Instance 
+            fieldInfo3 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<IsStatic>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo4 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<NamespaceName>k__BackingField", (System.Reflection.BindingFlags.Instance 
+            fieldInfo4 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<MethodName>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo5 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<Parameters>k__BackingField", (System.Reflection.BindingFlags.Instance 
+            fieldInfo5 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<NamespaceName>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo6 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<ReturnType>k__BackingField", (System.Reflection.BindingFlags.Instance 
+            fieldInfo6 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<Parameters>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo7 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("containerType", (System.Reflection.BindingFlags.Instance 
+            fieldInfo7 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<ReturnType>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo8 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("name", (System.Reflection.BindingFlags.Instance 
+            fieldInfo8 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("containerType", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo9 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("name", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }

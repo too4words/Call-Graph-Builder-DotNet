@@ -112,7 +112,11 @@ namespace CallGraphGeneration
             var callgraph = analyzer.Analyze(strategyKind);
 			this.Cleanup();
 
-            Console.WriteLine("Reachable methods={0}", callgraph.GetReachableMethods().Count);
+			//// TODO: remove this assert, it is just for debugging
+			//Debug.Assert(false);
+
+			var reachableMethods = callgraph.GetReachableMethods();
+			Console.WriteLine("Reachable methods={0}", reachableMethods.Count);
             return callgraph;
         }
 

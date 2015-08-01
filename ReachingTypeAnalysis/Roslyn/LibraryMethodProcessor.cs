@@ -10,19 +10,19 @@ namespace ReachingTypeAnalysis.Roslyn
     /// Represent a method appearing in a Reference
     /// We only have MetadataInfo, not the code
     /// </summary>
-    internal class LibraryMethodProcessor: GeneralRoslynMethodProcessor
+    internal class LibraryMethodParser: GeneralRoslynMethodParser
     {
-		internal LibraryMethodProcessor(IMethodSymbol method)
+		internal LibraryMethodParser(IMethodSymbol method)
 			: base(method)
 		{ }
 
-        internal LibraryMethodProcessor(MethodDescriptor methodDescriptor)
+        internal LibraryMethodParser(MethodDescriptor methodDescriptor)
             : base(methodDescriptor)
         {
         }
 
 
-        public MethodEntity ParseLibraryMethod()
+        public override MethodEntity ParseMethod()
         {
             if (this.RetVar != null)
             {
