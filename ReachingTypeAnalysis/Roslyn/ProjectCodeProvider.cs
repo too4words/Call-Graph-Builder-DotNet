@@ -390,7 +390,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return null;
 		}
 
-        public virtual bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+		public virtual bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
