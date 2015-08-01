@@ -37,27 +37,20 @@ namespace ReachingTypeAnalysis.Analysis
 			this.strategy = strategy;
 		}
 
-        private async Task ProcessMessages()
-        {
-            while(messageWorkList.Count>0)
-            {
-                var message = messageWorkList.Dequeue();
-                //var message = messageWorkList.First();
-                //messageWorkList.Remove(message);
-                if (message is CallerMessage)
-                {
-                    var callerMessage = (CallerMessage)message;
-                    var callerMessageInfo = callerMessage.CallMessageInfo;
-                    await AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
-                }
-                else if(message is CalleeMessage)
-                {
-                    var calleeMessage = (CalleeMessage)message;
-                    await AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller,calleeMessage,calleeMessage.ReturnMessageInfo.PropagationKind);
-                }
-            }
-        }
-		public async Task AnalyzeAsync(MethodDescriptor method)
+		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
+		{
+			foreach (var methodDescriptor in rootMethods)
+			{
+				var entityDescriptor = new MethodEntityDescriptor(methodDescriptor);
+				var methodEntityProc = await strategy.GetMethodEntityAsync(methodDescriptor);
+				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+			}
+
+			await ProcessMessages();
+		}
+
+        public async Task AnalyzeAsync(MethodDescriptor method)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 
@@ -66,6 +59,26 @@ namespace ReachingTypeAnalysis.Analysis
             var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
             await ProcessMessages();
+		}
+
+		private async Task ProcessMessages()
+		{
+			while (messageWorkList.Count > 0)
+			{
+				var message = messageWorkList.Dequeue();
+
+				if (message is CallerMessage)
+				{
+					var callerMessage = (CallerMessage)message;
+					var callerMessageInfo = callerMessage.CallMessageInfo;
+					await AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
+				}
+				else if (message is CalleeMessage)
+				{
+					var calleeMessage = (CalleeMessage)message;
+					await AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
+				}
+			}
 		}
 
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind)
@@ -137,7 +150,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
+		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
 		{
 			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
 				callInfo.ArgumentsPossibleTypes, callInfo.InstantiatedTypes, callInfo.CallNode, callInfo.LHS, propKind);
@@ -145,9 +158,9 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
             this.messageWorkList.Enqueue(callerMessage);
-                //this.messageWorkList.Add(callerMessage);
-            //return TaskDone.Done;
-			    //return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
+            //this.messageWorkList.Add(callerMessage);
+            return TaskDone.Done;
+			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
 		/// <summary>
@@ -184,9 +197,9 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task DispachReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
+		private Task DispachReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
-			await CreateAndSendReturnMessageAsync(returnInfo, propKind);
+			return CreateAndSendReturnMessageAsync(returnInfo, propKind);
         }
 
 		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
