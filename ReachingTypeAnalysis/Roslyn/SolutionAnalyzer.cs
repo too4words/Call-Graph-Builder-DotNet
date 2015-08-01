@@ -108,6 +108,7 @@ namespace ReachingTypeAnalysis
 						var orchestator = new AnalysisOrchestator(Strategy);
 						orchestator.AnalyzeAsync(mainMethods).Wait();
 
+						// This is for debugging just one project
 						//var compilerMainMethod = new MethodDescriptor("Microsoft.CodeAnalysis.CSharp.CommandLine", "Program", "Main", true);
 						//Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
 						//orchestator.AnalyzeAsync(compilerMainMethod).Wait();
