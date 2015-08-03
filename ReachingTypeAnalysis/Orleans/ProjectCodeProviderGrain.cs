@@ -151,6 +151,12 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return Task.FromResult(ProjectCodeProvider.GetMainMethods(solution));
         }
+
+        /// <summary>
+        /// For RTA analysis
+        /// </summary>
+        /// <param name="types"></param>
+        /// <returns></returns>
         public Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
         {
             instantiatedTypes.UnionWith(types);

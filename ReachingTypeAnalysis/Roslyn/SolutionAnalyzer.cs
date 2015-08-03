@@ -15,6 +15,7 @@ using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.Callgraph;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ReachingTypeAnalysis
 {
@@ -48,6 +49,20 @@ namespace ReachingTypeAnalysis
             this.SourceCode = sourceCode;
             //dispatcher = new SynchronousLocalDispatcher();
         }
+
+        public static SolutionAnalyzer CreateFromSolutionFile(string solutionFileName)
+        {
+            var solutionName = Path.GetFileName(solutionFileName);
+            Console.WriteLine("Loading solution {0}...", solutionName);
+            var props = new Dictionary<string, string>();
+            props["CheckForSystemRuntimeDependency"] = "true";
+            var ws = MSBuildWorkspace.Create(props);
+            var solution = ws.OpenSolutionAsync(solutionFileName).Result;
+            Console.WriteLine("Solution loaded successfully", solutionName);
+
+            return new SolutionAnalyzer(solution);
+        }
+
 
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher

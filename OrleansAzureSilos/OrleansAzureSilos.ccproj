@@ -37,6 +37,14 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Orchestator\Orchestator.csproj">
+      <Name>Orchestator</Name>
+      <Project>{4e736a1b-ef2e-40a7-88e8-663d77b31b9b}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>Orchestator</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
     <ProjectReference Include="..\OrleansSilosInAzure\OrleansSilosInAzure.csproj">
       <Name>OrleansSilosInAzure</Name>
       <Project>{c07f6004-d958-4be5-a348-1d8f6ee2d60a}</Project>
@@ -47,9 +55,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="OrchestatorContent\" />
     <Folder Include="OrleansSilosInAzureContent\" />
   </ItemGroup>
   <ItemGroup>
+    <DiagnosticsConfiguration Include="OrchestatorContent\diagnostics.wadcfgx" />
     <DiagnosticsConfiguration Include="OrleansSilosInAzureContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <!-- Import the target files for this project template -->

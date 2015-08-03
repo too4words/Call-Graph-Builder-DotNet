@@ -165,5 +165,20 @@ namespace ReachingTypeAnalysis
             BasicTests.LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
+        [TestMethod]
+        [TestCategory("Solutions")]
+        public void TestSolution1OnDemandOrleans()
+        {
+            BasicTests.TestSolution1Local(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+
+        [TestMethod]
+        [TestCategory("Solutions")]
+        public void TestSolution1OnShareOnDemandOrleans()
+        {
+            BasicTests.TestSolution1Share(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+        }
+
+
     }
 }
