@@ -40,29 +40,50 @@ namespace ReachingTypeAnalysis
         [TestCategory("Solutions")]
         public void TestSolution1OnDemandAsync()
         {
-            BasicTests.TestSolution1(AnalysisStrategyKind.ONDEMAND_ASYNC);
+            BasicTests.TestSolution1Local(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
-        public static void TestSolution1(AnalysisStrategyKind strategy)
+        [TestMethod]
+        [TestCategory("Solutions")]
+        public void TestSolution1ShareOnDemandAsync()
+        {
+            BasicTests.TestSolution1Share(AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+
+        public static void TestSolution1Local(AnalysisStrategyKind strategy)
         {
             string currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string solutionPath = Path.Combine(
                 Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(currentSolutionPath).FullName).FullName).FullName).FullName, 
                 ConfigurationManager.AppSettings["Solution1"]);
             //string solutionPath = ConfigurationManager.AppSettings["TestSolutionsPath"]+  ConfigurationManager.AppSettings["Solution1"];
+            TestSolution1(strategy, solutionPath);
+        }
+
+        public static void TestSolution1Share(AnalysisStrategyKind strategy)
+        {
+            string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            string solutionPath = Path.Combine(currentSolutionPath, ConfigurationManager.AppSettings["Solution1"]);
+
+            TestSolution1(strategy, solutionPath);
+        }
+
+        private static void TestSolution1(AnalysisStrategyKind strategy, string solutionPath)
+        {
             var solution = Utils.ReadSolution(solutionPath);
             AnalizeSolution(solution, (s, callgraph) =>
             {
                 //callgraph.Save("solution1.dot");
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ConsoleApplication1","Test", "CallBar"), callgraph)); // ConsoleApplication1
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ConsoleApplication1", "Test", "CallBar"), callgraph)); // ConsoleApplication1
                 // Fails is I use only Contains with hascode!
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ClassLibrary1", "RemoteClass1", "Bar",false), callgraph)); // ClassLibrary
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ClassLibrary1", "RemoteClass1", "Bar", false), callgraph)); // ClassLibrary
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("ConsoleApplication1", "LocalClass2", "Bar"), callgraph)); // ConsoleApplication1
 
                 var roslynMethod = RoslynSymbolFactory.FindMethodSymbolAndProjectInSolution(solution, new MethodDescriptor("ConsoleApplication1", "Test", "CallBar")).Method;
                 Assert.IsTrue(roslynMethod != null);
                 Assert.IsTrue(s.IsReachable(Utils.CreateMethodDescriptor(roslynMethod), callgraph)); // ConsoleApplication1
-            },strategy);
+            }, strategy);
         }
 
         [TestMethod]
