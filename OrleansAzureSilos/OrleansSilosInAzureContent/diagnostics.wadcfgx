@@ -29,11 +29,10 @@
         </PerformanceCounters>
       </DiagnosticMonitorConfiguration>
     </WadCfg>
-    <StorageAccount>
-    </StorageAccount>
+    <StorageAccount>orleansdatastorage</StorageAccount>
   </PublicConfig>
-  <PrivateConfig>
-    <StorageAccount name="" key="" endpoint="" />
+  <PrivateConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+    <StorageAccount name="orleansdatastorage" key="w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ==" endpoint="https://core.windows.net/" />
   </PrivateConfig>
   <IsEnabled>false</IsEnabled>
 </DiagnosticsConfiguration>

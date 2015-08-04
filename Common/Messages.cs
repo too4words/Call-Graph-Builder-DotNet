@@ -52,7 +52,8 @@ namespace ReachingTypeAnalysis.Communication
         public override int GetHashCode()
         {
             return base.GetHashCode();
-        }
+        }
+
     }
 
     /// <summary>

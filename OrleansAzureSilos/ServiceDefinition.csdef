@@ -3,6 +3,7 @@
   <WorkerRole name="OrleansSilosInAzure" vmsize="Medium">
     <Imports>
     </Imports>
+    
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
     </ConfigurationSettings>
@@ -19,9 +20,21 @@
       <LocalStorage name="LocalStorage1" cleanOnRoleRecycle="false" />
     </LocalResources>
   </WorkerRole>
-  <WorkerRole name="Orchestator" vmsize="Small">
+
+  <WebRole name="WebRole1" vmsize="Small">
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="DataConnectionString" />
     </ConfigurationSettings>
-  </WorkerRole>
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="80" />
+    </Endpoints>
+  </WebRole>
 </ServiceDefinition>
