@@ -54,7 +54,7 @@ namespace ReachingTypeAnalysis
         // This is not needed to be serialized. Used during propagation.
         // Can be removed if DiifProp received a codeProvider as parameter
         [NonSerialized]
-        private ICodeProvider codeProvider;
+        private IProjectCodeProvider codeProvider;
 
 		internal PropagationGraph()
 		{
@@ -350,7 +350,7 @@ namespace ReachingTypeAnalysis
 
 //			if (!type1.IsSubtype(type2))
             // Diego: This requires a Code Provider. Now it will simply fail.
-            if (!this.codeProvider.IsSubtype(type1, type2))
+            if (!this.codeProvider.IsSubtypeAsync(type1, type2).Result)
             {
                 if (!type2.IsDelegate)
                 {
@@ -465,12 +465,12 @@ namespace ReachingTypeAnalysis
 			deletionWorkList.Add(n);
 		}
 
-        internal void SetCodeProvider(ICodeProvider codeProvider)
+        internal void SetCodeProvider(IProjectCodeProvider codeProvider)
         {
             this.codeProvider = codeProvider;
         }
 
-		internal PropagationEffects Propagate(ICodeProvider codeProvider)
+		internal PropagationEffects Propagate(IProjectCodeProvider codeProvider)
 		{
             this.codeProvider = codeProvider;
 
@@ -571,45 +571,47 @@ namespace ReachingTypeAnalysis
 		}
 
 
-        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, MethodCallInfo callInfo, ICodeProvider codeProvider)
+        internal ISet<TypeDescriptor> GetPotentialTypes(PropGraphNodeDescriptor n, MethodCallInfo callInfo, IProjectCodeProvider codeProvider)
         {
-            var result = new HashSet<TypeDescriptor>();
-            var types = this.GetTypes(n);
+            return GetPotentialTypesAsync(n, callInfo, codeProvider).Result;
 
-            if (types.Count() == 0)
-            {
-                /// We get the instantiated type that are compatible with the receiver type
-                types.UnionWith(
-                    callInfo.InstantiatedTypes
-                        .Where(type => codeProvider.IsSubtype(type, callInfo.Receiver.Type)));
-            }
-            if (types.Count() == 0)
-            {
-                types.Add(callInfo.Receiver.Type);
-            }
+            //var result = new HashSet<TypeDescriptor>();
+            //var types = this.GetTypes(n);
 
-            foreach (var typeDescriptor in types)
-            {
-                // TO-DO fix by adding a where T: AnalysisType
-                if (typeDescriptor.IsConcreteType)
-                {
-                    result.Add(typeDescriptor);
-                }
-                else
-                {
-                    // If it is a declaredTyped it means we were not able to compute a concrete type
-                    // Therefore, we instantiate all compatible types for the set of instantiated types
-                    //result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
-                    Contract.Assert(callInfo.InstantiatedTypes != null);
-                    // Diego: This requires a Code Provider. Now it will simply fail.
-                    result.UnionWith(callInfo.InstantiatedTypes.Where(candidateTypeDescriptor
-                                            => codeProvider.IsSubtype(candidateTypeDescriptor, typeDescriptor)));
-                }
-            }
-            return result;
+            //if (types.Count() == 0)
+            //{
+            //    /// We get the instantiated type that are compatible with the receiver type
+            //    types.UnionWith(
+            //        callInfo.InstantiatedTypes
+            //            .Where(type => codeProvider.IsSubtype(type, callInfo.Receiver.Type)));
+            //}
+            //if (types.Count() == 0)
+            //{
+            //    types.Add(callInfo.Receiver.Type);
+            //}
+
+            //foreach (var typeDescriptor in types)
+            //{
+            //    // TO-DO fix by adding a where T: AnalysisType
+            //    if (typeDescriptor.IsConcreteType)
+            //    {
+            //        result.Add(typeDescriptor);
+            //    }
+            //    else
+            //    {
+            //        // If it is a declaredTyped it means we were not able to compute a concrete type
+            //        // Therefore, we instantiate all compatible types for the set of instantiated types
+            //        //result.UnionWith(this.InstatiatedTypes.Where(iType => iType.IsSubtype(typeDescriptor)));
+            //        Contract.Assert(callInfo.InstantiatedTypes != null);
+            //        // Diego: This requires a Code Provider. Now it will simply fail.
+            //        result.UnionWith(callInfo.InstantiatedTypes.Where(candidateTypeDescriptor
+            //                                => codeProvider.IsSubtype(candidateTypeDescriptor, typeDescriptor)));
+            //    }
+            //}
+            //return result;
         }
 
-        internal ISet<MethodDescriptor> ComputeCalleesForNode(CallInfo invoInfo, ICodeProvider codeProvider)
+        internal ISet<MethodDescriptor> ComputeCalleesForNode(CallInfo invoInfo, IProjectCodeProvider codeProvider)
         {
             //TODO: Ugly... but we needed this refactor for moving stuff to the common project 
             if (invoInfo is MethodCallInfo)
@@ -621,36 +623,38 @@ namespace ReachingTypeAnalysis
         }
 
 
-        internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, ICodeProvider codeProvider)
+        internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, IProjectCodeProvider codeProvider)
         {
             return GetDelegateCallees(callInfo.Delegate, codeProvider);
         }
 
-        private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, ICodeProvider codeProvider)
+        private ISet<MethodDescriptor> GetDelegateCallees(VariableNode delegateNode, IProjectCodeProvider codeProvider)
         {
-            var callees = new HashSet<MethodDescriptor>();
-            var typeDescriptors = this.GetTypes(delegateNode);
-            foreach (var delegateInstance in this.GetDelegates(delegateNode))
-            {
-                if (typeDescriptors.Count() > 0)
-                {
-                    foreach (var typeDescriptor in typeDescriptors)
-                    {
-                        // TO-DO!!!
-                        // Ugly: I'll fix it
-                        //var aMethod = delegateInstance.FindMethodImplementation(type);
-                        var aMethod = codeProvider.FindMethodImplementation(delegateInstance, typeDescriptor);
-                        callees.Add(aMethod);
-                    }
-                }
-                else
-                {
-                    // if Count is 0, it is a delegate that do not came form an instance variable
-                    callees.Add(delegateInstance);
-                }
-            }
+            return GetDelegateCalleesAsync(delegateNode, codeProvider).Result;
 
-            return callees;
+            //var callees = new HashSet<MethodDescriptor>();
+            //var typeDescriptors = this.GetTypes(delegateNode);
+            //foreach (var delegateInstance in this.GetDelegates(delegateNode))
+            //{
+            //    if (typeDescriptors.Count() > 0)
+            //    {
+            //        foreach (var typeDescriptor in typeDescriptors)
+            //        {
+            //            // TO-DO!!!
+            //            // Ugly: I'll fix it
+            //            //var aMethod = delegateInstance.FindMethodImplementation(type);
+            //            var aMethod = codeProvider.FindMethodImplementation(delegateInstance, typeDescriptor);
+            //            callees.Add(aMethod);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        // if Count is 0, it is a delegate that do not came form an instance variable
+            //        callees.Add(delegateInstance);
+            //    }
+            //}
+
+            //return callees;
         }
 
 		public void Save(string path)

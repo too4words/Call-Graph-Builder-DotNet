@@ -57,7 +57,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
         public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
         {
-            var type = GetTypeByName(methodDescriptor.ClassName, compilation);
+            var type = GetTypeByName(methodDescriptor.ContainerType, compilation);
             if (type != null)
             {
                 var members = type.GetMembers(methodDescriptor.MethodName);
@@ -78,7 +78,10 @@ namespace ReachingTypeAnalysis.Roslyn
             }
             return null;
         }
-
+        public static INamedTypeSymbol GetTypeByName(TypeDescriptor typeDescriptor, Compilation compilation)
+        {
+            return GetTypeByName(typeDescriptor.ClassName, compilation);
+        }
         public static INamedTypeSymbol GetTypeByName(string className, Compilation compilation)
         {
             var type = compilation.GetTypeByMetadataName(className);

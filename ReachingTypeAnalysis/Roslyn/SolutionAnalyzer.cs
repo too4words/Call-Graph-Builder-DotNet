@@ -102,9 +102,19 @@ namespace ReachingTypeAnalysis
 						//this.Dispatcher = new AsyncDispatcher();
 						this.Dispatcher = null;
 
-						this.Strategy = new OnDemandAsyncStrategy(this.Solution);
-						var solutionManager = new SolutionManager(this.Solution);
-						var mainMethods = solutionManager.GetRoots().Result;
+						this.Strategy = new OnDemandAsyncStrategy();
+                        ISolutionManager solutionManager = null;
+                        if (this.SourceCode != null)
+                        {
+                            solutionManager = this.Strategy.CreateSolutionFromSourceAsync(this.SourceCode).Result;
+                        }
+                        else
+                        {
+                            Contract.Assert(this.Solution.FilePath != null);
+                            solutionManager = this.Strategy.CreateSolutionAsync(this.Solution.FilePath).Result;
+                        }
+
+						var mainMethods = solutionManager.GetRootsAsync().Result;
 						var orchestator = new AnalysisOrchestator(Strategy);
 						orchestator.AnalyzeAsync(mainMethods).Wait();
 
@@ -118,74 +128,37 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
 					{
-						/*
-						//var applicationPath = AppDomain.CurrentDomain.BaseDirectory;
-                        var orleansPath = System.Environment.GetEnvironmentVariable("ORLEANSSDK");
-                        //@"C:\Microsoft Project Orleans SDK v1.0\SDK\LocalSilo\Applications\ReachingTypeAnalysis";
-                        //var applicationPath = Path.Combine(Path.Combine(orleansPath, @"LocalSilo\Applications"), "ReachingTypeAnalysis");
-                        var applicationPath = System.Environment.CurrentDirectory;
-
-                        var appDomainSetup = new AppDomainSetup
-                        {
-                            AppDomainInitializer = InitSilo,
-                            //ApplicationBase = AppDomain.CurrentDomain.BaseDirectory,
-                            ApplicationBase = applicationPath,
-                            ApplicationName = "ReachingTypeAnalysis",
-                            AppDomainInitializerArguments = new string[] { },
-                            //ConfigurationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ReachingTypeAnalysis.exe.config")
-                            ConfigurationFile = "ReachingTypeAnalysis.exe.config"
-                        };
-                        // set up the Orleans silo
-                        var hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
-
-                        var xmlConfig = "ClientConfigurationForTesting.xml";
-                        Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
-                        try
-                        {
-                            GrainClient.Initialize(xmlConfig);
-                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", "Orleans silo initialized");
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Instance.Log("SolutionAnalyzer", "Analyze", e.Message);
-                            throw e;
-                            //break;
-                        }
-                         */
-
-						this.Strategy = new OnDemandOrleansStrategy();
+						this.Strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
 
 						SolutionAnalyzer.MessageCounter = 0;
 						GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
-						var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-						Contract.Assert(solutionGrain != null);
+                        ISolutionManager solutionManager = null;
+                        if (this.SourceCode != null)
+                        {
+                            //solutionManager = this.Strategy.CreateSolutionFromSourceAsync(this.SourceCode).Result;
+                            var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+                            solutionGrain.SetSolutionSource(this.SourceCode).Wait();
+                            solutionManager = solutionGrain;
+                        }
+                        else
+                        {
+                            Contract.Assert(this.Solution.FilePath != null);
+                            //solutionManager = this.Strategy.CreateSolutionAsync(this.Solution.FilePath).Result;
+                            var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+                            solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
+                            solutionManager = solutionGrain;
+                        }
 
-						if (this.SourceCode != null)
-						{
-							solutionGrain.SetSolutionSource(this.SourceCode).Wait();
-							var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>("MyProject");
-							projectGrain.SetProjectSourceCode(this.SourceCode);
-						}
-						else
-						{
-							Contract.Assert(this.Solution.FilePath != null);
-							solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
-
-							foreach (var project in this.Solution.Projects)
-							{
-								var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(project.Name);
-								projectGrain.SetProjectPath(project.FilePath).Wait();
-							}
-						}
+						//var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+						//Contract.Assert(solutionGrain != null);
 
 						this.Dispatcher = null;
 
-						var mainMethods = solutionGrain.GetRoots().Result;
+						var mainMethods = solutionManager.GetRootsAsync().Result;
 						var orchestator = new AnalysisOrchestator(Strategy);
 						orchestator.AnalyzeAsync(mainMethods).Wait();
 
-						var solutionManager = new SolutionGrainWrapper(solutionGrain);
 						var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
 
 						Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
@@ -317,8 +290,10 @@ namespace ReachingTypeAnalysis
 
         public void AnalyzeEntireSolutionAsync()
         {
+            var strategy = new OnDemandAsyncStrategy();
 			foreach (var project in this.Solution.Projects)
 			{
+
 				var compilation = project.GetCompilationAsync().Result;
 				var diag = compilation.GetDiagnostics();
 
@@ -334,47 +309,7 @@ namespace ReachingTypeAnalysis
 				}
 				Task.WhenAll(continuations);
 			}
-            //if (this.Dispatcher is QueueingDispatcher)
-            //{
-            //    var qd = (QueueingDispatcher)this.Dispatcher;
-            //    while (!qd.IsDoneProcessing)
-            //    {
-            //        Logger.Instance.Log("Waiting for the queue to empty up...");
-            //        Thread.Sleep(1000);
-            //    }
-            //}
-
-            /*
-            if (mainMethod != null)
-            {
-                var methodDescriptor = new MethodDescriptor(mainMethod);
-                callgraph.AddRootMethod(methodDescriptor);
-
-                var mainMethodEntityDescriptor = new MethodEntityDescriptor<AMethod>(new AMethod(mainMethod));
-                var mainEntityProcessor = this.Dispatcher.GetEntityWithProcessor(mainMethodEntityDescriptor) as MethodEntityProcessor<ANode,AType,AMethod>;
-                
-                // Just a test
-                //mainEntityProcessor.MethodEntity.CurrentContext = new CallConext<AMethod, ANode>(mainEntityProcessor.MethodEntity.Method, null, null);
-                
-                var task = mainEntityProcessor.DoAnalysisAsync();
-                task.Start();
-                task.Wait();
-
-                //var methodEntity = (MethodEntity<ANode, AType, AMethod>)mainEntityProcessor.Entity;
-                var methodEntity = mainEntityProcessor.MethodEntity;
-                Thread.Sleep(10);
-
-                //if (this.Dispatcher is AsyncDispatcher)
-                //{
-                //    while (!mainEntityProcessor.HasFinishedAllProgatations())
-                //    {
-                //        Logger.Instance.Log("Waiting in Main for the queue to empty up... {0}",mainEntityProcessor.MethodEntity.NodesProcessing.Count());
-                //        Thread.Sleep(10);
-                //    }
-                //}
-                GenerateCallGraph();
-            }*/
-        }
+         }
 
         /// <summary>
         /// Try to get the roslyn methods on the fly
@@ -457,7 +392,7 @@ namespace ReachingTypeAnalysis
                 switch(strategyKind)
                 {
                     case AnalysisStrategyKind.ONDEMAND_ORLEANS:
-						var strategy = new OnDemandOrleansStrategy();
+						var strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
 						var orchestator = new AnalysisOrchestator(strategy);
                         await orchestator.AnalyzeAsync(mainMethodDescriptor);
                         

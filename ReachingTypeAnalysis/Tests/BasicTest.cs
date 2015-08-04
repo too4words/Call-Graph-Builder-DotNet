@@ -53,7 +53,7 @@ class Program
             {
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
                 Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsTrue(result.IsReachable(new MethodDescriptor("System", "Object", "Equals", false), callgraph));
+                Assert.IsTrue(result.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object","mscorlib"), "Equals", false), callgraph));
                 Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
                 Assert.IsTrue(result.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
 

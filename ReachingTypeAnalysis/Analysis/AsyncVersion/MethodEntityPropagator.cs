@@ -18,7 +18,7 @@ namespace ReachingTypeAnalysis.Analysis
     internal class MethodEntityWithPropagator : IMethodEntityWithPropagator
     {
         private MethodEntity methodEntity;
-        private ICodeProvider codeProvider;
+        private IProjectCodeProvider codeProvider;
         //private Orleans.Runtime.Logger logger = GrainClient.Logger;
 
         /// <summary>
@@ -26,24 +26,24 @@ namespace ReachingTypeAnalysis.Analysis
         /// The solution provides its CodeProvicer
         /// </summary>
         /// <param name="methodDescriptor"></param>
-        /// <param name="solution"></param>
-        public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, Solution solution)
+        /// <param name="solutionManager"></param>
+        public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, IProjectCodeProvider codeProvider)
         {
-            //var providerAndSyntax = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution).Result;
-            //this.codeProvider = providerAndSyntax.Item1;
-            //this.methodEntity = (MethodEntity)codeProvider.CreateMethodEntityAsync(methodDescriptor).Result;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
 
-            var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptorToSearch, solution).Result;
-            this.methodEntity = providerEntity.Item2;
-            this.codeProvider = providerEntity.Item1;
+            this.codeProvider = codeProvider;
+            this.methodEntity =  (MethodEntity) this.codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch).Result;
+
+            //var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptorToSearch, solutionManager.Solution).Result;
+            //this.methodEntity = providerEntity.Item2;
+            //this.codeProvider = providerEntity.Item1;
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
             }
 
-            SolutionManager.Instance.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+            
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="methodEntity"></param>
         /// <param name="provider"></param>
-        public MethodEntityWithPropagator(MethodEntity methodEntity, ICodeProvider provider)
+        public MethodEntityWithPropagator(MethodEntity methodEntity, IProjectCodeProvider provider)
         {
             this.codeProvider = provider;
             this.methodEntity = methodEntity;
@@ -167,7 +167,7 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(methodEntity.PropGraph.CallNodes.Count());
         }
 
-        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, ICodeProvider codeProvider)
+        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, IProjectCodeProvider codeProvider)
         {
             var possibleCallees = new HashSet<MethodDescriptor>();
 
@@ -227,7 +227,7 @@ namespace ReachingTypeAnalysis.Analysis
             return possibleCallees;
         }
 
-        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForDelegateCallAsync(DelegateCallInfo delegateCallInfo, ICodeProvider codeProvider)
+        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForDelegateCallAsync(DelegateCallInfo delegateCallInfo, IProjectCodeProvider codeProvider)
         {
             var possibleCallees = new HashSet<MethodDescriptor>();
             var possibleDelegateMethods = GetPossibleMethodsForDelegate(delegateCallInfo.Delegate);
@@ -327,6 +327,12 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<bool> IsInitializedAsync()
         {
             return Task.FromResult(this.methodEntity != null);
+        }
+
+
+        public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+        {
+            return Task.FromResult(this.methodEntity.InstantiatedTypes.AsEnumerable());
         }
     }
 }

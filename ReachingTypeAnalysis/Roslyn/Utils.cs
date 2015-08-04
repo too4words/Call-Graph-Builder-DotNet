@@ -19,25 +19,38 @@ namespace ReachingTypeAnalysis
         public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
         {
             Contract.Assert(method != null);
-			var namespaceName = string.Empty;
-
-			if (!method.ContainingNamespace.IsGlobalNamespace)
-			{
-				namespaceName = method.ContainingNamespace.ToDisplayString();
-			}
-
-			return new MethodDescriptor(
-				namespaceName,
-                method.ContainingType.Name, method.Name, method.IsStatic, 
+            // var namespaceName = GetFullNamespaceName(method);
+            var typeDescriptor = CreateTypeDescriptor(method.ContainingType);
+			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic, 
                 method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
-                Utils.CreateTypeDescriptor(method.ReturnType)
-				);            
+                Utils.CreateTypeDescriptor(method.ReturnType));            
         }
 
         public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
         {
-            //public TypeDescriptor(string nameSpaceName, string className, bool isReferenceType = true, bool isConcrete = true)
-            return new TypeDescriptor(type.MetadataName, type.IsReferenceType, Convert(type.TypeKind), isConcrete);
+            Contract.Assert(type != null);
+            var namespaceName = GetFullNamespaceName(type);
+            var kind = Convert(type.TypeKind);
+
+            var assemblyName = "Unknown";
+
+            if(type.ContainingAssembly!=null)
+            {
+                assemblyName = type.ContainingAssembly.Name;
+            }
+
+            return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
+        }
+
+        private static string GetFullNamespaceName(ISymbol symbol)
+        {
+            var namespaceName = string.Empty;
+            if(symbol.ContainingNamespace!=null && !symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                namespaceName = symbol.ContainingNamespace.ToDisplayString();
+            }
+
+            return namespaceName;
         }
 
         private static SerializableTypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {

@@ -235,11 +235,11 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
-        internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync(ISolution solution)
+        internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync(ISolutionManager solution)
         {
             Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-            var roots = await solution.GetRoots();
+            var roots = await solution.GetRootsAsync();
             callgraph.AddRootMethods(roots);
             var visited = new HashSet<MethodDescriptor>(roots);
             var worklist = new Queue<MethodDescriptor>(roots);
@@ -333,43 +333,7 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
         }
 
-        /// This version is Orleans ONLY
-
-        /// <summary>
-        /// This method used Orleans Grain to obtain the set of calless of a call site
-        /// </summary>
-        /// <param name="methodDescriptor"></param>
-        /// <param name="invocationPosition"></param>
-        /// <param name="projectName"></param>
-        /// <returns></returns>
-        public static async Task<ISet<MethodDescriptor>> GetCalleesOrleansAsync(MethodDescriptor methodDescriptor, int invocationPosition, string projectName)
-        {
-            var totalStopWatch = Stopwatch.StartNew();
-            var stopWatch = Stopwatch.StartNew();
-
-            var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(projectName);
-            Meausure("GetProjectGrain", stopWatch);
-
-            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
-            Meausure("GetProjectGrainWrapper", stopWatch);
-
-            var methodGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
-            Meausure("GetMethodGrain", stopWatch);
-
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntityAsync();
-            Meausure("GetMethodEntity", stopWatch);
-
-            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
-            Meausure("GetCallSiteByOrdinal", stopWatch);
-
-            var result = await GetCalleesAsync(methodEntity, invocationNode, projectProviderWrapper);
-            Meausure("GetCalleesAsync", stopWatch);
-
-            Meausure("Total GetCalleesOrleansAsync", totalStopWatch);
-
-            return result;
-        }
-
+        
         private static void Meausure(string label, Stopwatch timer)
         {
             timer.Stop();
@@ -380,26 +344,12 @@ namespace ReachingTypeAnalysis.Analysis
             timer.Start();
         }
 
-        /// <summary>
-        ///  Return the numnber of calls sites for a 
-        /// </summary>
-        /// <param name="methodDescriptor"></param>
-        /// <param name="projectName"></param>
-        /// <returns></returns>
-        public static async Task<int> GetInvocationCountOrleansAsync(MethodDescriptor methodDescriptor, string projectName)
-        {
-            var projectGrain = GrainClient.GrainFactory.GetGrain<IProjectCodeProviderGrain>(projectName);
-            var projectProviderWrapper = new ProjectGrainWrapper(projectGrain);
-            var methodGrain = GrainClient.GrainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
-            var methodEntity = (MethodEntity)await methodGrain.GetMethodEntityAsync();
-            return methodEntity.PropGraph.CallNodes.Count();
-        }
-
+        
         /// <summary>
         /// Compute all the calless of this method entities
         /// </summary>
         /// <returns></returns>
-        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, ICodeProvider codeProvider)
+        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, IProjectCodeProvider codeProvider)
         {
             var result = new HashSet<MethodDescriptor>();
 
@@ -416,7 +366,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, AnalysisCallNode node, ICodeProvider codeProvider)
+        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, AnalysisCallNode node, IProjectCodeProvider codeProvider)
         {
             var stopWatch = Stopwatch.StartNew();
 
@@ -446,7 +396,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// This is used for example by the demo to get the caller / callee info
         /// </summary>
         /// <returns></returns>
-        internal static async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo(MethodEntity methodEntity, ICodeProvider codeProvider)
+        internal static async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfo(MethodEntity methodEntity, IProjectCodeProvider codeProvider)
         {
             var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
 

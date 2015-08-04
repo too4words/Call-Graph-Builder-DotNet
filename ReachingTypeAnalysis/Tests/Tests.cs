@@ -75,12 +75,12 @@ namespace ReachingTypeAnalysis
             AnalizeSolution(solution, (s, callgraph) =>
             {
                 //callgraph.Save("solution1.dot");
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ConsoleApplication1", "Test", "CallBar"), callgraph)); // ConsoleApplication1
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
                 // Fails is I use only Contains with hascode!
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ClassLibrary1", "RemoteClass1", "Bar", false), callgraph)); // ClassLibrary
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("ConsoleApplication1", "LocalClass2", "Bar"), callgraph)); // ConsoleApplication1
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ClassLibrary1", "RemoteClass1", "ClassLibrary1"), "Bar", false), callgraph)); // ClassLibrary
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "LocalClass2", "ConsoleApplication1"), "Bar"), callgraph)); // ConsoleApplication1
 
-                var roslynMethod = RoslynSymbolFactory.FindMethodSymbolAndProjectInSolution(solution, new MethodDescriptor("ConsoleApplication1", "Test", "CallBar")).Method;
+                var roslynMethod = RoslynSymbolFactory.FindMethodSymbolAndProjectInSolution(solution, new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar")).Method;
                 Assert.IsTrue(roslynMethod != null);
                 Assert.IsTrue(s.IsReachable(Utils.CreateMethodDescriptor(roslynMethod), callgraph)); // ConsoleApplication1
             }, strategy);

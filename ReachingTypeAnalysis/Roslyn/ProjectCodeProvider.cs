@@ -14,7 +14,7 @@ using System.IO;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-    public class ProjectCodeProvider: ICodeProvider
+    public class ProjectCodeProvider: IProjectCodeProvider
     {
         internal Compilation Compilation { get; private set; }
         internal Project Project { get; private set; }
@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis.Roslyn
             this.Compilation = compilation;
         }
 
-        internal static async Task<ProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
+        internal static async Task<IProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
         {
 			var cancellationTokenSource = new CancellationTokenSource();
             var project = await Utils.ReadProjectAsync(fullPath);
@@ -75,16 +75,16 @@ namespace ReachingTypeAnalysis.Roslyn
             return (await FindCodeProviderAndEntity(methodDescriptor)).Item2;
         }
 
-        async internal static Task<Tuple<ICodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor)
+        async internal static Task<Tuple<IProjectCodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor)
         {
             return await FindCodeProviderAndEntity(methodDescriptor, ProjectCodeProvider.Solution);
         }
 
-        async internal static Task<Tuple<ICodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor, Solution solution)
+        async internal static Task<Tuple<IProjectCodeProvider,MethodEntity>> FindCodeProviderAndEntity(MethodDescriptor methodDescriptor, Solution solution)
         {
             var pair = await ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(methodDescriptor,solution);
             
-            ICodeProvider provider = pair.Item1;
+            IProjectCodeProvider provider = pair.Item1;
             GeneralRoslynMethodParser syntaxProcessor = null;
 
             if (pair.Item2!=null)
@@ -101,16 +101,24 @@ namespace ReachingTypeAnalysis.Roslyn
                 
             var methodEntity = syntaxProcessor.ParseMethod();
 
-            return new Tuple<ICodeProvider,MethodEntity>(provider, methodEntity);
+            return new Tuple<IProjectCodeProvider,MethodEntity>(provider, methodEntity);
         }
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             MethodEntity methodEntity = null;
             var tree = await this.GetSyntaxAsync(methodDescriptor);
-            var model = this.Compilation.GetSemanticModel(tree);
-            var methodEntityGenerator = new MethodParser(model, this, tree, methodDescriptor);
-            methodEntity = methodEntityGenerator.ParseMethod();
+            if (tree != null)
+            {
+                var model = this.Compilation.GetSemanticModel(tree);
+                var methodEntityGenerator = new MethodParser(model, this, tree, methodDescriptor);
+                methodEntity = methodEntityGenerator.ParseMethod();
+            }
+            else
+            {
+                var methodEntityGenerator = new LibraryMethodParser(methodDescriptor);
+                methodEntity = methodEntityGenerator.ParseMethod();
+            }
             return methodEntity;
         }
 
@@ -191,7 +199,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
             if (roslynMethod != null)
             {
-                var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor.TypeName, this.Compilation);
+                var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
                 var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
                 Contract.Assert(implementedMethod != null);
                 return Utils.CreateMethodDescriptor(implementedMethod);
@@ -217,13 +225,13 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 		}
 
-        internal static async Task<Tuple<ICodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
+        internal static async Task<Tuple<IProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(ProjectCodeProvider.Solution != null);
 			return await GetProjectProviderAndSyntaxAsync(methodDescriptor,ProjectCodeProvider.Solution);
 		}
 
-		internal static async Task<Tuple<ICodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor, Solution solution)
+		internal static async Task<Tuple<IProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor, Solution solution)
 		{
 			Contract.Assert(solution != null);
 			var cancellationSource = new CancellationTokenSource();
@@ -244,7 +252,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					{
 						// found it
 						cancellationSource.Cancel();
-                        return new Tuple<ICodeProvider, SyntaxTree>(codeProvider, tree);
+                        return new Tuple<IProjectCodeProvider, SyntaxTree>(codeProvider, tree);
 					}
 				}
 			}
@@ -253,7 +261,7 @@ namespace ReachingTypeAnalysis.Roslyn
             // We should not throw an exception. Maybe return a dummy code Provider to let the analysis evolve
             // or an informative message in order to let the caller continue. We can declare the exception
             // throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
-            return new Tuple<ICodeProvider, SyntaxTree>(new DummyCodeProvider(),null);
+            return new Tuple<IProjectCodeProvider, SyntaxTree>(new DummyCodeProvider(),null);
 		}
 
         internal async Task<SyntaxTree> GetSyntaxAsync(MethodDescriptor methodDescriptor)
@@ -302,7 +310,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return grainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
         }
 
-		private static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)
+		internal static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)
 		{
 			Console.WriteLine("Project language {0}", project.Language);
 			if (project.Language == "Visual Basic") return null;
@@ -392,21 +400,21 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public virtual bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
-            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
 
             return TypeHelper.InheritsByName(roslynType1, roslynType2);
         }
 
         public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1.TypeName, this.Compilation);
-            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2.TypeName, this.Compilation);
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
 
             return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
         }
     }
-    internal class DummyCodeProvider : ICodeProvider
+    internal class DummyCodeProvider : IProjectCodeProvider
     {
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {

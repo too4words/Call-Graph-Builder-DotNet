@@ -16,26 +16,21 @@ namespace ReachingTypeAnalysis
     public class MethodDescriptor
     {
 		protected string name;
-		protected TypeDescriptor containerType;
 
-		public string ClassName { get; protected set; }
+        public TypeDescriptor ContainerType { get; protected set; }
         public string MethodName { get; protected set; }
-        public string NamespaceName { get; protected set; }
         public IList<TypeDescriptor> Parameters { get; protected set; }
         public TypeDescriptor ReturnType { get; protected set; }
         public bool IsStatic { get; protected set; }
 
-		public TypeDescriptor ContainerType
+        public string ClassName
         {
-            get
-            {
-                if (containerType == null)
-                {
-                    containerType = new TypeDescriptor(this.NamespaceName, this.ClassName);
-                }
+            get { return ContainerType.ClassName; }
+        }
 
-                return containerType;
-            }
+        public string NamespaceName
+        {
+            get { return ContainerType.NamespaceName; }
         }
 
 		public string Name
@@ -83,13 +78,33 @@ namespace ReachingTypeAnalysis
 		{
 		}
 
+        public MethodDescriptor(TypeDescriptor typeDescriptor, string methodName,
+                                    bool isStatic = false,
+                                    IEnumerable<TypeDescriptor> parameters = null,
+                                    TypeDescriptor returnType = null)
+        {
+            this.ContainerType = typeDescriptor;
+            //this.NamespaceName = typeDescriptor.Namespace;
+            //this.ClassName = typeDescriptor.ClassName;
+            this.MethodName = methodName;
+            this.IsStatic = isStatic;
+            this.ReturnType = returnType;
+            this.IsAnonymousDescriptor = false;
+
+            if (parameters != null)
+            {
+                this.Parameters = new List<TypeDescriptor>(parameters);
+            }
+        }
+
 		public MethodDescriptor(string namespaceName, string className, string methodName,
 									bool isStatic = false,
 									IEnumerable<TypeDescriptor> parameters = null,
 									TypeDescriptor returnType = null)
 		{
-			this.NamespaceName = namespaceName;
-			this.ClassName = className;
+            this.ContainerType = new TypeDescriptor(namespaceName, className, isReferenceType: true);
+            //this.NamespaceName = namespaceName;
+            //this.ClassName = className;
 			this.MethodName = methodName;
 			this.IsStatic = isStatic;
 			this.ReturnType = returnType;
@@ -124,9 +139,9 @@ namespace ReachingTypeAnalysis
         //}
         public MethodDescriptor(MethodDescriptor original)
         {
-            this.NamespaceName = original.NamespaceName;
-            this.containerType = original.containerType;
-            this.ClassName = original.ClassName;
+            this.ContainerType = original.ContainerType;
+            //this.ClassName = original.ClassName;
+            //this.NamespaceName = original.NamespaceName;
             this.MethodName = original.MethodName;
             this.Parameters = original.Parameters;
             this.ReturnType = original.ReturnType;
@@ -139,13 +154,14 @@ namespace ReachingTypeAnalysis
             var md = obj as MethodDescriptor;
 			if (md == null) return false;
 
-            var nEq = this.NamespaceName == "" || md.NamespaceName == "" || this.NamespaceName.Equals(md.NamespaceName);
-            var cEq = this.ClassName.Equals(md.ClassName);
+            //var nEq = this.NamespaceName == "" || md.NamespaceName == "" || this.NamespaceName.Equals(md.NamespaceName);
+            //var cEq = this.ClassName.Equals(md.ClassName);
+            var tEq = this.ContainerType.Equals(md.ContainerType);
             var mEq = this.MethodName.Equals(md.MethodName);
             var staticEq = this.IsStatic == md.IsStatic;
             var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
 
-            return nEq && cEq && mEq && staticEq && pEq;
+            return /*nEq && cEq*/ tEq && mEq && staticEq && pEq;
         }
 
         //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
@@ -161,7 +177,8 @@ namespace ReachingTypeAnalysis
 
         public override int GetHashCode()
         {
-            return NamespaceName.GetHashCode() + ClassName.GetHashCode() + MethodName.GetHashCode();
+            //return NamespaceName.GetHashCode() + ClassName.GetHashCode() + MethodName.GetHashCode();
+            return ContainerType.GetHashCode() + MethodName.GetHashCode();
         }
 
         public override string ToString()
@@ -173,9 +190,10 @@ namespace ReachingTypeAnalysis
         {
 			var result = new StringBuilder();
 
-			result.Append(this.NamespaceName);
-			result.Append("+");
-			result.Append(this.ClassName);
+            //result.Append(this.NamespaceName);
+            //result.Append("+");
+            //result.Append(this.ClassName);
+            result.Append(this.ContainerType.Marshall());
 			result.Append("+");
 			result.Append(this.MethodName);
 			result.Append("+");
@@ -186,7 +204,7 @@ namespace ReachingTypeAnalysis
 				foreach (var parameterType in this.Parameters)
 				{
 					result.Append("+");
-					result.Append(parameterType.TypeName);
+					result.Append(parameterType.Marshall());
 				}
 			}
 
@@ -217,21 +235,21 @@ namespace ReachingTypeAnalysis
         private static MethodDescriptor ParseMethodDescriptor(string md)
         {
             var tokens = md.Split('+');
-            var namespaceName = tokens[0];
-            var className = tokens[1];
-            var methodName = tokens[2];
-            var isStatic = Convert.ToBoolean(tokens[3]);
-            var methodDescriptor = new MethodDescriptor(namespaceName, className, methodName, isStatic);
+            var containerType = TypeDescriptor.DeMarshall(tokens[0]);
+            //var namespaceName = tokens[0];
+            //var className = tokens[1];
+            var methodName = tokens[1];
+            var isStatic = Convert.ToBoolean(tokens[2]);
+            var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic);
 
-            if (tokens.Length > 4 && tokens[4].Length > 0)
+            if (tokens.Length > 3 && tokens[3].Length > 0)
             {
                 methodDescriptor.Parameters = new List<TypeDescriptor>();
 
-                for (var i = 4; i < tokens.Length; ++i)
+                for (var i = 3; i < tokens.Length; ++i)
                 {
                     var typeName = tokens[i];
-                    var typeDescriptor = new TypeDescriptor(typeName);
-
+                    var typeDescriptor = TypeDescriptor.DeMarshall(typeName);
                     methodDescriptor.Parameters.Add(typeDescriptor);
                 }
             }
@@ -294,31 +312,44 @@ namespace ReachingTypeAnalysis
     {
         public bool IsReferenceType { get; private set; }
         public SerializableTypeKind Kind { get; private set; }
-        public string TypeName { get; private set; }
         public bool IsConcreteType { get; private set; }
+        public string NamespaceName { get; private set; }
+        public string ClassName { get; private set; }
+        public string AssemblyName { get; private set; }
 
-        public TypeDescriptor(string namespaceName, string className, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
+        public TypeDescriptor(string namespaceName, string className, string assemblyName = "MyProject", bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
         {
-            this.TypeName = namespaceName + '.' + className;
+            this.NamespaceName = namespaceName;
+            this.ClassName = className;
             this.IsReferenceType = isReferenceType;
             this.Kind = kind;
             this.IsConcreteType = isConcrete;
+            this.AssemblyName = assemblyName;
         }
-
-        public TypeDescriptor(string typeName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
-        {
-            this.TypeName = typeName;
-            this.IsReferenceType = isReferenceType;
-            this.Kind = kind;
-            this.IsConcreteType = isConcrete;
-        }
-
         public TypeDescriptor(TypeDescriptor typeDescriptor, bool isConcrete = true)
         {
-            this.TypeName = typeDescriptor.TypeName;
+            this.NamespaceName = typeDescriptor.NamespaceName;
+            this.ClassName = typeDescriptor.ClassName;
             this.IsReferenceType = typeDescriptor.IsReferenceType;
             this.Kind = typeDescriptor.Kind;
+            this.AssemblyName = typeDescriptor.AssemblyName;
             this.IsConcreteType = isConcrete;
+        }
+
+        public string TypeName
+        {
+            get 
+            {
+                var typeName = this.ClassName;
+                if(!String.IsNullOrEmpty(this.NamespaceName))
+                    typeName = this.NamespaceName + '.' + this.ClassName;
+                return  typeName; 
+            }
+        }
+
+        public string FullTypeName
+        {
+            get { return this.AssemblyName + "::" + this.TypeName; }
         }
 
         // TODO: Fix the equals, but we need to resolve the default values
@@ -331,7 +362,7 @@ namespace ReachingTypeAnalysis
             var eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
             var eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
 
-            return this.TypeName.Equals(typeDescriptor.TypeName)
+            return this.FullTypeName.Equals(typeDescriptor.FullTypeName)
              //       && eqRef && eqConcrete
                     && eqKind;
         }
@@ -339,13 +370,13 @@ namespace ReachingTypeAnalysis
         // TODO: Fix the equals, but we need to resolve the default values
         public override int GetHashCode()
         {
-            return this.TypeName.GetHashCode()
+            return this.FullTypeName.GetHashCode()
                 + (this.Kind.Equals(SerializableTypeKind.Undefined) ? 0 : this.Kind.GetHashCode());
         }
 
         public override string ToString()
         {
-            return this.TypeName.ToString();
+            return this.FullTypeName.ToString();
         }
 
         public bool IsDelegate
@@ -354,6 +385,26 @@ namespace ReachingTypeAnalysis
             {
                 return this.Kind.Equals(SerializableTypeKind.Delegate);
             }
+        }
+
+        internal string Marshall()
+        {
+            var result = new StringBuilder();
+            result.Append(this.AssemblyName);
+            result.Append("=");
+            result.Append(this.NamespaceName);
+            result.Append("=");
+            result.Append(this.ClassName);
+
+            return result.ToString();
+        }
+        internal static TypeDescriptor DeMarshall(string typeString)
+        {
+            var tokens = typeString.Split('=');
+            var assemblyName = tokens[0];
+            var namespaceName = tokens[1];
+            var className = tokens[2];
+            return new TypeDescriptor(namespaceName, className, assemblyName, true, SerializableTypeKind.Undefined, true);
         }
     }
 

@@ -20,9 +20,35 @@ namespace ReachingTypeAnalysis.Communication
 
         public override void DeliverMessage(IEntityDescriptor destination, IMessage message)
         {
-            // We can put the message in the destination queue
-            //var entity = GetEntity(destination);
-            var entityProcessor = GetEntityWithProcessorAsync(destination).Result;
+            Task.Run(() => DeliverMessageAsync(destination, message)).Wait();
+
+            //// We can put the message in the destination queue
+            ////var entity = GetEntity(destination);
+            //var entityProcessor = GetEntityWithProcessorAsync(destination).Result;
+
+            //if (entityProcessor != null)
+            //{
+            //    // We really need to fix this. 
+            //    // TO-DO Remove this: add the check in the HandleCallEvent method (as I did with async)
+            //    Contract.Assert(activeEntities.Occurrences(destination) < 5);
+            //    //if (activeEntities.Occurrences(destination) > 5)
+            //    //{
+            //    //    Console.Error.WriteLine("Occurs check on {0}", destination);
+            //    //}
+            //    //else
+            //    {
+            //        activeEntities.Add(destination);
+            //        entityProcessor.ReceiveMessage(message.Source, message);
+            //        activeEntities.Remove(destination);
+            //    }
+            //}
+            //this.MessageCount++;
+        }
+
+        public override async Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
+        {
+            // throw new NotImplementedException();
+            var entityProcessor = await GetEntityWithProcessorAsync(destination);
 
             if (entityProcessor != null)
             {
@@ -36,16 +62,11 @@ namespace ReachingTypeAnalysis.Communication
                 //else
                 {
                     activeEntities.Add(destination);
-                    entityProcessor.ReceiveMessage(message.Source, message);
+                    await entityProcessor.ReceiveMessageAsync(message.Source, message);
                     activeEntities.Remove(destination);
                 }
             }
             this.MessageCount++;
-        }
-
-        public override Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -27,9 +27,9 @@ namespace ReachingTypeAnalysis.Analysis
         [NonSerialized]
         private MethodEntity methodEntity;
         [NonSerialized]
-        private ICodeProvider codeProvider;
-        [NonSerialized]
-        private IProjectCodeProviderGrain codeProviderGrain;
+        private IProjectCodeProvider codeProvider;
+        //[NonSerialized]
+        //private IProjectCodeProvider codeProviderGrain;
         [NonSerialized]
         private ISolutionGrain solutionGrain; 
 
@@ -50,17 +50,17 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
 
-            this.codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptorToSearch);
-            this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+            this.codeProvider = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
+            //this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
-            this.methodEntity = (MethodEntity)await codeProviderGrain.CreateMethodEntityAsync(methodDescriptorToSearch);
+            this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
             }
 
-            await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+            await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
             // This take cares of doing the progation of types
             this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
@@ -94,21 +94,21 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Assert(this.State != null);
 			this.State.MethodDescriptor = methodDescriptor;
 
-			codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
-			this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+			this.codeProvider = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
+			//this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
 
-			await solutionGrain.AddInstantiatedTypes(this.methodEntity.InstantiatedTypes);
+			await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
             this.methodEntityPropagator = new MethodEntityWithPropagator(this.methodEntity, this.codeProvider);
 
 			await this.WriteStateAsync();
 		}
 
-        public  Task<IEntity> GetMethodEntityAsync()
-        {
-            // Contract.Assert(this.methodEntity != null);
-            return Task.FromResult<IEntity>(this.methodEntity);
-        }
+        //public  Task<IEntity> GetMethodEntityAsync()
+        //{
+        //    // Contract.Assert(this.methodEntity != null);
+        //    return Task.FromResult<IEntity>(this.methodEntity);
+        //}
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
@@ -166,6 +166,12 @@ namespace ReachingTypeAnalysis.Analysis
         //    this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
         //    return State.WriteStateAsync();
         //}
+
+
+        public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+        {
+           return this.methodEntityPropagator.GetInstantiatedTypesAsync();
+        }
     }
 
     /// <summary>

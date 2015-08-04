@@ -32,11 +32,11 @@ namespace OrleansInterfaces
         //Task<int> GetInvocationCountAsync();
     }
 
-    public interface IProjectCodeProviderGrain : IGrainWithStringKey
+    public interface IProjectCodeProviderGrain : IGrainWithStringKey, IProjectCodeProvider
     {
-        Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
-        Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
-		Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+        //Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+        //Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+        //Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
         Task SetProjectPath(string fullPath);
         Task SetProjectSourceCode(string source);
     }

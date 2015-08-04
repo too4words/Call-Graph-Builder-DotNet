@@ -9,6 +9,8 @@ using OrleansInterfaces;
 using ReachingTypeAnalysis.Roslyn;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -26,7 +28,7 @@ namespace ReachingTypeAnalysis.Analysis
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
-        private ICodeProvider projectCodeProvider;
+        private IProjectCodeProvider projectCodeProvider;
 
         public override async Task OnActivateAsync()
         {
@@ -81,8 +83,9 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
 			Contract.Assert(this.projectCodeProvider != null);
-            var methodImplementationDescriptor = this.projectCodeProvider.FindMethodImplementation(methodDescriptor, typeDescriptor);
-            return Task.FromResult<MethodDescriptor>(methodImplementationDescriptor);
+            //var methodImplementationDescriptor = this.projectCodeProvider.FindMethodImplementation(methodDescriptor, typeDescriptor);
+            //return Task.FromResult<MethodDescriptor>(methodImplementationDescriptor);
+            return this.projectCodeProvider.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
         }
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
@@ -92,79 +95,50 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntity;
 		}
     }
-    [Serializable]
-    internal class ProjectGrainWrapper : ICodeProvider
-    {
-        private IProjectCodeProviderGrain projectGrain;
-        internal static async Task<ICodeProvider> CreateProjectGrainWrapperAsync(MethodDescriptor methodDescriptor)
-        {
-            var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-            //ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-            var codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
+    //[Serializable]
+    //internal class ProjectGrainWrapper : IProjectCodeProvider
+    //{
+    //    private IProjectCodeProviderGrain projectGrain;
+    //    internal static async Task<IProjectCodeProvider> CreateProjectGrainWrapperAsync(MethodDescriptor methodDescriptor)
+    //    {
+    //        var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+    //        //ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
+    //        var codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
 
-            if(codeProviderGrain!=null)
-            {
-                return new ProjectGrainWrapper(codeProviderGrain);
-            }
-            return null;
-        }
-        internal ProjectGrainWrapper(IProjectCodeProviderGrain grain)
-        {
-            projectGrain = grain;
-        }
-        public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-        {
-            return projectGrain.IsSubtypeAsync(typeDescriptor1,typeDescriptor2);
-        }
-        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-        {
-            return projectGrain.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
-        }
+    //        if(codeProviderGrain!=null)
+    //        {
+    //            return new ProjectGrainWrapper(codeProviderGrain);
+    //        }
+    //        return null;
+    //    }
+    //    internal ProjectGrainWrapper(IProjectCodeProviderGrain grain)
+    //    {
+    //        projectGrain = grain;
+    //    }
+    //    public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+    //    {
+    //        return projectGrain.IsSubtypeAsync(typeDescriptor1,typeDescriptor2);
+    //    }
+    //    public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+    //    {
+    //        return projectGrain.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
+    //    }
 
-        public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-        {
-            throw new NotImplementedException();
-            //return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
-        }
-        public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-        {
-            throw new NotImplementedException();
-            //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
-        }
-        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
-        {
-            return projectGrain.CreateMethodEntityAsync(methodDescriptor);
-        }
-    }
+    //    public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+    //    {
+    //        throw new NotImplementedException();
+    //        //return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
+    //    }
+    //    public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+    //    {
+    //        throw new NotImplementedException();
+    //        //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
+    //    }
+    //    public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+    //    {
+    //        return projectGrain.CreateMethodEntityAsync(methodDescriptor);
+    //    }
+    //}
 
-    internal class SolutionManager : ISolution
-    {
-        public static SolutionManager Instance = null;
-        private Solution solution;
-        private ISet<TypeDescriptor> instantiatedTypes = new HashSet<TypeDescriptor>();
-        public SolutionManager(Solution solution)
-        {
-            this.solution = solution;
-            Instance = this;
-        }
-        public Task<IEnumerable<MethodDescriptor>> GetRoots()
-        {
-            return Task.FromResult(ProjectCodeProvider.GetMainMethods(solution));
-        }
-
-        /// <summary>
-        /// For RTA analysis
-        /// </summary>
-        /// <param name="types"></param>
-        /// <returns></returns>
-        public Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types)
-        {
-            instantiatedTypes.UnionWith(types);
-            return TaskDone.Done;
-        }
-        public Task<ISet<TypeDescriptor>> InstantiatedTypes()
-        {
-            return Task.FromResult(instantiatedTypes);
-        }
-    }
+   
 }

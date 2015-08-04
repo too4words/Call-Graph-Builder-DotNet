@@ -20,7 +20,13 @@ namespace ReachingTypeAnalysis
 	public interface IAnalysisStrategy
 	{
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
-	}
+        Task<ISolutionManager> CreateSolutionAsync(string filePath);
+        Task<ISolutionManager> CreateSolutionFromSourceAsync(string source);
+        Task<IProjectCodeProvider> CreateProjectCodeProviderAsync(string projectFilePath, string projectName);
+        Task<IProjectCodeProvider> CreateProjectCodeFromSourceAsync(string source, string projectName);
+
+        Task<IProjectCodeProvider> GetDummyProjectCodeProviderAsync();
+    }
 
     public interface IMethodEntityWithPropagator: IEntity
     {
@@ -28,8 +34,10 @@ namespace ReachingTypeAnalysis
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
         Task<bool> IsInitializedAsync();
-        Task<IEntity> GetMethodEntityAsync();
+        //Task<IEntity> GetMethodEntityAsync();
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
+
+        Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
@@ -47,20 +55,29 @@ namespace ReachingTypeAnalysis
         Task DoAnalysisAsync();
     }
 
-    public interface ICodeProvider
+    public interface IProjectCodeProvider
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
-        bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
-        MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+        //bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+        //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
     
     }
-    public interface ISolution
+    public interface ISolutionManager
     {
-        Task<IEnumerable<MethodDescriptor>> GetRoots();
-        Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types);
-        Task<ISet<TypeDescriptor>> InstantiatedTypes();
+        Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+        Task<IEnumerable<IProjectCodeProvider>> GetProjectsAsync();
+        Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
+        /// <summary>
+        /// The next 2 methods are for RTA: Not currently used
+        /// </summary>
+        /// <param name="types"></param>
+        /// <returns></returns>
+        Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+        Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+
+
     }
 
 
