@@ -32,6 +32,8 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
+			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
+
 			if (this.State.FullPath != null)
 			{
 				this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
@@ -52,14 +54,17 @@ namespace ReachingTypeAnalysis.Analysis
                     }
                 }
             }
+			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
             
         }
 
         public async Task SetProjectPath(string fullPath)
         {
+			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
             this.State.FullPath = fullPath;
             this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
             await this.WriteStateAsync();
+			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
             return;
         }
 

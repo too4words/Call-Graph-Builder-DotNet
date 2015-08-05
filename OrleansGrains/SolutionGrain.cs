@@ -67,11 +67,13 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task SetSolutionPath(string solutionPath)
         {
+			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Enter");
+
             this.State.SolutionFullPath = solutionPath;
 			this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
-            //this.solutionManager = new SolutionManager(strategy, solution);
-            
-            await this.WriteStateAsync();
+
+			await this.WriteStateAsync();
+			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
         }
 
         public async Task SetSolutionSource(string solutionSource)
@@ -79,20 +81,8 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "");
             this.State.SourceCode = solutionSource;
 			this.solutionManager = await strategy.CreateFromSourceAsync(this.State.SourceCode);
-
-            //var solution = Utils.CreateSolution(solutionSource);
-            //var solutionManager = new SolutionManager(strategy, solution);
-
-            //var projectGrain = this.GrainFactory.GetGrain<IProjectCodeProviderGrain>("MyProject");
-            //await projectGrain.SetProjectSourceCode(solutionSource);
-            //solutionManager.AddToCache("MyProject", projectGrain);
-
-            //this.solutionManager = solutionManager;
-            
-
             await this.WriteStateAsync();
         }
-
         
         //public Task<IProjectCodeProvider> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
         //{
@@ -130,8 +120,10 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
+			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
             return this.solutionManager.GetRootsAsync();
             //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
+			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Exit");
         }
     }
     
