@@ -277,7 +277,6 @@
     <Compile Include="Tests\SoundnessEntireSync.cs" />
     <Compile Include="Tests\SoundnessOnDemandSync.cs" />
     <Compile Include="Tests\Tests.cs" />
-    <Compile Include="CallGraph\CallGraphBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

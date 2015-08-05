@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -556,11 +556,11 @@ namespace ReachingTypeAnalysis
         {
             var callgraph = GenerateCallGraph(size);
             var syntax = GenerateCode(callgraph);
-            var code = syntax.ToFullString();
-            Logger.Instance.Log("CallGraphGenerator", "AnalyzeGenerationSolution1", "source code: {0}", code);
-            //var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
+            var source = syntax.ToFullString();
+            Logger.Instance.Log("CallGraphGenerator", "AnalyzeGenerationSolution1", "source code: {0}", source);
+            //var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
             //Logger.Instance.Log("CallGraphGenerator", "AnalyzeGenerationSolution1", "solution filename: {0}", solution.FilePath);
-            var solAnalyzer = new SolutionAnalyzer(code);
+            var solAnalyzer = SolutionAnalyzer.CreateFromSource(source);
             var resolved = solAnalyzer.Analyze(strategy);
             //var resolved = solAnalyzer.GenerateCallGraph();
             var resolvedNodes = resolved.GetNodes().Count();
@@ -576,6 +576,7 @@ namespace ReachingTypeAnalysis
                 var resolvedCallees = resolved.GetCallees(node);
                 Assert.IsTrue(callees.Count == resolvedCallees.Count, "Mismatched callee counts for " + node);
             }
+
             Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());
         }
 

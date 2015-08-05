@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace SolutionTraversal.Callgraph
+namespace SolutionTraversal.CallGraph
 {
     public class DGMLGraphDataAdapter : IGraphDataAdapter
     {

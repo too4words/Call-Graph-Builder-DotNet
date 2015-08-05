@@ -193,7 +193,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ClientConfiguration.xml">
+    <Content Include="..\ReachingTypeAnalysis\ClientConfigurationForTesting.xml">
+      <Link>ClientConfigurationForTesting.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\ReachingTypeAnalysis\OrleansConfigurationForTesting.xml">
+      <Link>OrleansConfigurationForTesting.xml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

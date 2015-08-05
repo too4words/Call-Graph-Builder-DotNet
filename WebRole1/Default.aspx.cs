@@ -1,6 +1,6 @@
 ﻿using Orleans.Runtime.Host;
 using ReachingTypeAnalysis;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,13 +47,13 @@ namespace WebRole1
         }
 
     }
+
     class Program
     {
         public CallGraph<MethodDescriptor, LocationDescriptor> Analyze(string solutionFileName)
         {
-            var analyzer = SolutionAnalyzer.CreateFromSolutionFile(solutionFileName);
+            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
             var callgraph = analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-
             return callgraph;
         }
     }
