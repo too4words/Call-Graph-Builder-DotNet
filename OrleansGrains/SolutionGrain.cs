@@ -68,7 +68,7 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task SetSolutionPath(string solutionPath)
         {
             this.State.SolutionFullPath = solutionPath;
-            var solution = Utils.ReadSolution(solutionPath);
+            //var solution = Utils.ReadSolution(solutionPath);
 			this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
             //this.solutionManager = new SolutionManager(strategy, solution);
             
@@ -134,6 +134,11 @@ namespace ReachingTypeAnalysis.Analysis
             return this.solutionManager.GetRootsAsync();
             //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
         }
-    }
+
+		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+		{
+			return this.solutionManager.GetProjectCodeProvidersAsync();
+		}
+	}
     
 }

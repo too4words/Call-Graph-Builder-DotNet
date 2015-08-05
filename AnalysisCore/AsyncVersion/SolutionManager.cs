@@ -10,10 +10,6 @@ using ReachingTypeAnalysis;
 using AssemblyName = System.String;
 using System.Threading;
 
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
-[assembly: InternalsVisibleTo("OrleansGrains")]
 namespace ReachingTypeAnalysis.Analysis
 {
     internal abstract class SolutionManager : ISolutionManager
@@ -64,6 +60,20 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
         }
+
+		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			var result = new List<IProjectCodeProvider>();
+
+			foreach (var project in this.solution.Projects)
+			{
+				var provider = this.GetProjectCodeProvider(project.AssemblyName);
+				result.Add(provider);
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
 
 		protected abstract IProjectCodeProvider GetProjectCodeProvider(string assemblyName);
 

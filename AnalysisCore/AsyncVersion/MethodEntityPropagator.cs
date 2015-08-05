@@ -41,9 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
             if (methodDescriptor.IsAnonymousDescriptor)
             {
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
-            }
-
-            
+            }            
         }
 
         /// <summary>
