@@ -68,7 +68,6 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task SetSolutionPath(string solutionPath)
         {
             this.State.SolutionFullPath = solutionPath;
-            var solution = Utils.ReadSolution(solutionPath);
 			this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
             //this.solutionManager = new SolutionManager(strategy, solution);
             
