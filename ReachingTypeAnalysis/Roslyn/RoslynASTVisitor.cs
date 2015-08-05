@@ -281,7 +281,8 @@ namespace ReachingTypeAnalysis
             : base(methodDescriptor, codeProvider)
         {
             this.model = model;
-            var pair = ProjectCodeProvider.FindMethodSyntaxAsync(codeProvider.Compilation.GetSemanticModel(tree), tree, methodDescriptor).Result;
+            //var pair = ProjectCodeProvider.FindMethodSyntaxAsync(codeProvider.Compilation.GetSemanticModel(tree), tree, methodDescriptor).Result;
+            var pair = codeProvider.FindMethodSyntaxAndSymbolAsync(tree, methodDescriptor).Result;
             this.methodNode = pair.Item1;
             //this.Tree = tree;
             
