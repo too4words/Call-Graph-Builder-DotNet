@@ -5,6 +5,19 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Communication
 {
+
+    public interface IEntityProcessor
+    {
+        IEntity Entity { get; }
+        void SendMessage(IEntityDescriptor destination, IMessage message);
+        void ReceiveMessage(IEntityDescriptor source, IMessage message);
+        Task SendMessageAsync(IEntityDescriptor destination, IMessage message);
+        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
+        void DoAnalysis();
+        Task DoAnalysisAsync();
+    }
+
+
     [Serializable]
     public abstract class EntityProcessor : IEntityProcessor
     {

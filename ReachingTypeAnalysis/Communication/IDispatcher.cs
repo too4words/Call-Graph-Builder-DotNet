@@ -1,10 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+﻿using ReachingTypeAnalysis.Communication;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
 {
+    public interface IDispatcher
+    {
+        ImmutableHashSet<IEntity> GetAllEntites();
+        ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors();
+
+        void DeliverMessage(IEntityDescriptor destination, IMessage message);
+        Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
+        //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
+        //IEntity GetEntity(IEntityDescriptor entityDesc);
+        void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
+        Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
+        IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);
+    }
+
 	public abstract class Dispatcher : IDispatcher
     {
 		private IDictionary<IEntityDescriptor, IEntity> entityMapping;

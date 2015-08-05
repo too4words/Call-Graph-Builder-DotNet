@@ -177,7 +177,7 @@ namespace ReachingTypeAnalysis
                 var removed = ts.ExceptWith(types);
             }
 
-            return new PropagationEffects(calls, retModified);
+            return await Task.FromResult(new PropagationEffects(calls, retModified));
         }
 
         // DIEGO 

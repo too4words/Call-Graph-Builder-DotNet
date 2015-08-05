@@ -40,16 +40,6 @@ namespace ReachingTypeAnalysis
         Task<int> GetInvocationCountAsync();
     }
 
-    public interface IEntityProcessor
-    {
-        IEntity Entity { get; }
-        void SendMessage(IEntityDescriptor destination, IMessage message);
-        void ReceiveMessage(IEntityDescriptor source, IMessage message);
-        Task SendMessageAsync(IEntityDescriptor destination, IMessage message);
-        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
-        void DoAnalysis();
-        Task DoAnalysisAsync();
-    }
 
     public interface IProjectCodeProvider
     {
@@ -80,20 +70,6 @@ namespace ReachingTypeAnalysis
     {
         IEntityDescriptor Source { get; }
         MessageHandler Handler();
-    }
-
-    public interface IDispatcher
-    {
-        ImmutableHashSet<IEntity> GetAllEntites();
-        ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors();
-
-        void DeliverMessage(IEntityDescriptor destination, IMessage message);
-        Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
-        //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
-        //IEntity GetEntity(IEntityDescriptor entityDesc);
-        void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
-        Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
-        IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);
     }
 
     /// <summary>

@@ -246,14 +246,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analysis\AnalysisMessages.cs" />
-    <Compile Include="Analysis\AsyncVersion\AnalysisOrchestator.cs" />
-    <Compile Include="Analysis\AsyncVersion\MethodEntityPropagator.cs" />
-    <Compile Include="Analysis\AsyncVersion\SolutionManager.cs" />
-    <Compile Include="Analysis\Graph\Graph.cs" />
-    <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
-    <Compile Include="Analysis\Graph\IGraph.cs" />
-    <Compile Include="Analysis\Graph\PropagationGraphAsync.cs" />
-    <Compile Include="Analysis\MethodEntity.cs" />
+    <Compile Include="Analysis\AnalysisOrchestator.cs" />
     <Compile Include="Analysis\SyncVersion\MethodEntityProcessorAsync.cs" />
     <Compile Include="Analysis\SyncVersion\MethodEntityProcessor.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
@@ -266,28 +259,12 @@
     <Compile Include="Communication\Serialization.cs" />
     <Compile Include="Communication\SynchronousLocalDispatcher.cs" />
     <Compile Include="Communication\OnDemandSolutionDispacher.cs" />
-    <Compile Include="Analysis\Graph\GraphvizAdapter.cs" />
-    <Compile Include="Analysis\Graph\PropagationGraph.cs" />
     <Compile Include="Communication\IDispatcher.cs" />
-    <Compile Include="Communication\Logger.cs" />
-    <Compile Include="Analysis\AsyncVersion\AnalysisStrategy.cs" />
-    <Compile Include="Orleans\MethodEntityGrain.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
-    <Content Include="Orleans\OrleansEntityDescriptor.cs" />
     <Compile Include="Orleans\OrleansHostWrapper.cs" />
-    <Compile Include="Orleans\ProjectCodeProviderGrain.cs" />
-    <Compile Include="Orleans\SolutionGrain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\orleans.codegen.cs" />
-    <Compile Include="Roslyn\ProjectCodeProvider.cs" />
-    <Compile Include="Roslyn\ExpressionVisitor.cs" />
-    <Compile Include="Roslyn\LibraryMethodProcessor.cs" />
-    <Compile Include="Roslyn\MethodSimpifier.cs" />
-    <Compile Include="Roslyn\RoslynASTVisitor.cs" />
-    <Compile Include="Roslyn\RoslynSymbolFactory.cs" />
-    <Compile Include="Roslyn\SolutionAnalyzer.cs" />
-    <Compile Include="Analysis\StatementProcessor.cs" />
-    <Compile Include="Roslyn\Utils.cs" />
+    <Compile Include="Analysis\SolutionAnalyzer.cs" />
     <Compile Include="Tests\ConcurrencyTest.cs" />
     <Compile Include="Tests\BasicTest.cs" />
     <Compile Include="Tests\CallGraphGenerator.cs" />
@@ -341,9 +318,17 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AnalysisCore\AnalysisCore.csproj">
+      <Project>{7f6234fe-027f-4956-bcd1-2751ff866223}</Project>
+      <Name>AnalysisCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{2930867f-55b9-4fb2-830e-dd1f4d79448a}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OrleansGrains\OrleansGrains.csproj">
+      <Project>{7edbc025-77c7-481b-8dfa-675a0b670f85}</Project>
+      <Name>OrleansGrains</Name>
     </ProjectReference>
     <ProjectReference Include="..\OrleansInterfaces\OrleansInterfaces.csproj">
       <Project>{b6126696-692e-4728-8210-922848f297ab}</Project>
