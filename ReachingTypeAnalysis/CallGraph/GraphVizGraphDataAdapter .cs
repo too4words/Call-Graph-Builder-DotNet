@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SolutionTraversal.Callgraph
+namespace SolutionTraversal.CallGraph
 {
     public class GraphVizGraphDataAdapter : IGraphDataAdapter
     {

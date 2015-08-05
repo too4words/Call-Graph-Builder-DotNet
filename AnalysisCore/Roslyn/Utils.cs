@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System.IO;
 using System.Configuration;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
 namespace ReachingTypeAnalysis
 {
     public class Utils
@@ -21,8 +19,8 @@ namespace ReachingTypeAnalysis
         public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
         {
             Contract.Assert(method != null);
-            // var namespaceName = GetFullNamespaceName(method);
-            var typeDescriptor = CreateTypeDescriptor(method.ContainingType);
+            var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
+
 			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic, 
                 method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
                 Utils.CreateTypeDescriptor(method.ReturnType));            
@@ -31,12 +29,11 @@ namespace ReachingTypeAnalysis
         public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
         {
             Contract.Assert(type != null);
-            var namespaceName = GetFullNamespaceName(type);
-            var kind = Convert(type.TypeKind);
+			var assemblyName = "Unknown";
+			var namespaceName = Utils.GetFullNamespaceName(type);
+            var kind = Utils.Convert(type.TypeKind);            
 
-            var assemblyName = "Unknown";
-
-            if(type.ContainingAssembly!=null)
+            if (type.ContainingAssembly != null)
             {
                 assemblyName = type.ContainingAssembly.Name;
             }
@@ -47,7 +44,8 @@ namespace ReachingTypeAnalysis
         private static string GetFullNamespaceName(ISymbol symbol)
         {
             var namespaceName = string.Empty;
-            if(symbol.ContainingNamespace!=null && !symbol.ContainingNamespace.IsGlobalNamespace)
+
+            if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
             {
                 namespaceName = symbol.ContainingNamespace.ToDisplayString();
             }
@@ -55,22 +53,22 @@ namespace ReachingTypeAnalysis
             return namespaceName;
         }
 
-        private static SerializableTypeKind Convert(Microsoft.CodeAnalysis.TypeKind kind) {
+        private static SerializableTypeKind Convert(TypeKind kind) {
             switch (kind)
             {
-                case Microsoft.CodeAnalysis.TypeKind.Class: return SerializableTypeKind.Class;
-                case Microsoft.CodeAnalysis.TypeKind.Interface: return SerializableTypeKind.Interface;
-                case Microsoft.CodeAnalysis.TypeKind.Delegate: return SerializableTypeKind.Delegate;
-                case Microsoft.CodeAnalysis.TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
-                case Microsoft.CodeAnalysis.TypeKind.Array: return SerializableTypeKind.Array;
-                case Microsoft.CodeAnalysis.TypeKind.Struct: return SerializableTypeKind.Struct;
-				case Microsoft.CodeAnalysis.TypeKind.Module: return SerializableTypeKind.Module;
-				case Microsoft.CodeAnalysis.TypeKind.Enum: return SerializableTypeKind.Enum;
-				case Microsoft.CodeAnalysis.TypeKind.Pointer: return SerializableTypeKind.Pointer;
-				case Microsoft.CodeAnalysis.TypeKind.Dynamic: return SerializableTypeKind.Dynamic;
-				case Microsoft.CodeAnalysis.TypeKind.Error: return SerializableTypeKind.Error;
-				case Microsoft.CodeAnalysis.TypeKind.Submission: return SerializableTypeKind.Submission;
-				case Microsoft.CodeAnalysis.TypeKind.Unknown: return SerializableTypeKind.Unknown;
+                case TypeKind.Class: return SerializableTypeKind.Class;
+                case TypeKind.Interface: return SerializableTypeKind.Interface;
+                case TypeKind.Delegate: return SerializableTypeKind.Delegate;
+                case TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
+                case TypeKind.Array: return SerializableTypeKind.Array;
+                case TypeKind.Struct: return SerializableTypeKind.Struct;
+				case TypeKind.Module: return SerializableTypeKind.Module;
+				case TypeKind.Enum: return SerializableTypeKind.Enum;
+				case TypeKind.Pointer: return SerializableTypeKind.Pointer;
+				case TypeKind.Dynamic: return SerializableTypeKind.Dynamic;
+				case TypeKind.Error: return SerializableTypeKind.Error;
+				case TypeKind.Submission: return SerializableTypeKind.Submission;
+				case TypeKind.Unknown: return SerializableTypeKind.Unknown;
 				default: throw new ArgumentException("Can't convert " + kind);
             }
         }
@@ -84,7 +82,6 @@ namespace ReachingTypeAnalysis
 		internal static bool IsTypeForAnalysis(TypeDescriptor t)
 		{
 			Contract.Assert(t != null);
-
 			return (t.IsReferenceType || t.Kind == SerializableTypeKind.TypeParameter);
 		}
 	
@@ -99,7 +96,6 @@ namespace ReachingTypeAnalysis
 		internal static IMethodSymbol FindMethodImplementation(IMethodSymbol method, ITypeSymbol rType)
 		{
 			IMethodSymbol result = null;
-
 			var methodOrProperty = method.AssociatedSymbol != null ? method.AssociatedSymbol : method;
 
 			// Diego: Need to provide the complete signature
@@ -233,7 +229,6 @@ namespace ReachingTypeAnalysis
             var props = new Dictionary<string, string>();
             props["CheckForSystemRuntimeDependency"] = "true";
             var ws = MSBuildWorkspace.Create(props);
-
             var solution = ws.OpenSolutionAsync(path).Result;
             //string pathToDll = ConfigurationManager.AppSettings["PathToDLLs"];
             //Contract.Assert(pathToDll != null && Directory.Exists(pathToDll));

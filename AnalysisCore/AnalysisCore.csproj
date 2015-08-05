@@ -128,7 +128,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncVersion\AnalysisStrategy.cs" />
+    <Compile Include="AsyncVersion\OnDemandAsyncStrategy.cs" />
     <Compile Include="AsyncVersion\MethodEntityPropagator.cs" />
     <Compile Include="AsyncVersion\SolutionManager.cs" />
     <Compile Include="CallGraphQueryInterface.cs" />

@@ -5,7 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System.Linq;
 using Orleans;
 using System.Diagnostics;

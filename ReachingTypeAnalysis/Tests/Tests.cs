@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System;
 using System.Configuration;
 using System.IO;
@@ -22,16 +22,16 @@ namespace ReachingTypeAnalysis
         {
             //var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
             //var solAnalyzer = new SolutionAnalyzer(solution);
-            var solAnalyzer = new SolutionAnalyzer(source);
-            var callgraph = solAnalyzer.Analyze(strategy, true);
+            var solAnalyzer = SolutionAnalyzer.CreateFromSource(source);
+            var callgraph = solAnalyzer.Analyze(strategy);
 
             checker(solAnalyzer, callgraph);
         }
 
-        private static void AnalizeSolution(Solution solution, RunChecks checker, AnalysisStrategyKind type = AnalysisStrategyKind.NONE)
+        private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind type = AnalysisStrategyKind.NONE)
         {
-            var solAnalyzer = new SolutionAnalyzer(solution);
-            var callgraph = solAnalyzer.Analyze(type, true);
+            var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
+            var callgraph = solAnalyzer.Analyze(type);
             
             checker(solAnalyzer, callgraph);
         }
@@ -71,18 +71,14 @@ namespace ReachingTypeAnalysis
 
         private static void TestSolution1(AnalysisStrategyKind strategy, string solutionPath)
         {
-            var solution = Utils.ReadSolution(solutionPath);
-            AnalizeSolution(solution, (s, callgraph) =>
+            AnalizeSolution(solutionPath, (s, callgraph) =>
             {
                 //callgraph.Save("solution1.dot");
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
                 // Fails is I use only Contains with hascode!
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ClassLibrary1", "RemoteClass1", "ClassLibrary1"), "Bar", false), callgraph)); // ClassLibrary
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "LocalClass2", "ConsoleApplication1"), "Bar"), callgraph)); // ConsoleApplication1
-
-                var roslynMethod = RoslynSymbolFactory.FindMethodSymbolAndProjectInSolution(solution, new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar")).Method;
-                Assert.IsTrue(roslynMethod != null);
-                Assert.IsTrue(s.IsReachable(Utils.CreateMethodDescriptor(roslynMethod), callgraph)); // ConsoleApplication1
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
             }, strategy);
         }
 
@@ -116,24 +112,21 @@ namespace ReachingTypeAnalysis
 
         public void CompareWithRoslyn(string solutionPath)
         {
-            var solution = Utils.ReadSolution(solutionPath);
-            AnalizeSolution(solution, (s, callgraph) =>
+            AnalizeSolution(solutionPath, (s, callgraph) =>
             {
                 callgraph.Save("solution1.dot");
-				s.CompareWithRoslynFindReferences(solution, solutionPath + ".txt");
+				s.CompareWithRoslynFindReferences(solutionPath + ".txt");
             });
         }
 
-
         private static void CompareExample(string source)
         {
-            var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
-            var analyzerLocal = new SolutionAnalyzer(solution);
-            var callgraphLocal = analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC, true);
+            var analyzerLocal = SolutionAnalyzer.CreateFromSource(source);
+            var callgraphLocal = analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
 
-            var analyzerParallel = new SolutionAnalyzer(solution);
+            var analyzerParallel = SolutionAnalyzer.CreateFromSource(source);
             var queueingDispatcher = new QueueingDispatcher();
-            var callgraphQueuing = analyzerParallel.Analyze(AnalysisStrategyKind.ENTIRE_ASYNC, true);
+            var callgraphQueuing = analyzerParallel.Analyze(AnalysisStrategyKind.ENTIRE_ASYNC);
 
             var localReachable = callgraphLocal.GetReachableMethods().Count;
             var queuingReachable = callgraphQueuing.GetReachableMethods().Count;
@@ -145,7 +138,8 @@ namespace ReachingTypeAnalysis
         //[TestMethod]
         public void CompareRemoveAlloc()
         {
-            var source = @"
+			#region source code
+			var source = @"
 public class D
 {
     public D(){}
@@ -182,7 +176,9 @@ class Program
 
     }
 }";
-            CompareExample(source);
+			#endregion
+
+			CompareExample(source);
         }
     }
 }

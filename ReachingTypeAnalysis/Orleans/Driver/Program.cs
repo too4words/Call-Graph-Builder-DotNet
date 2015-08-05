@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using Orleans;
 using ReachingTypeAnalysis.Communication;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System;
 using System.Configuration;
 using System.Diagnostics;
@@ -114,12 +114,8 @@ namespace ReachingTypeAnalysis
                 //throw new ArgumentException("Not enough parameters to main");
             }
             var solutionPath = args[0];
-            var solution = Utils.ReadSolution(solutionPath);
-            //var callGraph = TypePropagationAnalysis.BuildCallGraph(solution);
-            //callGraph.Save("cg.dot");
-
-            //CompareDispatchers(solution);
-            var callgraph = GenerateCallGraph(solution);
+			//CompareDispatchers(solutionPath);
+			var callgraph = GenerateCallGraph(solutionPath);
             Console.WriteLine("Nodes: {0}", callgraph.GetNodes().Count());
 
             hostDomain.DoCallBack(ShutdownSilo);
@@ -146,9 +142,9 @@ namespace ReachingTypeAnalysis
 
         private static OrleansHostWrapper hostWrapper;
 
-        private static CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph(Solution solution)
+        private static CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph(string solutionPath)
         {
-            var analyzer = new SolutionAnalyzer(solution);
+            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var timerLocal = new Stopwatch();
             timerLocal.Start();
             // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
@@ -158,38 +154,23 @@ namespace ReachingTypeAnalysis
             return callgraph;
         }
 
-        private static bool CompareDispatchers(Solution solution)
+        private static bool CompareDispatchers(string solutionPath)
         {
-            var analyzerLocal = new SolutionAnalyzer(solution);
+            var analyzerLocal = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var timerLocal = new Stopwatch();
             timerLocal.Start();
-            // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-            analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
+
+			// This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
+			var callgraphLocal = analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
             timerLocal.Stop();
-            var callgraphLocal = analyzerLocal.GenerateCallGraph();
+
             Logger.Instance.Log("Program", "CompareDispatchers", "Local analysis time: {0}", timerLocal.Elapsed);
 
-            var analyzerParallel = new SolutionAnalyzer(solution);
+            var analyzerParallel = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var timerQueuing = new Stopwatch();
             timerQueuing.Start();
-            analyzerParallel.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
-
-            /*           
-            using (var queryingDispatcher = new QueueingDispatcher(solution))
-            {
-                analyzerParallel.AnalyzeEntireSolution();
-
-				// block here waiting
-				while (!queryingDispatcher.IsDoneProcessing)
-				{
-					Console.WriteLine("Queue {0}", queryingDispatcher.GetQueueCount());
-					Console.WriteLine("A total of {0} messages delivered", queryingDispatcher.MessageCount);
-					System.Threading.Thread.Sleep(10000);
-				}
-            }*/
+			var callgraphQueuing = analyzerParallel.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
             timerQueuing.Stop();
-
-            var callgraphQueuing = analyzerParallel.GenerateCallGraph();
 
             Logger.Instance.Log("Program", "CompareDispatchers", "Queueing analysis time: {0}", timerLocal.Elapsed);
             Logger.Instance.Log("Program", "CompareDispatchers", "Analysis {0} {1} methods ", 1, callgraphLocal.GetReachableMethods().Count);
@@ -199,6 +180,7 @@ namespace ReachingTypeAnalysis
             {
                 return false;
             }
+
             if (callgraphLocal.GetEdges().Count() != callgraphQueuing.GetEdges().Count())
             {
                 return false;

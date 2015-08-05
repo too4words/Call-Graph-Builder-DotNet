@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Orleans;
 using ReachingTypeAnalysis.Roslyn;
 
-
 namespace ReachingTypeAnalysis.Analysis
 {
 	internal class OnDemandAsyncStrategy : IAnalysisStrategy
@@ -26,6 +25,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.solutionManager = await AsyncSolutionManager.CreateFromSourceAsync(source);
 			return this.solutionManager;
 		}
+
 		public async Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath)
 		{
 			this.solutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(solutionPath);
@@ -50,5 +50,4 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntityPropagator;
 		}
     }
-
 }

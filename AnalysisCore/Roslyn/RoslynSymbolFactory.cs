@@ -13,17 +13,20 @@ namespace ReachingTypeAnalysis.Roslyn
         public Project Project;
         public IMethodSymbol Method;
     }
+
     public static class RoslynSymbolFactory
     {
         public static IMethodSymbol FindMethodSymbolInSolution(Solution solution, MethodDescriptor methodDescriptor)
         {
             return FindMethodSymbolAndProjectInSolution(solution, methodDescriptor).Method;
         }
+
         public static ProjectMethod FindMethodSymbolAndProjectInSolution(Solution solution, MethodDescriptor methodDescriptor)
         {
             ProjectMethod res;
             res.Method = null;
             res.Project = null;
+
             foreach (var project in solution.Projects)
             {
                 // Alternative method using SymbolFinder, it only works with methods in the solution 
@@ -46,6 +49,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 }
                 //}
             }
+
             return res;
         }
 

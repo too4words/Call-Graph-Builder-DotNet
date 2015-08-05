@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using ReachingTypeAnalysis;
-using SolutionTraversal.Callgraph;
+using SolutionTraversal.CallGraph;
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -32,22 +32,20 @@ namespace CallGraphGeneration
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
 				@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
-
 			};
 
 			if (args.Length == 2)
 			{
 				try
 				{
-					var solutionFileName = args[0];
+					var solutionPath = args[0];
 					var strategyName = args[1];
 					var strategyKind = SolutionAnalyzer.StringToAnalysisStrategy(strategyName);
-					var outputFileName = Path.ChangeExtension(solutionFileName, ".dgml");
-
+					var outputPath = Path.ChangeExtension(solutionPath, ".dgml");
 					var program = new Program(strategyKind);
-					var callGraph = program.Analyze(solutionFileName);
+					var callGraph = program.BuildCallGraph(solutionPath);
 
-					callGraph.Save(outputFileName);
+					callGraph.Save(outputPath);
 				}
 				catch (Exception ex)
 				{
@@ -59,55 +57,10 @@ namespace CallGraphGeneration
 			Console.ReadKey();
         }
 
-		public CallGraph<MethodDescriptor, LocationDescriptor> Analyze(string solutionFileName)
-		{
-			var solution = this.LoadSolution(solutionFileName);
-			var callGraph = this.BuildCallGraph(solution);
-
-			return callGraph;
-		}
-
-		private Solution LoadSolution(string solutionFileName)
-        {
-			var solutionName = Path.GetFileName(solutionFileName);
-			Console.WriteLine("Loading solution {0}...", solutionName);
-
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
-			var ws = MSBuildWorkspace.Create(props);
-			var solution = ws.OpenSolutionAsync(solutionFileName).Result;
-
-			/*
-			// http://stackoverflow.com/questions/29523473/roslyn-compilation-doesnt-resolve-mscorlib-references
-            var pathNetFramework = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-            var pathToDll = Path.Combine(pathNetFramework, "Facades");
-
-			Debug.Assert(Directory.Exists(pathToDll));
-
-            var references = new string[]
-			{
-				"System.Runtime.dll",
-				"System.Threading.Tasks.dll",
-				"System.Reflection.dll",
-				"System.Text.Encoding.dll"
-			};
-			
-			var metadataReferences = references.Select(s => MetadataReference.CreateFromFile(pathToDll + s));
-
-			foreach (var projectId in solution.ProjectIds)
-            {
-                solution = solution.AddMetadataReferences(projectId, metadataReferences);
-            }
-			*/
-
-			Console.WriteLine("Solution loaded successfully", solutionName);
-			return solution;
-        }
-
-		private CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(Solution solution)
+		private CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(string solutionPath)
         {
 			Console.WriteLine("Analyzing solution...");
-            var analyzer = new SolutionAnalyzer(solution);
+            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 
 			this.Initialize();
             var callgraph = analyzer.Analyze(strategyKind);

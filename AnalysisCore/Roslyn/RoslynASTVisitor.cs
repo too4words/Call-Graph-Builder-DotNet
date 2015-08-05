@@ -704,11 +704,10 @@ namespace ReachingTypeAnalysis
 		private SemanticModel model;
         private SyntaxTree tree;
 
-        internal AllMethodsVisitor(SemanticModel model, SyntaxTree tree) //, IDispatcher dispatcher)
+        internal AllMethodsVisitor(SemanticModel model, SyntaxTree tree)
         {
             this.model = model;
             this.tree = tree;
-            //this.dispatcher = dispatcher;
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -728,7 +727,6 @@ namespace ReachingTypeAnalysis
 		internal async Task Run(SyntaxTree tree)
 		{
 			var root = await tree.GetRootAsync();
-
 			this.Visit(root);
 		}
     }
