@@ -123,6 +123,20 @@ namespace ReachingTypeAnalysis.Roslyn
             return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
         }
 
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var mainMethod = this.Compilation.GetEntryPoint(cancellationTokenSource.Token);
+
+            if (mainMethod != null)
+            {
+                // only return if there's a main method
+                var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
+                result.Add(methodDescriptor);
+            }
+            return Task.FromResult<IEnumerable<MethodDescriptor>>(result);
+        }
         #endregion
 
         /// <summary>
@@ -159,7 +173,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return result;
         }
 
-
+ 
         /// <summary>
         /// This method is used by the class MethodParser search for the method declaration syntax
         /// of the Method to Analyze
@@ -452,6 +466,11 @@ namespace ReachingTypeAnalysis.Roslyn
             var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodParser(methodDescriptor);
             var methodEntity = libraryMethodVisitor.ParseMethod();
             return Task.FromResult((IEntity)methodEntity);
+        }
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            return Task.FromResult<IEnumerable<MethodDescriptor>>(result);
         }
     }
 }

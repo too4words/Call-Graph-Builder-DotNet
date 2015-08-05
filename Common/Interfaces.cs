@@ -62,6 +62,7 @@ namespace ReachingTypeAnalysis
         //bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+        Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
     
     }
     public interface ISolutionManager

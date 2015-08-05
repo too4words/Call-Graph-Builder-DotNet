@@ -88,6 +88,11 @@ namespace ReachingTypeAnalysis.Analysis
             return this.projectCodeProvider.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
         }
 
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        {
+            return this.projectCodeProvider.GetRootsAsync();
+        }
+
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
