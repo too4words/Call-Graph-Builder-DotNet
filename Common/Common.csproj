@@ -97,11 +97,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisTypes.cs" />
-    <Compile Include="CallInfo.cs" />
+    <Compile Include="SerializableTypes\AnalysisTypes.cs" />
+    <Compile Include="SerializableTypes\CallInfo.cs" />
     <Compile Include="Interfaces.cs" />
-    <Compile Include="Messages.cs" />
-    <Compile Include="PropagationEffects.cs" />
+    <Compile Include="SerializableTypes\Messages.cs" />
+    <Compile Include="SerializableTypes\PropagationEffects.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -104,14 +104,15 @@ namespace ReachingTypeAnalysis
 
 						this.Strategy = new OnDemandAsyncStrategy();
                         ISolutionManager solutionManager = null;
+
                         if (this.SourceCode != null)
                         {
-                            solutionManager = this.Strategy.CreateSolutionFromSourceAsync(this.SourceCode).Result;
+                            solutionManager = AsyncSolutionManager.CreateFromSourceAsync(this.SourceCode).Result;
                         }
                         else
                         {
                             Contract.Assert(this.Solution.FilePath != null);
-                            solutionManager = this.Strategy.CreateSolutionAsync(this.Solution.FilePath).Result;
+							solutionManager = AsyncSolutionManager.CreateFromSolutionAsync(this.Solution.FilePath).Result;
                         }
 
 						var mainMethods = solutionManager.GetRootsAsync().Result;
@@ -134,20 +135,15 @@ namespace ReachingTypeAnalysis
 						GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
                         ISolutionManager solutionManager = null;
+
                         if (this.SourceCode != null)
                         {
-                            //solutionManager = this.Strategy.CreateSolutionFromSourceAsync(this.SourceCode).Result;
-                            var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-                            solutionGrain.SetSolutionSource(this.SourceCode).Wait();
-                            solutionManager = solutionGrain;
+							solutionManager = OrleansSolutionManager.CreateFromSourceAsync(GrainClient.GrainFactory, this.SourceCode).Result;
                         }
                         else
                         {
                             Contract.Assert(this.Solution.FilePath != null);
-                            //solutionManager = this.Strategy.CreateSolutionAsync(this.Solution.FilePath).Result;
-                            var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-                            solutionGrain.SetSolutionPath(this.Solution.FilePath).Wait();
-                            solutionManager = solutionGrain;
+							solutionManager = OrleansSolutionManager.CreateFromSolutionAsync(GrainClient.GrainFactory, this.Solution.FilePath).Result;
                         }
 
 						//var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");

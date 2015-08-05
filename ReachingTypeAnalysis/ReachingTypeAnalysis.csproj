@@ -248,6 +248,7 @@
     <Compile Include="Analysis\AnalysisMessages.cs" />
     <Compile Include="Analysis\AsyncVersion\AnalysisOrchestator.cs" />
     <Compile Include="Analysis\AsyncVersion\MethodEntityPropagator.cs" />
+    <Compile Include="Analysis\AsyncVersion\SolutionManager.cs" />
     <Compile Include="Analysis\Graph\Graph.cs" />
     <Compile Include="Analysis\Graph\GraphAnnotationData.cs" />
     <Compile Include="Analysis\Graph\IGraph.cs" />

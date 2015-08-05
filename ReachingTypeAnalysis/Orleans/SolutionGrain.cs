@@ -61,11 +61,11 @@ namespace ReachingTypeAnalysis.Analysis
 
             if (this.State.SolutionFullPath != null)
             {
-                this.solutionManager = await SolutionManager.CreateFromSolution(strategy, this.State.SolutionFullPath);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionFullPath);
             }
             else if(this.State.SourceCode != null)
             {
-                this.solutionManager = await SolutionManager.CreateFromSourceCode(strategy, this.State.SourceCode);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.SourceCode);
             }
 
         }
@@ -74,7 +74,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.State.SolutionFullPath = solutionPath;
             var solution = Utils.ReadSolution(solutionPath);
-            this.solutionManager = await SolutionManager.CreateFromSolution(strategy, this.State.SolutionFullPath);
+			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionFullPath);
             //this.solutionManager = new SolutionManager(strategy, solution);
             
             await this.WriteStateAsync();
@@ -84,7 +84,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "");
             this.State.SourceCode = solutionSource;
-            this.solutionManager = await SolutionManager.CreateFromSourceCode(strategy, this.State.SourceCode);
+			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.SourceCode);
 
             //var solution = Utils.CreateSolution(solutionSource);
             //var solutionManager = new SolutionManager(strategy, solution);
@@ -117,11 +117,6 @@ namespace ReachingTypeAnalysis.Analysis
         //    //return projectCodeProviderGrain;
         //}
 
-        public Task<IEnumerable<IProjectCodeProvider>> GetProjectsAsync()
-        {
-            return this.solutionManager.GetProjectsAsync();
-        }
-
         public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
             return this.solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
@@ -143,106 +138,6 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.solutionManager.GetRootsAsync();
             //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
-        }
-    }
-    internal class SolutionManager : ISolutionManager
-    {
-        internal Solution Solution { get; private set; }
-        private IAnalysisStrategy strategy;
-
-
-        private ISet<TypeDescriptor> instantiatedTypes = new HashSet<TypeDescriptor>();
-
-        private IDictionary<AssemblyName, IProjectCodeProvider> projectsCache = new Dictionary<AssemblyName, IProjectCodeProvider>();
-
-        internal SolutionManager(IAnalysisStrategy strategy, Solution solution)
-        {
-            this.Solution = solution;
-            this.strategy = strategy;
-        }
-
-        private SolutionManager(IAnalysisStrategy strategy, Solution solution, string sourceCode)
-        {
-            this.Solution = solution;
-            this.strategy = strategy;
-        }
-        public static async Task<SolutionManager> CreateFromSolution(IAnalysisStrategy strategy, string solutionPath)
-        {
-            var solution = Utils.ReadSolution(solutionPath);
-            var solutionManager = new SolutionManager(strategy, solution);
-            await solutionManager.GenerateProjectProviders();
-            return solutionManager;
-        }
-        public static async Task<SolutionManager> CreateFromSourceCode(IAnalysisStrategy strategy, string source)
-        {
-            var solution = Utils.CreateSolution(source);
-            var solutionManager = new SolutionManager(strategy, solution, source);
-            await solutionManager.GenerateProjectProviders(source);
-            return solutionManager;
-        }
-
-        internal async Task GenerateProjectProviders()
-        {
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            foreach (var project in Solution.Projects)
-            {
-                var codeProvider = await this.strategy.CreateProjectCodeProviderAsync(project.FilePath, project.Name);
-                AddToCache(project.AssemblyName, codeProvider);
-            }
-        }
-
-        internal void AddToCache(string assemblyName, IProjectCodeProvider codeProvider)
-        {
-            projectsCache.Add(assemblyName, codeProvider);
-        }
-
-        internal async Task GenerateProjectProviders(string sourceCode)
-        {
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            var codeProvider = await this.strategy.CreateProjectCodeFromSourceAsync(sourceCode, "MyProject");
-            AddToCache("MyProject", codeProvider);
-        }
-
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
-        {
-            // TODO: Iterate for each project to obtain roots
-            return ProjectCodeProvider.GetMainMethodsAsync(Solution);
-        }
-
-        public Task<IEnumerable<IProjectCodeProvider>> GetProjectsAsync()
-        {
-            return Task.FromResult(this.projectsCache.Values.AsEnumerable());
-        }
-
-        public async Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
-        {
-            var typeDescriptor = methodDescriptor.ContainerType;
-            var assemblyName = typeDescriptor.AssemblyName;
-            IProjectCodeProvider codeProvider = null;
-            if (projectsCache.TryGetValue(assemblyName, out codeProvider))
-            {
-                return codeProvider;
-            }
-            codeProvider = await strategy.GetDummyProjectCodeProviderAsync();
-            projectsCache.Add(assemblyName, codeProvider);
-            return codeProvider;
-        }
-
-        /// <summary>
-        /// For RTA analysis
-        /// </summary>
-        /// <param name="types"></param>
-        /// <returns></returns>
-        public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-        {
-            instantiatedTypes.UnionWith(types);
-            return TaskDone.Done;
-        }
-        public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-        {
-            return Task.FromResult(instantiatedTypes);
         }
     }
     
