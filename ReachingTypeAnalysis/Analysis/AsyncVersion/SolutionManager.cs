@@ -126,9 +126,10 @@ namespace ReachingTypeAnalysis.Analysis
 			projectsCache.Add(assemblyName, provider);
 		}
 
-		protected override Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
+		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
 		{
-			return ProjectCodeProvider.ProjectCodeProviderByNameAsync(this.solution, assemblyName);
+			var provider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(this.solution, assemblyName);
+			projectsCache.Add(assemblyName, provider);
 		}
 
 		protected override IProjectCodeProvider GetProjectCodeProvider(string assemblyName)
@@ -188,10 +189,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 		protected override IProjectCodeProvider GetProjectCodeProvider(string assemblyName)
 		{
-			//this.solution
-
-			var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
-			return provider;
+			foreach(var project in this.solution.Projects)
+			{
+				if(project.AssemblyName.Equals(assemblyName))
+				{
+					var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
+					return provider;
+				}
+			}
+			return GetDummyProjectCodeProvider();
 		}
 
 		protected override IProjectCodeProvider GetDummyProjectCodeProvider()

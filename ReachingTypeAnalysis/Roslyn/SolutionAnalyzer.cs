@@ -107,12 +107,12 @@ namespace ReachingTypeAnalysis
 
                         if (this.SourceCode != null)
                         {
-                            solutionManager = AsyncSolutionManager.CreateFromSourceAsync(this.SourceCode).Result;
+                            solutionManager = this.Strategy.CreateFromSourceAsync(this.SourceCode).Result;
                         }
                         else
                         {
                             Contract.Assert(this.Solution.FilePath != null);
-							solutionManager = AsyncSolutionManager.CreateFromSolutionAsync(this.Solution.FilePath).Result;
+							solutionManager = this.Strategy.CreateFromSolutionAsync(this.Solution.FilePath).Result;
                         }
 
 						var mainMethods = solutionManager.GetRootsAsync().Result;
@@ -134,19 +134,28 @@ namespace ReachingTypeAnalysis
 						SolutionAnalyzer.MessageCounter = 0;
 						GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
-                        ISolutionManager solutionManager = null;
+						//ISolutionManager solutionManager = null;
+						
+						//if (this.SourceCode != null)
+						//{
+						//	solutionManager = this.Strategy.CreateFromSourceAsync(this.SourceCode).Result;
+						//}
+						//else
+						//{
+						//	Contract.Assert(this.Solution.FilePath != null);
+						//	solutionManager = this.Strategy.CreateFromSolutionAsync(this.Solution.FilePath).Result;
+						//}
 
-                        if (this.SourceCode != null)
-                        {
-							solutionManager = OrleansSolutionManager.CreateFromSourceAsync(GrainClient.GrainFactory, this.SourceCode).Result;
-                        }
-                        else
-                        {
-                            Contract.Assert(this.Solution.FilePath != null);
-							solutionManager = OrleansSolutionManager.CreateFromSolutionAsync(GrainClient.GrainFactory, this.Solution.FilePath).Result;
-                        }
-
-						//var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+						var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+						if (this.SourceCode != null)
+						{
+							solutionManager.SetSolutionSource(this.SourceCode).Wait();
+						}
+						else
+						{
+							solutionManager.SetSolutionPath(this.Solution.FilePath).Wait();
+						}
+						
 						//Contract.Assert(solutionGrain != null);
 
 						this.Dispatcher = null;

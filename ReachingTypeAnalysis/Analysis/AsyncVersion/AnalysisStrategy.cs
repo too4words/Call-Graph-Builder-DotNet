@@ -22,6 +22,17 @@ namespace ReachingTypeAnalysis.Analysis
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();            
 		}
 
+		public async Task<ISolutionManager> CreateFromSourceAsync(string source)
+		{
+			this.solutionManager = await AsyncSolutionManager.CreateFromSourceAsync(source);
+			return this.solutionManager;
+		}
+		public async Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath)
+		{
+			this.solutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(solutionPath);
+			return this.solutionManager;
+		}
+
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			IMethodEntityWithPropagator methodEntityPropagator = null;
@@ -51,6 +62,17 @@ namespace ReachingTypeAnalysis.Analysis
             this.grainFactory = grainFactory;
         }
 
+		public async Task<ISolutionManager> CreateFromSourceAsync(string source)
+		{
+			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(grainFactory, source);
+			return this.solutionManager;
+		}
+		public async Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath)
+		{
+			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(grainFactory, solutionPath);
+			return this.solutionManager;
+		}
+		
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{           
             var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());

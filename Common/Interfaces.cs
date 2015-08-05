@@ -20,6 +20,8 @@ namespace ReachingTypeAnalysis
 	public interface IAnalysisStrategy
 	{
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+		Task<ISolutionManager> CreateFromSourceAsync(string source);
+		Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath);
     }
 
     public interface IMethodEntityWithPropagator: IEntity
@@ -56,14 +58,18 @@ namespace ReachingTypeAnalysis
         //bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+        Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
     
     }
-
     public interface ISolutionManager
     {
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
         Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
-		// The next 2 methods are for RTA: Not currently used
+        /// <summary>
+        /// The next 2 methods are for RTA: Not currently used
+        /// </summary>
+        /// <param name="types"></param>
+        /// <returns></returns>
         Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
     }

@@ -33,6 +33,234 @@ namespace OrleansInterfaces
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    public class ProjectCodeProviderGrainFactory
+    {
+        
+
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
+                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey)
+                        {
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey));
+                        }
+
+                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
+                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
+                        {
+                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey, grainClassNamePrefix));
+                        }
+
+            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            {
+                
+                return ProjectCodeProviderGrainReference.Cast(grainRef);
+            }
+        
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+        [System.SerializableAttribute()]
+        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.IProjectCodeProviderGrain")]
+        internal class ProjectCodeProviderGrainReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.IProjectCodeProviderGrain
+        {
+            
+
+            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
+            {
+                
+                return (IProjectCodeProviderGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(IProjectCodeProviderGrain), (global::Orleans.Runtime.GrainReference gr) => { return new ProjectCodeProviderGrainReference(gr);}, grainRef, 306204708);
+            }
+            
+            protected internal ProjectCodeProviderGrainReference(global::Orleans.Runtime.GrainReference reference) : 
+                    base(reference)
+            {
+            }
+            
+            protected internal ProjectCodeProviderGrainReference(SerializationInfo info, StreamingContext context) : 
+                    base(info, context)
+            {
+            }
+            
+            protected override int InterfaceId
+            {
+                get
+                {
+                    return 306204708;
+                }
+            }
+            
+            public override string InterfaceName
+            {
+                get
+                {
+                    return "OrleansInterfaces.IProjectCodeProviderGrain";
+                }
+            }
+            
+            [global::Orleans.CodeGeneration.CopierMethodAttribute()]
+            public static object _Copier(object original)
+            {
+                ProjectCodeProviderGrainReference input = ((ProjectCodeProviderGrainReference)(original));
+                return ((ProjectCodeProviderGrainReference)(global::Orleans.Runtime.GrainReference.CopyGrainReference(input)));
+            }
+            
+            [global::Orleans.CodeGeneration.SerializerMethodAttribute()]
+            public static void _Serializer(object original, global::Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+            {
+                ProjectCodeProviderGrainReference input = ((ProjectCodeProviderGrainReference)(original));
+                global::Orleans.Runtime.GrainReference.SerializeGrainReference(input, stream, expected);
+            }
+            
+            [global::Orleans.CodeGeneration.DeserializerMethodAttribute()]
+            public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+            {
+                return ProjectCodeProviderGrainReference.Cast(((global::Orleans.Runtime.GrainReference)(global::Orleans.Runtime.GrainReference.DeserializeGrainReference(expected, stream))));
+            }
+            
+            public override bool IsCompatible(int interfaceId)
+            {
+                return ((interfaceId == this.InterfaceId) 
+                            || (interfaceId == -1277021679));
+            }
+            
+            protected override string GetMethodName(int interfaceId, int methodId)
+            {
+                return ProjectCodeProviderGrainMethodInvoker.GetMethodName(interfaceId, methodId);
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectPath(string @fullPath)
+            {
+
+                return base.InvokeMethodAsync<object>(-397931987, new object[] {@fullPath} );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectSourceCode(string @source)
+            {
+
+                return base.InvokeMethodAsync<object>(-113155710, new object[] {@source} );
+            }
+            
+            System.Threading.Tasks.Task<bool> ReachingTypeAnalysis.IProjectCodeProvider.IsSubtypeAsync(ReachingTypeAnalysis.TypeDescriptor @typeDescriptor1, ReachingTypeAnalysis.TypeDescriptor @typeDescriptor2)
+            {
+
+                return base.InvokeMethodAsync<System.Boolean>(747974890, new object[] {@typeDescriptor1, @typeDescriptor2} );
+            }
+            
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.MethodDescriptor> ReachingTypeAnalysis.IProjectCodeProvider.FindMethodImplementationAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor, ReachingTypeAnalysis.TypeDescriptor @typeDescriptor)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.MethodDescriptor>(-819592028, new object[] {@methodDescriptor, @typeDescriptor} );
+            }
+            
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> ReachingTypeAnalysis.IProjectCodeProvider.CreateMethodEntityAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-625742380, new object[] {@methodDescriptor} );
+            }
+            
+            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> ReachingTypeAnalysis.IProjectCodeProvider.GetRootsAsync()
+            {
+
+                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(-1382348266, null );
+            }
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.IProjectCodeProviderGrain", 306204708)]
+    internal class ProjectCodeProviderGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
+    {
+        
+        int global::Orleans.CodeGeneration.IGrainMethodInvoker.InterfaceId
+        {
+            get
+            {
+                return 306204708;
+            }
+        }
+        
+        global::System.Threading.Tasks.Task<object> global::Orleans.CodeGeneration.IGrainMethodInvoker.Invoke(global::Orleans.Runtime.IAddressable grain, int interfaceId, int methodId, object[] arguments)
+        {
+
+            try
+            {                    if (grain == null) throw new System.ArgumentNullException("grain");
+                switch (interfaceId)
+                {
+                    case 306204708:  // IProjectCodeProviderGrain
+                        switch (methodId)
+                        {
+                            case -397931987: 
+                                return ((IProjectCodeProviderGrain)grain).SetProjectPath((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -113155710: 
+                                return ((IProjectCodeProviderGrain)grain).SetProjectSourceCode((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 747974890: 
+                                return ((IProjectCodeProviderGrain)grain).IsSubtypeAsync((TypeDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -819592028: 
+                                return ((IProjectCodeProviderGrain)grain).FindMethodImplementationAsync((MethodDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -625742380: 
+                                return ((IProjectCodeProviderGrain)grain).CreateMethodEntityAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1382348266: 
+                                return ((IProjectCodeProviderGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            default: 
+                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
+                        }case -1277021679:  // IGrainWithStringKey
+                        switch (methodId)
+                        {
+                            default: 
+                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
+                        }
+                    default:
+                        throw new System.InvalidCastException("interfaceId="+interfaceId);
+                }
+            }
+            catch(Exception ex)
+            {
+                var t = new System.Threading.Tasks.TaskCompletionSource<object>();
+                t.SetException(ex);
+                return t.Task;
+            }
+        }
+        
+        public static string GetMethodName(int interfaceId, int methodId)
+        {
+
+            switch (interfaceId)
+            {
+                
+                case 306204708:  // IProjectCodeProviderGrain
+                    switch (methodId)
+                    {
+                        case -397931987:
+                            return "SetProjectPath";
+                    case -113155710:
+                            return "SetProjectSourceCode";
+                    case 747974890:
+                            return "IsSubtypeAsync";
+                    case -819592028:
+                            return "FindMethodImplementationAsync";
+                    case -625742380:
+                            return "CreateMethodEntityAsync";
+                    case -1382348266:
+                            return "GetRootsAsync";
+                    
+                        default: 
+                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
+                    }
+                case -1277021679:  // IGrainWithStringKey
+                    switch (methodId)
+                    {
+                        
+                        default: 
+                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
+                    }
+
+                default:
+                    throw new System.InvalidCastException("interfaceId="+interfaceId);
+            }
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
     public class SolutionGrainFactory
     {
         
@@ -144,12 +372,6 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(-1382348266, null );
             }
             
-            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.IProjectCodeProvider>> ReachingTypeAnalysis.ISolutionManager.GetProjectsAsync()
-            {
-
-                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.IProjectCodeProvider>>(1019185560, null );
-            }
-            
             System.Threading.Tasks.Task<ReachingTypeAnalysis.IProjectCodeProvider> ReachingTypeAnalysis.ISolutionManager.GetProjectCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
             {
 
@@ -200,12 +422,10 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).SetSolutionSource((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1382348266: 
                                 return ((ISolutionGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 1019185560: 
-                                return ((ISolutionGrain)grain).GetProjectsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 1951770605: 
                                 return ((ISolutionGrain)grain).GetProjectCodeProviderAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -788867248: 
-                                return ((ISolutionGrain)grain).AddInstantiatedTypesAsync((System.Collections.Generic.IEnumerable<TypeDescriptor>)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                                return ((ISolutionGrain)grain).AddInstantiatedTypesAsync((IEnumerable<TypeDescriptor>)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1582333904: 
                                 return ((ISolutionGrain)grain).GetInstantiatedTypesAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
@@ -243,8 +463,6 @@ namespace OrleansInterfaces
                             return "SetSolutionSource";
                     case -1382348266:
                             return "GetRootsAsync";
-                    case 1019185560:
-                            return "GetProjectsAsync";
                     case 1951770605:
                             return "GetProjectCodeProviderAsync";
                     case -788867248:
@@ -536,224 +754,6 @@ namespace OrleansInterfaces
             }
         }
     }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    public class ProjectCodeProviderGrainFactory
-    {
-        
-
-                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
-                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey)
-                        {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey));
-                        }
-
-                        [System.Obsolete("This method has been deprecated. Please use GrainFactory.GetGrain<IProjectCodeProviderGrain> instead.")]
-                        public static IProjectCodeProviderGrain GetGrain(System.String primaryKey, string grainClassNamePrefix)
-                        {
-                            return Cast(global::Orleans.CodeGeneration.GrainFactoryBase.MakeGrainReferenceInternal(typeof(IProjectCodeProviderGrain), primaryKey, grainClassNamePrefix));
-                        }
-
-            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
-            {
-                
-                return ProjectCodeProviderGrainReference.Cast(grainRef);
-            }
-        
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-        [System.SerializableAttribute()]
-        [global::Orleans.CodeGeneration.GrainReferenceAttribute("OrleansInterfaces.IProjectCodeProviderGrain")]
-        internal class ProjectCodeProviderGrainReference : global::Orleans.Runtime.GrainReference, global::Orleans.Runtime.IAddressable, OrleansInterfaces.IProjectCodeProviderGrain
-        {
-            
-
-            public static IProjectCodeProviderGrain Cast(global::Orleans.Runtime.IAddressable grainRef)
-            {
-                
-                return (IProjectCodeProviderGrain) global::Orleans.Runtime.GrainReference.CastInternal(typeof(IProjectCodeProviderGrain), (global::Orleans.Runtime.GrainReference gr) => { return new ProjectCodeProviderGrainReference(gr);}, grainRef, 306204708);
-            }
-            
-            protected internal ProjectCodeProviderGrainReference(global::Orleans.Runtime.GrainReference reference) : 
-                    base(reference)
-            {
-            }
-            
-            protected internal ProjectCodeProviderGrainReference(SerializationInfo info, StreamingContext context) : 
-                    base(info, context)
-            {
-            }
-            
-            protected override int InterfaceId
-            {
-                get
-                {
-                    return 306204708;
-                }
-            }
-            
-            public override string InterfaceName
-            {
-                get
-                {
-                    return "OrleansInterfaces.IProjectCodeProviderGrain";
-                }
-            }
-            
-            [global::Orleans.CodeGeneration.CopierMethodAttribute()]
-            public static object _Copier(object original)
-            {
-                ProjectCodeProviderGrainReference input = ((ProjectCodeProviderGrainReference)(original));
-                return ((ProjectCodeProviderGrainReference)(global::Orleans.Runtime.GrainReference.CopyGrainReference(input)));
-            }
-            
-            [global::Orleans.CodeGeneration.SerializerMethodAttribute()]
-            public static void _Serializer(object original, global::Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-            {
-                ProjectCodeProviderGrainReference input = ((ProjectCodeProviderGrainReference)(original));
-                global::Orleans.Runtime.GrainReference.SerializeGrainReference(input, stream, expected);
-            }
-            
-            [global::Orleans.CodeGeneration.DeserializerMethodAttribute()]
-            public static object _Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-            {
-                return ProjectCodeProviderGrainReference.Cast(((global::Orleans.Runtime.GrainReference)(global::Orleans.Runtime.GrainReference.DeserializeGrainReference(expected, stream))));
-            }
-            
-            public override bool IsCompatible(int interfaceId)
-            {
-                return ((interfaceId == this.InterfaceId) 
-                            || (interfaceId == -1277021679));
-            }
-            
-            protected override string GetMethodName(int interfaceId, int methodId)
-            {
-                return ProjectCodeProviderGrainMethodInvoker.GetMethodName(interfaceId, methodId);
-            }
-            
-            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectPath(string @fullPath)
-            {
-
-                return base.InvokeMethodAsync<object>(-397931987, new object[] {@fullPath} );
-            }
-            
-            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectSourceCode(string @source)
-            {
-
-                return base.InvokeMethodAsync<object>(-113155710, new object[] {@source} );
-            }
-            
-            System.Threading.Tasks.Task<bool> ReachingTypeAnalysis.IProjectCodeProvider.IsSubtypeAsync(ReachingTypeAnalysis.TypeDescriptor @typeDescriptor1, ReachingTypeAnalysis.TypeDescriptor @typeDescriptor2)
-            {
-
-                return base.InvokeMethodAsync<System.Boolean>(747974890, new object[] {@typeDescriptor1, @typeDescriptor2} );
-            }
-            
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.MethodDescriptor> ReachingTypeAnalysis.IProjectCodeProvider.FindMethodImplementationAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor, ReachingTypeAnalysis.TypeDescriptor @typeDescriptor)
-            {
-
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.MethodDescriptor>(-819592028, new object[] {@methodDescriptor, @typeDescriptor} );
-            }
-            
-            System.Threading.Tasks.Task<ReachingTypeAnalysis.IEntity> ReachingTypeAnalysis.IProjectCodeProvider.CreateMethodEntityAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
-            {
-
-                return base.InvokeMethodAsync<ReachingTypeAnalysis.IEntity>(-625742380, new object[] {@methodDescriptor} );
-            }
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.MethodInvokerAttribute("OrleansInterfaces.IProjectCodeProviderGrain", 306204708)]
-    internal class ProjectCodeProviderGrainMethodInvoker : global::Orleans.CodeGeneration.IGrainMethodInvoker
-    {
-        
-        int global::Orleans.CodeGeneration.IGrainMethodInvoker.InterfaceId
-        {
-            get
-            {
-                return 306204708;
-            }
-        }
-        
-        global::System.Threading.Tasks.Task<object> global::Orleans.CodeGeneration.IGrainMethodInvoker.Invoke(global::Orleans.Runtime.IAddressable grain, int interfaceId, int methodId, object[] arguments)
-        {
-
-            try
-            {                    if (grain == null) throw new System.ArgumentNullException("grain");
-                switch (interfaceId)
-                {
-                    case 306204708:  // IProjectCodeProviderGrain
-                        switch (methodId)
-                        {
-                            case -397931987: 
-                                return ((IProjectCodeProviderGrain)grain).SetProjectPath((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case -113155710: 
-                                return ((IProjectCodeProviderGrain)grain).SetProjectSourceCode((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case 747974890: 
-                                return ((IProjectCodeProviderGrain)grain).IsSubtypeAsync((TypeDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -819592028: 
-                                return ((IProjectCodeProviderGrain)grain).FindMethodImplementationAsync((MethodDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -625742380: 
-                                return ((IProjectCodeProviderGrain)grain).CreateMethodEntityAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                        }case -1277021679:  // IGrainWithStringKey
-                        switch (methodId)
-                        {
-                            default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                        }
-                    default:
-                        throw new System.InvalidCastException("interfaceId="+interfaceId);
-                }
-            }
-            catch(Exception ex)
-            {
-                var t = new System.Threading.Tasks.TaskCompletionSource<object>();
-                t.SetException(ex);
-                return t.Task;
-            }
-        }
-        
-        public static string GetMethodName(int interfaceId, int methodId)
-        {
-
-            switch (interfaceId)
-            {
-                
-                case 306204708:  // IProjectCodeProviderGrain
-                    switch (methodId)
-                    {
-                        case -397931987:
-                            return "SetProjectPath";
-                    case -113155710:
-                            return "SetProjectSourceCode";
-                    case 747974890:
-                            return "IsSubtypeAsync";
-                    case -819592028:
-                            return "FindMethodImplementationAsync";
-                    case -625742380:
-                            return "CreateMethodEntityAsync";
-                    
-                        default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                    }
-                case -1277021679:  // IGrainWithStringKey
-                    switch (methodId)
-                    {
-                        
-                        default: 
-                            throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
-                    }
-
-                default:
-                    throw new System.InvalidCastException("interfaceId="+interfaceId);
-            }
-        }
-    }
 }
 namespace OrleansInterfacesSerializers
 {
@@ -766,6 +766,98 @@ namespace OrleansInterfacesSerializers
     using System.Collections;
     using System.Runtime.InteropServices;
     
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class ReachingTypeAnalysis_TypeDescriptorSerialization
+    {
+        
+        private static System.Reflection.FieldInfo fieldInfo1;
+        
+        private static System.Reflection.FieldInfo fieldInfo2;
+        
+        private static System.Reflection.FieldInfo fieldInfo3;
+        
+        private static System.Reflection.FieldInfo fieldInfo4;
+        
+        private static System.Reflection.FieldInfo fieldInfo5;
+        
+        private static System.Reflection.FieldInfo fieldInfo6;
+        
+        static ReachingTypeAnalysis_TypeDescriptorSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(original));
+            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            object objResult = ((object)(result));
+            object temp1 = input.AssemblyName;
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = input.ClassName;
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = input.IsConcreteType;
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = input.IsReferenceType;
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = input.Kind;
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = input.NamespaceName;
+            fieldInfo6.SetValue(objResult, temp6);
+            return objResult;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.AssemblyName, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.ClassName, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.IsConcreteType, stream, typeof(bool));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.IsReferenceType, stream, typeof(bool));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.SerializableTypeKind));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.NamespaceName, stream, typeof(string));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
+            object objResult = ((object)(result));
+            object temp1 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo1.SetValue(objResult, temp1);
+            object temp2 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo2.SetValue(objResult, temp2);
+            object temp3 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
+            fieldInfo3.SetValue(objResult, temp3);
+            object temp4 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
+            fieldInfo4.SetValue(objResult, temp4);
+            object temp5 = ((ReachingTypeAnalysis.SerializableTypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.SerializableTypeKind), stream)));
+            fieldInfo5.SetValue(objResult, temp5);
+            object temp6 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo6.SetValue(objResult, temp6);
+            return objResult;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.TypeDescriptor), DeepCopier, Serializer, Deserializer);
+            fieldInfo1 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<AssemblyName>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo2 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<ClassName>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo3 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsConcreteType>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo4 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsReferenceType>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo5 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<Kind>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo6 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<NamespaceName>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
@@ -864,98 +956,6 @@ namespace OrleansInterfacesSerializers
             fieldInfo6 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<ReturnType>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
             fieldInfo7 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("name", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
-    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
-    internal class ReachingTypeAnalysis_TypeDescriptorSerialization
-    {
-        
-        private static System.Reflection.FieldInfo fieldInfo1;
-        
-        private static System.Reflection.FieldInfo fieldInfo2;
-        
-        private static System.Reflection.FieldInfo fieldInfo3;
-        
-        private static System.Reflection.FieldInfo fieldInfo4;
-        
-        private static System.Reflection.FieldInfo fieldInfo5;
-        
-        private static System.Reflection.FieldInfo fieldInfo6;
-        
-        static ReachingTypeAnalysis_TypeDescriptorSerialization()
-        {
-            Register();
-        }
-        
-        public static object DeepCopier(object original)
-        {
-            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(original));
-            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
-            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
-            object objResult = ((object)(result));
-            object temp1 = input.AssemblyName;
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = input.ClassName;
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = input.IsConcreteType;
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = input.IsReferenceType;
-            fieldInfo4.SetValue(objResult, temp4);
-            object temp5 = input.Kind;
-            fieldInfo5.SetValue(objResult, temp5);
-            object temp6 = input.NamespaceName;
-            fieldInfo6.SetValue(objResult, temp6);
-            return objResult;
-        }
-        
-        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
-        {
-            ReachingTypeAnalysis.TypeDescriptor input = ((ReachingTypeAnalysis.TypeDescriptor)(untypedInput));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.AssemblyName, stream, typeof(string));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.ClassName, stream, typeof(string));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.IsConcreteType, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.IsReferenceType, stream, typeof(bool));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.Kind, stream, typeof(ReachingTypeAnalysis.SerializableTypeKind));
-            Orleans.Serialization.SerializationManager.SerializeInner(input.NamespaceName, stream, typeof(string));
-        }
-        
-        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
-        {
-            ReachingTypeAnalysis.TypeDescriptor result = ((ReachingTypeAnalysis.TypeDescriptor)(System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ReachingTypeAnalysis.TypeDescriptor))));
-            object objResult = ((object)(result));
-            object temp1 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
-            fieldInfo1.SetValue(objResult, temp1);
-            object temp2 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
-            fieldInfo2.SetValue(objResult, temp2);
-            object temp3 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
-            fieldInfo3.SetValue(objResult, temp3);
-            object temp4 = ((bool)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(bool), stream)));
-            fieldInfo4.SetValue(objResult, temp4);
-            object temp5 = ((ReachingTypeAnalysis.SerializableTypeKind)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.SerializableTypeKind), stream)));
-            fieldInfo5.SetValue(objResult, temp5);
-            object temp6 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
-            fieldInfo6.SetValue(objResult, temp6);
-            return objResult;
-        }
-        
-        public static void Register()
-        {
-            global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.TypeDescriptor), DeepCopier, Serializer, Deserializer);
-            fieldInfo1 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<AssemblyName>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo2 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<ClassName>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo3 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsConcreteType>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo4 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<IsReferenceType>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo5 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<Kind>k__BackingField", (System.Reflection.BindingFlags.Instance 
-                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo6 = typeof(ReachingTypeAnalysis.TypeDescriptor).GetField("<NamespaceName>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }
