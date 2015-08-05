@@ -88,7 +88,6 @@ namespace ReachingTypeAnalysis
             return res;
         }
 
-
         internal async Task<PropagationEffects> PropagateAsync(IProjectCodeProvider codeProvider)
         {
             this.codeProvider = codeProvider;

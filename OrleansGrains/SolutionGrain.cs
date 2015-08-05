@@ -125,6 +125,11 @@ namespace ReachingTypeAnalysis.Analysis
             //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
 			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Exit");
         }
-    }
+
+		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+		{
+			return this.solutionManager.GetProjectCodeProvidersAsync();
+		}
+	}
     
 }

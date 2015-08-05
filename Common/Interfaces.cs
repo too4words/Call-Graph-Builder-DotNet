@@ -40,7 +40,6 @@ namespace ReachingTypeAnalysis
         Task<int> GetInvocationCountAsync();
     }
 
-
     public interface IProjectCodeProvider
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
@@ -49,17 +48,16 @@ namespace ReachingTypeAnalysis
         //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
-    
     }
+
     public interface ISolutionManager
     {
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+
+		Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
+
         Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
-        /// <summary>
-        /// The next 2 methods are for RTA: Not currently used
-        /// </summary>
-        /// <param name="types"></param>
-        /// <returns></returns>
+        //The next 2 methods are for RTA: Not currently used
         Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
     }
