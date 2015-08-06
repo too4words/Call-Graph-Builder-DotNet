@@ -209,19 +209,24 @@ namespace ReachingTypeAnalysis
 			var documentId = DocumentId.CreateNewId(projectId);
 			var tree = SyntaxFactory.ParseSyntaxTree(source);
 
-			var ws = MSBuildWorkspace.Create();
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
+			var ws = MSBuildWorkspace.Create(props);
 			var solution = ws.CurrentSolution
 				.AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
 				.AddMetadataReference(projectId, Mscorlib)
 				.AddDocument(documentId, "MyFile.cs", source);
 			return solution;
 		}
-        public static async Task<Project> ReadProjectAsync(string path)
-        {
-            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-            return await workspace.OpenProjectAsync(path);
 
+        public static Task<Project> ReadProjectAsync(string path)
+        {
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
+			var ws = MSBuildWorkspace.Create(props);
+			return ws.OpenProjectAsync(path);
         }
+
         public static Solution ReadSolution(string path)
         {
             if (!File.Exists(path)) throw new ArgumentException("Missing " + path);

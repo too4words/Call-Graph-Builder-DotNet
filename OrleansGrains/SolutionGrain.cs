@@ -62,7 +62,6 @@ namespace ReachingTypeAnalysis.Analysis
             {
 				this.solutionManager = await strategy.CreateFromSourceAsync(this.State.SourceCode);
             }
-
         }
 
         public async Task SetSolutionPath(string solutionPath)

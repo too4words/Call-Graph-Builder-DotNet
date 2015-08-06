@@ -22,7 +22,11 @@ namespace ReachingTypeAnalysis
 
         public void Dispose()
         {
-            outputWriter.Dispose();
+			if (outputWriter != null)
+			{
+				outputWriter.Dispose();
+				outputWriter = null;
+			}
         }
 
         static void Main(string[] args)
@@ -118,114 +122,5 @@ namespace ReachingTypeAnalysis
 				Console.WriteLine(ex);
 			}
         }
-
-        //private static void RunProgramWithOrleans(string[] args)
-        //{
-        //    var hostDomain = AppDomain.CreateDomain("OrleansHost", null, new AppDomainSetup
-        //    {
-        //        AppDomainInitializer = InitSilo,
-        //        AppDomainInitializerArguments = new string[] { },
-        //    });
-
-        //    GrainClient.Initialize("ClientConfigurationForTesting.xml");
-
-        //    if (args.Length == 0)
-        //    {
-        //        //throw new ArgumentException("Not enough parameters to main");
-        //    }
-        //    var solutionPath = args[0];
-        //    var solution = Utils.ReadSolution(solutionPath);
-        //    //var callGraph = TypePropagationAnalysis.BuildCallGraph(solution);
-        //    //callGraph.Save("cg.dot");
-
-        //    //CompareDispatchers(solution);
-        //    var callgraph = GenerateCallGraph(solution);
-        //    Console.WriteLine("Nodes: {0}", callgraph.GetNodes().Count());
-
-        //    hostDomain.DoCallBack(ShutdownSilo);
-        //}
-
-        //static void InitSilo(string[] args)
-        //{
-        //    hostWrapper = new OrleansHostWrapper(args);
-
-        //    if (!hostWrapper.Run())
-        //    {
-        //        Console.Error.WriteLine("Failed to initialize Orleans silo");
-        //    }
-        //}
-
-        //internal static void ShutdownSilo()
-        //{
-        //    if (hostWrapper != null)
-        //    {
-        //        hostWrapper.Dispose();
-        //        GC.SuppressFinalize(hostWrapper);
-        //    }
-        //}
-
-        //private static OrleansHostWrapper hostWrapper;
-
-        //private static CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph(Solution solution)
-        //{
-        //    var analyzer = new SolutionAnalyzer(solution);
-        //    var timerLocal = new Stopwatch();
-        //    timerLocal.Start();
-        //    // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-        //    var callgraph = analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        //    timerLocal.Stop();
-
-        //    return callgraph;
-        //}
-
-        //private static bool CompareDispatchers(Solution solution)
-        //{
-        //    var analyzerLocal = new SolutionAnalyzer(solution);
-        //    var timerLocal = new Stopwatch();
-        //    timerLocal.Start();
-        //    // This dispacher doesn't parse the methods... analyzerLocal.Analyze(new SynchronousLocalDispatcher());
-        //    analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
-        //    timerLocal.Stop();
-        //    var callgraphLocal = analyzerLocal.GenerateCallGraph();
-        //    Logger.Instance.Log("Program", "CompareDispatchers", "Local analysis time: {0}", timerLocal.Elapsed);
-
-        //    var analyzerParallel = new SolutionAnalyzer(solution);
-        //    var timerQueuing = new Stopwatch();
-        //    timerQueuing.Start();
-        //    analyzerParallel.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
-
-        //    /*           
-        //    using (var queryingDispatcher = new QueueingDispatcher(solution))
-        //    {
-        //        analyzerParallel.AnalyzeEntireSolution();
-
-        //        // block here waiting
-        //        while (!queryingDispatcher.IsDoneProcessing)
-        //        {
-        //            Console.WriteLine("Queue {0}", queryingDispatcher.GetQueueCount());
-        //            Console.WriteLine("A total of {0} messages delivered", queryingDispatcher.MessageCount);
-        //            System.Threading.Thread.Sleep(10000);
-        //        }
-        //    }*/
-        //    timerQueuing.Stop();
-
-        //    var callgraphQueuing = analyzerParallel.GenerateCallGraph();
-
-        //    Logger.Instance.Log("Program", "CompareDispatchers", "Queueing analysis time: {0}", timerLocal.Elapsed);
-        //    Logger.Instance.Log("Program", "CompareDispatchers", "Analysis {0} {1} methods ", 1, callgraphLocal.GetReachableMethods().Count);
-        //    Logger.Instance.Log("Program", "CompareDispatchers", "Analysis {0} {1} methods ", 2, callgraphQueuing.GetReachableMethods().Count);
-
-        //    if (callgraphLocal.GetReachableMethods().Count != callgraphQueuing.GetReachableMethods().Count)
-        //    {
-        //        return false;
-        //    }
-        //    if (callgraphLocal.GetEdges().Count() != callgraphQueuing.GetEdges().Count())
-        //    {
-        //        return false;
-        //    }
-
-        //    // seems like they are the same
-        //    return true;
-        //}
     }
 }

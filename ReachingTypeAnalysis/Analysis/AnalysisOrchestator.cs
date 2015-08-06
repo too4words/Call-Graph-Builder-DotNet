@@ -25,9 +25,9 @@ namespace ReachingTypeAnalysis.Analysis
 		private IAnalysisStrategy strategy;
         //private ISet<Message> messageWorkList = new HashSet<Message>();
         private Queue<Message> messageWorkList = new Queue<Message>();
+        private IDictionary<MethodDescriptor, MethodEntity> anonymousMethods;
 
-        private IDictionary<MethodDescriptor, MethodEntity> anonymousMethods = new Dictionary<MethodDescriptor, MethodEntity>();
-        public MethodEntity GetAnonymousMethodEntity(MethodDescriptor methodDescriptor)
+		public MethodEntity GetAnonymousMethodEntity(MethodDescriptor methodDescriptor)
         {
             return anonymousMethods[methodDescriptor];
         }
@@ -35,6 +35,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public AnalysisOrchestator(IAnalysisStrategy strategy)
 		{
 			this.strategy = strategy;
+			this.anonymousMethods = new Dictionary<MethodDescriptor, MethodEntity>();
 		}
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
