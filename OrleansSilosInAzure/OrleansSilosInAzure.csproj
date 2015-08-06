@@ -127,13 +127,13 @@
       <Project>{2930867f-55b9-4fb2-830e-dd1f4d79448a}</Project>
       <Name>Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\OrleansGrains\OrleansGrains.csproj">
+      <Project>{7edbc025-77c7-481b-8dfa-675a0b670f85}</Project>
+      <Name>OrleansGrains</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OrleansInterfaces\OrleansInterfaces.csproj">
       <Project>{b6126696-692e-4728-8210-922848f297ab}</Project>
       <Name>OrleansInterfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ReachingTypeAnalysis\ReachingTypeAnalysis.csproj">
-      <Project>{31e6307f-30af-46d4-b9b5-195c54408204}</Project>
-      <Name>ReachingTypeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

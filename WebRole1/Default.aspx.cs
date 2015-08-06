@@ -31,14 +31,20 @@ namespace WebRole1
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            var reachableMethods = RunAnalysis();
+            this.TextBox1.Text = string.Format("Reachable methods={0}", reachableMethods.Count);
+        }
+        private static ISet<MethodDescriptor> RunAnalysis()
+        {
+            //string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            string currentSolutionPath = @"\\MSR-LENX1-001\Users\t-digarb\Temp";        
             string solutionFileName = Path.Combine(currentSolutionPath, @"ConsoleApplication1\ConsoleApplication1.sln");
 
             //var solutionFileName = args[0];
-            var program = new Program();
+            var program = new AnalysisClient();
             var callgraph = program.Analyze(solutionFileName);
             var reachableMethods = callgraph.GetReachableMethods();
-            this.TextBox1.Text = string.Format("Reachable methods={0}", reachableMethods.Count);
+            return reachableMethods;
         }
 
         protected void TextBox1_TextChanged(object sender, EventArgs e)
@@ -48,13 +54,4 @@ namespace WebRole1
 
     }
 
-    class Program
-    {
-        public CallGraph<MethodDescriptor, LocationDescriptor> Analyze(string solutionFileName)
-        {
-            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
-            var callgraph = analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-            return callgraph;
-        }
-    }
 }
