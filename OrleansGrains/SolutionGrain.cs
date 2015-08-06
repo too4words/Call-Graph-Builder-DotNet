@@ -77,10 +77,11 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task SetSolutionSource(string solutionSource)
         {
-            Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "");
+            Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Enter");
             this.State.SourceCode = solutionSource;
 			this.solutionManager = await strategy.CreateFromSourceAsync(this.State.SourceCode);
             await this.WriteStateAsync();
+            Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
         
         //public Task<IProjectCodeProvider> GetCodeProviderAsync(MethodDescriptor methodDescriptor)

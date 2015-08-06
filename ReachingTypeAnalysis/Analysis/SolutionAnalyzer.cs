@@ -112,7 +112,31 @@ namespace ReachingTypeAnalysis
                     }
             }
         }
+        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
+        {
+            if (strategyKind == AnalysisStrategyKind.NONE)
+            {
+                strategyKind = StringToAnalysisStrategy(ConfigurationManager.AppSettings["Strategy"]);
+            }
 
+            switch (strategyKind)
+            {
+                case AnalysisStrategyKind.ONDEMAND_ASYNC:
+                    {
+                        var callgraph = await this.OnDemandAsync();
+                        return callgraph;
+                    }
+                case AnalysisStrategyKind.ONDEMAND_ORLEANS:
+                    {
+                        var callGraph = await this.OrleansOnDemand();
+                        return callGraph;
+                    }
+                default:
+                    {
+                        throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
+                    }
+            }
+        }
         private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OnDemandAsync()
         {
             this.Strategy = new OnDemandAsyncStrategy();

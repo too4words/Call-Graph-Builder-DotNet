@@ -47,13 +47,54 @@ namespace WebRole1
         }
         private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync()
         {
-            //string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
-            string currentSolutionPath = @"\\MSR-LENX1-001\Users\t-digarb\Temp";        
+            string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            //string currentSolutionPath = @"\\MSR-LENX1-001\Users\t-digarb\Temp";        
             string solutionFileName = Path.Combine(currentSolutionPath, @"ConsoleApplication1\ConsoleApplication1.sln");
+            #region source code
+            var source = @"
+using System;
+public class D:C
+{
+    public  override void m2(C b)
+    {
+    }
+}
+public class C 
+{
+    int f = 0;
+    C g;
+    public C m1(C a)
+    {
+         f = 0;
+         g = this;
+         this.m2(a);
+         m2(g);
+         return a;
+    }
+    public virtual void m2(C b)
+    {
+        Console.WriteLine(f);
+    }
+}
+class Program
+{
+
+    public static void Main()
+    {
+        C d = new D();
+        C c;
+        c = new C();
+        C h = d.m1(d);
+        h.m2(c);
+        d.Equals(c);
+    }
+}";
+            #endregion
 
             //var solutionFileName = args[0];
             var program = new AnalysisClient();
-            var callgraph = program.Analyze(solutionFileName);
+            //var callgraph = await program.AnalyzeSolutionAsync(solutionFileName);
+            var callgraph = await program.AnalyzeSourceCodeAsync(source);
             var reachableMethods = callgraph.GetReachableMethods();
             return await Task.FromResult(reachableMethods);
         }

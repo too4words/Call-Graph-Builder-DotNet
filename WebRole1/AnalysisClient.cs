@@ -5,15 +5,22 @@ using System.Web;
 using Orleans.Runtime.Host;
 using ReachingTypeAnalysis;
 using SolutionTraversal.CallGraph;
+using System.Threading.Tasks;
 
 namespace WebRole1
 {
     public class AnalysisClient
     {
-        public CallGraph<MethodDescriptor, LocationDescriptor> Analyze(string solutionFileName)
+        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSolutionAsync(string solutionFileName)
         {
             var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
-            var callgraph = analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            return callgraph;
+        }
+        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSourceCodeAsync(string source)
+        {
+            var analyzer = SolutionAnalyzer.CreateFromSource(source);
+            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
             return callgraph;
         }
     }
