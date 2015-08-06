@@ -26,7 +26,7 @@ namespace ReachingTypeAnalysis.Analysis
 			//get { return this.solutionManager; }
             get 
             {
-               return  grainFactory.GetGrain<ISolutionGrain>("Solution");
+               return grainFactory.GetGrain<ISolutionGrain>("Solution");
             }
         }
 

@@ -12,7 +12,7 @@ using System.Web.Http;
 
 namespace ConsoleServer.Controllers
 {
-	// http://localhost:14054/index.html?graph=BasicTest&mode=orleans
+	// http://localhost:14054/index.html?graph=ConsoleApplication1&mode=orleans
 	public class OrleansController: ApiController
     {
 		public static ISolutionManager SolutionManager { get; set; }
@@ -52,7 +52,7 @@ namespace ConsoleServer.Controllers
         {
             using (TimedLog.Time(graph + " :: Get File"))
             {
-				throw new NotImplementedException();
+				return new List<FileResponse>();
 			}
         }
 
@@ -64,7 +64,7 @@ namespace ConsoleServer.Controllers
         {
             using (TimedLog.Time(graph + " :: Get References"))
             {
-				throw new NotImplementedException();
+				return new List<SymbolReference>();
 			}
         }
 
@@ -88,7 +88,7 @@ namespace ConsoleServer.Controllers
         {
             using (TimedLog.Time(graph + " :: Co-occurrence Count"))
             {
-				throw new NotImplementedException();
+				return new List<SymbolReferenceCount>();
 			}
         }
     }

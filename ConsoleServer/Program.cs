@@ -34,7 +34,8 @@ Listening on Port {0} ...
             // read port argument
             var port = GetValidPort(args.Length >= 1 ? args[0] : null);
             var baseAddress = string.Format("http://localhost:{0}/", port);
-			var solutionPath = @"..\..\..\ConsoleApplication1\ConsoleApplication1.sln";
+			//var solutionPath = @"..\..\..\ConsoleApplication1\ConsoleApplication1.sln";
+			var solutionPath = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\ConsoleApplication1\ConsoleApplication1.sln";
 			//var solutionPath = @"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln";
 
 			InitializeAnalysis(solutionPath);
