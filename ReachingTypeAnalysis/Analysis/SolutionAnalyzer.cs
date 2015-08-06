@@ -91,33 +91,13 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
-						this.Strategy = new OnDemandAsyncStrategy();
-                        ISolutionManager solutionManager = null;
-
-                        if (this.source != null)
-                        {
-                            solutionManager = this.Strategy.CreateFromSourceAsync(this.source).Result;
-                        }
-                        else
-                        {
-							solutionManager = this.Strategy.CreateFromSolutionAsync(this.solutionPath).Result;
-                        }
-
-						var mainMethods = solutionManager.GetRootsAsync().Result;
-						var orchestator = new AnalysisOrchestator(Strategy);
-						orchestator.AnalyzeAsync(mainMethods).Wait();
-
-						// This is for debugging just one project
-						//var compilerMainMethod = new MethodDescriptor("Microsoft.CodeAnalysis.CSharp.CommandLine", "Program", "Main", true);
-						//Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
-						//orchestator.AnalyzeAsync(compilerMainMethod).Wait();
-
-						var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
-	                    return callGraph;
+                        var callgraph = OnDemandAsync().Result;
+                        return callgraph;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
 					{
-                        return OrleansOnDemand().Result;
+                        var callGraph = OrleansOnDemand().Result;
+                        return callGraph;
 					}
                 case AnalysisStrategyKind.ENTIRE_ASYNC:
                     {
@@ -131,6 +111,33 @@ namespace ReachingTypeAnalysis
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
                     }
             }
+        }
+
+        private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OnDemandAsync()
+        {
+            this.Strategy = new OnDemandAsyncStrategy();
+            ISolutionManager solutionManager = null;
+
+            if (this.source != null)
+            {
+                solutionManager = await this.Strategy.CreateFromSourceAsync(this.source);
+            }
+            else
+            {
+                solutionManager = await this.Strategy.CreateFromSolutionAsync(this.solutionPath);
+            }
+
+            var mainMethods = await solutionManager.GetRootsAsync();
+            var orchestator = new AnalysisOrchestator(Strategy);
+            await orchestator.AnalyzeAsync(mainMethods);
+
+            // This is for debugging just one project
+            //var compilerMainMethod = new MethodDescriptor("Microsoft.CodeAnalysis.CSharp.CommandLine", "Program", "Main", true);
+            //Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
+            //orchestator.AnalyzeAsync(compilerMainMethod).Wait();
+
+            var callGraph = await orchestator.GenerateCallGraphAsync(solutionManager);
+            return callGraph;
         }
 
         private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OrleansOnDemand()
