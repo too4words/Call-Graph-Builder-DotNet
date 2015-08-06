@@ -1,6 +1,6 @@
-﻿using ConsoleServer.Model;
+﻿using CodeGraphModel;
 using ConsoleServer.Utils;
-using Microsoft.VisualStudio.Services.WebApi;
+using ReachingTypeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +15,8 @@ namespace ConsoleServer.Controllers
 	// http://localhost:14054/index.html?graph=BasicTest&mode=orleans
 	public class OrleansController: ApiController
     {
+		public static ISolutionManager SolutionManager { get; set; }
+
         /// <summary>
         /// Get All Files in the graph (Abbreviated)
         /// </summary>
@@ -23,14 +25,29 @@ namespace ConsoleServer.Controllers
         {
             using (TimedLog.Time(graph + " :: Get All Files"))
             {
-				throw new NotImplementedException();
+				var result = GetAllFilesAsync(graph).Result;
+				return result;
             }
         }
 
-        /// <summary>
-        /// Get Full Files matching specified file path
-        /// </summary>
-        [Route("api/orleans/{graph}/entities/file/{*filePath}")]
+		private async Task<IEnumerable<FileResponse>> GetAllFilesAsync(string graph)
+		{
+			var result = new List<FileResponse>();
+			var providers = await SolutionManager.GetProjectCodeProvidersAsync();
+
+			foreach (var provider in providers)
+			{
+				var files = await provider.GetDocumentsAsync();
+				result.AddRange(files);
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Get Full Files matching specified file path
+		/// </summary>
+		[Route("api/orleans/{graph}/entities/file/{*filePath}")]
         public IEnumerable<FileResponse> GetFileEntities(string graph, string filePath)
         {
             using (TimedLog.Time(graph + " :: Get File"))
@@ -59,7 +76,7 @@ namespace ConsoleServer.Controllers
         {
             using (TimedLog.Time(graph + " :: Reference Count"))
             {
-				throw new NotImplementedException();
+				return new List<SymbolReferenceCount>();
 			}
         }
 

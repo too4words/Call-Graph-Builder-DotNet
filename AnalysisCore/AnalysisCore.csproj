@@ -152,6 +152,10 @@
     <Compile Include="StatementProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CodeGraphModel\CodeGraphModel.csproj">
+      <Project>{55b3035f-2852-4b39-a235-7627d108373d}</Project>
+      <Name>CodeGraphModel</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{2930867f-55b9-4fb2-830e-dd1f4d79448a}</Project>
       <Name>Common</Name>

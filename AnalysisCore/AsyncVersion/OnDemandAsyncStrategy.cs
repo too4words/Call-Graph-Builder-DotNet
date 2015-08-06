@@ -20,6 +20,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();            
 		}
 
+		public ISolutionManager SolutionManager
+		{
+			get { return this.solutionManager; }
+		}
+
 		public async Task<ISolutionManager> CreateFromSourceAsync(string source)
 		{
 			this.solutionManager = await AsyncSolutionManager.CreateFromSourceAsync(source);

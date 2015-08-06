@@ -4,7 +4,7 @@
 // </copyright>
 //---------------------------------------------------------------------------------------------------------------------
 
-namespace Microsoft.VisualStudio.Services.WebApi
+namespace CodeGraphModel
 {
     using System.Runtime.Serialization;
 

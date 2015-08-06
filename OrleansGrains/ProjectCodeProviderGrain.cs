@@ -11,16 +11,15 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using CodeGraphModel;
 
 namespace ReachingTypeAnalysis.Analysis
 {
     public interface IProjectState : IGrainState
     {
         string FullPath { get; set; }
-        string Name { get; set; }
- 
+        string Name { get; set; } 
         string SourceCode { get; set; }
-
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
@@ -98,57 +97,15 @@ namespace ReachingTypeAnalysis.Analysis
             return this.projectCodeProvider.GetRootsAsync();
         }
 
-		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
-			var methodEntity = await this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
-			return methodEntity;
+			return this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 		}
-    }
-    //[Serializable]
-    //internal class ProjectGrainWrapper : IProjectCodeProvider
-    //{
-    //    private IProjectCodeProviderGrain projectGrain;
-    //    internal static async Task<IProjectCodeProvider> CreateProjectGrainWrapperAsync(MethodDescriptor methodDescriptor)
-    //    {
-    //        var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-    //        //ISolutionGrain solutionGrain = SolutionGrainFactory.GetGrain("Solution");
-    //        var codeProviderGrain = await solutionGrain.GetCodeProviderAsync(methodDescriptor);
 
-    //        if(codeProviderGrain!=null)
-    //        {
-    //            return new ProjectGrainWrapper(codeProviderGrain);
-    //        }
-    //        return null;
-    //    }
-    //    internal ProjectGrainWrapper(IProjectCodeProviderGrain grain)
-    //    {
-    //        projectGrain = grain;
-    //    }
-    //    public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-    //    {
-    //        return projectGrain.IsSubtypeAsync(typeDescriptor1,typeDescriptor2);
-    //    }
-    //    public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-    //    {
-    //        return projectGrain.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
-    //    }
-
-    //    public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-    //    {
-    //        throw new NotImplementedException();
-    //        //return IsSubtypeAsync(typeDescriptor1,typeDescriptor2).Result;
-    //    }
-    //    public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-    //    {
-    //        throw new NotImplementedException();
-    //        //return FindMethodImplementationAsync(methodDescriptor,typeDescriptor).Result;
-    //    }
-    //    public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
-    //    {
-    //        return projectGrain.CreateMethodEntityAsync(methodDescriptor);
-    //    }
-    //}
-
-   
+		public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
+		{
+			return this.projectCodeProvider.GetDocumentsAsync();
+		}
+	}   
 }

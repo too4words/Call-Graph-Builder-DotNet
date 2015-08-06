@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin.Hosting;
 using System.Net.Http;
-using ConsoleServer.Model;
 using System.Reflection;
 using ReachingTypeAnalysis;
+using ConsoleServer.Controllers;
 
 namespace ConsoleServer
 {
@@ -49,6 +49,7 @@ Listening on Port {0} ...
 
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
+			OrleansController.SolutionManager = analyzer.Strategy.SolutionManager;
 
 			Console.WriteLine("Done");
 		}
@@ -81,12 +82,13 @@ Listening on Port {0} ...
 
         private static void CheckForExit()
         {
-            string command = null;
+            string command;
 
-            while (!command.Equals("Exit", StringComparison.InvariantCultureIgnoreCase))
-            {
-                command = Console.ReadLine();
-            }
+			do
+			{
+				command = Console.ReadLine();
+			}
+			while (!command.Equals("Exit", StringComparison.InvariantCultureIgnoreCase));
         }
 	}
 }

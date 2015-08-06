@@ -1,4 +1,5 @@
-﻿using ReachingTypeAnalysis;
+﻿using CodeGraphModel;
+using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Communication;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,11 @@ namespace ReachingTypeAnalysis
 
 	public interface IAnalysisStrategy
 	{
-		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
-		Task<ISolutionManager> CreateFromSourceAsync(string source);
+		ISolutionManager SolutionManager { get; }
+        Task<ISolutionManager> CreateFromSourceAsync(string source);
 		Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath);
-    }
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+	}
 
     public interface IMethodEntityWithPropagator: IEntity
     {
@@ -48,6 +50,8 @@ namespace ReachingTypeAnalysis
         //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+
+		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
     }
 
     public interface ISolutionManager

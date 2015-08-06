@@ -39,7 +39,7 @@ namespace ReachingTypeAnalysis
 
 		public static int MessageCounter { get; private set; }
 
-		internal IAnalysisStrategy Strategy { get; private set; }
+		public IAnalysisStrategy Strategy { get; private set; }
 
 		private SolutionAnalyzer()
 		{
@@ -91,12 +91,12 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
-                        var callgraph = OnDemandAsync().Result;
+                        var callgraph = this.OnDemandAsync().Result;
                         return callgraph;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
 					{
-                        var callGraph = OrleansOnDemand().Result;
+                        var callGraph = this.OrleansOnDemand().Result;
                         return callGraph;
 					}
                 case AnalysisStrategyKind.ENTIRE_ASYNC:
@@ -128,7 +128,7 @@ namespace ReachingTypeAnalysis
             }
 
             var mainMethods = await solutionManager.GetRootsAsync();
-            var orchestator = new AnalysisOrchestator(Strategy);
+            var orchestator = new AnalysisOrchestator(this.Strategy);
             await orchestator.AnalyzeAsync(mainMethods);
 
             // This is for debugging just one project
@@ -136,7 +136,7 @@ namespace ReachingTypeAnalysis
             //Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
             //orchestator.AnalyzeAsync(compilerMainMethod).Wait();
 
-            var callGraph = await orchestator.GenerateCallGraphAsync(solutionManager);
+            var callGraph = await orchestator.GenerateCallGraphAsync();
             return callGraph;
         }
 
@@ -159,10 +159,10 @@ namespace ReachingTypeAnalysis
             }
 
             var mainMethods = await solutionManager.GetRootsAsync();
-            var orchestator = new AnalysisOrchestator(Strategy);
+            var orchestator = new AnalysisOrchestator(this.Strategy);
             await orchestator.AnalyzeAsync(mainMethods);
 
-            var callGraph = await orchestator.GenerateCallGraphAsync(solutionManager);
+            var callGraph = await orchestator.GenerateCallGraphAsync();
             Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
             return callGraph;
         }
@@ -291,7 +291,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        public void CompareWithRoslynFindReferences(string filename)
+        internal void CompareWithRoslynFindReferences(string filename)
         {
             var writer = File.CreateText(filename);
             writer.WriteLine("Caller; Callee; CG; Roslyn; CG vs R; R vs CG");

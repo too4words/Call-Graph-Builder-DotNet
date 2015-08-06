@@ -4,16 +4,34 @@
 // </copyright>
 //---------------------------------------------------------------------------------------------------------------------
 
-namespace Microsoft.VisualStudio.Services.WebApi
+namespace CodeGraphModel
 {
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
-    /// <summary>
-    /// Data type for File entity. File is the type used in graph database while FileReponse is the type used by REST API.
-    /// Consider to merge these two types into one in the future.
-    /// </summary>
-    [DataContract]
+	public class BuildInfo
+	{
+		public string TeamProjectName { get; set; }
+		public string RepositoryName { get; set; }
+		public string BranchName { get; set; }
+		public string VersionName { get; set; }
+		public string BuildInfoFileName { get; set; }
+
+		public BuildInfo()
+		{
+			this.TeamProjectName = "SYSTEM_TEAMPROJECT";
+			this.RepositoryName = "BUILD_REPOSITORY_NAME";
+			this.BranchName = "BUILD_SOURCEBRANCH";
+			this.VersionName = "BUILD_SOURCEVERSION";
+			this.BuildInfoFileName = "build.json";
+		}
+	}
+
+	/// <summary>
+	/// Data type for File entity. File is the type used in graph database while FileReponse is the type used by REST API.
+	/// Consider to merge these two types into one in the future.
+	/// </summary>
+	[DataContract]
     public class File : Entity
     {
         [DataMember]

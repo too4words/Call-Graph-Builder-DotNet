@@ -67,6 +67,7 @@ namespace ReachingTypeAnalysis.Roslyn
             Contract.Assert(false, "Can't find project named = " + name);
             return null;
         }
+
         #region ICodeProvider Implementation
 
         public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
@@ -86,8 +87,7 @@ namespace ReachingTypeAnalysis.Roslyn
             }
             return methodEntity;
         }
-
-
+		
         public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
@@ -100,7 +100,6 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return Task.FromResult<MethodDescriptor>(FindMethodImplementation(methodDescriptor, typeDescriptor));
         }
-
 
         public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
@@ -117,6 +116,7 @@ namespace ReachingTypeAnalysis.Roslyn
             // If we cannot resolve the method, we return the same method.
             return methodDescriptor;
         }
+
         public IMethodSymbol FindMethod(MethodDescriptor methodDescriptor)
         {
             return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
@@ -134,16 +134,46 @@ namespace ReachingTypeAnalysis.Roslyn
                 var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
                 result.Add(methodDescriptor);
             }
+
             return Task.FromResult<IEnumerable<MethodDescriptor>>(result);
         }
-        #endregion
 
-        /// <summary>
-        /// This is use by the Solution Grain? to get the main methods of the solution
-        /// </summary>
-        /// <param name="solution"></param>
-        /// <returns></returns>
-        public static async Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Solution solution)
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
+		{
+			var result = new List<CodeGraphModel.FileResponse>();
+
+			foreach (var document in this.Project.Documents)
+			{
+				var fileResponse = CreateFileResponse(document);
+				result.Add(fileResponse);
+            }
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private CodeGraphModel.FileResponse CreateFileResponse(Document document)
+		{
+			var buildInfo = new CodeGraphModel.BuildInfo();
+
+			var result = new CodeGraphModel.FileResponse()
+			{
+				uid = document.Id.Id.ToString(),
+				filepath = document.FilePath,
+				repository = buildInfo.RepositoryName,
+				version = buildInfo.VersionName
+			};
+
+			return result;
+        }
+
+		#endregion
+
+		/// <summary>
+		/// This is use by the Solution Grain? to get the main methods of the solution
+		/// </summary>
+		/// <param name="solution"></param>
+		/// <returns></returns>
+		public static async Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Solution solution)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             var tasks = new List<Task<Compilation>>();
@@ -171,7 +201,6 @@ namespace ReachingTypeAnalysis.Roslyn
 
             return result;
         }
-
  
         /// <summary>
         /// This method is used by the class MethodParser search for the method declaration syntax
@@ -265,7 +294,8 @@ namespace ReachingTypeAnalysis.Roslyn
 			return compilation;
 		}
 
-        #region Used By OnDemandDisPatcher (Sync Analysis)
+        #region Used By OnDemandDispatcher (Sync Analysis)
+
         async internal static Task<MethodEntity> FindProviderAndCreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             return (await FindCodeProviderAndEntity(methodDescriptor)).Item2;
@@ -299,6 +329,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
             return new Tuple<IProjectCodeProvider, MethodEntity>(provider, methodEntity);
         }
+
         public static IEnumerable<MethodDescriptor> GetMainMethods(Solution solution)
         {
             var cancellationTokenSource = new CancellationTokenSource();
@@ -337,7 +368,6 @@ namespace ReachingTypeAnalysis.Roslyn
 
             return null;
         }
-
         internal static async Task<Tuple<ProjectCodeProvider, IMethodSymbol, SyntaxTree>> GetProviderContainingEntryPointAsync(Project project, CancellationToken cancellationToken)
         {
             var compilation = await CompileProjectAsync(project, cancellationToken);
@@ -377,9 +407,12 @@ namespace ReachingTypeAnalysis.Roslyn
                 return null;
             }
         }
-        #endregion
-        #region Also used by OnDemand Async MethodProcessor (we need to get rid of the Global Solution here)
-        internal static async Task<Tuple<IProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
+
+		#endregion
+
+		#region Also used by OnDemand Async MethodProcessor (we need to get rid of the Global Solution here)
+
+		internal static async Task<Tuple<IProjectCodeProvider, SyntaxTree>> GetProjectProviderAndSyntaxAsync(MethodDescriptor methodDescriptor)
         {
             Contract.Assert(ProjectCodeProvider.Solution != null);
             return await GetProjectProviderAndSyntaxAsync(methodDescriptor, ProjectCodeProvider.Solution);
@@ -439,6 +472,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
         #endregion
     }
+
     internal class DummyCodeProvider : IProjectCodeProvider
     {
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
@@ -460,16 +494,24 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return methodDescriptor;
         }
-        public  Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+
+        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodParser(methodDescriptor);
             var methodEntity = libraryMethodVisitor.ParseMethod();
-            return Task.FromResult((IEntity)methodEntity);
+            return Task.FromResult<IEntity>(methodEntity);
         }
+
         public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
             var result = new HashSet<MethodDescriptor>();
-            return Task.FromResult<IEnumerable<MethodDescriptor>>(result);
+            return Task.FromResult(result.AsEnumerable());
         }
-    }
+
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
+		{
+			var result = new HashSet<CodeGraphModel.FileResponse>();
+			return Task.FromResult(result.AsEnumerable());
+		}
+	}
 }

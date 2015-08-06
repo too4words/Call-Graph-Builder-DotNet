@@ -19,6 +19,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.grainFactory = grainFactory;
 		}
 
+		public ISolutionManager SolutionManager
+		{
+			get { return this.solutionManager; }
+		}
+
 		public async Task<ISolutionManager> CreateFromSourceAsync(string source)
 		{
 			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(grainFactory, source);

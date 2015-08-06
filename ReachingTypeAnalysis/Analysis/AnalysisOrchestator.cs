@@ -236,11 +236,12 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
-        internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync(ISolutionManager solution)
+        internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
         {
             Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
             var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-            var roots = await solution.GetRootsAsync();
+			var solution = strategy.SolutionManager;
+			var roots = await solution.GetRootsAsync();
             callgraph.AddRootMethods(roots);
             var visited = new HashSet<MethodDescriptor>(roots);
             var worklist = new Queue<MethodDescriptor>(roots);
