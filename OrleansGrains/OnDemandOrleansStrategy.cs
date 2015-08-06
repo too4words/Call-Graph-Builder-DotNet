@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using OrleansInterfaces;
 using Orleans;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
 namespace ReachingTypeAnalysis.Analysis
 {
 	internal class OnDemandOrleansStrategy : IAnalysisStrategy

@@ -20,7 +20,7 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "FileStore")]
     [StorageProvider(ProviderName = "MemoryStore")]
     //[Reentrant]
-    internal class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
+    public class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         [NonSerialized]
         private IMethodEntityWithPropagator methodEntityPropagator;

@@ -170,7 +170,6 @@
     <Compile Include="MethodEntityGrain.cs" />
     <Compile Include="OnDemandOrleansStrategy.cs" />
     <Compile Include="SolutionGrain.cs" />
-    <Content Include="OrleansEntityDescriptor.cs" />
     <Compile Include="OrleansSolutionManager.cs" />
     <Compile Include="ProjectCodeProviderGrain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
