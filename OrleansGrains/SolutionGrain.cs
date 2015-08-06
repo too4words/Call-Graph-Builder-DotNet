@@ -118,12 +118,13 @@ namespace ReachingTypeAnalysis.Analysis
             // return await Task.FromResult(instantiadtedTypes);
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
 			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
-            return this.solutionManager.GetRootsAsync();
+            var roots = await this.solutionManager.GetRootsAsync();
             //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
 			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Exit");
+            return roots; 
         }
 
 		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()

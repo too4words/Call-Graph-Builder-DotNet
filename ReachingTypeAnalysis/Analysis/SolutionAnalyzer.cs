@@ -117,29 +117,7 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
 					{
-						this.Strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
-
-						SolutionAnalyzer.MessageCounter = 0;
-						GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
-
-						var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-
-						if (this.source != null)
-						{
-							solutionManager.SetSolutionSource(this.source).Wait();
-						}
-						else
-						{
-							solutionManager.SetSolutionPath(this.solutionPath).Wait();
-						}
-
-						var mainMethods = solutionManager.GetRootsAsync().Result;
-						var orchestator = new AnalysisOrchestator(Strategy);
-						orchestator.AnalyzeAsync(mainMethods).Wait();
-
-						var callGraph = orchestator.GenerateCallGraphAsync(solutionManager).Result;
-						Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
-						return callGraph;
+                        return OrleansOnDemand().Result;
 					}
                 case AnalysisStrategyKind.ENTIRE_ASYNC:
                     {
@@ -153,6 +131,33 @@ namespace ReachingTypeAnalysis
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
                     }
             }
+        }
+
+        private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OrleansOnDemand()
+        {
+            this.Strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
+
+            SolutionAnalyzer.MessageCounter = 0;
+            GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+
+            var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+
+            if (this.source != null)
+            {
+                await solutionManager.SetSolutionSource(this.source);
+            }
+            else
+            {
+                await solutionManager.SetSolutionPath(this.solutionPath);
+            }
+
+            var mainMethods = await solutionManager.GetRootsAsync();
+            var orchestator = new AnalysisOrchestator(Strategy);
+            await orchestator.AnalyzeAsync(mainMethods);
+
+            var callGraph = await orchestator.GenerateCallGraphAsync(solutionManager);
+            Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+            return callGraph;
         }
 
 		private Solution GetSolution()
