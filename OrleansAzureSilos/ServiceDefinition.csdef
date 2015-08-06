@@ -16,9 +16,11 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
   -->
+    <!--
     <LocalResources>
       <LocalStorage name="LocalStorage1" cleanOnRoleRecycle="false" />
     </LocalResources>
+    -->
   </WorkerRole>
 
   <WebRole name="WebRole1" vmsize="Small">
