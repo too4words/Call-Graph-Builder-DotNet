@@ -23,8 +23,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public ISolutionManager SolutionManager
 		{
-			get { return this.solutionManager; }
-		}
+			//get { return this.solutionManager; }
+            get 
+            {
+               return  grainFactory.GetGrain<ISolutionGrain>("Solution");
+            }
+        }
 
 		public async Task<ISolutionManager> CreateFromSourceAsync(string source)
 		{
