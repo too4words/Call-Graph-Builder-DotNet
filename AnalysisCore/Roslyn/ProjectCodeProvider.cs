@@ -145,11 +145,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			foreach (var document in this.Project.Documents)
 			{
 				var fileResponse = CreateFileResponse(document);
-
-				if (fileResponse != null)
-				{
-					result.Add(fileResponse);
-				}
+				result.Add(fileResponse);
             }
 
 			return Task.FromResult(result.AsEnumerable());
@@ -157,26 +153,10 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		private CodeGraphModel.FileResponse CreateFileResponse(Document document)
 		{
-			if (document.Name.StartsWith(".NETFramework,")) return null;
-			var buildInfo = new CodeGraphModel.BuildInfo();
-			var filepath = document.FilePath;
-
-			// TODO: Hack!!!
-			var dir = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
-
-			if (filepath.StartsWith(dir))
-			{
-				filepath = filepath.Replace(dir, string.Empty);
-			}
-
-			filepath = filepath.Replace(@"\", "/");
-
 			var result = new CodeGraphModel.FileResponse()
 			{
 				uid = document.Id.Id.ToString(),
-				filepath = filepath,
-				repository = buildInfo.RepositoryName,
-				version = buildInfo.VersionName
+				filepath = document.FilePath,
 			};
 
 			return result;

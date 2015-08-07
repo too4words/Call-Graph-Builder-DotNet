@@ -3,6 +3,7 @@ using ConsoleServer.Utils;
 using ReachingTypeAnalysis;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
@@ -38,10 +39,36 @@ namespace ConsoleServer.Controllers
 			foreach (var provider in providers)
 			{
 				var files = await provider.GetDocumentsAsync();
+
+				files = from f in files
+						where !FilterFile(f)
+						select f;
+
 				result.AddRange(files);
 			}
 
 			return result;
+		}
+
+		private static bool FilterFile(FileResponse file)
+		{
+			// TODO: Hack!!!
+			var filename = Path.GetFileName(file.filepath);			
+			if (filename.StartsWith(".NETFramework,")) return true;			
+			var buildInfo = new BuildInfo();
+			var dir = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+			var filepath = file.filepath;
+
+			if (filepath.StartsWith(dir))
+			{
+				filepath = filepath.Replace(dir, string.Empty);
+			}
+
+			file.filepath = filepath.Replace(@"\", "/");
+			file.repository = buildInfo.RepositoryName;
+			file.version = buildInfo.VersionName;
+
+			return false;
 		}
 
 		/// <summary>
