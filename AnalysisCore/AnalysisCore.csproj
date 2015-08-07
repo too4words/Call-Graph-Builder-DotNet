@@ -142,6 +142,7 @@
     <Compile Include="Logger.cs" />
     <Compile Include="MethodEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Roslyn\CodeGraphHelper.cs" />
     <Compile Include="Roslyn\ExpressionVisitor.cs" />
     <Compile Include="Roslyn\LibraryMethodProcessor.cs" />
     <Compile Include="Roslyn\MethodSimpifier.cs" />

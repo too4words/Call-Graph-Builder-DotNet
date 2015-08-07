@@ -66,7 +66,10 @@ namespace CodeGraphModel
         [DataMember]
         public string uid;
 
-        [DataMember]
+		[DataMember]
+		public string assemblyname;
+
+		[DataMember]
         public string filepath;
 
         [DataMember]

@@ -52,7 +52,9 @@ namespace ReachingTypeAnalysis
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
-    }
+
+		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath);
+	}
 
     public interface ISolutionManager
     {
@@ -60,7 +62,9 @@ namespace ReachingTypeAnalysis
 
 		Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
 
-        Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
+		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
+
+		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
         //The next 2 methods are for RTA: Not currently used
         Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();

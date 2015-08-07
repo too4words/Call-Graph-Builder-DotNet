@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
+using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -140,46 +141,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
 		{
-			var result = new List<CodeGraphModel.FileResponse>();
-
-			foreach (var document in this.Project.Documents)
-			{
-				var fileResponse = CreateFileResponse(document);
-
-				if (fileResponse != null)
-				{
-					result.Add(fileResponse);
-				}
-            }
-
-			return Task.FromResult(result.AsEnumerable());
+			return CodeGraphHelper.GetDocumentsAsync(this.Project);
 		}
 
-		private CodeGraphModel.FileResponse CreateFileResponse(Document document)
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
 		{
-			if (document.Name.StartsWith(".NETFramework,")) return null;
-			var buildInfo = new CodeGraphModel.BuildInfo();
-			var filepath = document.FilePath;
-
-			// TODO: Hack!!!
-			var dir = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
-
-			if (filepath.StartsWith(dir))
-			{
-				filepath = filepath.Replace(dir, string.Empty);
-			}
-
-			filepath = filepath.Replace(@"\", "/");
-
-			var result = new CodeGraphModel.FileResponse()
-			{
-				uid = document.Id.Id.ToString(),
-				filepath = filepath,
-				repository = buildInfo.RepositoryName,
-				version = buildInfo.VersionName
-			};
-
-			return result;
+			var document = this.Project.Documents.Single(doc => doc.FilePath.EndsWith(filePath, StringComparison.InvariantCultureIgnoreCase));
+			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
         }
 
 		#endregion
@@ -529,5 +497,11 @@ namespace ReachingTypeAnalysis.Roslyn
 			var result = new HashSet<CodeGraphModel.FileResponse>();
 			return Task.FromResult(result.AsEnumerable());
 		}
-	}
+
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		{
+			var result = new HashSet<CodeGraphModel.FileResponse>();
+			return Task.FromResult(result.AsEnumerable());
+		}
+    }
 }
