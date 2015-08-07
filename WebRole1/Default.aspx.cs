@@ -35,8 +35,11 @@ namespace WebRole1
             try
             {
                 this.TextBox1.Text = "Accessing Grains...";
-                var reachableMethods = await RunAnalysisAsync();
-                this.TextBox1.Text = string.Format("Reachable methods={0}", reachableMethods.Count);
+				var solutionPath = TextBoxPath.Text;
+				var pathPrefix = TextBoxPathPrefix.Text;
+                var reachableMethods = await RunAnalysisAsync(pathPrefix, solutionPath);
+				string methods = String.Join("\n", reachableMethods);
+                this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count,methods);
             }
             catch (Exception exc)
             {
@@ -45,13 +48,11 @@ namespace WebRole1
                 this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
             }
         }
-        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync()
+        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync(string pathPrefix, 
+																	string solutionRelativePath)
         {
-            string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
-            //string currentSolutionPath = @"\\MSR-LENX1-001\Users\t-digarb\Temp";        
-            string solutionFileName = Path.Combine(currentSolutionPath, @"ConsoleApplication1\ConsoleApplication1.sln");
-            #region source code
-            var source = @"
+			#region source code
+			var source = @"
 using System;
 public class D:C
 {
@@ -89,21 +90,23 @@ class Program
         d.Equals(c);
     }
 }";
-            #endregion
+			#endregion
+			string currentSolutionPath = pathPrefix;
+			
+			//string currentSolutionPath = @"c:\Temp\solutions";
+            //string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            //string currentSolutionPath = @"\\MSR-LENX1-001\Users\t-digarb\Temp";        
+            string solutionFileName = Path.Combine(currentSolutionPath, solutionRelativePath);
+            
 
             //var solutionFileName = args[0];
             var program = new AnalysisClient();
-            //var callgraph = await program.AnalyzeSolutionAsync(solutionFileName);
-            var callgraph = await program.AnalyzeSourceCodeAsync(source);
+            var callgraph = await program.AnalyzeSolutionAsync(solutionFileName);
+            //var callgraph = await program.AnalyzeSourceCodeAsync(source);
             var reachableMethods = callgraph.GetReachableMethods();
             return await Task.FromResult(reachableMethods);
         }
-
-        protected void TextBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
+		
     }
 
 }

@@ -4,12 +4,27 @@
     <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansdatastorage;AccountKey=w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ==" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="diegog" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEBY0kqcq/regTILh6rJD54swDQYJKoZIhvcNAQEBBQAEggEAGOY90viuRmufYF7nadjZm1CfaztSWW5+iXkfovfupd0j6t4/+sqYB7CuUfRkrWcBlhtfKRutVZnFjnMjaJ4ArEyCbFeSDKo2T9TsE/w1vZb/7ZlZUA423bg9yRl10QUFCsAGbPff/OIKycMJ7h4jT3aPSifdRyBlfV8ziPruaFjyV1Zdm7s5TUxD48rkkUCuYguvOSSg1r26WIcM+WKpwst10jPr0gum1Y5PKYUBCf8P9GGGjRsx6tc4oxjsLsz3WLl80pyrIecKy0JkHr5NeTYgnvq3gk9jVvFaS309JH9pssYN4CgPBlfGjPZ6UXIcPg9ht7oGBtgfoax2zBaaDDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECGedARwRR+KrgBCNQKOK0jF3MQ+aacxy4j7C" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
     </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="539D45CDA52B1ECA1C641209C17B294C7DA83D28" thumbprintAlgorithm="sha1" />
+    </Certificates>
   </Role>
   <Role name="WebRole1">
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansdatastorage;AccountKey=w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ==" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="diegog" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEBY0kqcq/regTILh6rJD54swDQYJKoZIhvcNAQEBBQAEggEAGOY90viuRmufYF7nadjZm1CfaztSWW5+iXkfovfupd0j6t4/+sqYB7CuUfRkrWcBlhtfKRutVZnFjnMjaJ4ArEyCbFeSDKo2T9TsE/w1vZb/7ZlZUA423bg9yRl10QUFCsAGbPff/OIKycMJ7h4jT3aPSifdRyBlfV8ziPruaFjyV1Zdm7s5TUxD48rkkUCuYguvOSSg1r26WIcM+WKpwst10jPr0gum1Y5PKYUBCf8P9GGGjRsx6tc4oxjsLsz3WLl80pyrIecKy0JkHr5NeTYgnvq3gk9jVvFaS309JH9pssYN4CgPBlfGjPZ6UXIcPg9ht7oGBtgfoax2zBaaDDAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECGedARwRR+KrgBCNQKOK0jF3MQ+aacxy4j7C" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
     </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="539D45CDA52B1ECA1C641209C17B294C7DA83D28" thumbprintAlgorithm="sha1" />
+    </Certificates>
   </Role>
 </ServiceConfiguration>
