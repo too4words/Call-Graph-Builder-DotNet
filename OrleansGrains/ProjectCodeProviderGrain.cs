@@ -107,5 +107,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.projectCodeProvider.GetDocumentsAsync();
 		}
-	}   
+
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		{
+			return this.projectCodeProvider.GetDocumentEntitiesAsync(filePath);
+		}
+    }   
 }

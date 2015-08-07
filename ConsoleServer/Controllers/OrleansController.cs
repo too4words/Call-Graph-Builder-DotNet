@@ -53,15 +53,16 @@ namespace ConsoleServer.Controllers
 		private static bool FilterFile(FileResponse file)
 		{
 			// TODO: Hack!!!
-			var filename = Path.GetFileName(file.filepath);			
-			if (filename.StartsWith(".NETFramework,")) return true;			
-			var buildInfo = new BuildInfo();
+			var filename = Path.GetFileName(file.filepath);
+			if (filename.StartsWith(".NETFramework,")) return true;
+
 			var dir = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+			var buildInfo = new BuildInfo();
 			var filepath = file.filepath;
 
 			if (filepath.StartsWith(dir))
 			{
-				filepath = filepath.Replace(dir, string.Empty);
+				filepath = filepath.Substring(0, dir.Length);
 			}
 
 			file.filepath = filepath.Replace(@"\", "/");

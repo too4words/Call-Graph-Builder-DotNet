@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
+using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -140,26 +141,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
 		{
-			var result = new List<CodeGraphModel.FileResponse>();
-
-			foreach (var document in this.Project.Documents)
-			{
-				var fileResponse = CreateFileResponse(document);
-				result.Add(fileResponse);
-            }
-
-			return Task.FromResult(result.AsEnumerable());
+			return CodeGraphHelper.GetDocumentsAsync(this.Project);
 		}
 
-		private CodeGraphModel.FileResponse CreateFileResponse(Document document)
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
 		{
-			var result = new CodeGraphModel.FileResponse()
-			{
-				uid = document.Id.Id.ToString(),
-				filepath = document.FilePath,
-			};
-
-			return result;
+			var document = this.Project.Documents.Single(doc => doc.FilePath.Equals(filePath, StringComparison.InvariantCultureIgnoreCase));
+			return CodeGraphHelper.GetDocumentEntitiesAsync(this.Project, document);
         }
 
 		#endregion
@@ -509,5 +497,11 @@ namespace ReachingTypeAnalysis.Roslyn
 			var result = new HashSet<CodeGraphModel.FileResponse>();
 			return Task.FromResult(result.AsEnumerable());
 		}
-	}
+
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		{
+			var result = new HashSet<CodeGraphModel.FileResponse>();
+			return Task.FromResult(result.AsEnumerable());
+		}
+    }
 }
