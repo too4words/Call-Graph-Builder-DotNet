@@ -43,20 +43,24 @@ namespace ReachingTypeAnalysis.Analysis
             return projectGrain.SetProjectSourceCode(source);
         }
 
-        protected override IProjectCodeProvider GetProjectCodeProvider(string assemblyName)
+        public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {
-            foreach (var project in this.solution.Projects)
-            {
-                if (project.AssemblyName.Equals(assemblyName))
-                {
-                    var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
-                    return provider;
-                }
-            }
-            return GetDummyProjectCodeProvider();
+			IProjectCodeProvider provider = null;
+			var isExistingProject = this.solution.Projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
+
+			if (isExistingProject)
+			{
+				provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
+			}
+			else
+			{
+				provider = this.GetDummyProjectCodeProvider();
+			}
+
+            return Task.FromResult(provider);
         }
 
-        protected override IProjectCodeProvider GetDummyProjectCodeProvider()
+        private IProjectCodeProvider GetDummyProjectCodeProvider()
         {
             var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
             return provider;

@@ -146,8 +146,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
 		{
-			var document = this.Project.Documents.Single(doc => doc.FilePath.Equals(filePath, StringComparison.InvariantCultureIgnoreCase));
-			return CodeGraphHelper.GetDocumentEntitiesAsync(this.Project, document);
+			var document = this.Project.Documents.Single(doc => doc.FilePath.EndsWith(filePath, StringComparison.InvariantCultureIgnoreCase));
+			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
         }
 
 		#endregion

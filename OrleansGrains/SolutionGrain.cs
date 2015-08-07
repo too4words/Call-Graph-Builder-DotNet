@@ -83,28 +83,34 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
-        
-        //public Task<IProjectCodeProvider> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
-        //{
-        //    //IProjectCodeProviderGrain projectCodeProviderGrain;
-        //    //if (this.methodDescriptors2Project.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
-        //    //{
-        //    //    return projectCodeProviderGrain;
-        //    //}
-        //    //else
-        //    //{
-        //    //    projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution, GrainFactory);
-        //    //    this.methodDescriptors2Project.Add(methodDescriptor, projectCodeProviderGrain);
-        //    //    await TaskDone.Done; //this.State.WriteStateAsync();
-        //    //}
-			
-        //    //return projectCodeProviderGrain;
-        //}
 
-        public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
+		//public Task<IProjectCodeProvider> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
+		//{
+		//    //IProjectCodeProviderGrain projectCodeProviderGrain;
+		//    //if (this.methodDescriptors2Project.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
+		//    //{
+		//    //    return projectCodeProviderGrain;
+		//    //}
+		//    //else
+		//    //{
+		//    //    projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution, GrainFactory);
+		//    //    this.methodDescriptors2Project.Add(methodDescriptor, projectCodeProviderGrain);
+		//    //    await TaskDone.Done; //this.State.WriteStateAsync();
+		//    //}
+
+		//    //return projectCodeProviderGrain;
+		//}
+
+		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
+		{
+			return this.solutionManager.GetProjectCodeProviderAsync(assemblyName);
+		}
+
+		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
             return this.solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
         }
+
         public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
         {
             return solutionManager.AddInstantiatedTypesAsync(types);

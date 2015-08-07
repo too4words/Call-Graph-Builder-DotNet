@@ -28,13 +28,14 @@ namespace AnalysisCore.Roslyn
 			var result = new FileResponse()
 			{
 				uid = document.Id.Id.ToString(),
-				filepath = document.FilePath
+				filepath = document.FilePath,
+				assemblyname = document.Project.AssemblyName
 			};
 
 			return result;
 		}
 
-		public static Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(Project project, Document document)
+		public static Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(Document document)
 		{
 			var result = new List<FileResponse>();
 

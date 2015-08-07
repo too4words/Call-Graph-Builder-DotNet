@@ -49,7 +49,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             foreach (var project in this.solution.Projects)
             {
-				var provider = this.GetProjectCodeProvider(project.AssemblyName);
+				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				var roots = await provider.GetRootsAsync();
 
 				foreach (var root in roots)
@@ -61,32 +61,30 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
         }
 
-		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+		public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<IProjectCodeProvider>();
 
 			foreach (var project in this.solution.Projects)
 			{
-				var provider = this.GetProjectCodeProvider(project.AssemblyName);
+				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				result.Add(provider);
 			}
 
-			return Task.FromResult(result.AsEnumerable());
+			return result;
 		}
 
-		protected abstract IProjectCodeProvider GetProjectCodeProvider(string assemblyName);
+		public abstract Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
 
-		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
+		public async Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
 		{
 			var typeDescriptor = methodDescriptor.ContainerType;
 			var assemblyName = typeDescriptor.AssemblyName;
-			var provider = this.GetProjectCodeProvider(assemblyName);
+			var provider = await this.GetProjectCodeProviderAsync(assemblyName);
 
-			return Task.FromResult(provider);
+			return provider;
 		}
-
-		protected abstract IProjectCodeProvider GetDummyProjectCodeProvider();
 
         /// <summary>
         /// For RTA analysis
@@ -145,7 +143,7 @@ namespace ReachingTypeAnalysis.Analysis
 			projectsCache.Add(assemblyName, provider);
 		}
 
-		protected override IProjectCodeProvider GetProjectCodeProvider(string assemblyName)
+		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{
 			IProjectCodeProvider provider = null;
 
@@ -155,10 +153,10 @@ namespace ReachingTypeAnalysis.Analysis
 				projectsCache.Add(assemblyName, provider);
 			}
 
-			return provider;
+			return Task.FromResult(provider);
 		}
 
-		protected override IProjectCodeProvider GetDummyProjectCodeProvider()
+		private IProjectCodeProvider GetDummyProjectCodeProvider()
 		{
 			var provider = new DummyCodeProvider();
 			return provider;
