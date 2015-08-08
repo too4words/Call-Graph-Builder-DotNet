@@ -9,6 +9,7 @@ using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
 using System.Diagnostics;
+using CodeGraphModel;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -50,8 +51,12 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
 
-            this.codeProvider = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
-            //this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
+            
+			// This wrapper caches some of the queries to codeProvider
+			this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+
+			//this.codeProvider = codeProviderGrain;
 
             this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
@@ -60,6 +65,7 @@ namespace ReachingTypeAnalysis.Analysis
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
             }
 
+			// this is for RTA analysis
             await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
             // This take cares of doing the progation of types
@@ -86,6 +92,12 @@ namespace ReachingTypeAnalysis.Analysis
         }
 
 
+		/// <summary>
+		/// This method shoudld be removed
+		/// </summary>
+		/// <param name="methodEntity"></param>
+		/// <param name="methodDescriptor"></param>
+		/// <returns></returns>
 		public async Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(methodEntity != null);
@@ -94,8 +106,9 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Assert(this.State != null);
 			this.State.MethodDescriptor = methodDescriptor;
 
-			this.codeProvider = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
-			//this.codeProvider = new ProjectGrainWrapper(codeProviderGrain);
+			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
+            this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+
 
 			await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
@@ -173,6 +186,90 @@ namespace ReachingTypeAnalysis.Analysis
            return this.methodEntityPropagator.GetInstantiatedTypesAsync();
         }
     }
+
+	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
+	{
+		private IProjectCodeProvider codeProvider;
+		private IDictionary<TypeDescriptor,ISet<TypeDescriptor>> IsSubTypeReply = new Dictionary<TypeDescriptor,ISet<TypeDescriptor>>();
+		private IDictionary<TypeDescriptor,ISet<TypeDescriptor>> IsSubTypeNegativeReply = new Dictionary<TypeDescriptor,ISet<TypeDescriptor>>();
+		private IDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new Dictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
+
+		internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
+		{
+			this.codeProvider = codeProvider;
+		}
+
+		public async Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+		{
+			if (IsSubTypeReply.ContainsKey(typeDescriptor1) 
+					&& IsSubTypeReply[typeDescriptor1].Contains(typeDescriptor2))
+				return true;
+			if(IsSubTypeNegativeReply.ContainsKey(typeDescriptor1) 
+				&& IsSubTypeNegativeReply[typeDescriptor1].Contains(typeDescriptor2))
+				return false;
+
+			var isSubType = await codeProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+			if (isSubType)
+			{
+				AddToSubTypeCache(this.IsSubTypeReply, typeDescriptor1, typeDescriptor2);
+			}
+			else
+			{
+				AddToSubTypeCache(this.IsSubTypeNegativeReply, typeDescriptor1, typeDescriptor2);
+			}
+
+			return isSubType;
+		}
+
+		private void AddToSubTypeCache(IDictionary<TypeDescriptor,ISet<TypeDescriptor>> typeCache, 
+					TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+		{
+			ISet<TypeDescriptor> subTypes;
+			if (typeCache.TryGetValue(typeDescriptor1, out subTypes))
+			{
+				subTypes.Add(typeDescriptor2);
+			}
+			else
+			{
+				subTypes = new HashSet<TypeDescriptor>();
+				subTypes.Add(typeDescriptor2);
+				typeCache[typeDescriptor1] = subTypes;
+			}
+		}
+
+		public async Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+		{
+			MethodDescriptor reply;
+			var key = new Tuple<MethodDescriptor, TypeDescriptor>(methodDescriptor, typeDescriptor);
+			if(FindMethodReply.TryGetValue(key, out reply))
+			{
+				return reply;
+			}
+			reply = await codeProvider.FindMethodImplementationAsync(methodDescriptor,typeDescriptor);
+			FindMethodReply.Add(key, reply);
+			return reply;
+		}
+
+		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			return codeProvider.CreateMethodEntityAsync(methodDescriptor);
+		}
+
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		{
+			return codeProvider.GetRootsAsync();
+		}
+
+		public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
+		{
+			return codeProvider.GetDocumentsAsync();
+		}
+
+		public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		{
+			return GetDocumentEntitiesAsync(filePath);
+		}
+	}
 
     /// <summary>
     /// This wrapper was used when the IMethodEntity grain couldn't implement another interface

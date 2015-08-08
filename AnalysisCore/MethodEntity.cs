@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
+[assembly: InternalsVisibleTo("OrleansGrains")]
 namespace ReachingTypeAnalysis.Analysis
 {
 	/// <summary>

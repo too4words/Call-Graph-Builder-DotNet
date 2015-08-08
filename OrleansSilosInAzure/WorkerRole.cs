@@ -154,12 +154,36 @@ namespace OrleansSilosInAzure
             // For information on handling configuration changes
             // see the MSDN topic at http://go.microsoft.com/fwlink/?LinkId=166357.
 
+			RoleEnvironment.Changing += RoleEnvironmentOnChanging;
+
             bool result = base.OnStart();
 
             Trace.TraceInformation("OrleansSilosInAzure has been started");
 
             return result;
         }
+
+
+		/// <summary>
+		/// This event is called after configuration changes have been submited to Windows Azure but before they have been applied in this instance
+		/// </summary>
+		/// <param name="sender">The sender.</param>
+		/// <param name="e">The <see cref="RoleEnvironmentChangingEventArgs" /> instance containing the event data.</param>
+		private void RoleEnvironmentOnChanging(object sender, RoleEnvironmentChangingEventArgs e)
+		{
+			// Implements the changes after restarting the role instance
+			foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
+			{
+				switch (settingChange.ConfigurationSettingName)
+				{
+					case "Startup.ExternalTasksUrl":
+						Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+						e.Cancel = true;
+						return;
+				}
+			}
+		}
+
 
         public override void OnStop()
         {

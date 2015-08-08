@@ -168,6 +168,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<CodeGraphModel.FileResponse>>(-1786662708, null );
             }
+            
+            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<CodeGraphModel.FileResponse>> ReachingTypeAnalysis.IProjectCodeProvider.GetDocumentEntitiesAsync(string @filePath)
+            {
+
+                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<CodeGraphModel.FileResponse>>(-215926694, new object[] {@filePath} );
+            }
         }
     }
     
@@ -209,6 +215,8 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1786662708: 
                                 return ((IProjectCodeProviderGrain)grain).GetDocumentsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -215926694: 
+                                return ((IProjectCodeProviderGrain)grain).GetDocumentEntitiesAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -252,6 +260,8 @@ namespace OrleansInterfaces
                             return "GetRootsAsync";
                     case -1786662708:
                             return "GetDocumentsAsync";
+                    case -215926694:
+                            return "GetDocumentEntitiesAsync";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -389,6 +399,12 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.IProjectCodeProvider>>(-1200848455, null );
             }
             
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.IProjectCodeProvider> ReachingTypeAnalysis.ISolutionManager.GetProjectCodeProviderAsync(string @assemblyName)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.IProjectCodeProvider>(117374023, new object[] {@assemblyName} );
+            }
+            
             System.Threading.Tasks.Task<ReachingTypeAnalysis.IProjectCodeProvider> ReachingTypeAnalysis.ISolutionManager.GetProjectCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor @methodDescriptor)
             {
 
@@ -441,6 +457,8 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1200848455: 
                                 return ((ISolutionGrain)grain).GetProjectCodeProvidersAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 117374023: 
+                                return ((ISolutionGrain)grain).GetProjectCodeProviderAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 1951770605: 
                                 return ((ISolutionGrain)grain).GetProjectCodeProviderAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -788867248: 
@@ -484,6 +502,8 @@ namespace OrleansInterfaces
                             return "GetRootsAsync";
                     case -1200848455:
                             return "GetProjectCodeProvidersAsync";
+                    case 117374023:
+                            return "GetProjectCodeProviderAsync";
                     case 1951770605:
                             return "GetProjectCodeProviderAsync";
                     case -788867248:
@@ -998,6 +1018,7 @@ namespace OrleansInterfacesSerializers
             CodeGraphModel.FileResponse input = ((CodeGraphModel.FileResponse)(original));
             CodeGraphModel.FileResponse result = new CodeGraphModel.FileResponse();
             Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            result.assemblyname = input.assemblyname;
             result.declarationAnnotation = ((System.Collections.Generic.List<CodeGraphModel.DeclarationAnnotation>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.declarationAnnotation)));
             result.filepath = input.filepath;
             result.referenceAnnotation = ((System.Collections.Generic.List<CodeGraphModel.ReferenceAnnotation>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.referenceAnnotation)));
@@ -1010,6 +1031,7 @@ namespace OrleansInterfacesSerializers
         public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
         {
             CodeGraphModel.FileResponse input = ((CodeGraphModel.FileResponse)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.assemblyname, stream, typeof(string));
             Orleans.Serialization.SerializationManager.SerializeInner(input.declarationAnnotation, stream, typeof(System.Collections.Generic.List<CodeGraphModel.DeclarationAnnotation>));
             Orleans.Serialization.SerializationManager.SerializeInner(input.filepath, stream, typeof(string));
             Orleans.Serialization.SerializationManager.SerializeInner(input.referenceAnnotation, stream, typeof(System.Collections.Generic.List<CodeGraphModel.ReferenceAnnotation>));
@@ -1021,6 +1043,7 @@ namespace OrleansInterfacesSerializers
         public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
         {
             CodeGraphModel.FileResponse result = new CodeGraphModel.FileResponse();
+            result.assemblyname = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             result.declarationAnnotation = ((System.Collections.Generic.List<CodeGraphModel.DeclarationAnnotation>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.List<CodeGraphModel.DeclarationAnnotation>), stream)));
             result.filepath = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
             result.referenceAnnotation = ((System.Collections.Generic.List<CodeGraphModel.ReferenceAnnotation>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.List<CodeGraphModel.ReferenceAnnotation>), stream)));

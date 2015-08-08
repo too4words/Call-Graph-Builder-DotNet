@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis
 {
-	sealed class Logger
+	sealed public class Logger
 	{
 		private static readonly object syncObject = new object();
 		private string filename;

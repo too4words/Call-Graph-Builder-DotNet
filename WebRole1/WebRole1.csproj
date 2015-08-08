@@ -514,6 +514,10 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AnalysisCore\AnalysisCore.csproj">
+      <Project>{7f6234fe-027f-4956-bcd1-2751ff866223}</Project>
+      <Name>AnalysisCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{2930867f-55b9-4fb2-830e-dd1f4d79448a}</Project>
       <Name>Common</Name>
