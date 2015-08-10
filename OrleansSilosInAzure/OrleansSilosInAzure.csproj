@@ -203,7 +203,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="scripts\RunAzureCopy.cmd" />
+    <None Include="scripts\RunAzureCopy.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="scripts\SetupExternalTasks.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

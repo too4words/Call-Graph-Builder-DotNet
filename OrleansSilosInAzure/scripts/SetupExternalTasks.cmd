@@ -1,4 +1,4 @@
-if "%EMULATED%"=="true" goto SKIP
+if "%EMULATED%"=="true" goto NOSKIP
 if "%EXTERNALTASKURL%"=="" goto SKIP
 
 :NOSKIP
