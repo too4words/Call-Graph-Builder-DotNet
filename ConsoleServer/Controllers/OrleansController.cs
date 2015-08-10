@@ -16,7 +16,7 @@ namespace ConsoleServer.Controllers
 	// http://localhost:14054/index.html?graph=ConsoleApplication1&mode=orleans
 	public class OrleansController : ApiController
     {
-		private const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
 		public static ISolutionManager SolutionManager { get; set; }
 		private static IDictionary<string, string> documentsAssemblyName;
@@ -33,9 +33,9 @@ namespace ConsoleServer.Controllers
 		public async Task<IEnumerable<FileResponse>> GetAllFilesAsync(string graph)
 		{
 			using (TimedLog.Time(graph + " :: Get All Files"))
-			{
-				var result = new List<FileResponse>();
+			{				
 				var providers = await SolutionManager.GetProjectCodeProvidersAsync();
+				var result = new List<FileResponse>();
 
 				foreach (var provider in providers)
 				{
@@ -58,6 +58,13 @@ namespace ConsoleServer.Controllers
 			var filename = Path.GetFileName(file.filepath);
 			if (filename.StartsWith(".NETFramework,")) return true;
 
+			ProcessFileResponse(file);
+			documentsAssemblyName[file.filepath] = file.assemblyname;
+			return false;
+		}
+
+		private static void ProcessFileResponse(FileResponse file)
+		{
 			var buildInfo = new BuildInfo();
 			var filepath = file.filepath;
 
@@ -69,9 +76,6 @@ namespace ConsoleServer.Controllers
 			file.filepath = filepath.Replace(@"\", "/");
 			file.repository = buildInfo.RepositoryName;
 			file.version = buildInfo.VersionName;
-
-			documentsAssemblyName[file.filepath] = file.assemblyname;
-			return false;
 		}
 
 		/// <summary>
@@ -86,6 +90,11 @@ namespace ConsoleServer.Controllers
 				var assemblyName = documentsAssemblyName[filePath];
 				var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
 				var result = await provider.GetDocumentEntitiesAsync(fullPath);
+
+				foreach (var file in result)
+				{
+					ProcessFileResponse(file);
+				}
 
 				return result;
 			}
