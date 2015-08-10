@@ -40,7 +40,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
-            MethodDescriptor methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
+            var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
 
 	        // Shold not be null..
             if (this.State.Etag!= null)
@@ -184,6 +184,11 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
            return this.methodEntityPropagator.GetInstantiatedTypesAsync();
+        }
+
+		public Task<SymbolReference> GetDeclarationInfoAsync()
+		{
+			return this.methodEntityPropagator.GetDeclarationInfoAsync();
         }
     }
 

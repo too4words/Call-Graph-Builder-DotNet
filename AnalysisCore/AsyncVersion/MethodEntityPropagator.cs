@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using System.Diagnostics.Contracts;
+using CodeGraphModel;
+using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -300,6 +302,7 @@ namespace ReachingTypeAnalysis.Analysis
                 return new HashSet<TypeDescriptor>();
             }
         }
+
         internal ISet<MethodDescriptor> GetPossibleMethodsForDelegate(DelegateVariableNode node)
         {
             return this.methodEntity.PropGraph.GetDelegates(node);
@@ -327,10 +330,14 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(this.methodEntity != null);
         }
 
-
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
             return Task.FromResult(this.methodEntity.InstantiatedTypes.AsEnumerable());
         }
-    }
+
+		public Task<SymbolReference> GetDeclarationInfoAsync()
+		{
+			return Task.FromResult(this.methodEntity.DeclarationInfo);
+		}
+	}
 }

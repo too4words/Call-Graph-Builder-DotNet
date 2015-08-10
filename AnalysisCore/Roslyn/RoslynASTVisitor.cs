@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+using AnalysisCore.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -297,11 +298,14 @@ namespace ReachingTypeAnalysis
             propGraphGenerator.Visit(this.methodNode);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
+			var declarationInfo = CodeGraphHelper.GetDeclarationInfo(this.RoslynMethod);
+
             var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
-                                                                    propGraphGenerator.MethodInterfaceData,
-                                                                    propGraphGenerator.PropGraph, descriptor,
-                                                                    propGraphGenerator.InstantiatedTypes,
-                                                                    propGraphGenerator.StatementProcessor.AnonymousMethods);
+                                                propGraphGenerator.MethodInterfaceData,
+                                                propGraphGenerator.PropGraph, descriptor,
+                                                propGraphGenerator.InstantiatedTypes,
+                                                propGraphGenerator.StatementProcessor.AnonymousMethods,
+												declarationInfo);
             return methodEntity;
         }
     }
@@ -326,11 +330,14 @@ namespace ReachingTypeAnalysis
             propGraphGenerator.Visit(this.lambdaExpression);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-            var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
-                                                                    propGraphGenerator.MethodInterfaceData,
-                                                                    propGraphGenerator.PropGraph, descriptor,
-                                                                    propGraphGenerator.InstantiatedTypes,
-                                                                    propGraphGenerator.StatementProcessor.AnonymousMethods);
+			var declarationInfo = CodeGraphHelper.GetDeclarationInfo(this.RoslynMethod);
+
+			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
+                                                propGraphGenerator.MethodInterfaceData,
+                                                propGraphGenerator.PropGraph, descriptor,
+                                                propGraphGenerator.InstantiatedTypes,
+                                                propGraphGenerator.StatementProcessor.AnonymousMethods,
+												declarationInfo);
             return methodEntity;
         }
     }
