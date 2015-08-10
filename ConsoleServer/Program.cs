@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using ReachingTypeAnalysis;
 using ConsoleServer.Controllers;
+using System.IO;
 
 namespace ConsoleServer
 {
@@ -35,7 +36,7 @@ Listening on Port {0} ...
             var port = GetValidPort(args.Length >= 1 ? args[0] : null);
             var baseAddress = string.Format("http://localhost:{0}/", port);
 			//var solutionPath = @"..\..\..\ConsoleApplication1\ConsoleApplication1.sln";
-			var solutionPath = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\ConsoleApplication1\ConsoleApplication1.sln";
+			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, @"ConsoleApplication1\ConsoleApplication1.sln");
 			//var solutionPath = @"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln";
 
 			InitializeAnalysis(solutionPath);
