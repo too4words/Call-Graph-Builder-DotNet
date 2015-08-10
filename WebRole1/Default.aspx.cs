@@ -87,6 +87,28 @@ namespace WebRole1
 
 
 		}
+
+        protected async void Button4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var program = new AnalysisClient();
+                var testName = TextBoxPath.Text;
+                var result = await program.RunSingleTestAsync(testName, 1);
+                this.TextBox1.Text = result;                    
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
+
+        }
+
+        protected void TextBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
 		
     }
 
