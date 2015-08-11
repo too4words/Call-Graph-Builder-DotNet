@@ -30,8 +30,8 @@ namespace CallGraphGeneration
 			args = new string[]
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
-				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-				@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
+				@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 			};
 			
 			if (args.Length == 2)
@@ -60,9 +60,9 @@ namespace CallGraphGeneration
 		private CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(string solutionPath)
         {
 			Console.WriteLine("Analyzing solution...");
-            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 
 			this.Initialize();
+			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var callgraph = analyzer.Analyze(strategyKind);
 			this.Cleanup();
 
