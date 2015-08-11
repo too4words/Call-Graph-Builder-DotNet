@@ -67,10 +67,12 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
 
-        /// <summary>
-        /// The next properties obtains info from MethodDataInterface
-        /// </summary>
-        public VariableNode ThisRef
+		internal CodeGraphModel.SymbolReference DeclarationInfo { get; private set; }
+
+		/// <summary>
+		/// The next properties obtains info from MethodDataInterface
+		/// </summary>
+		public VariableNode ThisRef
         {
             get { return MethodInterfaceData.ThisRef; }
         }
@@ -89,17 +91,17 @@ namespace ReachingTypeAnalysis.Analysis
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
+
 		/// <summary>
 		/// This is the important part of the this class 
 		/// The propagation graph constains of all information about concrete types that a variable can have
 		/// </summary>       
-        private PropagationGraph propGraph; 
+		private PropagationGraph propGraph; 
 		///public PropagationGraph PropGraph { get; private set; }
         public PropagationGraph PropGraph { get { return propGraph; } }
 
-        private IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods = new Dictionary<AnonymousMethodDescriptor, MethodEntity>();
+        private IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods;
 
-		
 		/// <summary>
 		/// We use this mapping as a cache of already computed callees info
 		/// </summary>
@@ -122,25 +124,28 @@ namespace ReachingTypeAnalysis.Analysis
             IEntityDescriptor descriptor,
 			IEnumerable<TypeDescriptor> instantiatedTypes,
             bool canBeAnalyzed = true)
-			: base()
 		{
 			this.MethodDescriptor = methodDescriptor;
             this.EntityDescriptor = descriptor; // EntityFactory.Create(methodDescriptor);
 			this.MethodInterfaceData = mid;
 
 			this.propGraph = propGraph;
-			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);
-            this.CanBeAnalized = canBeAnalyzed;
+			this.CanBeAnalized = canBeAnalyzed;
+			this.InstantiatedTypes = new HashSet<TypeDescriptor>(instantiatedTypes);            
+			this.anonymousMethods = new Dictionary<AnonymousMethodDescriptor, MethodEntity>();
 		}
+
         public MethodEntity(MethodDescriptor methodDescriptor,
             MethodInterfaceData mid,
             PropagationGraph propGraph,
             IEntityDescriptor descriptor,
             IEnumerable<TypeDescriptor> instantiatedTypes,
-            IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods)
+            IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods,
+			CodeGraphModel.SymbolReference declarationInfo)
             : this(methodDescriptor, mid, propGraph, descriptor, instantiatedTypes)
         {
             this.anonymousMethods = anonymousMethods;
+			this.DeclarationInfo = declarationInfo;
         }
 
         public MethodEntity GetAnonymousMethodEntity(AnonymousMethodDescriptor methodDescriptor)
@@ -153,6 +158,7 @@ namespace ReachingTypeAnalysis.Analysis
             { }
             return null;
         }
+
 		/// <summary>
 		/// Copy the information regarding parameters and callers from one entity and other
 		/// The PropGraph of the old entity is used but copied

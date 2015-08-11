@@ -14,7 +14,7 @@ namespace ConsoleServer
 {
     public class Program
     {
-        const uint DefaultPort = 7412;
+        const uint DefaultPort = 7413;
 
         const string WelcomeMessage = @"Console Server started
 -----------------
@@ -51,7 +51,7 @@ Listening on Port {0} ...
 
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
-			OrleansController.SolutionManager = analyzer.Strategy.SolutionManager;
+			OrleansController.Strategy = analyzer.Strategy;
 
 			Console.WriteLine("Done");
 		}

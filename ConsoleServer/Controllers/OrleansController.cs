@@ -18,8 +18,14 @@ namespace ConsoleServer.Controllers
     {
 		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
-		public static ISolutionManager SolutionManager { get; set; }
+		public static IAnalysisStrategy Strategy { get; internal set; }
+
 		private static IDictionary<string, string> documentsAssemblyName;
+
+		public static ISolutionManager SolutionManager
+		{
+			get { return Strategy.SolutionManager; }
+		}
 
 		static OrleansController()
 		{
@@ -66,17 +72,64 @@ namespace ConsoleServer.Controllers
 		private static void ProcessFileResponse(FileResponse file)
 		{
 			var buildInfo = new BuildInfo();
-			var filepath = file.filepath;
 
-			if (filepath.StartsWith(ROOT_DIR, StringComparison.InvariantCultureIgnoreCase))
-			{
-				filepath = filepath.Substring(ROOT_DIR.Length, filepath.Length - ROOT_DIR.Length);
-			}
-
-			file.filepath = filepath.Replace(@"\", "/");
+			file.filepath = FixFilePath(file.filepath);
 			file.repository = buildInfo.RepositoryName;
 			file.version = buildInfo.VersionName;
+
+			if (file.referenceAnnotation != null)
+			{
+				foreach (var declaration in file.declarationAnnotation)
+				{
+					ProcessDeclarationAnnotation(declaration);
+				}
+
+				foreach (var reference in file.referenceAnnotation)
+				{
+					ProcessReferenceAnnotation(reference);
+				}
+			}
 		}
+
+		private static void ProcessAnnotation(Annotation annotation)
+		{
+			var buildInfo = new BuildInfo();
+
+			annotation.declAssembly = string.Format("{0}/{1}", buildInfo.RepositoryName, buildInfo.BranchName);
+        }
+
+		private static void ProcessDeclarationAnnotation(DeclarationAnnotation declaration)
+		{
+			ProcessAnnotation(declaration);
+		}
+
+		private static void ProcessReferenceAnnotation(ReferenceAnnotation reference)
+		{
+			ProcessAnnotation(reference);
+
+			reference.declFile = FixFilePath(reference.declFile);
+		}
+
+		private static void ProcessSymbolReference(SymbolReference reference)
+		{
+			var buildInfo = new BuildInfo();
+
+			reference.preview = FixFilePath(reference.preview);
+			reference.tref = string.Format("{0}/{1}/{2}", buildInfo.RepositoryName, buildInfo.BranchName, reference.preview);
+		}
+
+		private static string FixFilePath(string filePath)
+		{
+			if (filePath == null) return null;
+
+			if (filePath.StartsWith(ROOT_DIR, StringComparison.InvariantCultureIgnoreCase))
+			{
+				filePath = filePath.Substring(ROOT_DIR.Length, filePath.Length - ROOT_DIR.Length);
+			}
+
+			filePath = filePath.Replace(@"\", "/");
+			return filePath;
+        }
 
 		/// <summary>
 		/// Get Full Files matching specified file path
@@ -104,12 +157,26 @@ namespace ConsoleServer.Controllers
 		/// Get All references of symbol with specified Uid
 		/// </summary>
 		[Route("api/orleans/{graph}/references/{uid}")]
-        public Task<IEnumerable<SymbolReference>> GetReferencesAsync(string graph, string uid)
+        public async Task<IEnumerable<SymbolReference>> GetReferencesAsync(string graph, string uid)
         {
             using (TimedLog.Time(graph + " :: Get References"))
             {
 				var result = new List<SymbolReference>();
-				return Task.FromResult(result.AsEnumerable());
+
+				var methodDescriptor = new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar");
+				var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
+				var callees = await methodEntity.GetCalleesAsync(1);
+
+				foreach (var calleeDescriptor in callees)
+				{
+					var calleeEntity = await Strategy.GetMethodEntityAsync(calleeDescriptor);
+					var reference = await calleeEntity.GetDeclarationInfoAsync();
+
+					ProcessSymbolReference(reference);
+					result.Add(reference);
+				}
+
+				return result;
 			}
         }
 

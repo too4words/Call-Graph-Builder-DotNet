@@ -4,9 +4,12 @@
 // </copyright>
 //---------------------------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace CodeGraphModel
 {
-    public struct Range
+	[Serializable]
+	public struct Range
     {
         public int startLineNumber;
         public int startColumn;
@@ -14,7 +17,8 @@ namespace CodeGraphModel
         public int endColumn;
     }
 
-    public abstract class Annotation
+	[Serializable]
+	public abstract class Annotation
     {
         public string symbolId;
         public string symbolType;
@@ -25,18 +29,21 @@ namespace CodeGraphModel
         public Range range;
     }
 
-    public class DeclarationAnnotation : Annotation
+	[Serializable]
+	public class DeclarationAnnotation : Annotation
     {
         public string depth;
         public string glyph;
     }
 
-    public class ReferenceAnnotation : Annotation
+	[Serializable]
+	public class ReferenceAnnotation : Annotation
     {
         public string declFile;
     }
 
-    public struct SymbolReference
+	[Serializable]
+    public class SymbolReference
     {
         public string refType;
         public string tref;
@@ -44,7 +51,8 @@ namespace CodeGraphModel
         public string preview;
     }
 
-    public class SymbolReferenceCount
+	[Serializable]
+	public class SymbolReferenceCount
     {
         public string label;
         public string fullName;
