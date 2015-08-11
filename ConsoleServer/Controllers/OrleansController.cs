@@ -163,17 +163,43 @@ namespace ConsoleServer.Controllers
             {
 				var result = new List<SymbolReference>();
 
-				var methodDescriptor = new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar");
-				var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
-				var callees = await methodEntity.GetCalleesAsync(1);
-
-				foreach (var calleeDescriptor in callees)
+				if (uid.Contains('@'))
 				{
-					var calleeEntity = await Strategy.GetMethodEntityAsync(calleeDescriptor);
-					var reference = await calleeEntity.GetDeclarationInfoAsync();
+					// Find all method definitions
+					var uidparts = uid.Split('@');
+					var methodId = uidparts[0];
+					var invocationIndex = Convert.ToInt32(uidparts[1]);
 
-					ProcessSymbolReference(reference);
-					result.Add(reference);
+					//var methodDescriptor = new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar");
+					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
+					var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
+					var callees = await methodEntity.GetCalleesAsync(invocationIndex);
+
+					foreach (var calleeDescriptor in callees)
+					{
+						var calleeEntity = await Strategy.GetMethodEntityAsync(calleeDescriptor);
+						var reference = await calleeEntity.GetDeclarationInfoAsync();
+
+						if (reference != null)
+						{
+							ProcessSymbolReference(reference);
+							result.Add(reference);
+						}
+					}
+				}
+				else
+				{
+					// Find all method references
+					var methodId = uid;
+					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
+					var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
+					var callers = await methodEntity.GetCallersDeclarationInfoAsync();
+
+					foreach (var reference in callers)
+					{
+						ProcessSymbolReference(reference);
+						result.Add(reference);
+					}
 				}
 
 				return result;
