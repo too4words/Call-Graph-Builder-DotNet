@@ -682,6 +682,12 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<System.Int32>(-1748235903, null );
             }
+            
+            System.Threading.Tasks.Task<CodeGraphModel.SymbolReference> ReachingTypeAnalysis.IMethodEntityWithPropagator.GetDeclarationInfoAsync()
+            {
+
+                return base.InvokeMethodAsync<CodeGraphModel.SymbolReference>(1177533854, null );
+            }
         }
     }
     
@@ -729,6 +735,8 @@ namespace OrleansInterfaces
                                 return ((IMethodEntityGrain)grain).GetCalleesAsync((Int32)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1748235903: 
                                 return ((IMethodEntityGrain)grain).GetInvocationCountAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1177533854: 
+                                return ((IMethodEntityGrain)grain).GetDeclarationInfoAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -778,6 +786,8 @@ namespace OrleansInterfaces
                             return "GetCalleesAsync";
                     case -1748235903:
                             return "GetInvocationCountAsync";
+                    case 1177533854:
+                            return "GetDeclarationInfoAsync";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -1768,6 +1778,54 @@ namespace OrleansInterfacesSerializers
             global::Orleans.Serialization.SerializationManager.Register(typeof(ReachingTypeAnalysis.LocationDescriptor), DeepCopier, Serializer, Deserializer);
             fieldInfo1 = typeof(ReachingTypeAnalysis.LocationDescriptor).GetField("<InMethodOrder>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+        }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Orleans-CodeGenerator", "1.0.9.0")]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute()]
+    [global::Orleans.CodeGeneration.RegisterSerializerAttribute()]
+    internal class CodeGraphModel_SymbolReferenceSerialization
+    {
+        
+        static CodeGraphModel_SymbolReferenceSerialization()
+        {
+            Register();
+        }
+        
+        public static object DeepCopier(object original)
+        {
+            CodeGraphModel.SymbolReference input = ((CodeGraphModel.SymbolReference)(original));
+            CodeGraphModel.SymbolReference result = new CodeGraphModel.SymbolReference();
+            Orleans.Serialization.SerializationContext.Current.RecordObject(original, result);
+            result.preview = input.preview;
+            result.refType = input.refType;
+            result.trange = input.trange;
+            result.tref = input.tref;
+            return result;
+        }
+        
+        public static void Serializer(object untypedInput, Orleans.Serialization.BinaryTokenStreamWriter stream, System.Type expected)
+        {
+            CodeGraphModel.SymbolReference input = ((CodeGraphModel.SymbolReference)(untypedInput));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.preview, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.refType, stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.trange, stream, typeof(CodeGraphModel.Range));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.tref, stream, typeof(string));
+        }
+        
+        public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
+        {
+            CodeGraphModel.SymbolReference result = new CodeGraphModel.SymbolReference();
+            result.preview = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            result.refType = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            result.trange = ((CodeGraphModel.Range)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(CodeGraphModel.Range), stream)));
+            result.tref = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            return result;
+        }
+        
+        public static void Register()
+        {
+            global::Orleans.Serialization.SerializationManager.Register(typeof(CodeGraphModel.SymbolReference), DeepCopier, Serializer, Deserializer);
         }
     }
 }
