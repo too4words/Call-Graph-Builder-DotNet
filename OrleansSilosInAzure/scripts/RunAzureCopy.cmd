@@ -2,6 +2,9 @@
 md c:\temp
 md c:\temp\solutions2
 
-AzCopy\AzCopy.exe /Dest:C:\Temp\solutions2 /Source:https://orleansdatastorage.blob.core.windows.net/project-files /DestKey:w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ== /S
+echo External\AzCopy\AzCopy.exe /Dest:C:\Temp\solutions2 /Source:%Source% /SourceKey:%SourceKey%  /SourceType:Blob /S /Y /pattern:* >> c:\Temp\sal.txt
+
+
+External\AzCopy\AzCopy.exe /Dest:C:\Temp\solutions2 /Source:%Source% /SourceKey:%SourceKey%  /SourceType:Blob /S /Y /pattern:* 
 
 EXIT /B 0

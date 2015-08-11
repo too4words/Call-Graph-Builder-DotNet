@@ -56,7 +56,7 @@ cd $localFolder
 cd .. 
 
  # Now, we run azure copy to copy 
- cmd.exe /C RunAzureCopy.cmd
+cmd.exe /C RunAzureCopy.cmd
 
  Write-Log "Blob copy to local folder"
  
