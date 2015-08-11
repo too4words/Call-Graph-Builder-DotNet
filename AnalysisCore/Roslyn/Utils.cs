@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System.IO;
 using System.Configuration;
 using System.Threading.Tasks;
+using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis
 {
@@ -186,6 +187,14 @@ namespace ReachingTypeAnalysis
             }
 
             return count;
+        }
+
+        public  static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
+        {
+            var span = syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span);
+            var filePath = span.Path;
+            var range = CodeGraphHelper.GetRange(span);
+            return new LocationDescriptor(invocationPosition, range, filePath);
         }
 
 		private static MetadataReference mscorlib;

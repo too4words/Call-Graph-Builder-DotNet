@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Text;
+using CodeGraphModel;
 
 namespace ReachingTypeAnalysis
 {
@@ -411,6 +412,8 @@ namespace ReachingTypeAnalysis
     [Serializable]
     public class LocationDescriptor
     {
+        public string FilePath { get; private set; }
+        public Range Range { get; private set; }
         //public Location Location { get; private set; }
         public int InMethodOrder { get; private set; }
         //public LocationDescriptor(Location location)
@@ -424,9 +427,11 @@ namespace ReachingTypeAnalysis
         { 
             get { return InMethodOrder;  } 
         } 
-        public LocationDescriptor(int inMethodOrder)
+        public LocationDescriptor(int inMethodOrder, Range range, string filePath)
         {
             this.InMethodOrder = inMethodOrder;
+            this.Range = range;
+            this.FilePath = filePath;
         }
 
         public override string ToString()

@@ -42,6 +42,7 @@ namespace ReachingTypeAnalysis
         Task<int> GetInvocationCountAsync();
 
 		Task<SymbolReference> GetDeclarationInfoAsync();
+        Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync();
 	}
 
     public interface IProjectCodeProvider

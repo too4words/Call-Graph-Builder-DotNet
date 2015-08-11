@@ -330,6 +330,24 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(this.methodEntity != null);
         }
 
+        public Task<IEnumerable<CallContext>> GetCallersAsync()
+        {
+            return Task.FromResult(this.methodEntity.Callers.AsEnumerable());
+        }
+
+        public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+        {
+            return Task.FromResult(this.methodEntity.Callers
+                .Select(cs => new SymbolReference()
+			                    {
+				                    refType = "ref",
+				                    preview = cs.CallNode.LocationDescriptor.FilePath,				
+				                    trange = cs.CallNode.LocationDescriptor.Range
+			                    }
+            ));
+        }
+
+
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
             return Task.FromResult(this.methodEntity.InstantiatedTypes.AsEnumerable());

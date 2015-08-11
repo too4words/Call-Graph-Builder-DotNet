@@ -264,8 +264,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 var order = Utils.GetStatementNumber(this.Expression);
                 var analysisCallNode = new AnalysisCallNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type),
-                    //new LocationDescriptor(this.Expression.GetLocation()));
-                    new LocationDescriptor(order));
+                    Utils.CreateLocationDescriptor(order, this.Expression));
                 return new PropertyVariableNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type), analysisCallNode);
 			}
@@ -550,7 +549,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 // Process parameters
                 var callNode = new AnalysisCallNode(roslynMethod.Name,
                     Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
-                    new LocationDescriptor(this.roslynMethodVisitor.InvocationPosition)); //node.GetLocation()
+                    Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node)); //node.GetLocation()
 
                 var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
                 Contract.Assert(!roslynMethod.IsStatic);
@@ -783,9 +782,11 @@ namespace ReachingTypeAnalysis.Roslyn
 				{
 					// Get the delegate variable (SHOULD use a cache!)
 					var delegateVarNode = roslynMethodVisitor.RegisterVariable(node.Expression);
+                    var span = node.SyntaxTree.GetLineSpan(node.Expression.Span);
+ 
 					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
                         Utils.CreateTypeDescriptor(methodInvokedSymbol.ReturnType),
-                        new LocationDescriptor(this.roslynMethodVisitor.InvocationPosition)); //node.GetLocation()
+                        Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression)); //node.GetLocation()
 
                     statementProcessor.RegisterStaticDelegateCall(methodDescriptor, args, lh, (DelegateVariableNode)delegateVarNode, callNode);
                     result = new DelegateCall(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
@@ -795,7 +796,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				{
 					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
 						Utils.CreateTypeDescriptor(methodInvokedSymbol.ReturnType),
-                        new LocationDescriptor(this.roslynMethodVisitor.InvocationPosition)); //node.GetLocation()
+                        Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression)); //node.GetLocation()
 
 					VariableNode receiverArg = null;
 					if (!methodInvokedSymbol.IsStatic)
@@ -994,7 +995,7 @@ namespace ReachingTypeAnalysis.Roslyn
             // we treat this as an invocation
             var callNode = new AnalysisCallNode(roslynMethod.Name,
                 Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
-                new LocationDescriptor(this.roslynMethodVisitor.InvocationPosition)); //node.GetLocation()
+                Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node));
 
             var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
 

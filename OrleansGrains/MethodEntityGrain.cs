@@ -190,6 +190,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.methodEntityPropagator.GetDeclarationInfoAsync();
         }
+
+
+        public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+        {
+            return this.GetCallersDeclarationInfoAsync();
+        }
     }
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
