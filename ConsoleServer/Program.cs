@@ -69,7 +69,7 @@ Listening on Port {0} ...
 			this.Initialize();
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			//analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
-			analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			analyzer.Analyze(strategyKind);
 			OrleansController.Strategy = analyzer.Strategy;
 
 			Console.WriteLine("Done");
@@ -124,9 +124,9 @@ Listening on Port {0} ...
 			{
 				AppDomainInitializer = InitSilo,
 				ApplicationBase = applicationPath,
-				ApplicationName = "CallGraphGeneration",
+				ApplicationName = "ConsoleServer",
 				AppDomainInitializerArguments = new string[] { },
-				ConfigurationFile = "CallGraphGeneration.exe.config"
+				ConfigurationFile = "ConsoleServer.exe.config"
 			};
 
 			// set up the Orleans silo

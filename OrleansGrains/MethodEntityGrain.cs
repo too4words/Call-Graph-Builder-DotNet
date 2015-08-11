@@ -194,7 +194,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
         {
-            return this.GetCallersDeclarationInfoAsync();
+            return this.methodEntityPropagator.GetCallersDeclarationInfoAsync();
         }
     }
 
