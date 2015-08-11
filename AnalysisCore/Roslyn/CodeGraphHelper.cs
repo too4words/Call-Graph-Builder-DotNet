@@ -73,27 +73,6 @@ namespace AnalysisCore.Roslyn
 			};
         }
 
-		//public static string GetSymbolId(ISymbol symbol)
-		//{
-		//	var moduleName = symbol.ContainingModule != null ? symbol.ContainingModule.Name : "shared";
-		//	var assemblyName = symbol.ContainingAssembly != null ? symbol.ContainingAssembly.ToDisplayString() : "shared";
-		//	var symbolString = string.Empty;
-
-		//	try
-		//	{
-		//		// Use GetDocumentationCommentId as a unique string for the symbol.
-		//		// N.B. Since GetDocumentationCommentId can throw exception and return null
-		//		// will it be okay just use symbol.ToString()?
-		//		symbolString = symbol.GetDocumentationCommentId();
-		//	}
-		//	catch (InvalidOperationException ex)
-		//	{
-		//		symbolString = symbol.ToString();
-		//	}
-
-		//	return string.Format("{0}:{1}:{2}", moduleName, assemblyName, symbolString);
-		//}
-
 		public static string GetSymbolId(IMethodSymbol symbol)
 		{
 			var methodDescriptor =  Utils.CreateMethodDescriptor(symbol);
@@ -173,29 +152,34 @@ namespace AnalysisCore.Roslyn
 			this.currentMethodSymbol = null;
 		}
 
-		public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+		private void VisitBaseMethodInvocationExpression(SimpleNameSyntax methodName)
 		{
 			this.invocationIndex++;
-			var memberAccess = node.Expression as MemberAccessExpressionSyntax;
 
-			if (memberAccess != null)
+			var span = methodName.SyntaxTree.GetLineSpan(methodName.Span);
+			var symbolInfo = this.model.GetSymbolInfo(methodName);
+			var symbol = symbolInfo.Symbol;
+
+			var reference = new ReferenceAnnotation()
 			{
-				var span = node.SyntaxTree.GetLineSpan(memberAccess.Name.Span);
-				var symbolInfo = this.model.GetSymbolInfo(memberAccess.Name);
-				var symbol = symbolInfo.Symbol;
+				symbolId = CodeGraphHelper.GetSymbolId(this.currentMethodSymbol, this.invocationIndex),
+				declFile = symbol.Locations.First().GetMappedLineSpan().Path,
+				symbolType = SymbolType.Method,
+				label = symbol.Name,
+				hover = symbol.ToDisplayString(),
+				refType = "ref",
+				range = CodeGraphHelper.GetRange(span)
+			};
 
-				var reference = new ReferenceAnnotation()
-				{
-					symbolId = CodeGraphHelper.GetSymbolId(this.currentMethodSymbol, this.invocationIndex),
-					declFile = symbol.Locations.First().GetMappedLineSpan().Path,
-					symbolType = SymbolType.Method,
-					label = symbol.Name,
-					hover = symbol.ToDisplayString(),
-					refType = "ref",
-					range = CodeGraphHelper.GetRange(span)
-				};
+			this.DocumentInfo.referenceAnnotation.Add(reference);
+		}
 
-				this.DocumentInfo.referenceAnnotation.Add(reference);
+		public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+		{
+			if (node.Expression is MemberAccessExpressionSyntax)
+			{
+				var memberAccess = node.Expression as MemberAccessExpressionSyntax;
+				this.VisitBaseMethodInvocationExpression(memberAccess.Name);
 			}
 
 			base.VisitInvocationExpression(node);
@@ -203,27 +187,10 @@ namespace AnalysisCore.Roslyn
 
 		public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
 		{
-			this.invocationIndex++;
-			var typeName = node.Type as SimpleNameSyntax;
-
-			if (typeName != null)
+			if (node.Type is SimpleNameSyntax)
 			{
-				var span = node.SyntaxTree.GetLineSpan(typeName.Span);
-				var symbolInfo = this.model.GetSymbolInfo(typeName);
-				var symbol = symbolInfo.Symbol;
-
-				var reference = new ReferenceAnnotation()
-				{
-					symbolId = CodeGraphHelper.GetSymbolId(this.currentMethodSymbol, this.invocationIndex),
-					declFile = symbol.Locations.First().GetMappedLineSpan().Path,
-					symbolType = SymbolType.Method,
-					label = symbol.Name,
-					hover = symbol.ToDisplayString(),
-					refType = "ref",
-					range = CodeGraphHelper.GetRange(span)
-				};
-
-				this.DocumentInfo.referenceAnnotation.Add(reference);
+				var typeName = node.Type as SimpleNameSyntax;
+				this.VisitBaseMethodInvocationExpression(typeName);
 			}
 
 			base.VisitObjectCreationExpression(node);
