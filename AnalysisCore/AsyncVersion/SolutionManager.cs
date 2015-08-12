@@ -22,15 +22,24 @@ namespace ReachingTypeAnalysis.Analysis
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		protected async Task LoadSolutionAsync(string solutionPath)
+		protected Task LoadSolutionAsync(string solutionPath)
 		{
+			var tasks = new List<Task>();
 			var cancellationTokenSource = new CancellationTokenSource();
 			this.solution = Utils.ReadSolution(solutionPath);
 
-            foreach (var project in solution.Projects)
+			var projectsCount = this.solution.ProjectIds.Count;
+			var currentProjectNumber = 1;
+
+			foreach (var project in solution.Projects)
             {
-				await this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
+
+				var task = this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				tasks.Add(task);
             }
+
+			return Task.WhenAll(tasks);
 		}
 
 		protected Task LoadSourceAsync(string source)
@@ -134,12 +143,30 @@ namespace ReachingTypeAnalysis.Analysis
 		protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
 		{
 			var provider = await ProjectCodeProvider.ProjectCodeProviderAsync(projectFilePath);
+
+			if (projectsCache.ContainsKey(assemblyName))
+			{
+				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
+				Console.WriteLine(message);
+				return;
+				//throw new Exception(message);
+			}
+
 			projectsCache.Add(assemblyName, provider);
 		}
 
 		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
 		{
 			var provider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(this.solution, assemblyName);
+
+			if (projectsCache.ContainsKey(assemblyName))
+			{
+				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
+				Console.WriteLine(message);
+				return;
+				//throw new Exception(message);
+			}
+
 			projectsCache.Add(assemblyName, provider);
 		}
 
