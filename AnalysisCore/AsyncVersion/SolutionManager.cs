@@ -22,8 +22,9 @@ namespace ReachingTypeAnalysis.Analysis
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		protected async Task LoadSolutionAsync(string solutionPath)
+		protected Task LoadSolutionAsync(string solutionPath)
 		{
+			var tasks = new List<Task>();
 			var cancellationTokenSource = new CancellationTokenSource();
 			this.solution = Utils.ReadSolution(solutionPath);
 
@@ -34,8 +35,11 @@ namespace ReachingTypeAnalysis.Analysis
             {
 				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
 
-				await this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				var task = this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				tasks.Add(task);
             }
+
+			return Task.WhenAll(tasks);
 		}
 
 		protected Task LoadSourceAsync(string source)

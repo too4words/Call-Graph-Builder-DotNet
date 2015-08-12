@@ -9,5 +9,5 @@
     <TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
   </Tracing>
   <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
-  <Messaging ResponseTimeout="30s" ClientSenderBuckets="8192" MaxResendCount="0"/>
+  <Messaging ResponseTimeout="180s" ClientSenderBuckets="8192" MaxResendCount="0"/>
 </ClientConfiguration>
