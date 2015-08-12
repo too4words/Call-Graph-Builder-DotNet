@@ -79,7 +79,7 @@ namespace ReachingTypeAnalysis
                     {
 						this.solution = this.GetSolution();
 						this.dispatcher = new OnDemandSyncDispatcher();
-                        this.AnalyzeOnDemand();
+                        this.AnalyzeOnDemandSync();
                         return this.GenerateCallGraph();
                     }
                 case AnalysisStrategyKind.ENTIRE_SYNC:
@@ -91,13 +91,15 @@ namespace ReachingTypeAnalysis
                     }
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
-                        var callgraph = this.OnDemandAsync().Result;
+						this.AnalyzeOnDemandAsync().Wait();
+						var callgraph = this.GenerateCallGraphAsync().Result;
                         return callgraph;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
 					{
-                        var callGraph = this.OrleansOnDemand().Result;
-                        return callGraph;
+						this.AnalyzeOnDemandOrleans().Wait();
+						var callgraph = this.GenerateCallGraphAsync().Result;
+						return callgraph;
 					}
                 case AnalysisStrategyKind.ENTIRE_ASYNC:
                     {
@@ -123,13 +125,15 @@ namespace ReachingTypeAnalysis
             {
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
-                        var callgraph = await this.OnDemandAsync();
+						await this.AnalyzeOnDemandAsync();
+						var callgraph = await this.GenerateCallGraphAsync();
                         return callgraph;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
                     {
-                        var callGraph = await this.OrleansOnDemand();
-                        return callGraph;
+						await this.AnalyzeOnDemandOrleans();
+						var callgraph = await this.GenerateCallGraphAsync();
+						return callgraph;
                     }
                 default:
                     {
@@ -137,7 +141,7 @@ namespace ReachingTypeAnalysis
                     }
             }
         }
-        private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OnDemandAsync()
+        internal async Task AnalyzeOnDemandAsync()
         {
             this.Strategy = new OnDemandAsyncStrategy();
             ISolutionManager solutionManager = null;
@@ -154,23 +158,18 @@ namespace ReachingTypeAnalysis
             var mainMethods = await solutionManager.GetRootsAsync();
             var orchestator = new AnalysisOrchestator(this.Strategy);
             await orchestator.AnalyzeAsync(mainMethods);
-
-            // This is for debugging just one project
-            //var compilerMainMethod = new MethodDescriptor("Microsoft.CodeAnalysis.CSharp.CommandLine", "Program", "Main", true);
-            //Console.WriteLine("Analyzing {0}...", compilerMainMethod.Name);
-            //orchestator.AnalyzeAsync(compilerMainMethod).Wait();
-
-            var callGraph = await orchestator.GenerateCallGraphAsync();
-            return callGraph;
         }
 
-        private async Task<CallGraph<MethodDescriptor, LocationDescriptor>> OrleansOnDemand()
+		internal async Task AnalyzeOnDemandOrleans()
         {
             this.Strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
 
-            SolutionAnalyzer.MessageCounter = 0;
-            GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+			//SolutionAnalyzer.MessageCounter = 0;
+			//GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
+			// For orleans we cannot use the strategy to create a solution
+			// The solution grain creates an internal strategy and contain an internal 
+			// solution manager. We obtain the solution grain that handles everything
             var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
             if (this.source != null)
@@ -185,11 +184,51 @@ namespace ReachingTypeAnalysis
             var mainMethods = await solutionManager.GetRootsAsync();
             var orchestator = new AnalysisOrchestator(this.Strategy);
             await orchestator.AnalyzeAsync(mainMethods);
-
-            var callGraph = await orchestator.GenerateCallGraphAsync();
-            Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
-            return callGraph;
+			//var callGraph = await orchestator.GenerateCallGraphAsync();
+			//Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+			//return callGraph;
         }
+
+		internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
+		{
+			var strategy = this.Strategy;
+			Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
+			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
+			var solution = strategy.SolutionManager;
+			var roots = await solution.GetRootsAsync();
+			callgraph.AddRootMethods(roots);
+			var visited = new HashSet<MethodDescriptor>(roots);
+			var worklist = new Queue<MethodDescriptor>(roots);
+			while (worklist.Count > 0)
+			{
+				var currentMethodDescriptor = worklist.Dequeue();
+				visited.Add(currentMethodDescriptor);
+				Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
+
+				var currentProc = await strategy.GetMethodEntityAsync(currentMethodDescriptor);
+				var calleesInfoForMethod = await currentProc.GetCalleesInfoAsync();
+
+				foreach (var entry in calleesInfoForMethod)
+				{
+					var analysisNode = entry.Key;
+					var callees = entry.Value;
+
+					foreach (var calleeDescriptor in callees)
+					{
+						Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG", currentMethodDescriptor, calleeDescriptor);
+						callgraph.AddCallAtLocation(analysisNode.LocationDescriptor, currentMethodDescriptor, calleeDescriptor);
+
+						if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
+						{
+							worklist.Enqueue(calleeDescriptor);
+						}
+					}
+				}
+			}
+
+			return callgraph;
+		}
+
 
 		private Solution GetSolution()
 		{
@@ -272,7 +311,7 @@ namespace ReachingTypeAnalysis
         /// Try to get the roslyn methods on the fly
         /// Currently works with one project.
         /// </summary>
-        private void AnalyzeOnDemand()
+        private void AnalyzeOnDemandSync()
         {
 			// TOOD: hack -- set the global solution
 			ProjectCodeProvider.Solution = this.solution;

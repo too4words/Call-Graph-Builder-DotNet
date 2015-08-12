@@ -2,11 +2,13 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ReachingTypeAnalysis.Analysis;
 using System;
+using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis
-{    public partial class BasicTests
-    {
-        public static void TestSimpleCall(AnalysisStrategyKind strategy)
+{   
+	 public partial class BasicTests 
+	 {
+	    public static void TestSimpleCall(AnalysisStrategyKind strategy)
         {
 			#region source code
 			var source = @"

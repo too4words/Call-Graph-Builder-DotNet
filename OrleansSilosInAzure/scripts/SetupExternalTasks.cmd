@@ -1,8 +1,10 @@
-if "%EMULATED%"=="true" goto NOSKIP
+if "%EMULATED%"=="true" goto SKIP
 if "%EXTERNALTASKURL%"=="" goto SKIP
 
-set Source=https://orleansdatastorage.blob.core.windows.net/project-files 
-set SourceKey=w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ== /S
+set Source=https://orleanstorage2.blob.core.windows.net/project-files 
+REM https://orleansdatastorage.blob.core.windows.net/project-files 
+set SourceKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
+REM w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ== 
 
 goto START
 

@@ -1,10 +1,8 @@
 
+
 md c:\temp
-md c:\temp\solutions2
+md c:\temp\solutions
 
-echo External\AzCopy\AzCopy.exe /Dest:C:\Temp\solutions2 /Source:%Source% /SourceKey:%SourceKey%  /SourceType:Blob /S /Y /pattern:* >> c:\Temp\sal.txt
-
-
-External\AzCopy\AzCopy.exe /Dest:C:\Temp\solutions2 /Source:%Source% /SourceKey:%SourceKey%  /SourceType:Blob /S /Y /pattern:* 
+External\AzCopy\AzCopy.exe /Dest:C:\Temp\solutions /Source:%Source% /SourceKey:%SourceKey%  /SourceType:Blob /S /Y /pattern:* 
 
 EXIT /B 0
