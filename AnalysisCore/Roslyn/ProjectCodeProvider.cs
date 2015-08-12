@@ -136,7 +136,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 result.Add(methodDescriptor);
             }
 
-            return Task.FromResult<IEnumerable<MethodDescriptor>>(result);
+            return Task.FromResult(result.AsEnumerable());
         }
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
@@ -252,7 +252,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		internal static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)
 		{
-			Console.WriteLine("Project language {0}", project.Language);
+			//Console.WriteLine("Project language {0}", project.Language);
 			if (project.Language == "Visual Basic") return null;
 
 			var compilation = await project.GetCompilationAsync(cancellationToken);
@@ -265,8 +265,10 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			if (errors.Any())
 			{
-				Console.WriteLine("Failed to compile project {0}", project.Name);
 				var fileName = string.Format("roslyn compilation errors for {0}.txt", project.Name);
+
+				Console.WriteLine("Failed to compile project {0}", project.Name);
+				Console.WriteLine("To see the error log open file: {0}", fileName);				
 
 				File.WriteAllLines(fileName, errors);
 			}

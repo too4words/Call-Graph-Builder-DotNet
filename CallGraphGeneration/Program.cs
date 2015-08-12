@@ -30,8 +30,8 @@ namespace CallGraphGeneration
 			args = new string[]
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
-				@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
+				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+				@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 			};
 			
 			if (args.Length == 2)
