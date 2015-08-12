@@ -39,7 +39,8 @@ namespace CodeGraphModel
 	[Serializable]
 	public class ReferenceAnnotation : Annotation
     {
-        public string declFile;
+		public string declarationId;
+		public string declFile;
     }
 
 	[Serializable]

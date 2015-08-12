@@ -56,7 +56,7 @@ Listening on Port {0} ...
 			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, @"ConsoleApplication1\ConsoleApplication1.sln");
 			//var solutionPath = @"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln";
 
-			var program = new Program(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			var program = new Program(AnalysisStrategyKind.ONDEMAND_ASYNC);
 			program.Start(baseAddress, port, solutionPath);
 
 			Console.WriteLine("Done");

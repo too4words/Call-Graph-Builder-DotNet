@@ -170,7 +170,6 @@ namespace ConsoleServer.Controllers
 					var methodId = uidparts[0];
 					var invocationIndex = Convert.ToInt32(uidparts[1]);
 
-					//var methodDescriptor = new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar");
 					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
 					var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
 					var callees = await methodEntity.GetCalleesAsync(invocationIndex);
