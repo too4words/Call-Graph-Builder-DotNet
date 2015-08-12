@@ -337,14 +337,16 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
         {
-            return Task.FromResult(this.methodEntity.Callers
-                .Select(cs => new SymbolReference()
-			                    {
-				                    refType = "ref",
-				                    preview = cs.CallNode.LocationDescriptor.FilePath,				
-				                    trange = cs.CallNode.LocationDescriptor.Range
-			                    }
-            ));
+			var references = from caller in this.methodEntity.Callers
+						 select new SymbolReference()
+						 {
+							 refType = "ref",
+							 preview = caller.CallNode.LocationDescriptor.FilePath,
+							 trange = caller.CallNode.LocationDescriptor.Range
+						 };
+
+			var result = references.ToList().AsEnumerable();
+			return Task.FromResult(result);
         }
 
 

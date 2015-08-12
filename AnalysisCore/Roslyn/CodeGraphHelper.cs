@@ -81,7 +81,7 @@ namespace AnalysisCore.Roslyn
 			return result;
 		}
 
-		public static string GetSymbolId(IMethodSymbol symbol, int invocationIndex = 0)
+		public static string GetSymbolId(IMethodSymbol symbol, int invocationIndex)
 		{
 			var result = GetSymbolId(symbol);
 			result = string.Format("{0}@{1}", result, invocationIndex);
@@ -152,21 +152,19 @@ namespace AnalysisCore.Roslyn
 			this.currentMethodSymbol = null;
 		}
 
-		private void VisitBaseMethodInvocationExpression(SimpleNameSyntax methodName)
+		private void VisitBaseMethodInvocationExpression(SimpleNameSyntax methodName, IMethodSymbol methodSymbol)
 		{
 			this.invocationIndex++;
-
 			var span = methodName.SyntaxTree.GetLineSpan(methodName.Span);
-			var symbolInfo = this.model.GetSymbolInfo(methodName);
-			var symbol = symbolInfo.Symbol;
 
 			var reference = new ReferenceAnnotation()
 			{
+				declarationId = CodeGraphHelper.GetSymbolId(methodSymbol),
 				symbolId = CodeGraphHelper.GetSymbolId(this.currentMethodSymbol, this.invocationIndex),
-				declFile = symbol.Locations.First().GetMappedLineSpan().Path,
+				declFile = methodSymbol.Locations.First().GetMappedLineSpan().Path,
 				symbolType = SymbolType.Method,
-				label = symbol.Name,
-				hover = symbol.ToDisplayString(),
+				label = methodSymbol.Name,
+				hover = methodSymbol.ToDisplayString(),
 				refType = "ref",
 				range = CodeGraphHelper.GetRange(span)
 			};
@@ -179,7 +177,11 @@ namespace AnalysisCore.Roslyn
 			if (node.Expression is MemberAccessExpressionSyntax)
 			{
 				var memberAccess = node.Expression as MemberAccessExpressionSyntax;
-				this.VisitBaseMethodInvocationExpression(memberAccess.Name);
+				var methodName = memberAccess.Name;
+                var symbolInfo = this.model.GetSymbolInfo(node);
+				var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
+
+				this.VisitBaseMethodInvocationExpression(methodName, methodSymbol);
 			}
 
 			base.VisitInvocationExpression(node);
@@ -189,8 +191,11 @@ namespace AnalysisCore.Roslyn
 		{
 			if (node.Type is SimpleNameSyntax)
 			{
-				var typeName = node.Type as SimpleNameSyntax;
-				this.VisitBaseMethodInvocationExpression(typeName);
+				var methodName = node.Type as SimpleNameSyntax;
+				var symbolInfo = this.model.GetSymbolInfo(node);
+				var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
+
+				this.VisitBaseMethodInvocationExpression(methodName, methodSymbol);
 			}
 
 			base.VisitObjectCreationExpression(node);
