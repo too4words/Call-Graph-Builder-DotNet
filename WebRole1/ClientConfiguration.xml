@@ -13,4 +13,5 @@
 		<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
   </Tracing>
   <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
+  <Messaging ResponseTimeout="600s"/>
 </ClientConfiguration>

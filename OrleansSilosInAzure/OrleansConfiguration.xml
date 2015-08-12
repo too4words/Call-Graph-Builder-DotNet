@@ -12,6 +12,7 @@
       <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
       <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />
     </StorageProviders>
+	  <Messaging ResponseTimeout="600s"/>
   </Globals>
   <Defaults>
     <!--

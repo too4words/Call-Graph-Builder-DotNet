@@ -71,8 +71,10 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.SolutionFullPath = solutionPath;
 			this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
 
-			await this.WriteStateAsync();
 			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
+
+			await this.WriteStateAsync();
+			
         }
 
         public async Task SetSolutionSource(string solutionSource)
