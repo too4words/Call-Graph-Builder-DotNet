@@ -17,5 +17,6 @@ namespace OrleansInterfaces
         //Task<IEnumerable<MethodDescriptor>> GetRoots();
         //Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types);
         //Task<ISet<TypeDescriptor>> InstantiatedTypes();
+		Task<IEnumerable<string>> GetDrives();
     }
 }

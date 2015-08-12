@@ -1,4 +1,6 @@
-﻿using Orleans.Runtime.Host;
+﻿using Orleans;
+using Orleans.Runtime.Host;
+using OrleansInterfaces;
 using ReachingTypeAnalysis;
 using SolutionTraversal.CallGraph;
 using System;
@@ -111,6 +113,22 @@ namespace WebRole1
         {
 
         }
+
+		protected async void Button5_Click(object sender, EventArgs e)
+		{
+			try
+            {
+				var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+				var drives = await solutionManager.GetDrives();
+				string drivesStr = String.Join("\n", drives);
+				TextBox1.Text = drivesStr;
+			}
+			catch (Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+		}
 		
     }
 

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;
-
+using System.IO;
+using System.Linq;
 
 
 namespace ReachingTypeAnalysis.Analysis
@@ -139,6 +140,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.solutionManager.GetProjectCodeProvidersAsync();
 		}
+		public Task<IEnumerable<string>> GetDrives()
+		{
+			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
+			return Task.FromResult(drivers.AsEnumerable());
+		}
+
 	}
     
 }

@@ -6,6 +6,27 @@
     [string]$localFolder = ""
  )
 
+
+ # Check a registry path
+function Test-RegistryValue {
+
+	param (
+	 [parameter(Mandatory=$true)]$Path
+	)
+
+	try {
+	Get-Item -Path $Path -ErrorAction Stop
+	return $true
+	}
+
+	catch {
+
+	return $false
+
+	}
+
+}
+
 # Function to unzip file contents
 function Expand-ZIPFile($file, $destination)
 {
@@ -55,11 +76,26 @@ cd $localFolder
 
 cd .. 
 
+# save account pass to reconnect
+cmdkey /add:orleansstorage2.file.core.windows.net /user:orleansstorage2 /pass:ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
 # We add a share to access solution files
-net use z: \\orleansstorage2.file.core.windows.net\solutions /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
+net use y: \\orleansstorage2.file.core.windows.net\solutions /persistent:yes
+
+#net use z: \\orleansstorage2.file.core.windows.net\solutions /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ== /persistent:yes
+
+$vs = Test-RegistryValue 'HKLM:\Software\Microsoft\VisualStudio\14.0'
+
+if($vs -eq $false)
+{
+	# we need to install VS
+	$vsdir = 'y:\IDEinstall\VS15-parts'
+	$vsinstall = 'vs_enterprise.exe' 
+	pushd $vsdir 
+	& $vsinstall /noweb /silent /NoRefresh /CustomInstallPath c:\vs2015 /Log c:\temp\vs15-log.txt
+}
+
 
 # Now, we run azure copy to copy 
 #cmd.exe /C RunAzureCopy.cmd
-
- Write-Log "Blob copy to local folder"
+# Write-Log "Blob copy to local folder"
  
