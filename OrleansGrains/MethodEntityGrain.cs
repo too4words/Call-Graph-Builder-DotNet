@@ -10,6 +10,7 @@ using OrleansInterfaces;
 using ReachingTypeAnalysis.Communication;
 using System.Diagnostics;
 using CodeGraphModel;
+using Orleans.Placement;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -21,6 +22,7 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "FileStore")]
     [StorageProvider(ProviderName = "MemoryStore")]
     //[Reentrant]
+	[PreferLocalPlacement]
     public class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
         [NonSerialized]

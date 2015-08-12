@@ -94,8 +94,10 @@ namespace WebRole1
             {
                 var program = new AnalysisClient();
                 var testName = TextBoxPath.Text;
-                var result = await program.RunSingleTestAsync(testName, 1);
-                this.TextBox1.Text = result;                    
+				var callgraph = await program.AnalyzeTestAsync(testName);
+				var reachableMethods = callgraph.GetReachableMethods();
+				string methods = String.Join("\n", reachableMethods);
+				this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
             }
             catch (Exception exc)
             {

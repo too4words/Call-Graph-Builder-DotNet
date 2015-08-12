@@ -235,45 +235,6 @@ namespace ReachingTypeAnalysis.Analysis
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
-
-        internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
-        {
-            Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
-            var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-			var solution = strategy.SolutionManager;
-			var roots = await solution.GetRootsAsync();
-            callgraph.AddRootMethods(roots);
-            var visited = new HashSet<MethodDescriptor>(roots);
-            var worklist = new Queue<MethodDescriptor>(roots);
-            while (worklist.Count > 0)
-            {
-                var currentMethodDescriptor = worklist.Dequeue();
-                visited.Add(currentMethodDescriptor);
-                Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}",currentMethodDescriptor);
-
-				var currentProc = await strategy.GetMethodEntityAsync(currentMethodDescriptor);
-                var calleesInfoForMethod = await currentProc.GetCalleesInfoAsync();
-  
-                foreach (var entry in calleesInfoForMethod)
-                {
-                    var analysisNode = entry.Key;
-                    var callees = entry.Value;
-
-                    foreach (var calleeDescriptor in callees)
-                    {
-                        Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG",currentMethodDescriptor, calleeDescriptor);
-                        callgraph.AddCallAtLocation(analysisNode.LocationDescriptor, currentMethodDescriptor, calleeDescriptor);
-
-                        if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
-                        {
-                            worklist.Enqueue(calleeDescriptor);
-                        }
-                    }
-                }
-            }
-
-            return callgraph;
-        }
     }
 
 }

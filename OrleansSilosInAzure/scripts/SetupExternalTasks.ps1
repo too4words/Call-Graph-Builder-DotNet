@@ -55,8 +55,11 @@ cd $localFolder
 
 cd .. 
 
- # Now, we run azure copy to copy 
-cmd.exe /C RunAzureCopy.cmd
+# We add a share to access solution files
+net use z: \\orleansstorage2.file.core.windows.net\solutions /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
+
+# Now, we run azure copy to copy 
+#cmd.exe /C RunAzureCopy.cmd
 
  Write-Log "Blob copy to local folder"
  
