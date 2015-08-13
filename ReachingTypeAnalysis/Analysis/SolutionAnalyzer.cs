@@ -436,10 +436,11 @@ namespace ReachingTypeAnalysis
 
 		internal async Task UpdateMethod(MethodDescriptor methodDescriptor, string newCode)
 		{
-			var solutionManager = this.Strategy.SolutionManager;
+			var solutionManager = this.SolutionManager;
 			var codeProvider = (ProjectCodeProvider) await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
-			var methodEntityWP = await this.Strategy.GetMethodEntityAsync(methodDescriptor);
+			var methodEntityWP = await codeProvider.GetMethodEntityAsync(methodDescriptor);
 		
+
 			var methodSyntax = codeProvider.GetSyntaxAsync(methodDescriptor);
 			
 			// Find the method and project of the method to be updated
