@@ -62,6 +62,9 @@ namespace ReachingTypeAnalysis.Analysis
 
         private IProjectCodeProvider GetDummyProjectCodeProvider()
         {
+			// TODO: In the future we may want to have a different project code provider
+			// for each unknown project in the solution instead of having only one
+			// representing all of them.
             var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
             return provider;
         }

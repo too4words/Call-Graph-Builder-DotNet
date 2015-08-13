@@ -13,9 +13,9 @@ using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-    public partial class ProjectCodeProvider: IProjectCodeProvider
+    public partial class ProjectCodeProvider : IProjectCodeProvider
     {
-        internal Compilation Compilation { get; private set; }
+		internal Compilation Compilation { get; private set; }
         internal Project Project { get; private set; }
         //public SemanticModel SemanticModel { get; private set; }
         public static Solution Solution { get; internal set; }
@@ -24,7 +24,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             this.Project = project;
 			this.Compilation = compilation;
-        }
+		}
 
         internal static async Task<IProjectCodeProvider> ProjectCodeProviderAsync(string fullPath)
         {
@@ -69,7 +69,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return null;
         }
 
-        #region ICodeProvider Implementation
+        #region IProjectCodeProvider Implementation
 
         public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
@@ -122,6 +122,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		}
 
 		private IDictionary<Guid, SemanticModel> semanticModelMap = new Dictionary<Guid, SemanticModel>();
+
 		private SemanticModel GetSemanticModel(Document document, SyntaxTree tree)
 		{
 			SemanticModel model;
@@ -134,8 +135,14 @@ namespace ReachingTypeAnalysis.Roslyn
 			return model;
 		}
 
-		
-        public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor) as MethodEntity;
+			var result = new MethodEntityWithPropagator(methodEntity, this);
+			return result;
+        }
+
+		public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
@@ -331,54 +338,6 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 
 			return compilation;
-		}
-    }
-
-    internal class DummyCodeProvider : IProjectCodeProvider
-    {
-        public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-        {
-            return Task.FromResult(true);
-        }
-
-        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-        {
-            return Task.FromResult(methodDescriptor);
-        }
-
-        public bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
-        {
-            return true;
-        }
-
-        public MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
-        {
-            return methodDescriptor;
-        }
-
-        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
-        {
-            var libraryMethodVisitor = new ReachingTypeAnalysis.Roslyn.LibraryMethodParser(methodDescriptor);
-            var methodEntity = libraryMethodVisitor.ParseMethod();
-            return Task.FromResult<IEntity>(methodEntity);
-        }
-
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
-        {
-            var result = new HashSet<MethodDescriptor>();
-            return Task.FromResult(result.AsEnumerable());
-        }
-
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
-		{
-			var result = new HashSet<CodeGraphModel.FileResponse>();
-			return Task.FromResult(result.AsEnumerable());
-		}
-
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
-		{
-			var result = new HashSet<CodeGraphModel.FileResponse>();
-			return Task.FromResult(result.AsEnumerable());
 		}
     }
 }

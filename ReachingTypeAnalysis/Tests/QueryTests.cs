@@ -273,7 +273,7 @@ namespace ReachingTypeAnalysis
             AnalyzeExample(source, (s, callgraph) =>
             {
 
-                var queryTimes2 = Q.DoQueries1(s.Strategy);
+                var queryTimes2 = Q.DoQueries1(s.SolutionManager);
                 var averageQueryTimes2 = queryTimes2.Average(t => t.Elapsed.Milliseconds);
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
             }, strategy);
@@ -382,7 +382,7 @@ namespace ReachingTypeAnalysis
 
             AnalyzeExample(source, (s, callgraph) =>
             {
-                var queryTimes2 = Q.DoQueries2(s.Strategy);
+                var queryTimes2 = Q.DoQueries2(s.SolutionManager);
                 var averageQueryTimes2 = queryTimes2.Average(t => t.Elapsed.Milliseconds);
                 Debug.WriteLine("Average Query Time {0} ", averageQueryTimes2);
             }, strategy);
@@ -473,161 +473,161 @@ namespace ReachingTypeAnalysis
         //}
         #endregion
 
-        public static IEnumerable<Stopwatch> DoQueries1(IAnalysisStrategy analysisStrategy)
+        public static IEnumerable<Stopwatch> DoQueries1(ISolutionManager solutionManager)
         {
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N0", true), 4).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N0", true), 4).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N1", true), 2).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N1", true), 2).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N2", true), 2).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N2", true), 2).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N3", true), 1).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N3", true), 1).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N4", true), 4).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N4", true), 4).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N5", true), 2).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N5", true), 2).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N6", true), 4).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N6", true), 4).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N7", true), 1).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N7", true), 1).Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N8", true), 3).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N8", true), 3).Result;
                 sw.Stop();
                 yield return sw;
             }
 
 			//{
 			//    var sw = Stopwatch.StartNew();
-			//    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
+			//    var a = CallGraphQueryInterface.GetCalleesOrleansAsync(solutionManager, new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
 			//    sw.Stop();
 			//    yield return sw;
 			//}
 
 			{
 				var sw = Stopwatch.StartNew();
-                var a = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "Main", true), 8).Result;
+                var a = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "Main", true), 8).Result;
                 sw.Stop();
                 yield return sw;
             }
         }
 
-        public static IEnumerable<Stopwatch> DoQueries2(IAnalysisStrategy analysisStrategy)
+        public static IEnumerable<Stopwatch> DoQueries2(ISolutionManager solutionManager)
         {
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N0", true), 2, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N0", true), 2, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N1", true), 2, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N1", true), 2, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N2", true), 1, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N2", true), 1, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N3", true), 1, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N3", true), 1, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N4", true), 2, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N4", true), 2, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N5", true), 1, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N5", true), 1, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N6", true), 2, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N6", true), 2, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N7", true), 6, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N7", true), 6, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
             {
                 var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N8", true), 1, "MyProject").Result;
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N8", true), 1, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }
 
-            //{
-            //    var sw = Stopwatch.StartNew();
-            //    var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
-            //    sw.Stop();
-            //    yield return sw;
-            //}
+			//{
+			//    var sw = Stopwatch.StartNew();
+			//    var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "N9", true), 1, "MyProject").Result;
+			//    sw.Stop();
+			//    yield return sw;
+			//}
 
-            {
-                var sw = Stopwatch.StartNew();
-                var _ = CallGraphQueryInterface.GetCalleesAsync(analysisStrategy, new MethodDescriptor("C", "Main", true), 9, "MyProject").Result;
+			{
+				var sw = Stopwatch.StartNew();
+                var _ = CallGraphQueryInterface.GetCalleesAsync(solutionManager, new MethodDescriptor("C", "Main", true), 9, "MyProject").Result;
                 sw.Stop();
                 yield return sw;
             }

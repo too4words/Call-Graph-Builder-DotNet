@@ -70,7 +70,7 @@ Listening on Port {0} ...
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			//analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
 			analyzer.Analyze(strategyKind);
-			OrleansController.Strategy = analyzer.Strategy;
+			OrleansController.SolutionManager = analyzer.SolutionManager;
 
 			Console.WriteLine("Done");
 		}

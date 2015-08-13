@@ -17,9 +17,9 @@ namespace ReachingTypeAnalysis.Analysis
 {
     public interface IProjectState : IGrainState
     {
-        string FullPath { get; set; }
-        string Name { get; set; } 
-        string SourceCode { get; set; }
+        string ProjectPath { get; set; }
+        string AssemblyName { get; set; } 
+        string Source { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
@@ -33,49 +33,46 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
-			if (this.State.FullPath != null)
+			this.State.AssemblyName = this.GetPrimaryKeyString();
+
+			if (this.State.ProjectPath != null)
 			{
-				this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 			}
             else
             {
-                if (this.State.SourceCode != null)
+                if (this.State.Source != null && this.State.AssemblyName != null)
                 {
-                    var solution = Utils.CreateSolution(this.State.SourceCode);
-                    Contract.Assert(this.State.Name != null);
-                    this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution,this.State.Name);                    
+                    this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);                    
                 }
                 else
                 {
-                    if(this.GetPrimaryKeyString().Equals("DUMMY"))
+                    if(this.State.AssemblyName.Equals("DUMMY"))
                     {
-                        this.projectCodeProvider = new DummyCodeProvider();
+                        this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
                     }
                 }
             }
-			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
-            
+
+			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
         }
 
         public async Task SetProjectPath(string fullPath)
         {
 			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
-            this.State.FullPath = fullPath;
-            this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderAsync(this.State.FullPath);
-            await this.WriteStateAsync();
+            this.State.ProjectPath = fullPath;
+            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+			await this.WriteStateAsync();
 			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
-            return;
         }
 
         public async Task SetProjectSourceCode(string source)
         {
-            this.State.SourceCode = source;
-            var solution = Utils.CreateSolution(source);
+            this.State.Source = source;
             // To do: Hack
-            this.State.Name = "MyProject";
-            this.projectCodeProvider = await ProjectCodeProvider.ProjectCodeProviderByNameAsync(solution, this.State.Name);                    
-            await this.WriteStateAsync();
-            return;
+            this.State.AssemblyName = "MyProject";
+            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+			await this.WriteStateAsync();
         }
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
@@ -112,5 +109,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.projectCodeProvider.GetDocumentEntitiesAsync(filePath);
 		}
-    }   
+
+		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
+		}
+	}   
 }

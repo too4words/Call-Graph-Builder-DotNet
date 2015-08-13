@@ -265,7 +265,7 @@ namespace ReachingTypeAnalysis
 
         public MethodParser(SemanticModel model, SyntaxTree tree, IMethodSymbol method)
             : base(method)
-        {            
+        {
             this.model = model;
             //this.Tree = tree;
             var root = tree.GetRoot();
@@ -289,6 +289,13 @@ namespace ReachingTypeAnalysis
             
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
+        }
+
+		public MethodParser(MethodParserInfo methodParserInfo)
+			: base(methodParserInfo.MethodSymbol, methodParserInfo.MethodDescriptor)
+		{
+			this.model = methodParserInfo.SemanticModel;
+			this.methodNode = methodParserInfo.DeclarationNode;
         }
 
         public override MethodEntity ParseMethod()

@@ -280,8 +280,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath)
 		{
-			return GetDocumentEntitiesAsync(filePath);
+			return codeProvider.GetDocumentEntitiesAsync(filePath);
 		}
+
+		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			return codeProvider.GetMethodEntityAsync(methodDescriptor);
+        }
 	}
 
     /// <summary>

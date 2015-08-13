@@ -12,57 +12,59 @@ using System.IO;
 using System.Configuration;
 using System.Threading.Tasks;
 using AnalysisCore.Roslyn;
+using System.Threading;
 
 namespace ReachingTypeAnalysis
 {
-    public class Utils
+	public class Utils
 	{
-        public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
-        {
-            Contract.Assert(method != null);
-            var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
+		public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
+		{
+			Contract.Assert(method != null);
+			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
-			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic, 
-                method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
-                Utils.CreateTypeDescriptor(method.ReturnType));            
-        }
+			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
+				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
+				Utils.CreateTypeDescriptor(method.ReturnType));
+		}
 
-        public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
-        {
-            Contract.Assert(type != null);
+		public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
+		{
+			Contract.Assert(type != null);
 			var assemblyName = "Unknown";
 			var namespaceName = Utils.GetFullNamespaceName(type);
-            var kind = Utils.Convert(type.TypeKind);            
+			var kind = Utils.Convert(type.TypeKind);
 
-            if (type.ContainingAssembly != null)
-            {
-                assemblyName = type.ContainingAssembly.Name;
-            }
+			if (type.ContainingAssembly != null)
+			{
+				assemblyName = type.ContainingAssembly.Name;
+			}
 
-            return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
-        }
+			return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
+		}
 
-        private static string GetFullNamespaceName(ISymbol symbol)
-        {
-            var namespaceName = string.Empty;
+		private static string GetFullNamespaceName(ISymbol symbol)
+		{
+			var namespaceName = string.Empty;
 
-            if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
-            {
-                namespaceName = symbol.ContainingNamespace.ToDisplayString();
-            }
+			if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
+			{
+				namespaceName = symbol.ContainingNamespace.ToDisplayString();
+			}
 
-            return namespaceName;
-        }
+			return namespaceName;
+		}
 
-        private static SerializableTypeKind Convert(TypeKind kind) {
-            switch (kind)
-            {
-                case TypeKind.Class: return SerializableTypeKind.Class;
-                case TypeKind.Interface: return SerializableTypeKind.Interface;
-                case TypeKind.Delegate: return SerializableTypeKind.Delegate;
-                case TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
-                case TypeKind.Array: return SerializableTypeKind.Array;
-                case TypeKind.Struct: return SerializableTypeKind.Struct;
+		private static SerializableTypeKind Convert(TypeKind kind)
+		{
+			switch (kind)
+			{
+				case TypeKind.Class: return SerializableTypeKind.Class;
+				case TypeKind.Interface: return SerializableTypeKind.Interface;
+				case TypeKind.Delegate: return SerializableTypeKind.Delegate;
+				case TypeKind.TypeParameter: return SerializableTypeKind.TypeParameter;
+				case TypeKind.Array: return SerializableTypeKind.Array;
+				case TypeKind.Struct: return SerializableTypeKind.Struct;
 				case TypeKind.Module: return SerializableTypeKind.Module;
 				case TypeKind.Enum: return SerializableTypeKind.Enum;
 				case TypeKind.Pointer: return SerializableTypeKind.Pointer;
@@ -71,10 +73,10 @@ namespace ReachingTypeAnalysis
 				case TypeKind.Submission: return SerializableTypeKind.Submission;
 				case TypeKind.Unknown: return SerializableTypeKind.Unknown;
 				default: throw new ArgumentException("Can't convert " + kind);
-            }
-        }
+			}
+		}
 
-        internal static bool IsTypeForAnalysis(SemanticModel model, ExpressionSyntax node)
+		internal static bool IsTypeForAnalysis(SemanticModel model, ExpressionSyntax node)
 		{
 			var type = model.GetTypeInfo(node).Type;
 			return type != null && IsTypeForAnalysis(type);
@@ -85,12 +87,12 @@ namespace ReachingTypeAnalysis
 			Contract.Assert(t != null);
 			return (t.IsReferenceType || t.Kind == SerializableTypeKind.TypeParameter);
 		}
-	
+
 		internal static bool IsTypeForAnalysis(ITypeSymbol type)
 		{
-			var res = type != null && 
-                (type.IsReferenceType || 
-                    type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);	// || t.SpecialType==SpecialType.System_Void);
+			var res = type != null &&
+				(type.IsReferenceType ||
+					type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);    // || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
 
@@ -160,42 +162,42 @@ namespace ReachingTypeAnalysis
 		//	//else return null;
 		//}
 
-        internal static int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
-        {
-            // var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
-            var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
-            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
-            var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
-            int count = 0;
-            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
-            {
-                count++;
-            }
+		internal static int GetInvocationNumber(IMethodSymbol roslynMethod, SyntaxNodeOrToken invocation)
+		{
+			// var roslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, locMethod.Value);
+			var methodDeclarationSyntax = roslynMethod.DeclaringSyntaxReferences.First();
+			//var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+			var invocations = methodDeclarationSyntax.GetSyntax().DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+			int count = 0;
+			for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(invocation.GetLocation()); i++)
+			{
+				count++;
+			}
 
-            return count;
-        }
+			return count;
+		}
 
-        internal static int GetStatementNumber(SyntaxNodeOrToken expression)
-        {
-            var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MethodDeclarationSyntax>().First();
-            //var syntaxTree = methodDeclarationSyntax.SyntaxTree;
-            var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
-            int count = 0;
-            for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(expression.GetLocation()); i++)
-            {
-                count++;
-            }
+		internal static int GetStatementNumber(SyntaxNodeOrToken expression)
+		{
+			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MethodDeclarationSyntax>().First();
+			//var syntaxTree = methodDeclarationSyntax.SyntaxTree;
+			var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
+			int count = 0;
+			for (int i = 0; i < invocations.Length && !invocations[i].GetLocation().Equals(expression.GetLocation()); i++)
+			{
+				count++;
+			}
 
-            return count;
-        }
+			return count;
+		}
 
-        public  static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
-        {
-            var span = syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span);
-            var filePath = span.Path;
-            var range = CodeGraphHelper.GetRange(span);
-            return new LocationDescriptor(invocationPosition, range, filePath);
-        }
+		public static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
+		{
+			var span = syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span);
+			var filePath = span.Path;
+			var range = CodeGraphHelper.GetRange(span);
+			return new LocationDescriptor(invocationPosition, range, filePath);
+		}
 
 		private static MetadataReference mscorlib;
 
@@ -212,7 +214,7 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-		internal static Solution CreateSolution(string source)
+		public static Solution CreateSolution(string source)
 		{
 			var projectId = ProjectId.CreateNewId();
 			var documentId = DocumentId.CreateNewId(projectId);
@@ -225,38 +227,60 @@ namespace ReachingTypeAnalysis
 				.AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
 				.AddMetadataReference(projectId, Mscorlib)
 				.AddDocument(documentId, "MyFile.cs", source);
+
 			return solution;
 		}
 
-        public static Task<Project> ReadProjectAsync(string path)
-        {
+		public static Task<Project> ReadProjectAsync(string path)
+		{
 			var props = new Dictionary<string, string>();
 			props["CheckForSystemRuntimeDependency"] = "true";
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenProjectAsync(path);
-        }
+		}
 
-        public static Solution ReadSolution(string path)
-        {
-            if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
+		public static Solution ReadSolution(string path)
+		{
+			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
 
-            var props = new Dictionary<string, string>();
-            props["CheckForSystemRuntimeDependency"] = "true";
-            var ws = MSBuildWorkspace.Create(props);
-            var solution = ws.OpenSolutionAsync(path).Result;
-            //string pathToDll = ConfigurationManager.AppSettings["PathToDLLs"];
-            //Contract.Assert(pathToDll != null && Directory.Exists(pathToDll));
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
+			var ws = MSBuildWorkspace.Create(props);
+			var solution = ws.OpenSolutionAsync(path).Result;
 
-            //var metadataReferences = new string[] {
-            //        "System.Runtime.dll",
-            //        "System.Threading.Tasks.dll",
-            //        "System.Reflection.dll",
-            //        "System.Text.Encoding.dll"}.Select(s => MetadataReference.CreateFromFile(pathToDll + s));
-            //var pIds = solution.ProjectIds;
-            //foreach (var pId in pIds)
-            //    solution = solution.AddMetadataReferences(pId, metadataReferences);
-            return solution;
-        }
+			return solution;
+		}
+
+		public static async Task<Compilation> CompileProjectAsync(Project project, CancellationToken cancellationToken)
+		{
+			//Console.WriteLine("Project language {0}", project.Language);
+			var cancellationTokenSource = new CancellationTokenSource();
+			if (project.Language == "Visual Basic") return null;
+
+			var compilation = await project.GetCompilationAsync(cancellationTokenSource.Token);
+			var diagnostics = compilation.GetDiagnostics();
+
+			// print compilation errors and warnings
+			var errors = from diagnostic in diagnostics
+						 where diagnostic.Severity == DiagnosticSeverity.Error
+						 select diagnostic.ToString();
+
+			if (errors.Any())
+			{
+				var fileName = string.Format("roslyn compilation errors for {0}.txt", project.Name);
+
+				Console.WriteLine("Failed to compile project {0}", project.Name);
+				Console.WriteLine("To see the error log open file: {0}", fileName);
+
+				File.WriteAllLines(fileName, errors);
+			}
+			else
+			{
+				Console.WriteLine("Project {0} compiled successfully", project.Name);
+			}
+
+			return compilation;
+		}
 	}
 
 	public class PairIterator<T1, T2> : IEnumerable<Tuple<T1, T2>>

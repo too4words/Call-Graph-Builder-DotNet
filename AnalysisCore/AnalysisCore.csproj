@@ -146,9 +146,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncVersion\OnDemandAsyncStrategy.cs" />
-    <Compile Include="AsyncVersion\MethodEntityPropagator.cs" />
-    <Compile Include="AsyncVersion\SolutionManager.cs" />
+    <Compile Include="Async\AsyncSolutionManager.cs" />
+    <Compile Include="Async\AsyncProjectCodeProvider.cs" />
+    <Compile Include="Async\AsyncDummyProjectCodeProvider.cs" />
+    <Compile Include="Common\DummyProjectCodeProvider.cs" />
+    <Compile Include="Common\MethodEntityPropagator.cs" />
+    <Compile Include="Common\BaseProjectCodeProvider.cs" />
+    <Compile Include="Common\SolutionManager.cs" />
     <Compile Include="CallGraphQueryInterface.cs" />
     <Compile Include="Graph\Graph.cs" />
     <Compile Include="Graph\GraphAnnotationData.cs" />

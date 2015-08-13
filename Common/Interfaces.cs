@@ -48,16 +48,19 @@ namespace ReachingTypeAnalysis
     public interface IProjectCodeProvider
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
+
         Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
-        //bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
-        //MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+
         Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
-        Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath);
-	}
+    }
 
     public interface ISolutionManager
     {
@@ -68,8 +71,10 @@ namespace ReachingTypeAnalysis
 		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
 
 		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
+
         //The next 2 methods are for RTA: Not currently used
         Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
     }
 
