@@ -154,6 +154,10 @@
       <HintPath>..\packages\Microsoft.Orleans.OrleansRuntime.1.0.9\lib\net45\OrleansRuntime.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="RedDog.Storage, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RedDog.Storage.0.2.0.0\lib\net40\RedDog.Storage.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System">
       <Private>True</Private>
     </Reference>

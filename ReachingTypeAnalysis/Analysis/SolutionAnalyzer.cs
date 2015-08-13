@@ -436,6 +436,49 @@ namespace ReachingTypeAnalysis
             return callgraph.GetCallers(calleeDescriptor).Select(kp => kp.Value).Contains(callerDescriptor);
         }
 
+		internal async Task UpdateMethod(MethodDescriptor methodDescriptor, string newCode)
+		{
+			var solutionManager = this.Strategy.SolutionManager;
+			var codeProvider = (ProjectCodeProvider) await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
+			var methodEntityWP = await this.Strategy.GetMethodEntityAsync(methodDescriptor);
+		
+			var methodSyntax = codeProvider.GetSyntaxAsync(methodDescriptor);
+			
+			// Find the method and project of the method to be updated
+			//var projectMethdod = FindMethodSymbolAndProjectInSolution(methodDescriptor, callgraph);
+			//var oldRoslynMethod = projectMethdod.Method;
+			//var project = projectMethdod.Project;
+
+			//var aMethod = new AMethod(oldRoslynMethod);
+			////entityProcessor.MethodEntity.Save(roslynMethod.ContainingType.Name + "_" + roslynMethod.Name + "_orig.dot");
+			////--------------------------------------------------------------------------------------------------------
+			//// This is to mimic a change in the method. We need to create a new comp
+			//var methodDecSyntax = Utils.FindMethodDeclaration(aMethod);
+			//var newMethodBody = SyntaxFactory.ParseStatement(newCode) as BlockSyntax;
+			//// here we update the method body
+			//var newMethodSyntax = methodDecSyntax.WithBody(newMethodBody);
+			//// This is a trick to recover the part of the syntax tree after replacing the project syntax tree
+			//var annotation = new SyntaxAnnotation("Hi");
+			//newMethodSyntax = newMethodSyntax.WithAdditionalAnnotations(annotation);
+			//// update the syntax tree
+			//var oldRoot = methodDecSyntax.SyntaxTree.GetRoot();
+			//var newRoot = oldRoot.ReplaceNode(methodDecSyntax, newMethodSyntax);
+			//// Compute the new compilation and semantic model
+			//var oldCompilation = project.GetCompilationAsync().Result;
+			//var newCompilation = oldCompilation.ReplaceSyntaxTree(oldRoot.SyntaxTree, newRoot.SyntaxTree);
+			//var newSemanticModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
+			//// Recover the method node
+			//var recoveredMethodNode = newRoot.GetAnnotatedNodes(annotation).Single();
+			////////////////////////////////////////////////////////
+
+			//// Get the entity corresponding to the new (updated) method
+			//var updatedRoslynMethod = newSemanticModel.GetDeclaredSymbol(recoveredMethodNode) as IMethodSymbol;
+
+			//PerformUpdate(oldRoslynMethod, newSemanticModel, updatedRoslynMethod);
+		}
+
+
+
 /*
 		private ProjectMethod FindMethodSymbolAndProjectInSolution(MethodDescriptor methodDescriptor, CallGraph<MethodDescriptor, ALocation> callgraph)
         {

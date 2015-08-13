@@ -15,6 +15,7 @@ using System.IO;
 using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime.Configuration;
+using RedDog.Storage.Files;
 
 namespace OrleansSilosInAzure
 {
@@ -148,6 +149,26 @@ namespace OrleansSilosInAzure
 
         public override bool OnStart()
         {
+			// Mount a drive.
+			FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
+				"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+
+			// Unmount a drive.
+			//FilesMappedDrive.Unmount("P:");
+
+			// Mount a drive for a CloudFileShare.
+			//CloudFileShare share = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"))
+			//	.CreateCloudFileClient()
+			//	.GetShareReference("reports");
+			//share.Mount("P:");
+
+			// List drives mapped to an Azure Files share.
+			//foreach (var mappedDrive in FilesMappedDrive.GetMountedShares())
+			//{
+			//	Trace.WriteLine(String.Format("{0} - {1}", mappedDrive.DriveLetter, mappedDrive.Path));
+			//}
+ 
+
             // Set the maximum number of concurrent connections
             ServicePointManager.DefaultConnectionLimit = 12;
 
