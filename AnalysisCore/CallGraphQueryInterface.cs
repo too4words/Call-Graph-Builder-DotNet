@@ -20,25 +20,25 @@ namespace ReachingTypeAnalysis
         /// <param name="invocationPosition"></param>
         /// <param name="projectName"></param>
         /// <returns></returns>
-        public static Task<ISet<MethodDescriptor>> GetCalleesAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor, int invocationPosition, string projectName)
+        public static Task<ISet<MethodDescriptor>> GetCalleesAsync(ISolutionManager solutionManager, MethodDescriptor methodDescriptor, int invocationPosition, string projectName)
         {
-            return GetCalleesAsync(strategy, methodDescriptor, invocationPosition);
+            return GetCalleesAsync(solutionManager, methodDescriptor, invocationPosition);
         }
         /// These 2 method can work either with Orleans or OndDemandAsync Strategy
         /// <summary>
         /// Return the calless for a given call site
         /// </summary>
-        /// <param name="strategy"></param>
+        /// <param name="solutionManager"></param>
         /// <param name="methodDescriptor"></param>
         /// <param name="invocationPosition"></param>
         /// <returns></returns>
-        public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor, int invocationPosition)
+        public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(ISolutionManager solutionManager, MethodDescriptor methodDescriptor, int invocationPosition)
         {
             var totalStopWatch = Stopwatch.StartNew();
-
             var stopWatch = Stopwatch.StartNew();
 
-            var entityWithPropagator = await strategy.GetMethodEntityAsync(methodDescriptor);
+			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
+            var entityWithPropagator = await projectProvider.GetMethodEntityAsync(methodDescriptor);
             Meausure("GetMethodEntityProp", stopWatch);
 
             var result = await entityWithPropagator.GetCalleesAsync(invocationPosition);
@@ -53,13 +53,14 @@ namespace ReachingTypeAnalysis
         /// <param name="methodDescriptor"></param>
         /// <param name="projectName"></param>
         /// <returns></returns>
-        public static async Task<int> GetInvocationCountAsync(IAnalysisStrategy strategy, MethodDescriptor methodDescriptor)
+        public static async Task<int> GetInvocationCountAsync(ISolutionManager solutionManager, MethodDescriptor methodDescriptor)
         {
             var totalStopWatch = Stopwatch.StartNew();
 
             var stopWatch = Stopwatch.StartNew();
 
-            var entityWithPropagator = await strategy.GetMethodEntityAsync(methodDescriptor);
+			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
+			var entityWithPropagator = await projectProvider.GetMethodEntityAsync(methodDescriptor);
             Meausure("GetMethodEntityProp", stopWatch);
 
             var result = await entityWithPropagator.GetInvocationCountAsync();

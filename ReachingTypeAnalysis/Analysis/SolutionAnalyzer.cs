@@ -37,9 +37,9 @@ namespace ReachingTypeAnalysis
 		private Solution solution;
 		private IDispatcher dispatcher;
 
-		public static int MessageCounter { get; private set; }
+		public ISolutionManager SolutionManager { get; private set; }
 
-		public IAnalysisStrategy Strategy { get; private set; }
+		public static int MessageCounter { get; private set; }
 
 		private SolutionAnalyzer()
 		{
@@ -114,6 +114,7 @@ namespace ReachingTypeAnalysis
                     }
             }
         }
+
         public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)
@@ -141,29 +142,25 @@ namespace ReachingTypeAnalysis
                     }
             }
         }
+
         internal async Task AnalyzeOnDemandAsync()
         {
-            this.Strategy = new OnDemandAsyncStrategy();
-            ISolutionManager solutionManager = null;
-
             if (this.source != null)
             {
-                solutionManager = await this.Strategy.CreateFromSourceAsync(this.source);
+                this.SolutionManager = await AsyncSolutionManager.CreateFromSourceAsync(this.source);
             }
             else
             {
-                solutionManager = await this.Strategy.CreateFromSolutionAsync(this.solutionPath);
+                this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
             }
 
-            var mainMethods = await solutionManager.GetRootsAsync();
-            var orchestator = new AnalysisOrchestator(this.Strategy);
+            var mainMethods = await this.SolutionManager.GetRootsAsync();
+            var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
         }
 
 		internal async Task AnalyzeOnDemandOrleans()
         {
-            this.Strategy = new OnDemandOrleansStrategy(GrainClient.GrainFactory);
-
 			//SolutionAnalyzer.MessageCounter = 0;
 			//GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
@@ -171,18 +168,19 @@ namespace ReachingTypeAnalysis
 			// The solution grain creates an internal strategy and contain an internal 
 			// solution manager. We obtain the solution grain that handles everything
             var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			this.SolutionManager = solutionManager;
 
-            if (this.source != null)
+			if (this.source != null)
             {
-                await solutionManager.SetSolutionSource(this.source);
+                await solutionManager.SetSolutionSourceAsync(this.source);
             }
             else
             {
-                await solutionManager.SetSolutionPath(this.solutionPath);
+                await solutionManager.SetSolutionPathAsync(this.solutionPath);
             }
 
-            var mainMethods = await solutionManager.GetRootsAsync();
-            var orchestator = new AnalysisOrchestator(this.Strategy);
+            var mainMethods = await this.SolutionManager.GetRootsAsync();
+            var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			//Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
@@ -191,22 +189,23 @@ namespace ReachingTypeAnalysis
 
 		internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
 		{
-			var strategy = this.Strategy;
 			Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
-			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-			var solution = strategy.SolutionManager;
-			var roots = await solution.GetRootsAsync();
-			callgraph.AddRootMethods(roots);
-			var visited = new HashSet<MethodDescriptor>(roots);
+			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();		
+			var roots = await SolutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
+			var visited = new HashSet<MethodDescriptor>();
+
+			callgraph.AddRootMethods(roots);
+
 			while (worklist.Count > 0)
 			{
 				var currentMethodDescriptor = worklist.Dequeue();
 				visited.Add(currentMethodDescriptor);
 				Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
 
-				var currentProc = await strategy.GetMethodEntityAsync(currentMethodDescriptor);
-				var calleesInfoForMethod = await currentProc.GetCalleesInfoAsync();
+				var projectProvider = await this.SolutionManager.GetProjectCodeProviderAsync(currentMethodDescriptor);
+				var methodEntity = await projectProvider.GetMethodEntityAsync(currentMethodDescriptor);
+				var calleesInfoForMethod = await methodEntity.GetCalleesInfoAsync();
 
 				foreach (var entry in calleesInfoForMethod)
 				{
@@ -228,7 +227,6 @@ namespace ReachingTypeAnalysis
 
 			return callgraph;
 		}
-
 
 		private Solution GetSolution()
 		{

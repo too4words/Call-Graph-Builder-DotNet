@@ -18,14 +18,9 @@ namespace ConsoleServer.Controllers
     {
 		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
-		public static IAnalysisStrategy Strategy { get; internal set; }
-
 		private static IDictionary<string, string> documentsAssemblyName;
 
-		public static ISolutionManager SolutionManager
-		{
-			get { return Strategy.SolutionManager; }
-		}
+		public static ISolutionManager SolutionManager { get; internal set; }
 
 		static OrleansController()
 		{
@@ -171,12 +166,14 @@ namespace ConsoleServer.Controllers
 					var invocationIndex = Convert.ToInt32(uidparts[1]);
 
 					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
-					var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
+					var projectProvider = await SolutionManager.GetProjectCodeProviderAsync(methodDescriptor);
+					var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
 					var callees = await methodEntity.GetCalleesAsync(invocationIndex);
 
 					foreach (var calleeDescriptor in callees)
 					{
-						var calleeEntity = await Strategy.GetMethodEntityAsync(calleeDescriptor);
+						var calleeProjectProvider = await SolutionManager.GetProjectCodeProviderAsync(calleeDescriptor);
+						var calleeEntity = await calleeProjectProvider.GetMethodEntityAsync(calleeDescriptor);
 						var reference = await calleeEntity.GetDeclarationInfoAsync();
 
 						if (reference != null)
@@ -191,7 +188,8 @@ namespace ConsoleServer.Controllers
 					// Find all method references
 					var methodId = uid;
 					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
-					var methodEntity = await Strategy.GetMethodEntityAsync(methodDescriptor);
+					var projectProvider = await SolutionManager.GetProjectCodeProviderAsync(methodDescriptor);
+					var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
 					var callers = await methodEntity.GetCallersDeclarationInfoAsync();
 
 					foreach (var reference in callers)

@@ -185,8 +185,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OrleansDummyProjectCodeProvider.cs" />
+    <Compile Include="OrleansProjectCodeProvider.cs" />
     <Compile Include="MethodEntityGrain.cs" />
-    <Compile Include="OnDemandOrleansStrategy.cs" />
     <Compile Include="SolutionGrain.cs" />
     <Compile Include="OrleansSolutionManager.cs" />
     <Compile Include="ProjectCodeProviderGrain.cs" />

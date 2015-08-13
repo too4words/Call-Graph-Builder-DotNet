@@ -22,28 +22,29 @@ namespace ReachingTypeAnalysis.Analysis
     /// </summary>
     internal class AnalysisOrchestator
 	{
-		private IAnalysisStrategy strategy;
-        //private ISet<Message> messageWorkList = new HashSet<Message>();
-        private Queue<Message> messageWorkList = new Queue<Message>();
+		private ISolutionManager solutionManager;
+		//private ISet<Message> messageWorkList = new HashSet<Message>();
+		private Queue<Message> messageWorkList = new Queue<Message>();
         private IDictionary<MethodDescriptor, MethodEntity> anonymousMethods;
 
 		public MethodEntity GetAnonymousMethodEntity(MethodDescriptor methodDescriptor)
         {
-            return anonymousMethods[methodDescriptor];
+            return this.anonymousMethods[methodDescriptor];
         }
 
-		public AnalysisOrchestator(IAnalysisStrategy strategy)
+		public AnalysisOrchestator(ISolutionManager solutionManager)
 		{
-			this.strategy = strategy;
+			this.solutionManager = solutionManager;
 			this.anonymousMethods = new Dictionary<MethodDescriptor, MethodEntity>();
 		}
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
-			foreach (var methodDescriptor in rootMethods)
+			foreach (var method in rootMethods)
 			{
-				var entityDescriptor = new MethodEntityDescriptor(methodDescriptor);
-				var methodEntityProc = await strategy.GetMethodEntityAsync(methodDescriptor);
+				var entityDescriptor = new MethodEntityDescriptor(method);
+				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+				var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
 				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			}
@@ -56,7 +57,8 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 
 			var entityDescriptor = new MethodEntityDescriptor(method);
-			var methodEntityProc = await strategy.GetMethodEntityAsync(method);
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+			var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
             var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
             await ProcessMessages();
@@ -177,7 +179,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
-			var methodEntityProc = await strategy.GetMethodEntityAsync(callee);
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
+			var methodEntityProc = await projectProvider.GetMethodEntityAsync(callee);
             var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
             await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 
@@ -229,7 +232,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
-			var methodEntityProc = await strategy.GetMethodEntityAsync(caller);
+			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(caller);
+			var methodEntityProc = await projectProvider.GetMethodEntityAsync(caller);
 			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
 			await PropagateEffectsAsync(propagationEffects, propKind);
 

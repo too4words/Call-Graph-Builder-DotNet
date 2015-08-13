@@ -9,100 +9,57 @@ using OrleansInterfaces;
 using System.IO;
 using System.Linq;
 
-
 namespace ReachingTypeAnalysis.Analysis
 {
     // TODO: Add instantiated types
     public interface ISolutionState : IGrainState
     {
-        string SolutionFullPath { get; set; }
-        string SourceCode { get; set; }
+        string SolutionPath { get; set; }
+        string Source { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
     [StorageProvider(ProviderName = "MemoryStore")]
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
-        //[NonSerialized]
-        //private Dictionary<MethodDescriptor, IProjectCodeProviderGrain> methodDescriptors2Project;
-        //private ISet<TypeDescriptor> instantiadtedTypes;
-        //[NonSerialized]
-        //private Microsoft.CodeAnalysis.Solution solution;
         [NonSerialized]
         ISolutionManager solutionManager;
-        [NonSerialized]
-        IAnalysisStrategy strategy;
 
         public override  async Task OnActivateAsync()
         {
-            //methodDescriptors2Project = new Dictionary<MethodDescriptor, IProjectCodeProviderGrain>();
-            //instantiadtedTypes = new HashSet<TypeDescriptor>();
-
-            //if (this.State.SolutionFullPath != null)
-            //{
-            //    this.solution = Utils.ReadSolution(this.State.SolutionFullPath);
-            //}
-            //else
-            //{
-            //    if (this.State.SourceCode != null)
-            //    {
-            //        this.solution = Utils.CreateSolution(this.State.SourceCode);
-            //    }
-
-            //}
-
             Logger.Log(this.GetLogger(), "SolGrain", "OnActivate","");
 
-            strategy = new OnDemandOrleansStrategy(this.GrainFactory);
-
-            if (this.State.SolutionFullPath != null)
+            if (this.State.SolutionPath != null)
             {
-				this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
             }
-            else if(this.State.SourceCode != null)
+            else if (this.State.Source != null)
             {
-				this.solutionManager = await strategy.CreateFromSourceAsync(this.State.SourceCode);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
             }
         }
 
-        public async Task SetSolutionPath(string solutionPath)
+        public async Task SetSolutionPathAsync(string solutionPath)
         {
 			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Enter");
 
-            this.State.SolutionFullPath = solutionPath;
-			this.solutionManager = await strategy.CreateFromSolutionAsync(this.State.SolutionFullPath);
-
-			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
+            this.State.SolutionPath = solutionPath;
+			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
 
 			await this.WriteStateAsync();
-			
-        }
+			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
+		}
 
-        public async Task SetSolutionSource(string solutionSource)
+        public async Task SetSolutionSourceAsync(string source)
         {
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Enter");
-            this.State.SourceCode = solutionSource;
-			this.solutionManager = await strategy.CreateFromSourceAsync(this.State.SourceCode);
+
+            this.State.Source = source;
+			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
+
             await this.WriteStateAsync();
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
-
-		//public Task<IProjectCodeProvider> GetCodeProviderAsync(MethodDescriptor methodDescriptor)
-		//{
-		//    //IProjectCodeProviderGrain projectCodeProviderGrain;
-		//    //if (this.methodDescriptors2Project.TryGetValue(methodDescriptor, out projectCodeProviderGrain))
-		//    //{
-		//    //    return projectCodeProviderGrain;
-		//    //}
-		//    //else
-		//    //{
-		//    //    projectCodeProviderGrain = await ProjectCodeProvider.GetCodeProviderGrainAsync(methodDescriptor, this.solution, GrainFactory);
-		//    //    this.methodDescriptors2Project.Add(methodDescriptor, projectCodeProviderGrain);
-		//    //    await TaskDone.Done; //this.State.WriteStateAsync();
-		//    //}
-
-		//    //return projectCodeProviderGrain;
-		//}
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{
@@ -117,21 +74,19 @@ namespace ReachingTypeAnalysis.Analysis
         public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
         {
             return solutionManager.AddInstantiatedTypesAsync(types);
-            //instantiadtedTypes.UnionWith(types);
-            //await this.WriteStateAsync();
         }
 
         public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
             return this.solutionManager.GetInstantiatedTypesAsync();
-            // return await Task.FromResult(instantiadtedTypes);
         }
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
 			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
+
             var roots = await this.solutionManager.GetRootsAsync();
-            //return ProjectCodeProvider.GetMainMethodsAsync(this.solution);
+
 			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Exit");
             return roots; 
         }
@@ -140,12 +95,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.solutionManager.GetProjectCodeProvidersAsync();
 		}
+
+		// TODO: remove this hack!
 		public Task<IEnumerable<string>> GetDrives()
 		{
 			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
 			return Task.FromResult(drivers.AsEnumerable());
 		}
-
-	}
-    
+	}    
 }
