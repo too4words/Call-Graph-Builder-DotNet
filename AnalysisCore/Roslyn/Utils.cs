@@ -28,6 +28,15 @@ namespace ReachingTypeAnalysis
 				Utils.CreateTypeDescriptor(method.ReturnType));
 		}
 
+		public static IList<Project> FilterProjects(Solution solution)
+		{
+			var filteredProjects = from project in solution.Projects
+								   where project.Language == "C#"
+								   select project;
+
+			return new List<Project>(filteredProjects);
+		}
+
 		public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
 		{
 			Contract.Assert(type != null);
@@ -111,22 +120,24 @@ namespace ReachingTypeAnalysis
 				{
 					foreach (var candidate in candidates)
 					{
-						var candidateMethodOrProperty = candidates.First();
-						if (candidateMethodOrProperty.Kind == SymbolKind.Property)
+						if (candidate.Kind == SymbolKind.Property)
 						{
-							result = ((IPropertySymbol)candidateMethodOrProperty).GetMethod;
+							result = ((IPropertySymbol)candidate).GetMethod;
 						}
 						else
 						{
-							result = (IMethodSymbol)candidateMethodOrProperty;
+							result = (IMethodSymbol)candidate;
 						}
-						// This is rough, just to test 
-						if (result.Parameters.Count() != method.Parameters.Count())
+
+						if (result.Parameters.Count() == method.Parameters.Count())
+						{
+							break;
+						}
+						else
 						{
 							result = null;
 						}
 					}
-
 				}
 				rType = rType.BaseType;
 			} while (result == null && rType != null);
@@ -255,8 +266,6 @@ namespace ReachingTypeAnalysis
 		{
 			//Console.WriteLine("Project language {0}", project.Language);
 			var cancellationTokenSource = new CancellationTokenSource();
-			if (project.Language == "Visual Basic") return null;
-
 			var compilation = await project.GetCompilationAsync(cancellationTokenSource.Token);
 			var diagnostics = compilation.GetDiagnostics();
 

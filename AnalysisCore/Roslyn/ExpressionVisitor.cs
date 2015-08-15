@@ -801,32 +801,56 @@ namespace ReachingTypeAnalysis.Roslyn
 					VariableNode receiverArg = null;
 					if (!methodInvokedSymbol.IsStatic)
 					{
+						
                         // Diego: Check types!
 						var receiver = TryToGetReceiver(node, methodInvokedSymbol);
-                        Contract.Assert(receiver is VariableNode);
 
-						// Try to get receiver, when this is not given by the previous nested call
-						receiverArg = tempReceiver == null ? (VariableNode)receiver : tempReceiver;
-						if (receiverArg != null)
+						if (receiver != null)
 						{
-							if (receiverArg != receiver)
+							
+							Contract.Assert(receiver is VariableNode);
+
+							// Try to get receiver, when this is not given by the previous nested call
+							receiverArg = tempReceiver == null ? (VariableNode)receiver : tempReceiver;
+							if (receiverArg != null)
 							{
-								statementProcessor.RegisterAssignment(receiverArg, (VariableNode)receiver);
+								if (receiverArg != receiver)
+								{
+									statementProcessor.RegisterAssignment(receiverArg, (VariableNode)receiver);
+								}
+
+								if (methodInvokedSymbol.IsExtensionMethod)
+								{
+									if (methodInvokedSymbol.IsExtensionMethod)
+									{
+										methodInvokedSymbol = methodInvokedSymbol.ReducedFrom;
+										methodDescriptor = Utils.CreateMethodDescriptor(methodInvokedSymbol);
+                                    }
+
+									args.Insert(0, receiverArg);
+									statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
+									result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
+									// We adapt the method as it is an extension
+								}
+								else
+								{
+									// Register the invocation in the PropGraph
+									statementProcessor.RegisterVirtualCall(methodDescriptor, receiverArg, args, lh, callNode);
+								}
 							}
-							// Register the invocation in the PropGraph
-							statementProcessor.RegisterVirtualCall(methodDescriptor, receiverArg, args, lh, callNode);
-						}
-						else // To-DO FIX: This is not correct because is not static (in can be a lamba o query or reduced expression)
-						{
-							statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
+							else // To-DO FIX: This is not correct because is not static (in can be a lamba o query or reduced expression)
+							{
+								statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
+							}
+
+							result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
 						}
 					}
 					else
 					{
 						statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
+						result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
 					}
-
-					result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
 				}
 			}
 			else

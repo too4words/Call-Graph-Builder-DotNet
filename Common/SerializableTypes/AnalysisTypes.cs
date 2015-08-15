@@ -146,9 +146,9 @@ namespace ReachingTypeAnalysis
             this.MethodName = original.MethodName;
             this.Parameters = original.Parameters;
             this.ReturnType = original.ReturnType;
-            // this.ThisType = original.ThisType;
-
-        }
+			this.IsStatic = original.IsStatic;
+			// this.ThisType = original.ThisType;
+		}
 
         public override bool Equals(object obj)
         {

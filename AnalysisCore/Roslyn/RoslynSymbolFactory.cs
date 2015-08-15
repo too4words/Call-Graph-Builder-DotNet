@@ -62,9 +62,11 @@ namespace ReachingTypeAnalysis.Roslyn
         public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
         {
             var type = GetTypeByName(methodDescriptor.ContainerType, compilation);
+
             if (type != null)
             {
                 var members = type.GetMembers(methodDescriptor.MethodName);
+
                 if (members.Count() > 0)
                 {
 					var methods = from member in members
@@ -73,6 +75,11 @@ namespace ReachingTypeAnalysis.Roslyn
 								  where descriptor.Equals(methodDescriptor)
 								  select methodSymbol;
 
+					if (methods.Count() != 1)
+					{
+						Console.WriteLine("[Error] Couldn't FindMethodInCompilation '{0}'", methodDescriptor);
+					}
+
 					var method = methods.Single();
 					return method;
 
@@ -80,8 +87,10 @@ namespace ReachingTypeAnalysis.Roslyn
 					//return member;
 				}
             }
+
             return null;
         }
+
         public static INamedTypeSymbol GetTypeByName(TypeDescriptor typeDescriptor, Compilation compilation)
         {
             //return GetTypeByName(typeDescriptor.TypeName, compilation);

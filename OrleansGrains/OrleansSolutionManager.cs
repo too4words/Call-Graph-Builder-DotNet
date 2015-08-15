@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis.Analysis
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {
 			IProjectCodeProvider provider = null;
-			var isExistingProject = this.solution.Projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
+			var isExistingProject = this.projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
 
 			if (isExistingProject)
 			{

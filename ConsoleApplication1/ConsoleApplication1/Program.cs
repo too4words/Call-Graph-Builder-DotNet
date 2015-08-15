@@ -1,4 +1,5 @@
 ﻿using ClassLibrary1;
+using System.Linq;
 
 namespace ConsoleApplication1
 {
@@ -6,7 +7,16 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            IUnique monoType = null;
+			var queryvar = (from arg in args
+							where arg.Length > 0
+						    select arg)
+							.Where(arg2 => arg2.Length == 0)
+							.ToList();
+
+			var testing = new Testing();
+			testing.Testing1();
+
+			IUnique monoType = null;
             monoType.DoSomething();
 
             var test = new Test();

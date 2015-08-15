@@ -12,7 +12,8 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal abstract class SolutionManager : ISolutionManager
     {
-        protected Solution solution;
+        //protected Solution solution;
+		protected IList<Project> projects;
         protected ISet<TypeDescriptor> instantiatedTypes;
 
 		protected SolutionManager()
@@ -24,12 +25,13 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var tasks = new List<Task>();
 			var cancellationTokenSource = new CancellationTokenSource();
-			this.solution = Utils.ReadSolution(solutionPath);
+			var solution = Utils.ReadSolution(solutionPath);
+			this.projects = Utils.FilterProjects(solution);
 
-			var projectsCount = this.solution.ProjectIds.Count;
+			var projectsCount = this.projects.Count;
 			var currentProjectNumber = 1;
 
-			foreach (var project in solution.Projects)
+			foreach (var project in this.projects)
             {
 				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
 
@@ -42,7 +44,9 @@ namespace ReachingTypeAnalysis.Analysis
 
 		protected Task LoadSourceAsync(string source)
 		{
-			this.solution = Utils.CreateSolution(source);
+			var solution = Utils.CreateSolution(source);
+			this.projects = Utils.FilterProjects(solution);
+
 			return this.CreateProjectCodeProviderFromSourceAsync(source, "MyProject");
 		}
 
@@ -54,7 +58,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<MethodDescriptor>();
 
-            foreach (var project in this.solution.Projects)
+            foreach (var project in this.projects)
             {
 				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				var roots = await provider.GetRootsAsync();
@@ -73,7 +77,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<IProjectCodeProvider>();
 
-			foreach (var project in this.solution.Projects)
+			foreach (var project in this.projects)
 			{
 				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				result.Add(provider);
