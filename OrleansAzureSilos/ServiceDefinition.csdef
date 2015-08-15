@@ -7,7 +7,10 @@
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
-	  <Setting name="Startup.ExternalTasksUrl" />
+		<!-- <Setting name="Startup.ExternalTasksUrl" /> -->
+		<Setting name="Startup.VsSourceDir" />
+		<Setting name="Startup.VsInstallDir" />
+		<Setting name="Startup.NetSourceDir" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
@@ -24,7 +27,36 @@
     </LocalResources>
     -->
     <Startup>
-      <Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
+		<!--
+		<Task executionContext="elevated" commandLine="scripts\InstallNET46.cmd" taskType="simple">
+			<Environment>
+				<Variable name="EMULATED">
+					<RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+				</Variable>
+				<Variable name="NETSOURCEDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.NetSourceDir']/@value" />
+				</Variable>
+			</Environment>
+		</Task>
+		-->
+		
+		<Task executionContext="elevated" commandLine="scripts\InstallVS2015-v2.cmd" taskType="simple">
+			<Environment>
+				<Variable name="EMULATED">
+					<RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+				</Variable>
+				<Variable name="VSSOURCEDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.VsSourceDir']/@value" />
+				</Variable>
+				<Variable name="VSINSTALLDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.VsInstallDir']/@value" />
+				</Variable>
+			</Environment>
+		</Task>
+
+
+<!--
+		<Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
         <Environment>
           <Variable name="EMULATED">
             <RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
@@ -34,8 +66,10 @@
           </Variable>
         </Environment>
       </Task>
-    </Startup>
-
+  
+-->
+  </Startup>	
+	  
   </WorkerRole>
   <WebRole name="WebRole1" vmsize="Small">
     <ConfigurationSettings>
