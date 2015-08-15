@@ -56,9 +56,9 @@ namespace ReachingTypeAnalysis.Analysis
 			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
             
 			// This wrapper caches some of the queries to codeProvider
-			this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+			//this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
 
-			//this.codeProvider = codeProviderGrain;
+			this.codeProvider = codeProviderGrain;
 
             this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
@@ -109,8 +109,8 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.MethodDescriptor = methodDescriptor;
 
 			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
-            this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
-
+            // this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+			this.codeProvider = codeProviderGrain;
 
 			await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
@@ -287,6 +287,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.GetMethodEntityAsync(methodDescriptor);
         }
+
+
+		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		{
+			throw new NotImplementedException();
+		}
 	}
 
     /// <summary>

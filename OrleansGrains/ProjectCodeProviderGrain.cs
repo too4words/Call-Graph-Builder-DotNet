@@ -114,5 +114,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 		}
+
+		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		{
+			throw new NotImplementedException();
+		}
 	}   
 }

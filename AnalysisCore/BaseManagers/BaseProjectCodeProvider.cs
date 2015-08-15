@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 	}
 
-    public abstract class BaseProjectCodeProvider : IProjectCodeProvider
+    public  abstract partial class BaseProjectCodeProvider : IProjectCodeProvider
     {
 		protected Project project;
 		protected Compilation compilation;
@@ -172,5 +172,74 @@ namespace ReachingTypeAnalysis.Analysis
 			var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(filePath, StringComparison.InvariantCultureIgnoreCase));
 			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
         }
-    }
+
+
+		public virtual async Task RemoveMethodAsync(MethodDescriptor methodToRemove)
+		{
+			var metdhodEntityWP = await this.GetMethodEntityAsync(methodToRemove);
+			
+		}
+
+		public async Task PropagateMethodRemoval()
+		{
+			//var propGraphOld = this.methodEntity.PropGraph;
+
+			//foreach (var potentialCallee in this.GetCalleesAsync())
+			//{
+			//	RemoveCall(potentialCallee);
+			//}
+
+			// This is to force the callers to call me
+			//foreach(var callerConext in  entity.Callers)
+			//{
+			//    var caller = callerConext.Caller;
+			//    var callerEntityProcessor = Dispatcher.GetEntityWithProcessor(new MethodEntityDescriptor<AMethod>(caller));
+			//    callerEntityProcessor.DoAnalysis(); 
+			//}
+			// Here we propagate the removal of the retvalue of the method we eliminate
+			//if (oldMethodEntity.ReturnVariable != null)
+			//{
+			//	var returnTypes = oldMethodEntity.GetTypes(oldMethodEntity.ReturnVariable);
+			//	foreach (var callersContext in oldMethodEntity.Callers)
+			//	{
+			//		RemoveReturnValuesFromCallerLHS(returnTypes, callersContext.Caller, callersContext.CallLHS);
+			//	}
+			//}
+
+			//this.Dispatcher.RegisterEntity(entityDescriptor, newEntity);
+			//// I get an entity processor to analyze the new entity
+			//var newEntityProcessor = Dispatcher.GetEntityWithProcessor(entityDescriptor) as MethodEntityProcessor<ANode, AType, AMethod>;
+			///// I need to copy all the input data from the old method 
+			//newEntity.CopyInterfaceDataAndCallers(oldMethodEntity);
+			//newEntityProcessor.DoAnalysis();
+
+			//var propGraphNew = newEntity.PropGraph;
+			//var invoNew = GetInvocations(propGraphNew);
+			////newEntityProcessor.MethodEntity.Save(oldRoslynMethod.ContainingType.Name + "_" + oldRoslynMethod.Name + "_d.dot");
+			//oldMethodEntity.InvalidateCaches();
+
+		}
+		private void RemoveCall(MethodDescriptor callee)
+		{
+			//	this.codeProvider.GetMethodEntityAsync()
+			//	var entityProcessorforCallee = Dispatcher.GetEntityWithProcessor(EntityFactory<AMethod>.Create((AMethod)aCallee)) as MethodEntityProcessor<ANode, AType, AMethod>;
+			//	var calleeEntity = entityProcessorforCallee.MethodEntity;
+			//	calleeEntity.InvalidateCaches();
+			//	// Delete progragation of arguments and receiver
+			//	var statementProcessor = new StatementProcessor<ANode, AType, AMethod>((AMethod)aCallee,
+			//			calleeEntity.ReturnVariable, calleeEntity.ThisRef, calleeEntity.ParameterNodes,
+			//			calleeEntity.PropGraph);
+			//	foreach (var p in calleeEntity.ParameterNodes)
+			//	{
+			//		statementProcessor.RegisterRemoveNewExpressionAssignment(p);
+			//	}
+			//	if (calleeEntity.ThisRef != null)
+			//		statementProcessor.RegisterRemoveNewExpressionAssignment(calleeEntity.ThisRef);
+			//	// entity.RemoveCallees();
+			//	entityProcessorforCallee.DoDelete();
+			//	var context = new CallConext<AMethod, ANode>(invocation.Caller, invocation.LHS, invocation.CallNode);
+			//	calleeEntity.RemoveFromCallers(context);
+		}
+
+	}
 }

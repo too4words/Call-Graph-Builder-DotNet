@@ -239,6 +239,16 @@ namespace ReachingTypeAnalysis.Analysis
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
+
+		internal async Task RemoveMethod(MethodDescriptor methodToUpdate)
+		{
+			var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(methodToUpdate);
+			await codeProvider.RemoveMethodAsync(methodToUpdate);
+		}
+
+		#region Incremental Update
+		
+		#endregion
     }
 
 }

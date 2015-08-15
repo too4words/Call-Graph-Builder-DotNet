@@ -359,5 +359,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(this.methodEntity.DeclarationInfo);
 		}
+
 	}
+
+
 }

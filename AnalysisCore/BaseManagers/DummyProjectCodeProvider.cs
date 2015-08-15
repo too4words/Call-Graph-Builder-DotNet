@@ -52,5 +52,11 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+
+		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

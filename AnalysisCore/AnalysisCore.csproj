@@ -149,10 +149,10 @@
     <Compile Include="Async\AsyncSolutionManager.cs" />
     <Compile Include="Async\AsyncProjectCodeProvider.cs" />
     <Compile Include="Async\AsyncDummyProjectCodeProvider.cs" />
-    <Compile Include="Common\DummyProjectCodeProvider.cs" />
-    <Compile Include="Common\MethodEntityPropagator.cs" />
-    <Compile Include="Common\BaseProjectCodeProvider.cs" />
-    <Compile Include="Common\SolutionManager.cs" />
+    <Compile Include="BaseManagers\DummyProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\MethodEntityPropagator.cs" />
+    <Compile Include="BaseManagers\BaseProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\SolutionManager.cs" />
     <Compile Include="CallGraphQueryInterface.cs" />
     <Compile Include="Graph\Graph.cs" />
     <Compile Include="Graph\GraphAnnotationData.cs" />
@@ -169,6 +169,7 @@
     <Compile Include="Roslyn\LibraryMethodProcessor.cs" />
     <Compile Include="Roslyn\MethodSimpifier.cs" />
     <Compile Include="Roslyn\ProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\ProjectCodeProviderIncremental.cs" />
     <Compile Include="Roslyn\ProjectCodeProviderLegacy.cs" />
     <Compile Include="Roslyn\RoslynASTVisitor.cs" />
     <Compile Include="Roslyn\RoslynSymbolFactory.cs" />
