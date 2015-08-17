@@ -91,7 +91,7 @@ namespace StandAloneOrlansAzure
 			// set up the Orleans silo
 			hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
 
-			var xmlConfig = "ClientConfigurationForTesting.xml";
+			var xmlConfig = "ClientConfiguration.xml";
 			Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
 
 			GrainClient.Initialize(xmlConfig);
