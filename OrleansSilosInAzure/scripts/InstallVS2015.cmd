@@ -71,7 +71,7 @@ ELSE  (
 		ECHO This line will create a file to indicate that VS 2015 installed correctly. > "%RoleRoot%\VS_Success.txt"
 		net use X: /delete
 
-		schtasks /delete /TN "EnablePS-Remoting"
+		schtasks /delete /TN "Install-VS"
 
 		REM VS was installed we need to reboot
 		reg add HKLM\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /d Unrestricted /f
