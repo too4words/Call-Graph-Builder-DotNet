@@ -23,8 +23,8 @@
 	  <Messaging ResponseTimeout="600s"/>
   </Globals>
   <Defaults>
-	  <Networking Address="" Port="11111" />
-	  <ProxyingGateway Address="" Port="30000" />
+	  <Networking Address="localhost" Port="11111" />
+	  <ProxyingGateway Address="localhost" Port="30000" />
     <!--
 	  To turn tracing off, set DefaultTraceLevel="Off" and have no overrides. To see a minimum of messages, set DefaultTraceLevel="Error".
       For the trace log file name, {0} is the silo name and {1} is the current time. 
