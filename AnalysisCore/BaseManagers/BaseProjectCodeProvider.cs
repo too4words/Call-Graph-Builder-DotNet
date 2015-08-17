@@ -173,7 +173,6 @@ namespace ReachingTypeAnalysis.Analysis
 			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
         }
 
-
 		public virtual async Task RemoveMethodAsync(MethodDescriptor methodToRemove)
 		{
 			var metdhodEntityWP = await this.GetMethodEntityAsync(methodToRemove);

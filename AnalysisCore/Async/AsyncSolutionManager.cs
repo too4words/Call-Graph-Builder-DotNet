@@ -83,5 +83,13 @@ namespace ReachingTypeAnalysis.Analysis
 			var provider = new AsyncDummyProjectCodeProvider();
 			return provider;
 		}
+
+		public override async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			var projectProvider = await this.GetProjectCodeProviderAsync(methodDescriptor);
+			var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
+
+			return methodEntity;
+		}
 	}
 }

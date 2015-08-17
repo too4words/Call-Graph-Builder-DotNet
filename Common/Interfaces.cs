@@ -26,7 +26,7 @@ namespace ReachingTypeAnalysis
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 	}
 
-    public interface IMethodEntityWithPropagator: IEntity
+    public interface IMethodEntityWithPropagator : IEntity
     {
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
@@ -74,8 +74,10 @@ namespace ReachingTypeAnalysis
 
 		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
 
-        //The next 2 methods are for RTA: Not currently used
-        Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		//The next 2 methods are for RTA: Not currently used
+		Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
 
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
     }

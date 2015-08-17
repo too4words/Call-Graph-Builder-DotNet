@@ -24,6 +24,7 @@ namespace ReachingTypeAnalysis
         {
             return GetCalleesAsync(solutionManager, methodDescriptor, invocationPosition);
         }
+
         /// These 2 method can work either with Orleans or OndDemandAsync Strategy
         /// <summary>
         /// Return the calless for a given call site
@@ -37,8 +38,7 @@ namespace ReachingTypeAnalysis
             var totalStopWatch = Stopwatch.StartNew();
             var stopWatch = Stopwatch.StartNew();
 
-			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
-            var entityWithPropagator = await projectProvider.GetMethodEntityAsync(methodDescriptor);
+            var entityWithPropagator = await solutionManager.GetMethodEntityAsync(methodDescriptor);
             Meausure("GetMethodEntityProp", stopWatch);
 
             var result = await entityWithPropagator.GetCalleesAsync(invocationPosition);
@@ -47,6 +47,7 @@ namespace ReachingTypeAnalysis
             Meausure("Total GetCalleesAsync", totalStopWatch);
             return result;
         }
+
         /// <summary>
         ///  Return the numnber of calls sites for a 
         /// </summary>
@@ -56,11 +57,9 @@ namespace ReachingTypeAnalysis
         public static async Task<int> GetInvocationCountAsync(ISolutionManager solutionManager, MethodDescriptor methodDescriptor)
         {
             var totalStopWatch = Stopwatch.StartNew();
-
             var stopWatch = Stopwatch.StartNew();
 
-			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
-			var entityWithPropagator = await projectProvider.GetMethodEntityAsync(methodDescriptor);
+			var entityWithPropagator = await solutionManager.GetMethodEntityAsync(methodDescriptor);
             Meausure("GetMethodEntityProp", stopWatch);
 
             var result = await entityWithPropagator.GetInvocationCountAsync();
@@ -69,7 +68,6 @@ namespace ReachingTypeAnalysis
             Meausure("Total GetInvocationCountAsync", totalStopWatch);
             return result;
         }
-
 
         private static void Meausure(string label, Stopwatch timer)
         {
@@ -80,7 +78,6 @@ namespace ReachingTypeAnalysis
             timer.Reset();
             timer.Start();
         }
-
 
         /// <summary>
         /// Compute all the calless of this method entities

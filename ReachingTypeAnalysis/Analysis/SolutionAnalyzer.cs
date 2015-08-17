@@ -203,8 +203,7 @@ namespace ReachingTypeAnalysis
 				visited.Add(currentMethodDescriptor);
 				Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
 
-				var projectProvider = await this.SolutionManager.GetProjectCodeProviderAsync(currentMethodDescriptor);
-				var methodEntity = await projectProvider.GetMethodEntityAsync(currentMethodDescriptor);
+				var methodEntity = await this.SolutionManager.GetMethodEntityAsync(currentMethodDescriptor);
 				var calleesInfoForMethod = await methodEntity.GetCalleesInfoAsync();
 
 				foreach (var entry in calleesInfoForMethod)

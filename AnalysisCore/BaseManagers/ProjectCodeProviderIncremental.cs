@@ -14,7 +14,7 @@ using ReachingTypeAnalysis;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	public abstract  partial class BaseProjectCodeProvider: IProjectCodeProvider
+	public abstract partial class BaseProjectCodeProvider: IProjectCodeProvider
 	{
 		internal async Task UpdateMethodAsync(MethodDescriptor methodDescriptor, SyntaxTree newSyntax)
 		{

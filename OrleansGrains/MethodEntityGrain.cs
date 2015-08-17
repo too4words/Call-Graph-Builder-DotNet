@@ -93,39 +93,38 @@ namespace ReachingTypeAnalysis.Analysis
             return this.methodEntityPropagator.GetCalleesInfoAsync();
         }
 
+		///// <summary>
+		///// This method shoudld be removed
+		///// </summary>
+		///// <param name="methodEntity"></param>
+		///// <param name="methodDescriptor"></param>
+		///// <returns></returns>
+		//public async Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor)
+		//{
+		//	Contract.Assert(methodEntity != null);
+		//	this.methodEntity = (MethodEntity)methodEntity;
 
-		/// <summary>
-		/// This method shoudld be removed
-		/// </summary>
-		/// <param name="methodEntity"></param>
-		/// <param name="methodDescriptor"></param>
-		/// <returns></returns>
-		public async Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor)
-		{
-			Contract.Assert(methodEntity != null);
-			this.methodEntity = (MethodEntity)methodEntity;
+		//	Contract.Assert(this.State != null);
+		//	this.State.MethodDescriptor = methodDescriptor;
 
-			Contract.Assert(this.State != null);
-			this.State.MethodDescriptor = methodDescriptor;
+		//	var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
+		//          // this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+		//	this.codeProvider = codeProviderGrain;
 
-			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
-            // this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
-			this.codeProvider = codeProviderGrain;
+		//	await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
-			await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
+		//	this.methodEntityPropagator = new MethodEntityWithPropagator(this.methodEntity, this.codeProvider);
 
-            this.methodEntityPropagator = new MethodEntityWithPropagator(this.methodEntity, this.codeProvider);
+		//	await this.WriteStateAsync();
+		//}
 
-			await this.WriteStateAsync();
-		}
+		//public  Task<IEntity> GetMethodEntityAsync()
+		//{
+		//    // Contract.Assert(this.methodEntity != null);
+		//    return Task.FromResult<IEntity>(this.methodEntity);
+		//}
 
-        //public  Task<IEntity> GetMethodEntityAsync()
-        //{
-        //    // Contract.Assert(this.methodEntity != null);
-        //    return Task.FromResult<IEntity>(this.methodEntity);
-        //}
-
-        public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             Logger.Log(this.GetLogger(), "MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 

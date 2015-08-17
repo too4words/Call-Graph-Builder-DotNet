@@ -43,8 +43,7 @@ namespace ReachingTypeAnalysis.Analysis
 			foreach (var method in rootMethods)
 			{
 				var entityDescriptor = new MethodEntityDescriptor(method);
-				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-				var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
+				var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
 				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			}
@@ -57,8 +56,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 
 			var entityDescriptor = new MethodEntityDescriptor(method);
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
             var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
             await ProcessMessages();
@@ -179,8 +177,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(callee);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
             var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
             await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 
@@ -232,23 +229,21 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
-			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(caller);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(caller);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
 			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
 			await PropagateEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
+		#region Incremental Update
+
 		internal async Task RemoveMethod(MethodDescriptor methodToUpdate)
 		{
-			var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(methodToUpdate);
-			await codeProvider.RemoveMethodAsync(methodToUpdate);
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(methodToUpdate);
+			await projectProvider.RemoveMethodAsync(methodToUpdate);
 		}
 
-		#region Incremental Update
-		
 		#endregion
-    }
-
+	}
 }
