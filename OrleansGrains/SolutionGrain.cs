@@ -71,7 +71,12 @@ namespace ReachingTypeAnalysis.Analysis
             return this.solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
         }
 
-        public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			return this.solutionManager.GetMethodEntityAsync(methodDescriptor);
+		}
+
+		public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
         {
             return solutionManager.AddInstantiatedTypesAsync(types);
         }

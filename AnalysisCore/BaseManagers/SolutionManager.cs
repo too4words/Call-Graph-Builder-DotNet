@@ -88,6 +88,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public abstract Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
 
+		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
 		public async Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
 		{
 			var typeDescriptor = methodDescriptor.ContainerType;

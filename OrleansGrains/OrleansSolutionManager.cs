@@ -68,5 +68,11 @@ namespace ReachingTypeAnalysis.Analysis
             var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>("DUMMY");
             return provider;
         }
-    }
+
+		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
+		}
+	}
 }
