@@ -69,7 +69,7 @@ class Program
 
 		public static void TestRemoveMethodSimpleCall(AnalysisStrategyKind strategy)
 		{
-			#region source code
+			#region original source code
 			var source = @"
 using System;
 public class D:C
@@ -116,7 +116,8 @@ class Program
     }
 }";
 			#endregion
-            #region source code
+
+            #region modified source code
             var newSource = @"
 using System;
 public class D:C
@@ -163,6 +164,7 @@ class Program
     }
 }";
             #endregion
+
 			AnalyzeExample(source,
 				(result, callgraph) =>
 				{

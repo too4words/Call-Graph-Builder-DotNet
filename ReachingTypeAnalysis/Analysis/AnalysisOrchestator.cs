@@ -54,7 +54,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 
-           await ((BaseProjectCodeProvider) projectProvider).ReplaceSourceCode(newSource, "MyFile.cs");
+           await ((BaseProjectCodeProvider) projectProvider).ReplaceSource(newSource, "MyFile.cs");
 
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 

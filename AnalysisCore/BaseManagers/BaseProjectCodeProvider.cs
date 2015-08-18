@@ -80,23 +80,20 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-        internal async Task ReplaceSourceCode(string sourceCode, string name)
+        internal async Task ReplaceSource(string source, string name)
         {
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
-
-            var doc = project.Documents.Single( d => d.Name == name);
-            var documentId =  doc.Id ;  // DocumentId.CreateNewId(project.Id);
-
-            this.project = this.project.RemoveDocument(doc.Id);
-       
-            var newDoc = this.project.AddDocument(doc.Name, sourceCode);
-
-            this.project = newDoc.Project;
+            var oldDocument = project.Documents.Single(doc => doc.Name == name);
+            this.project = this.project.RemoveDocument(oldDocument.Id);       
+            var newDocument = this.project.AddDocument(name, source);
+            this.project = newDocument.Project;
 
             var cancelation = new CancellationTokenSource();
-            this.compilation = await Utils.CompileProjectAsync(project, cancelation.Token);
-            this.semanticModels.Remove(doc.Id.Id);
-            this.semanticModels[newDoc.Id.Id] = compilation.GetSemanticModel(await newDoc.GetSyntaxTreeAsync());
+            this.compilation = await Utils.CompileProjectAsync(project, cancelation.Token);            
+			var semanticModel = await newDocument.GetSyntaxTreeAsync(cancelation.Token);
+
+			this.semanticModels.Remove(oldDocument.Id.Id);
+			this.semanticModels .Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
         }
 
 		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor method, Document document)
