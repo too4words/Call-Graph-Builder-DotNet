@@ -11,6 +11,7 @@ using ReachingTypeAnalysis.Analysis;
 using System.IO;
 using AnalysisCore.Roslyn;
 using ReachingTypeAnalysis.Roslyn;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -78,6 +79,25 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
 		}
+
+        internal async Task ReplaceSourceCode(string sourceCode, string name)
+        {
+			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
+
+            var doc = project.Documents.Single( d => d.Name == name);
+            var documentId =  doc.Id ;  // DocumentId.CreateNewId(project.Id);
+
+            this.project = this.project.RemoveDocument(doc.Id);
+       
+            var newDoc = this.project.AddDocument(doc.Name, sourceCode);
+
+            this.project = newDoc.Project;
+
+            var cancelation = new CancellationTokenSource();
+            this.compilation = await Utils.CompileProjectAsync(project, cancelation.Token);
+            this.semanticModels.Remove(doc.Id.Id);
+            this.semanticModels[newDoc.Id.Id] = compilation.GetSemanticModel(await newDoc.GetSyntaxTreeAsync());
+        }
 
 		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor method, Document document)
 		{

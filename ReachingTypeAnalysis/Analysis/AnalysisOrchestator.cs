@@ -50,15 +50,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return AnalyzeAsync(new MethodDescriptor[] { method });
 		}
 
-		public async Task RemoveMethodAsync(MethodDescriptor method)
+		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+           await ((BaseProjectCodeProvider) projectProvider).ReplaceSourceCode(newSource, "MyFile.cs");
+
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
 			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
 			await this.ProcessMessages();
 			await this.UnregisterCaller(propagationEffects.CalleesInfo);
-			await this.UnregisterCallee(propagationEffects.CallersInfo);
+			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 
 		private async Task UnregisterCaller(IEnumerable<CallInfo> calleesInfo)
@@ -80,20 +83,20 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
-		{
-			var tasks = new List<Task>();
+        //private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
+        //{
+        //    var tasks = new List<Task>();
 
-			foreach (var callerInfo in callersInfo)
-			{
-				var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
-				var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
-				//await task;
-				tasks.Add(task);
-			}
+        //    foreach (var callerInfo in callersInfo)
+        //    {
+        //        var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
+        //        var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
+        //        //await task;
+        //        tasks.Add(task);
+        //    }
 
-			await Task.WhenAll(tasks);
-		}
+        //    await Task.WhenAll(tasks);
+        //}
 
 		private async Task ProcessMessages()
 		{
