@@ -192,7 +192,6 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.GetDeclarationInfoAsync();
         }
 
-
         public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
         {
             return this.methodEntityPropagator.GetCallersDeclarationInfoAsync();
@@ -203,15 +202,14 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.RemoveMethodAsync();
 		}
 
-		public Task UnRegisterCaller(VariableNode lhs, MethodDescriptor caller, AnalysisCallNode callNode)
+		public Task UnregisterCallerAsync(CallContext callContext)
 		{
-			return this.methodEntityPropagator.UnRegisterCaller(lhs, caller, callNode);
+			return this.methodEntityPropagator.UnregisterCallerAsync(callContext);
 		}
 
-
-		public Task UnRegisterCallee(CallContext callContext)
+		public Task UnregisterCalleeAsync(CallContext callContext)
 		{
-			return this.methodEntityPropagator.UnRegisterCallee(callContext);
+			return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
 		}
 	}
 
@@ -303,9 +301,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.GetMethodEntityAsync(methodDescriptor);
         }
 
-		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
-			return this.codeProvider.RemoveMethodAsync(methodToUpdate);
+			return codeProvider.RemoveMethodAsync(methodDescriptor);
 		}
 	}
 

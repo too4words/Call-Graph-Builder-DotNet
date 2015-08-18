@@ -64,26 +64,30 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
             // var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
-			
 			PropagationEffects propagationEffects = null;
-			switch(propKind)
+
+			switch (propKind)
 			{
 				case PropagationKind.ADD_TYPES:
 					propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
 					break;
+
 				case PropagationKind.REMOVE_TYPES:
 					propagationEffects = await this.methodEntity.PropGraph.PropagateDeletionOfNodesAsync(codeProvider);
 					break;
+
+				default:
+					throw new Exception("Unsupported propagation kind");
 			}
 
+			await this.PopulatePropagationEffectsInfo(propagationEffects);
 
-			await PopulateEffectsInfo(propagationEffects);
             Logger.LogS("MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }
 
-		private async Task PopulateEffectsInfo(PropagationEffects propagationEffects)
+		private async Task PopulatePropagationEffectsInfo(PropagationEffects propagationEffects)
 		{
 			foreach (var calleeInfo in propagationEffects.CalleesInfo)
 			{
@@ -130,7 +134,12 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
             Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "Propagation for {0} ", callMessageInfo.Callee);
-            if (!this.methodEntity.CanBeAnalized) return new PropagationEffects(new HashSet<CallInfo>(), false);
+
+			if (!this.methodEntity.CanBeAnalized)
+			{
+				var calleesInfo = new HashSet<CallInfo>();
+                return new PropagationEffects(calleesInfo, false);
+			}
 
             if (this.methodEntity.ThisRef != null)
             {
@@ -165,6 +174,7 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
             return effects;
         }
+
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
         {
             var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
@@ -179,6 +189,7 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
             // return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
         }
+
         public Task<int> GetInvocationCountAsync()
         {
             return Task.FromResult(methodEntity.PropGraph.CallNodes.Count());
@@ -379,25 +390,24 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<PropagationEffects> RemoveMethodAsync()
 		{
-			var invoInfo = this.methodEntity.PropGraph.CallNodes.Select(cn => this.methodEntity.PropGraph.GetInvocationInfo(cn));
+			var invoInfo = from callNode in this.methodEntity.PropGraph.CallNodes
+						   select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
+
 			var propagagationEffecs = new PropagationEffects(invoInfo, true);
-			await PopulateEffectsInfo(propagagationEffecs);
+			await this.PopulatePropagationEffectsInfo(propagagationEffecs);
 			return propagagationEffecs;
 		}
 
-		public Task UnRegisterCaller(VariableNode lhs, MethodDescriptor caller, AnalysisCallNode callNode)
+		public Task UnregisterCallerAsync(CallContext callContex)
 		{
-			var callContex = new CallContext(caller,lhs,callNode);
-			this.methodEntity.Callers.Remove(callContex);
+			this.methodEntity.RemoveFromCallers(callContex);
 			return TaskDone.Done;
 		}
 
-		public Task UnRegisterCallee(CallContext callContext)
+		public Task UnregisterCalleeAsync(CallContext callContext)
 		{
 			this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
 			return TaskDone.Done;
 		}
 	}
-
-
 }

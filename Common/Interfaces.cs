@@ -46,9 +46,9 @@ namespace ReachingTypeAnalysis
 
 		Task<PropagationEffects> RemoveMethodAsync();
 
-		Task UnRegisterCaller(VariableNode variableNode, MethodDescriptor methodDescriptor, AnalysisCallNode analysisCallNode);
+		Task UnregisterCallerAsync(CallContext callContext);
 
-		Task UnRegisterCallee(CallContext callContext);
+		Task UnregisterCalleeAsync(CallContext callContext);
 	}
 
     public interface IProjectCodeProvider

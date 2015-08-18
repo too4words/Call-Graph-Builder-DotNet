@@ -42,9 +42,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			foreach (var method in rootMethods)
 			{
-				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-				var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
+				var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
 				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+
 				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			}
 
@@ -61,31 +61,45 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
-			await PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
-			await ProcessMessages();
 
+			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
+			await this.ProcessMessages();
+			await this.UnregisterCaller(propagationEffects.CalleesInfo);
+			await this.UnregisterCallee(propagationEffects.CallersInfo);
+		}
+
+		private async Task UnregisterCaller(IEnumerable<CallInfo> calleesInfo)
+		{
 			var tasks = new List<Task>();
-			foreach (var calleeInfo in propagationEffects.CalleesInfo)
+
+			foreach (var calleeInfo in calleesInfo)
 			{
-				
 				foreach (var callee in calleeInfo.PossibleCallees)
 				{
-					var calleeProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
-					var calleeEntityProc = await calleeProvider.GetMethodEntityAsync(callee);
-					tasks.Add(calleeEntityProc.UnRegisterCaller(calleeInfo.LHS, calleeInfo.Caller, calleeInfo.CallNode));
+					var calleeEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
+					var callContex = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
+					var task = calleeEntityProc.UnregisterCallerAsync(callContex);
+					//await task;
+					tasks.Add(task);
 				}
-			}
-			foreach (var retInfo in propagationEffects.CallersInfo)
-			{
-				var callerProvider = await this.solutionManager.GetProjectCodeProviderAsync(retInfo.CallerContext.Caller);
-				var callerEntityProc = await callerProvider.GetMethodEntityAsync(retInfo.CallerContext.Caller);
-				tasks.Add(callerEntityProc.UnRegisterCallee(retInfo.CallerContext));
 			}
 
 			await Task.WhenAll(tasks);
+		}
 
-			
-			
+		private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
+		{
+			var tasks = new List<Task>();
+
+			foreach (var callerInfo in callersInfo)
+			{
+				var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
+				var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
 		}
 
 		private async Task ProcessMessages()
@@ -98,12 +112,12 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var callerMessage = (CallerMessage)message;
 					var callerMessageInfo = callerMessage.CallMessageInfo;
-					await AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
+					await this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
 				}
 				else if (message is CalleeMessage)
 				{
 					var calleeMessage = (CalleeMessage)message;
-					await AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
+					await this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
 				}
 			}
 		}
@@ -112,11 +126,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "DoPropagationOfEffects", "");
 
-			await ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
+			await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
 			if (propagationEffects.ResultChanged)
 			{
-				await ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
+				await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
 			}
 		}
 
@@ -134,13 +148,13 @@ namespace ReachingTypeAnalysis.Analysis
 					// I think the problem is the conservative treatment when types(receiver).Count = 0 
 					// (FIXED??)
                     
-					var task = DispatchCallMessageForMethodCallAsync(calleeInfo as MethodCallInfo, propKind);
+					var task = this.DispatchCallMessageForMethodCallAsync(calleeInfo as MethodCallInfo, propKind);
 					//await task;
 					tasks.Add(task);
 				}
 				else if (calleeInfo is DelegateCallInfo)
 				{
-					var task = DispatchCallMessageForDelegateCallAsync(calleeInfo as DelegateCallInfo, propKind);
+					var task = this.DispatchCallMessageForDelegateCallAsync(calleeInfo as DelegateCallInfo, propKind);
 					//await task;
 					tasks.Add(task);
 				}
@@ -155,7 +169,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callee in methodCallInfo.PossibleCallees)
 			{
-				var task = CreateAndSendCallMessageAsync(methodCallInfo, callee, propKind);
+				var task = this.CreateAndSendCallMessageAsync(methodCallInfo, callee, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -169,7 +183,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callee in delegateCallInfo.PossibleCallees)
 			{
-				var task = CreateAndSendCallMessageAsync(delegateCallInfo, callee, propKind);
+				var task = this.CreateAndSendCallMessageAsync(delegateCallInfo, callee, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -203,10 +217,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(callee);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
             var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-			await PropagateEffectsAsync(propagationEffects, propKind);
+			await this.PropagateEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
 		}
@@ -217,7 +230,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callerInfo in callersInfo)
 			{
-				var task = DispachReturnMessageAsync(callerInfo, propKind);
+				var task = this.DispachReturnMessageAsync(callerInfo, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -227,7 +240,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private Task DispachReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
-			return CreateAndSendReturnMessageAsync(returnInfo, propKind);
+			return this.CreateAndSendReturnMessageAsync(returnInfo, propKind);
         }
 
 		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
@@ -256,17 +269,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
-			var projectProvider = await solutionManager.GetProjectCodeProviderAsync(caller);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(caller);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
 			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			await PropagateEffectsAsync(propagationEffects, propKind);
+			await this.PropagateEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
-
-		#region Incremental Update
-		
-		#endregion
     }
-
 }

@@ -207,8 +207,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             //callers = callers.Add(context);
             callers.Add(context);
-
         }
+
         /// <summary>
         /// This is used by the incremental analysis when a caller is removed of modified
         /// </summary>
@@ -217,7 +217,6 @@ namespace ReachingTypeAnalysis.Analysis
         {
             //callers = callers.Remove(context);
             callers.Remove(context);
-
         }
 
 //        /// <summary>
