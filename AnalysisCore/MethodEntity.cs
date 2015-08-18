@@ -205,8 +205,16 @@ namespace ReachingTypeAnalysis.Analysis
 
         public void AddToCallers(CallContext context)
         {
+			int count = callers.Count;
             //callers = callers.Add(context);
             callers.Add(context);
+			if(callers.Count>count)
+			{
+				if (this.ReturnVariable != null)
+				{
+					this.propGraph.AddToWorkList(this.ReturnVariable);
+				}
+			}
         }
 
         /// <summary>

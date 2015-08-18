@@ -122,10 +122,6 @@ class Program
 using System;
 public class D:C
 {
-    public override C m2(C b)
-    {
-        return new D();
-    }
     public override void m3()
     {
     }
