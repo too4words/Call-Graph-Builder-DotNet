@@ -85,6 +85,8 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
+
+
 		private async Task PropagateAsync()
 		{
 			if (this.Verbose)
@@ -101,7 +103,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task PropagateDeleteAsync()
 		{
-			var callsAndRets = await this.MethodEntity.PropGraph.PropagateDeletionOfNodesAsync();
+			var callsAndRets = await this.MethodEntity.PropGraph.PropagateDeletionOfNodesAsync(this.codeProvider);
 			await ProcessCalleesAffectedByPropagationAsync(callsAndRets.CalleesInfo, PropagationKind.REMOVE_TYPES);
 			this.MethodEntity.PropGraph.RemoveDeletedTypes();
 			await EndOfPropagationEventAsync(PropagationKind.REMOVE_TYPES, callsAndRets.ResultChanged);

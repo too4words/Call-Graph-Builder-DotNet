@@ -54,9 +54,9 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 
-		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
-			throw new NotImplementedException();
+			return Task.FromResult(new PropagationEffects(new HashSet<CallInfo>(), false));
 		}
 	}
 }

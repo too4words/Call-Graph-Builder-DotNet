@@ -61,6 +61,25 @@ namespace ReachingTypeAnalysis
             return false;
         }
 
+		internal Task<bool> DiffDelPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n)
+		{
+			var delTypes = GetDeletedTypes(n);
+			if (delTypes.IsSupersetOf(src))
+				return Task.FromResult(false);
+			var ts = GetTypesMS(n);
+			int c = ts.Count;
+			var removed = ts.ExceptWith(src);
+			if (removed.Count() > 0)
+			{
+				this.AddToDeletionWorkList(n);
+				// It should be the 
+				this.RemoveTypes(n, removed);
+				return Task.FromResult(true);
+			}
+			return Task.FromResult(false);
+		}
+
+
         internal async Task<bool> IsAssignableAsync(TypeDescriptor t1, PropGraphNodeDescriptor analysisNode)
         {
             // Contract.Assert(this.codeProvider!=null);
@@ -129,8 +148,10 @@ namespace ReachingTypeAnalysis
             return new PropagationEffects(calls, retModified);
         }
 
-        internal async Task<PropagationEffects> PropagateDeletionOfNodesAsync()
+        internal async Task<PropagationEffects> PropagateDeletionOfNodesAsync(IProjectCodeProvider codeProvider)
         {
+			this.codeProvider = codeProvider;
+
             var calls = new HashSet<CallInfo>();
             var retModified = false;
 

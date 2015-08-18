@@ -43,6 +43,12 @@ namespace ReachingTypeAnalysis
 
 		Task<SymbolReference> GetDeclarationInfoAsync();
         Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync();
+
+		Task<PropagationEffects> RemoveMethodAsync();
+
+		Task UnRegisterCaller(VariableNode variableNode, MethodDescriptor methodDescriptor, AnalysisCallNode analysisCallNode);
+
+		Task UnRegisterCallee(CallContext callContext);
 	}
 
     public interface IProjectCodeProvider
@@ -61,7 +67,7 @@ namespace ReachingTypeAnalysis
 
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath);
 
-		Task RemoveMethodAsync(MethodDescriptor methodToUpdate);
+		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
 	}
 
     public interface ISolutionManager
@@ -98,6 +104,7 @@ namespace ReachingTypeAnalysis
         REMOVE_TYPES,
         ADD_ASSIGNMENT,
         REMOVE_ASSIGNMENT,
+		REMOVE_METHOD,
     }
 
     [Serializable]

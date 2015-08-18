@@ -5,9 +5,9 @@ namespace ReachingTypeAnalysis
 {
 	public class PropagationEffects
 	{
-		public PropagationEffects(ISet<CallInfo> calleesInfo, bool resultChanged)
+		public PropagationEffects(IEnumerable<CallInfo> calleesInfo, bool resultChanged)
 		{
-			this.CalleesInfo = calleesInfo;
+			this.CalleesInfo = new HashSet<CallInfo>(calleesInfo);
 			this.ResultChanged = resultChanged;
             this.CallersInfo = new HashSet<ReturnInfo>();
 		}

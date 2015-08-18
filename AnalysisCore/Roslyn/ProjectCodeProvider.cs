@@ -340,8 +340,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return compilation;
 		}
 
-
-		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
 			throw new NotImplementedException();
 		}

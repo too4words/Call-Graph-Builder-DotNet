@@ -115,9 +115,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 		}
 
-		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
-			throw new NotImplementedException();
+			return this.projectCodeProvider.RemoveMethodAsync(methodToUpdate);
 		}
 	}   
 }

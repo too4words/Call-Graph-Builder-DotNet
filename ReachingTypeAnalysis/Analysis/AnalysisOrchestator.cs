@@ -42,7 +42,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			foreach (var method in rootMethods)
 			{
-				var entityDescriptor = new MethodEntityDescriptor(method);
 				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 				var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
 				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
@@ -52,16 +51,41 @@ namespace ReachingTypeAnalysis.Analysis
 			await ProcessMessages();
 		}
 
-        public async Task AnalyzeAsync(MethodDescriptor method)
+        public Task AnalyzeAsync(MethodDescriptor method)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
+			return AnalyzeAsync(new MethodDescriptor[] { method });
+		}
 
-			var entityDescriptor = new MethodEntityDescriptor(method);
+		public async Task RemoveMethodAsync(MethodDescriptor method)
+		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-			var methodEntityProc = await projectProvider.GetMethodEntityAsync(method);
-            var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
-			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
-            await ProcessMessages();
+			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
+			await PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
+			await ProcessMessages();
+
+			var tasks = new List<Task>();
+			foreach (var calleeInfo in propagationEffects.CalleesInfo)
+			{
+				
+				foreach (var callee in calleeInfo.PossibleCallees)
+				{
+					var calleeProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
+					var calleeEntityProc = await calleeProvider.GetMethodEntityAsync(callee);
+					tasks.Add(calleeEntityProc.UnRegisterCaller(calleeInfo.LHS, calleeInfo.Caller, calleeInfo.CallNode));
+				}
+			}
+			foreach (var retInfo in propagationEffects.CallersInfo)
+			{
+				var callerProvider = await this.solutionManager.GetProjectCodeProviderAsync(retInfo.CallerContext.Caller);
+				var callerEntityProc = await callerProvider.GetMethodEntityAsync(retInfo.CallerContext.Caller);
+				tasks.Add(callerEntityProc.UnRegisterCallee(retInfo.CallerContext));
+			}
+
+			await Task.WhenAll(tasks);
+
+			
+			
 		}
 
 		private async Task ProcessMessages()
@@ -182,7 +206,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(callee);
 			var methodEntityProc = await projectProvider.GetMethodEntityAsync(callee);
             var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-            await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+			await PropagateEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
 		}
@@ -238,12 +262,6 @@ namespace ReachingTypeAnalysis.Analysis
 			await PropagateEffectsAsync(propagationEffects, propKind);
 
             Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
-		}
-
-		internal async Task RemoveMethod(MethodDescriptor methodToUpdate)
-		{
-			var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(methodToUpdate);
-			await codeProvider.RemoveMethodAsync(methodToUpdate);
 		}
 
 		#region Incremental Update

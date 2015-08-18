@@ -9,6 +9,7 @@ using ReachingTypeAnalysis.Roslyn;
 using System.Diagnostics.Contracts;
 using CodeGraphModel;
 using AnalysisCore.Roslyn;
+using Orleans;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -63,52 +64,68 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
             // var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
-            var propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
+			
+			PropagationEffects propagationEffects = null;
+			switch(propKind)
+			{
+				case PropagationKind.ADD_TYPES:
+					propagationEffects = await this.methodEntity.PropGraph.PropagateAsync(codeProvider);
+					break;
+				case PropagationKind.REMOVE_TYPES:
+					propagationEffects = await this.methodEntity.PropGraph.PropagateDeletionOfNodesAsync(codeProvider);
+					break;
+			}
 
-            foreach (var calleeInfo in propagationEffects.CalleesInfo)
-            {
-                //  Add instanciated types! 
-                /// Diego: Ben. This may not work well in parallel... 
-                /// We need a different way to update this info
-                calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
 
-                // TODO: This is because of the refactor
-                if (calleeInfo is MethodCallInfo)
-                {
-                    var methodCallInfo = calleeInfo as MethodCallInfo;
-                    methodCallInfo.ReceiverPossibleTypes = GetTypes(methodCallInfo.Receiver);
-                    methodCallInfo.PossibleCallees = await GetPossibleCalleesForMethodCallAsync(methodCallInfo, codeProvider);
-                }
-                else if (calleeInfo is DelegateCallInfo)
-                {
-                    var delegateCalleeInfo = calleeInfo as DelegateCallInfo;
-                    delegateCalleeInfo.ReceiverPossibleTypes = GetTypes(delegateCalleeInfo.Delegate);
-                    delegateCalleeInfo.PossibleCallees = await GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo, codeProvider);
-                }
-
-                for (int i = 0; i < calleeInfo.Arguments.Count; i++)
-                {
-                    var arg = calleeInfo.Arguments[i];
-                    var potentialTypes = arg != null ? GetTypes(arg, propKind) : new HashSet<TypeDescriptor>();
-                    calleeInfo.ArgumentsPossibleTypes.Add(potentialTypes);
-                }
-            }
-
-            if (this.methodEntity.ReturnVariable != null)
-            {
-                foreach (var callerContext in this.methodEntity.Callers)
-                {
-                    var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
-                    returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
-                    returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
-
-                    propagationEffects.CallersInfo.Add(returnInfo);
-                }
-            }
+			await PopulateEffectsInfo(propagationEffects);
             Logger.LogS("MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }
+
+		private async Task PopulateEffectsInfo(PropagationEffects propagationEffects)
+		{
+			foreach (var calleeInfo in propagationEffects.CalleesInfo)
+			{
+				//  Add instanciated types! 
+				/// Diego: Ben. This may not work well in parallel... 
+				/// We need a different way to update this info
+				//calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+
+				// TODO: This is because of the refactor
+				if (calleeInfo is MethodCallInfo)
+				{
+					var methodCallInfo = calleeInfo as MethodCallInfo;
+					methodCallInfo.ReceiverPossibleTypes = GetTypes(methodCallInfo.Receiver);
+					methodCallInfo.PossibleCallees = await GetPossibleCalleesForMethodCallAsync(methodCallInfo, codeProvider);
+				}
+				else if (calleeInfo is DelegateCallInfo)
+				{
+					var delegateCalleeInfo = calleeInfo as DelegateCallInfo;
+					delegateCalleeInfo.ReceiverPossibleTypes = GetTypes(delegateCalleeInfo.Delegate);
+					delegateCalleeInfo.PossibleCallees = await GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo, codeProvider);
+				}
+
+				for (int i = 0; i < calleeInfo.Arguments.Count; i++)
+				{
+					var arg = calleeInfo.Arguments[i];
+					var potentialTypes = arg != null ? GetTypes(arg) : new HashSet<TypeDescriptor>();
+					calleeInfo.ArgumentsPossibleTypes.Add(potentialTypes);
+				}
+			}
+
+			if (this.methodEntity.ReturnVariable != null)
+			{
+				foreach (var callerContext in this.methodEntity.Callers)
+				{
+					var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
+					returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
+					returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+
+					propagationEffects.CallersInfo.Add(returnInfo);
+				}
+			}
+		}
 
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
@@ -360,6 +377,26 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(this.methodEntity.DeclarationInfo);
 		}
 
+		public async Task<PropagationEffects> RemoveMethodAsync()
+		{
+			var invoInfo = this.methodEntity.PropGraph.CallNodes.Select(cn => this.methodEntity.PropGraph.GetInvocationInfo(cn));
+			var propagagationEffecs = new PropagationEffects(invoInfo, true);
+			await PopulateEffectsInfo(propagagationEffecs);
+			return propagagationEffecs;
+		}
+
+		public Task UnRegisterCaller(VariableNode lhs, MethodDescriptor caller, AnalysisCallNode callNode)
+		{
+			var callContex = new CallContext(caller,lhs,callNode);
+			this.methodEntity.Callers.Remove(callContex);
+			return TaskDone.Done;
+		}
+
+		public Task UnRegisterCallee(CallContext callContext)
+		{
+			this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
+			return TaskDone.Done;
+		}
 	}
 
 

@@ -88,6 +88,28 @@ namespace ReachingTypeAnalysis.Analysis
 			var newMethodEntity = newMethodParser.ParseMethod();
 			var oldMethodEntityWP = await this.GetMethodEntityAsync(newMethodInfo.MethodDescriptor);
 		}
+/*
+		private void RemoveCall(AMethod aCallee, AInvocationExp<AMethod, AType, ANode> invocation)
+		{
+			var entityProcessorforCallee = Dispatcher.GetEntityWithProcessor(EntityFactory<AMethod>.Create((AMethod)aCallee)) as MethodEntityProcessor<ANode, AType, AMethod>;
+			var calleeEntity = entityProcessorforCallee.MethodEntity;
+			calleeEntity.InvalidateCaches();
+			// Delete progragation of arguments and receiver
+			var statementProcessor = new StatementProcessor<ANode, AType, AMethod>((AMethod)aCallee,
+					calleeEntity.ReturnVariable, calleeEntity.ThisRef, calleeEntity.ParameterNodes,
+					calleeEntity.PropGraph);
+			foreach (var p in calleeEntity.ParameterNodes)
+			{
+				statementProcessor.RegisterRemoveNewExpressionAssignment(p);
+			}
+			if (calleeEntity.ThisRef != null)
+				statementProcessor.RegisterRemoveNewExpressionAssignment(calleeEntity.ThisRef);
+			// entity.RemoveCallees();
+			entityProcessorforCallee.DoDelete();
+			var context = new CallConext<AMethod, ANode>(invocation.Caller, invocation.LHS, invocation.CallNode);
+			calleeEntity.RemoveFromCallers(context);
+		}
+*/
 
 		/*
 				#region Just a test to discard about programation of a deletion o a croncrete type

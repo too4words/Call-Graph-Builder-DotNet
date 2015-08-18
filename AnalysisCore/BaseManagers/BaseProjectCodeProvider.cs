@@ -173,11 +173,15 @@ namespace ReachingTypeAnalysis.Analysis
 			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
         }
 
-
-		public virtual async Task RemoveMethodAsync(MethodDescriptor methodToRemove)
+		public virtual async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToRemove)
 		{
 			var metdhodEntityWP = await this.GetMethodEntityAsync(methodToRemove);
-			
+			// compute delete effects in methodentitywithProp
+			/// for each callnode , cgetInvocationInfo. get retinfo new propEffects(callsInvoInfo, retInfo)
+			/// 
+			var propagationEffects = await metdhodEntityWP.RemoveMethodAsync();
+			// TODO: Remove from cache
+			return propagationEffects;
 		}
 
 		public async Task PropagateMethodRemoval()

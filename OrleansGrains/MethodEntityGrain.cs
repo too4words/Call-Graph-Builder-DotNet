@@ -198,7 +198,23 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.methodEntityPropagator.GetCallersDeclarationInfoAsync();
         }
-    }
+
+		public Task<PropagationEffects> RemoveMethodAsync()
+		{
+			return this.methodEntityPropagator.RemoveMethodAsync();
+		}
+
+		public Task UnRegisterCaller(VariableNode lhs, MethodDescriptor caller, AnalysisCallNode callNode)
+		{
+			return this.methodEntityPropagator.UnRegisterCaller(lhs, caller, callNode);
+		}
+
+
+		public Task UnRegisterCallee(CallContext callContext)
+		{
+			return this.methodEntityPropagator.UnRegisterCallee(callContext);
+		}
+	}
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
 	{
@@ -288,10 +304,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.GetMethodEntityAsync(methodDescriptor);
         }
 
-
-		public Task RemoveMethodAsync(MethodDescriptor methodToUpdate)
+		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
-			throw new NotImplementedException();
+			return this.codeProvider.RemoveMethodAsync(methodToUpdate);
 		}
 	}
 
