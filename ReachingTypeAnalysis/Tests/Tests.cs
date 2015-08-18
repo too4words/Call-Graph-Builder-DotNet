@@ -28,7 +28,20 @@ namespace ReachingTypeAnalysis
             checker(solAnalyzer, callgraph);
         }
 
-        private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind type = AnalysisStrategyKind.NONE)
+		private static void AnalyzeExample(string source, RunChecks initialChecker, Action<SolutionAnalyzer> updates, RunChecks updatesChecker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
+		{
+			//var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
+			//var solAnalyzer = new SolutionAnalyzer(solution);
+			var solAnalyzer = SolutionAnalyzer.CreateFromSource(source);
+			var callgraph = solAnalyzer.Analyze(strategy);
+
+			initialChecker(solAnalyzer, callgraph);
+			updates(solAnalyzer);
+			callgraph = solAnalyzer.GenerateCallGraphAsync().Result;
+			updatesChecker(solAnalyzer, callgraph);
+		}
+
+		private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind type = AnalysisStrategyKind.NONE)
         {
             var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var callgraph = solAnalyzer.Analyze(type);

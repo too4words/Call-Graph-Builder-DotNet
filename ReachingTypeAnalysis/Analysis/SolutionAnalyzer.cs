@@ -115,7 +115,13 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
+		internal void RemoveMethod(MethodDescriptor methodDescriptor)
+		{
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			orchestator.RemoveMethodAsync(methodDescriptor).Wait();
+		}
+
+		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)
             {

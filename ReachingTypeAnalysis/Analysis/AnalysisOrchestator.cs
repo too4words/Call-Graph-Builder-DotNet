@@ -25,17 +25,10 @@ namespace ReachingTypeAnalysis.Analysis
 		private ISolutionManager solutionManager;
 		//private ISet<Message> messageWorkList = new HashSet<Message>();
 		private Queue<Message> messageWorkList = new Queue<Message>();
-        private IDictionary<MethodDescriptor, MethodEntity> anonymousMethods;
-
-		public MethodEntity GetAnonymousMethodEntity(MethodDescriptor methodDescriptor)
-        {
-            return this.anonymousMethods[methodDescriptor];
-        }
 
 		public AnalysisOrchestator(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
-			this.anonymousMethods = new Dictionary<MethodDescriptor, MethodEntity>();
 		}
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)

@@ -75,5 +75,12 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return result;
         }
+
+		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
+		{
+			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
+			this.methodEntities.Remove(methodDescriptor);
+			return propagationEffects;
+		}
 	}
 }

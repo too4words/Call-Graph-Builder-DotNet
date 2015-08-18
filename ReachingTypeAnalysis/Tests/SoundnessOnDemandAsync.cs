@@ -15,7 +15,16 @@ namespace ReachingTypeAnalysis
             BasicTests.TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
-        [TestMethod]
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		[TestCategory("RemoveMethod")]
+		public void TestRemoveMethodSimpleCallOnDemandAsync()
+		{
+			BasicTests.TestRemoveMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestRecursionOnDemandAsync()
