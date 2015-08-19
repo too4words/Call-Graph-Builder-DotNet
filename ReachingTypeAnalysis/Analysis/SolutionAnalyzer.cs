@@ -121,6 +121,12 @@ namespace ReachingTypeAnalysis
 			orchestator.RemoveMethodAsync(methodDescriptor, newSource).Wait();
 		}
 
+		internal void AddMethod(MethodDescriptor methodDescriptor, string newSource)
+		{
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			orchestator.AddMethodAsync(methodDescriptor, newSource).Wait();
+		}
+
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)

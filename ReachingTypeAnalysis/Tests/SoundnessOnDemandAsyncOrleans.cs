@@ -25,7 +25,23 @@ namespace ReachingTypeAnalysis
             BasicTests.TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
-        [TestMethod]
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("IncrementalOrleans")]
+		public void TestRemoveMethodSimpleCallOnDemandOrleans()
+		{
+			BasicTests.TestRemoveMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("IncrementalOrleans")]
+		public void TestAddMethodSimpleCallOnDemandOrleans()
+		{
+			BasicTests.TestAddMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandOrleans")]
         public void TestRecursionOnDemandOrleans()

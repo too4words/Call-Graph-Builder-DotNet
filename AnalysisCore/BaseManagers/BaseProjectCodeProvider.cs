@@ -80,20 +80,20 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-        internal async Task ReplaceSource(string source, string name)
+        internal async Task ReplaceSourceAsync(string source, string documentName)
         {
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
-            var oldDocument = project.Documents.Single(doc => doc.Name == name);
+            var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
             this.project = this.project.RemoveDocument(oldDocument.Id);       
-            var newDocument = this.project.AddDocument(name, source);
+            var newDocument = this.project.AddDocument(documentName, source);
             this.project = newDocument.Project;
 
-            var cancelation = new CancellationTokenSource();
-            this.compilation = await Utils.CompileProjectAsync(project, cancelation.Token);            
-			var semanticModel = await newDocument.GetSyntaxTreeAsync(cancelation.Token);
+            var cancellationTokenSource = new CancellationTokenSource();
+            this.compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);            
+			//var semanticModel = await newDocument.GetSyntaxTreeAsync(cancellationTokenSource.Token);
 
-			this.semanticModels.Remove(oldDocument.Id.Id);
-			this.semanticModels .Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
+			//this.semanticModels.Remove(oldDocument.Id.Id);
+			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
         }
 
 		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor method, Document document)
@@ -193,9 +193,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public virtual async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var methodEntity = await this.GetMethodEntityAsync(methodDescriptor);
-			// compute delete effects in methodentitywithProp
-			/// for each callnode , cgetInvocationInfo. get retinfo new propEffects(callsInvoInfo, retInfo)
-			/// 
 			var propagationEffects = await methodEntity.RemoveMethodAsync();
 			return propagationEffects;
 		}

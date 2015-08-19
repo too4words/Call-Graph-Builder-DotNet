@@ -105,8 +105,7 @@ namespace ReachingTypeAnalysis
         ADD_TYPES,
         REMOVE_TYPES,
         ADD_ASSIGNMENT,
-        REMOVE_ASSIGNMENT,
-		REMOVE_METHOD,
+        REMOVE_ASSIGNMENT
     }
 
     [Serializable]

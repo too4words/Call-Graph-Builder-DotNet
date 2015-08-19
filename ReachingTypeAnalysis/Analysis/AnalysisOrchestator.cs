@@ -54,17 +54,17 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 
-           await ((BaseProjectCodeProvider) projectProvider).ReplaceSource(newSource, "MyFile.cs");
+			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
 
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
 			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
 			await this.ProcessMessages();
-			await this.UnregisterCaller(propagationEffects.CalleesInfo);
+			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 
-		private async Task UnregisterCaller(IEnumerable<CallInfo> calleesInfo)
+		private async Task UnregisterCallerAsync(IEnumerable<CallInfo> calleesInfo)
 		{
 			var tasks = new List<Task>();
 
@@ -83,20 +83,27 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-        //private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
-        //{
-        //    var tasks = new List<Task>();
+		//private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
+		//{
+		//    var tasks = new List<Task>();
 
-        //    foreach (var callerInfo in callersInfo)
-        //    {
-        //        var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
-        //        var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
-        //        //await task;
-        //        tasks.Add(task);
-        //    }
+		//    foreach (var callerInfo in callersInfo)
+		//    {
+		//        var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
+		//        var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
+		//        //await task;
+		//        tasks.Add(task);
+		//    }
 
-        //    await Task.WhenAll(tasks);
-        //}
+		//    await Task.WhenAll(tasks);
+		//}
+
+		public async Task AddMethodAsync(MethodDescriptor method, string newSource)
+		{
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
+		}
 
 		private async Task ProcessMessages()
 		{

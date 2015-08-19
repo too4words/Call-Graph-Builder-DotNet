@@ -89,10 +89,9 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task PopulatePropagationEffectsInfo(PropagationEffects propagationEffects, PropagationKind propKind)
 		{
-            var calleesInfo = propagationEffects.CalleesInfo;
-            await PopulateCalleesInfo(calleesInfo);
+            await this.PopulateCalleesInfo(propagationEffects.CalleesInfo);
 
-			if (this.methodEntity.ReturnVariable != null || propKind.Equals(PropagationKind.REMOVE_TYPES))
+			if (this.methodEntity.ReturnVariable != null || propKind == PropagationKind.REMOVE_TYPES)
 			{
 				foreach (var callerContext in this.methodEntity.Callers)
 				{
@@ -186,14 +185,13 @@ namespace ReachingTypeAnalysis.Analysis
             var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
 
-            if (returnMessageInfo.PropagationKind.Equals(PropagationKind.REMOVE_TYPES))
+            if (returnMessageInfo.PropagationKind == PropagationKind.REMOVE_TYPES)
             {
                 var invoInfo = from callNode in this.methodEntity.PropGraph.CallNodes
                                select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
+
                 await this.PopulateCalleesInfo(invoInfo);
             }
-
-
 
             return effects;
         }
@@ -413,10 +411,10 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<PropagationEffects> RemoveMethodAsync()
 		{
-			var invoInfo = from callNode in this.methodEntity.PropGraph.CallNodes
+			var calleesInfo = from callNode in this.methodEntity.PropGraph.CallNodes
 						   select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
 
-			var propagagationEffecs = new PropagationEffects(invoInfo, true);
+			var propagagationEffecs = new PropagationEffects(calleesInfo, true);
 			await this.PopulatePropagationEffectsInfo(propagagationEffecs, PropagationKind.REMOVE_TYPES);
 			return propagagationEffecs;
 		}

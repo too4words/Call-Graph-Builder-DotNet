@@ -17,11 +17,18 @@ namespace ReachingTypeAnalysis
 
 		[TestMethod]
 		[TestCategory("Soundness")]
-		[TestCategory("OnDemandAsync")]
-		[TestCategory("RemoveMethod")]
+		[TestCategory("IncrementalAsync")]
 		public void TestRemoveMethodSimpleCallOnDemandAsync()
 		{
 			BasicTests.TestRemoveMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("IncrementalAsync")]
+		public void TestAddMethodSimpleCallOnDemandAsync()
+		{
+			BasicTests.TestAddMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
 		}
 
 		[TestMethod]
