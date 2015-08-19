@@ -59,6 +59,16 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity = methodEntity;
         }
 
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		{
+			Contract.Requires(reWorkSet != null);
+			foreach(var node in reWorkSet) 
+			{
+				methodEntity.PropGraph.AddToWorkList(node);
+			}
+			return PropagateAsync(propKind);
+		}
+
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
@@ -439,5 +449,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
 			return TaskDone.Done;
 		}
+
+
+	
 	}
 }

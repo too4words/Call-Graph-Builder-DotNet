@@ -31,12 +31,17 @@ namespace ReachingTypeAnalysis.Analysis
 			this.solutionManager = solutionManager;
 		}
 
-		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
+		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
 		{
+			if(reworkSet==null)
+			{
+				reworkSet = new HashSet<PropGraphNodeDescriptor>();
+			}
+
 			foreach (var method in rootMethods)
 			{
 				var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
-				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES, reworkSet);
 
 				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			}
@@ -44,11 +49,12 @@ namespace ReachingTypeAnalysis.Analysis
 			await ProcessMessages();
 		}
 
-        public Task AnalyzeAsync(MethodDescriptor method)
+        public Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
-			return AnalyzeAsync(new MethodDescriptor[] { method });
+			return AnalyzeAsync(new MethodDescriptor[] { method }, reworkSet);
 		}
+
 
 		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
 		{
@@ -112,9 +118,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await AddMethodAsync(method, newSource);
 
-			var callers = propagationDeleteEffects.CallersInfo.Select( ci => ci.CallerContext.Caller);
-			await AnalyzeAsync(callers);
-	
+			foreach(var callerInfo in propagationDeleteEffects.CallersInfo)
+			{
+				var callContex = callerInfo.CallerContext;
+				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
+				reworkSet.Add(callContex.CallNode);
+				await AnalyzeAsync(callContex.Caller, reworkSet);
+			}
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 

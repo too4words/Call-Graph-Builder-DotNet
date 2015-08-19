@@ -123,6 +123,10 @@ namespace ReachingTypeAnalysis.Analysis
 		//    // Contract.Assert(this.methodEntity != null);
 		//    return Task.FromResult<IEntity>(this.methodEntity);
 		//}
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		{
+			return this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet);
+		}
 
 		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
@@ -211,6 +215,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
 		}
+
 	}
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
