@@ -115,17 +115,24 @@ namespace ReachingTypeAnalysis
             }
         }
 
-		internal void RemoveMethod(MethodDescriptor methodDescriptor, string newSource)
+		internal Task RemoveMethod(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
-			orchestator.RemoveMethodAsync(methodDescriptor, newSource).Wait();
+			return orchestator.RemoveMethodAsync(methodDescriptor, newSource);
 		}
 
-		internal void AddMethod(MethodDescriptor methodDescriptor, string newSource)
+		internal Task AddMethod(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
-			orchestator.AddMethodAsync(methodDescriptor, newSource).Wait();
+			return orchestator.AddMethodAsync(methodDescriptor, newSource);
 		}
+
+		internal Task UpdateMethod(MethodDescriptor methodDescriptor, string newSource)
+		{
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			return orchestator.UpdateMethodAsync(methodDescriptor, newSource);
+		}
+
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
@@ -507,5 +514,6 @@ namespace ReachingTypeAnalysis
         }
 
         #endregion
-    }
+
+	}
 }

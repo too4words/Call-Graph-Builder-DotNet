@@ -219,7 +219,7 @@ class Program
 
     public static void Main()
     {
-		NewMethod(5)
+		NewMethod(5);
     }
 }";
 			#endregion
@@ -231,13 +231,80 @@ class Program
 				},
 				(result) =>
 				{
-					result.RemoveMethod(new MethodDescriptor("Program", "Main", true), newSource);
-					result.AddMethod(new MethodDescriptor("Program", "Main", true), newSource);
-					result.AddMethod(new MethodDescriptor("Program", "NewMethod", true), newSource);
+					result.AddMethod(new MethodDescriptor("Program", "NewMethod", true), newSource).Wait();
+					result.UpdateMethod(new MethodDescriptor("Program", "Main", true), newSource).Wait();
 				},
 				(result, callgraph) =>
 				{
 					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "NewMethod", true), callgraph));
+				},
+				strategy);
+		}
+
+		public static void TestUpdateMethodSimpleCall(AnalysisStrategyKind strategy)
+		{
+			#region original source code
+			var source = @"
+using System;
+
+class Program
+{
+	public static void Middle()
+	{
+		
+	}
+
+	public static void NewMethod(int p)
+	{
+		Console.WriteLine(p);
+	}
+
+    public static void Main()
+    {
+		Middle();
+    }
+}";
+			#endregion
+
+			#region modified source code
+			var newSource = @"
+using System;
+
+class Program
+{
+public static void Middle()
+	{
+		NewMethod(10);
+	}
+
+	public static void NewMethod(int p)
+	{
+		Console.WriteLine(p);
+	}
+
+    public static void Main()
+    {
+		Middle();
+    }
+}";
+			#endregion
+
+			AnalyzeExample(source,
+				(result, callgraph) =>
+				{
+					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Middle", true), callgraph));
+					Assert.IsFalse(result.IsReachable(new MethodDescriptor("Program", "NewMethod", true), callgraph));
+				},
+				(result) =>
+				{
+					result.UpdateMethod(new MethodDescriptor("Program", "Middle", true), newSource).Wait();
+				},
+				(result, callgraph) =>
+				{
+					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Middle", true), callgraph));
 					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "NewMethod", true), callgraph));
 				},
 				strategy);

@@ -12,6 +12,13 @@ namespace ReachingTypeAnalysis
             this.CallersInfo = new HashSet<ReturnInfo>();
 		}
 
+		public PropagationEffects(IEnumerable<ReturnInfo> callersInfo)
+		{
+			this.CalleesInfo = new HashSet<CallInfo>();
+			this.ResultChanged = true;
+			this.CallersInfo = new HashSet<ReturnInfo>(callersInfo);
+		}
+
 		public ISet<CallInfo> CalleesInfo { get; set; }
 		public bool ResultChanged { get; set; }
         public ISet<ReturnInfo> CallersInfo { get; set; }  

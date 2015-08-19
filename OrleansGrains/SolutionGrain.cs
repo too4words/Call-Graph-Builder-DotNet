@@ -46,6 +46,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.SolutionPath = solutionPath;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
 
+			this.State.Source = null;
 			await this.WriteStateAsync();
 			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
 		}
@@ -56,7 +57,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.State.Source = source;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
-
+			this.State.SolutionPath = null;
             await this.WriteStateAsync();
             Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }

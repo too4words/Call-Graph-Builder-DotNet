@@ -419,6 +419,13 @@ namespace ReachingTypeAnalysis.Analysis
 			return propagagationEffecs;
 		}
 
+		//public async Task<PropagationEffects> UpdateMethodAsync(ISet<ReturnInfo> callersToUpdate)
+		//{
+		//	var propagagationEffecs = new PropagationEffects(callersToUpdate);
+		//	await this.PopulatePropagationEffectsInfo(propagagationEffecs, PropagationKind.ADD_TYPES);
+		//	return propagagationEffecs;
+		//}
+
 		public Task UnregisterCallerAsync(CallContext callContex)
 		{
 			this.methodEntity.RemoveFromCallers(callContex);

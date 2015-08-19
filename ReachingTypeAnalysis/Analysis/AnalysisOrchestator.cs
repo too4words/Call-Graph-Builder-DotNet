@@ -98,6 +98,26 @@ namespace ReachingTypeAnalysis.Analysis
 		//    await Task.WhenAll(tasks);
 		//}
 
+		public async Task UpdateMethodAsync(MethodDescriptor method, string newSource)
+		{
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
+
+			var propagationDeleteEffects = await projectProvider.RemoveMethodAsync(method);
+
+			await this.PropagateEffectsAsync(propagationDeleteEffects, PropagationKind.REMOVE_TYPES);
+			await this.ProcessMessages();
+			await this.UnregisterCallerAsync(propagationDeleteEffects.CalleesInfo);
+
+			await AddMethodAsync(method, newSource);
+
+			var callers = propagationDeleteEffects.CallersInfo.Select( ci => ci.CallerContext.Caller);
+			await AnalyzeAsync(callers);
+	
+			// await this.UnregisterCallee(propagationEffects.CallersInfo);
+		}
+
 		public async Task AddMethodAsync(MethodDescriptor method, string newSource)
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);

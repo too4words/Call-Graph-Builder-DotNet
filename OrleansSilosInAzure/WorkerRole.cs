@@ -201,6 +201,10 @@ namespace OrleansSilosInAzure
 						Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
 						e.Cancel = true;
 						return;
+					case "Startup.VsInstallDir":
+						Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+						e.Cancel = true;
+						return;
 				}
 			}
 		}
