@@ -449,13 +449,28 @@ namespace ReachingTypeAnalysis
         }
     }
 
-    /// <summary>
+	[Serializable]
+	public class AnalysisCallNodeAdditionalInfo
+	{
+		public string DisplayString { get; private set; }
+		public string StaticMethodDeclarationPath { get; private set; }
+		public MethodDescriptor StaticMethodDescriptor { get; private set; }
+
+		public AnalysisCallNodeAdditionalInfo(MethodDescriptor staticMethodDescriptor, string staticMethodDeclarationPath, string displayString)
+		{
+			this.StaticMethodDescriptor = staticMethodDescriptor;            
+			this.StaticMethodDeclarationPath = staticMethodDeclarationPath;
+			this.DisplayString = displayString;
+		}
+	}
+
+	/// <summary>
 	/// This is essentially a node in the propagation graph 
 	/// It represents either a variable, field, parameter or even a method invocation (that are specials)
 	/// Currently they conrtain information about the corresponding Roslyn symbol they represent 
 	/// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
 	/// </summary> 
-    [Serializable]
+	[Serializable]
     public abstract class PropGraphNodeDescriptor
 	{
 		public string Name { get; private set; }
@@ -614,13 +629,15 @@ namespace ReachingTypeAnalysis
     [Serializable]
 	public class AnalysisCallNode : PropGraphNodeDescriptor
 	{
+		public AnalysisCallNodeAdditionalInfo AdditionalInfo { get; private set; }
  		public LocationDescriptor LocationDescriptor { get; private set; }
         public int InMethodPosition { get; private set; }
-		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location)
+		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location, AnalysisCallNodeAdditionalInfo additionalInfo)
             : base(methodName, declaredType)
 		{
 			this.LocationDescriptor = location;
             this.InMethodPosition = location.InMethodOrder;
+			this.AdditionalInfo = additionalInfo;
         }
 
 		/// <summary>

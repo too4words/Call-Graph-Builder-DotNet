@@ -48,7 +48,91 @@ namespace AnalysisCore.Roslyn
 			return result;
 		}
 
-		public static SymbolReference GetDeclarationInfo(IMethodSymbol symbol)
+		public static async Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(IProjectCodeProvider projectProvider, ReachingTypeAnalysis.Analysis.DocumentInfo documentInfo)
+		{
+			var result = CodeGraphHelper.CreateFileResponse(documentInfo.Document);
+			result.declarationAnnotation = new List<DeclarationAnnotation>();
+			result.referenceAnnotation = new List<ReferenceAnnotation>();
+
+			foreach (var methodDescriptor in documentInfo.Methods)
+			{
+				var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
+				var annotations = await methodEntity.GetAnnotationsAsync();
+				var declarations = annotations.OfType<DeclarationAnnotation>();
+				var references = annotations.OfType<ReferenceAnnotation>();
+
+				result.declarationAnnotation.AddRange(declarations);
+				result.referenceAnnotation.AddRange(references);
+			}
+			
+			return new List<FileResponse>() { result };
+		}
+
+		public static DeclarationAnnotation GetMethodDeclarationInfo(SyntaxNode node, IMethodSymbol symbol)
+		{
+			var span = CodeGraphHelper.GetSpan(node);
+
+			var result = new DeclarationAnnotation()
+			{
+				symbolId = CodeGraphHelper.GetSymbolId(symbol),
+				symbolType = SymbolType.Method,
+				label = symbol.Name,
+				hover = symbol.ToDisplayString(),
+				refType = "decl",
+				glyph = "72",
+				range = CodeGraphHelper.GetRange(span)
+			};
+
+			return result;
+		}
+
+		public static ReferenceAnnotation GetMethodInvocationInfo(MethodDescriptor callerDescriptor, AnalysisCallNode callNode)
+		{
+			var result = new ReferenceAnnotation()
+			{
+				declarationId = CodeGraphHelper.GetSymbolId(callNode.AdditionalInfo.StaticMethodDescriptor),
+				symbolId = CodeGraphHelper.GetSymbolId(callerDescriptor, callNode.InMethodPosition),
+				declFile = callNode.AdditionalInfo.StaticMethodDeclarationPath,
+				symbolType = SymbolType.Method,
+				label = callNode.Name,
+				hover = callNode.AdditionalInfo.DisplayString,
+				refType = "ref",
+				range = callNode.LocationDescriptor.Range
+			};
+
+			return result;
+		}
+
+		public static ReferenceAnnotation GetMethodInvocationInfo(IMethodSymbol caller, IMethodSymbol callee, int invocationIndex, FileLinePositionSpan span)
+		{
+			var result = new ReferenceAnnotation()
+			{
+				declarationId = CodeGraphHelper.GetSymbolId(callee),
+				symbolId = CodeGraphHelper.GetSymbolId(caller, invocationIndex),
+				declFile = callee.Locations.First().GetMappedLineSpan().Path,
+				symbolType = SymbolType.Method,
+				label = callee.Name,
+				hover = callee.ToDisplayString(),
+				refType = "ref",
+				range = CodeGraphHelper.GetRange(span)
+			};
+
+			return result;
+		}
+
+		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode)
+		{
+			var result = new SymbolReference()
+			{
+				refType = "ref",
+				preview = callNode.LocationDescriptor.FilePath,
+				trange = callNode.LocationDescriptor.Range
+			};
+
+			return result;
+		}
+
+		public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol)
 		{
 			var span = symbol.Locations.First().GetMappedLineSpan();
 
@@ -56,7 +140,7 @@ namespace AnalysisCore.Roslyn
 			{
 				refType = "ref",
 				preview = span.Path,				
-				trange = CodeGraphHelper.GetRange(span)
+				trange = GetRange(span)
 			};
 
 			return result;
@@ -73,20 +157,74 @@ namespace AnalysisCore.Roslyn
 			};
         }
 
+		public static FileLinePositionSpan GetSpan(SyntaxNodeOrToken nodeOrToken)
+		{
+			var span = nodeOrToken.Span;
+
+			if (nodeOrToken.IsNode)
+			{
+				var node = nodeOrToken.AsNode();
+
+				if (node is ConstructorDeclarationSyntax)
+				{
+					var constructorDeclarationNode = node as ConstructorDeclarationSyntax;
+					span = constructorDeclarationNode.Identifier.Span;
+				}
+				else if (node is MethodDeclarationSyntax)
+				{
+					var methodDeclarationNode = node as MethodDeclarationSyntax;
+					span = methodDeclarationNode.Identifier.Span;
+				}
+				else if (node is ObjectCreationExpressionSyntax)
+				{
+					var objectCreationExpression = node as ObjectCreationExpressionSyntax;
+					span = objectCreationExpression.Type.Span;
+				}
+				else if (node is MemberAccessExpressionSyntax)
+				{
+					var memberAccess = node as MemberAccessExpressionSyntax;
+					span = memberAccess.Name.Span;
+				}
+				else if (node is InvocationExpressionSyntax)
+				{
+					var invocationExpression = node as InvocationExpressionSyntax;
+					span = invocationExpression.Expression.Span;
+
+					if (invocationExpression.Expression is MemberAccessExpressionSyntax)
+					{
+						var memberAccess = invocationExpression.Expression as MemberAccessExpressionSyntax;
+						span = memberAccess.Name.Span;
+					}
+				}
+			}
+
+			var result = nodeOrToken.SyntaxTree.GetLineSpan(span);
+			return result;
+		}
+
+		public static string GetSymbolId(MethodDescriptor methodDescriptor)
+		{
+			var result = methodDescriptor.Marshall();
+			return result;
+		}
+
+		public static string GetSymbolId(MethodDescriptor methodDescriptor, int invocationIndex)
+		{
+			var result = CodeGraphHelper.GetSymbolId(methodDescriptor);
+			result = string.Format("{0}@{1}", result, invocationIndex);
+			return result;
+		}
+
 		public static string GetSymbolId(IMethodSymbol symbol)
 		{
-			var methodDescriptor =  Utils.CreateMethodDescriptor(symbol);
-			var result = methodDescriptor.Marshall();
-
-			return result;
+			var methodDescriptor = Utils.CreateMethodDescriptor(symbol);
+			return CodeGraphHelper.GetSymbolId(methodDescriptor);
 		}
 
 		public static string GetSymbolId(IMethodSymbol symbol, int invocationIndex)
 		{
-			var result = GetSymbolId(symbol);
-			result = string.Format("{0}@{1}", result, invocationIndex);
-
-			return result;
+			var methodDescriptor = Utils.CreateMethodDescriptor(symbol);
+			return CodeGraphHelper.GetSymbolId(methodDescriptor, invocationIndex);
 		}
 	}
 
@@ -115,21 +253,10 @@ namespace AnalysisCore.Roslyn
 			return this.DocumentInfo;
         }
 
-		private void VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node, FileLinePositionSpan span)
+		private void VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
 		{
 			var symbol = this.model.GetDeclaredSymbol(node);
-
-			var declaration = new DeclarationAnnotation()
-			{
-				symbolId = CodeGraphHelper.GetSymbolId(symbol),
-				symbolType = SymbolType.Method,
-				label = symbol.Name,
-				hover = symbol.ToDisplayString(),
-				refType = "decl",
-				glyph = "72",
-				range = CodeGraphHelper.GetRange(span)
-
-			};
+			var declaration = CodeGraphHelper.GetMethodDeclarationInfo(node, symbol);
 
 			this.DocumentInfo.declarationAnnotation.Add(declaration);
 			this.currentMethodSymbol = symbol;
@@ -138,16 +265,14 @@ namespace AnalysisCore.Roslyn
 
 		public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
 		{
-			var span = node.SyntaxTree.GetLineSpan(node.Identifier.Span);
-			this.VisitBaseMethodDeclaration(node, span);
+			this.VisitBaseMethodDeclaration(node);
 			base.VisitConstructorDeclaration(node);
 			this.currentMethodSymbol = null;
 		}
 
 		public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
 		{
-			var span = node.SyntaxTree.GetLineSpan(node.Identifier.Span);
-			this.VisitBaseMethodDeclaration(node, span);
+			this.VisitBaseMethodDeclaration(node);
 			base.VisitMethodDeclaration(node);
 			this.currentMethodSymbol = null;
 		}
@@ -156,18 +281,7 @@ namespace AnalysisCore.Roslyn
 		{
 			this.invocationIndex++;
 			var span = methodName.SyntaxTree.GetLineSpan(methodName.Span);
-
-			var reference = new ReferenceAnnotation()
-			{
-				declarationId = CodeGraphHelper.GetSymbolId(methodSymbol),
-				symbolId = CodeGraphHelper.GetSymbolId(this.currentMethodSymbol, this.invocationIndex),
-				declFile = methodSymbol.Locations.First().GetMappedLineSpan().Path,
-				symbolType = SymbolType.Method,
-				label = methodSymbol.Name,
-				hover = methodSymbol.ToDisplayString(),
-				refType = "ref",
-				range = CodeGraphHelper.GetRange(span)
-			};
+			var reference = CodeGraphHelper.GetMethodInvocationInfo(this.currentMethodSymbol, methodSymbol, this.invocationIndex, span);
 
 			this.DocumentInfo.referenceAnnotation.Add(reference);
 		}

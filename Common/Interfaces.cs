@@ -44,12 +44,12 @@ namespace ReachingTypeAnalysis
 
 		Task<SymbolReference> GetDeclarationInfoAsync();
         Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync();
-
+		Task<IEnumerable<Annotation>> GetAnnotationsAsync();
 		Task<PropagationEffects> RemoveMethodAsync();
 
 		Task UnregisterCallerAsync(CallContext callContext);
 
-		Task UnregisterCalleeAsync(CallContext callContext);
+		//Task UnregisterCalleeAsync(CallContext callContext);
 	}
 
     public interface IProjectCodeProvider
@@ -66,7 +66,7 @@ namespace ReachingTypeAnalysis
 
 		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
 
-		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string filePath);
+		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
 
 		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
 	}

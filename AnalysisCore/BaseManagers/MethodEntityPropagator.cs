@@ -402,7 +402,7 @@ namespace ReachingTypeAnalysis.Analysis
         }
 
 		private async Task<ISet<MethodDescriptor>> GetCalleesAsync(AnalysisCallNode node)
-		{
+        {
 
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
@@ -415,7 +415,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             result = calleesForNode;
             return result;
-		}
+        }
 
         public Task<bool> IsInitializedAsync()
         {
@@ -427,29 +427,30 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(this.methodEntity.Callers.AsEnumerable());
         }
 
-        public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
-        {
+		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+		{
 			var references = from caller in this.methodEntity.Callers
-						 select new SymbolReference()
-						 {
-							 refType = "ref",
-							 preview = caller.CallNode.LocationDescriptor.FilePath,
-							 trange = caller.CallNode.LocationDescriptor.Range
-						 };
+							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode);
 
 			var result = references.ToList().AsEnumerable();
 			return Task.FromResult(result);
-        }
+		}
 
 
-        public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
             return Task.FromResult(this.methodEntity.InstantiatedTypes.AsEnumerable());
         }
 
 		public Task<SymbolReference> GetDeclarationInfoAsync()
 		{
-			return Task.FromResult(this.methodEntity.DeclarationInfo);
+			return Task.FromResult(this.methodEntity.ReferenceInfo);
+		}
+
+		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
+		{
+			var result = this.methodEntity.GetAnnotations();
+			return Task.FromResult(result);
 		}
 
 		public async Task<PropagationEffects> RemoveMethodAsync()
@@ -475,15 +476,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		public Task UnregisterCalleeAsync(CallContext callContext)
-		{
-            var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
-            var receiverTypes = this.GetTypes(invoInfo.Receiver);
-			//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
-			return TaskDone.Done;
-		}
-
-
-	
+		//public Task UnregisterCalleeAsync(CallContext callContext)
+		//{
+		//	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
+		//	var receiverTypes = this.GetTypes(invoInfo.Receiver);
+		//	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
+		//	return TaskDone.Done;
+		//}
 	}
 }

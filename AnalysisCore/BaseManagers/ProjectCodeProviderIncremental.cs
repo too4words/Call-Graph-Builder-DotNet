@@ -16,78 +16,77 @@ namespace ReachingTypeAnalysis.Analysis
 {
 	public abstract partial class BaseProjectCodeProvider: IProjectCodeProvider
 	{
-		internal async Task UpdateMethodAsync(MethodDescriptor methodDescriptor, SyntaxTree newSyntax)
-		{
-			var methodInfo = await this.FindMethodDeclarationAsync(methodDescriptor);
-			var oldTree = methodInfo.SyntaxTree;
-			var oldCompilation = this.compilation;
-			var newCompilation = oldCompilation.ReplaceSyntaxTree(oldTree, newSyntax);
-			var newSemanticModel = newCompilation.GetSemanticModel(newSyntax);
+		//internal async Task UpdateMethodAsync(MethodDescriptor methodDescriptor, SyntaxTree newSyntax)
+		//{
+		//	var methodInfo = await this.FindMethodDeclarationAsync(methodDescriptor);
+		//	var oldTree = methodInfo.SyntaxTree;
+		//	var oldCompilation = this.compilation;
+		//	var newCompilation = oldCompilation.ReplaceSyntaxTree(oldTree, newSyntax);
+		//	var newSemanticModel = newCompilation.GetSemanticModel(newSyntax);
 
-			var newMethodDeclaration = await GetMethodDeclarationInTree(methodDescriptor, newSyntax, newSemanticModel);
+		//	var newMethodDeclaration = await GetMethodDeclarationInTree(methodDescriptor, newSyntax, newSemanticModel);
 
 
-			// Find the method and project of the method to be updated
-			//var projectMethdod = FindMethodSymbolAndProjectInSolution(methodDescriptor, callgraph);
-			//var oldRoslynMethod = projectMethdod.Method;
-			//var project = projectMethdod.Project;
+		//	// Find the method and project of the method to be updated
+		//	//var projectMethdod = FindMethodSymbolAndProjectInSolution(methodDescriptor, callgraph);
+		//	//var oldRoslynMethod = projectMethdod.Method;
+		//	//var project = projectMethdod.Project;
 
-			//var aMethod = new AMethod(oldRoslynMethod);
-			////entityProcessor.MethodEntity.Save(roslynMethod.ContainingType.Name + "_" + roslynMethod.Name + "_orig.dot");
-			////--------------------------------------------------------------------------------------------------------
-			//// This is to mimic a change in the method. We need to create a new comp
-			//var methodDecSyntax = Utils.FindMethodDeclaration(aMethod);
-			//var newMethodBody = SyntaxFactory.ParseStatement(newCode) as BlockSyntax;
-			//// here we update the method body
-			//var newMethodSyntax = methodDecSyntax.WithBody(newMethodBody);
-			//// This is a trick to recover the part of the syntax tree after replacing the project syntax tree
-			//var annotation = new SyntaxAnnotation("Hi");
-			//newMethodSyntax = newMethodSyntax.WithAdditionalAnnotations(annotation);
-			//// update the syntax tree
-			//var oldRoot = methodDecSyntax.SyntaxTree.GetRoot();
-			//var newRoot = oldRoot.ReplaceNode(methodDecSyntax, newMethodSyntax);
-			//// Compute the new compilation and semantic model
-			//var oldCompilation = project.GetCompilationAsync().Result;
-			//var newCompilation = oldCompilation.ReplaceSyntaxTree(oldRoot.SyntaxTree, newRoot.SyntaxTree);
-			//var newSemanticModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
-			//// Recover the method node
-			//var recoveredMethodNode = newRoot.GetAnnotatedNodes(annotation).Single();
-			////////////////////////////////////////////////////////
+		//	//var aMethod = new AMethod(oldRoslynMethod);
+		//	////entityProcessor.MethodEntity.Save(roslynMethod.ContainingType.Name + "_" + roslynMethod.Name + "_orig.dot");
+		//	////--------------------------------------------------------------------------------------------------------
+		//	//// This is to mimic a change in the method. We need to create a new comp
+		//	//var methodDecSyntax = Utils.FindMethodDeclaration(aMethod);
+		//	//var newMethodBody = SyntaxFactory.ParseStatement(newCode) as BlockSyntax;
+		//	//// here we update the method body
+		//	//var newMethodSyntax = methodDecSyntax.WithBody(newMethodBody);
+		//	//// This is a trick to recover the part of the syntax tree after replacing the project syntax tree
+		//	//var annotation = new SyntaxAnnotation("Hi");
+		//	//newMethodSyntax = newMethodSyntax.WithAdditionalAnnotations(annotation);
+		//	//// update the syntax tree
+		//	//var oldRoot = methodDecSyntax.SyntaxTree.GetRoot();
+		//	//var newRoot = oldRoot.ReplaceNode(methodDecSyntax, newMethodSyntax);
+		//	//// Compute the new compilation and semantic model
+		//	//var oldCompilation = project.GetCompilationAsync().Result;
+		//	//var newCompilation = oldCompilation.ReplaceSyntaxTree(oldRoot.SyntaxTree, newRoot.SyntaxTree);
+		//	//var newSemanticModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
+		//	//// Recover the method node
+		//	//var recoveredMethodNode = newRoot.GetAnnotatedNodes(annotation).Single();
+		//	////////////////////////////////////////////////////////
 
-			//// Get the entity corresponding to the new (updated) method
-			//var updatedRoslynMethod = newSemanticModel.GetDeclaredSymbol(recoveredMethodNode) as IMethodSymbol;
+		//	//// Get the entity corresponding to the new (updated) method
+		//	//var updatedRoslynMethod = newSemanticModel.GetDeclaredSymbol(recoveredMethodNode) as IMethodSymbol;
 
-			//PerformUpdate(oldRoslynMethod, newSemanticModel, updatedRoslynMethod);
-		}
+		//	//PerformUpdate(oldRoslynMethod, newSemanticModel, updatedRoslynMethod);
+		//}
 
-		private static async Task<MethodParserInfo> GetMethodDeclarationInTree(MethodDescriptor methodDescriptor, SyntaxTree newSyntax, SemanticModel newSemanticModel)
-		{
-		
-			var root = await newSyntax.GetRootAsync();
-			var visitor = new MethodFinder(methodDescriptor, newSemanticModel);
+		//private static async Task<MethodParserInfo> GetMethodDeclarationInTree(MethodDescriptor methodDescriptor, SyntaxTree newSyntax, SemanticModel newSemanticModel)
+		//{		
+		//	var root = await newSyntax.GetRootAsync();
+		//	var visitor = new MethodFinder(methodDescriptor, newSemanticModel);
 
-			visitor.Visit(root);
-			if (visitor.Result != null)
-			{
-				var declarationNode = visitor.Result;
-				var symbol = newSemanticModel.GetDeclaredSymbol(declarationNode) as IMethodSymbol;
-				return new MethodParserInfo(methodDescriptor)
-				{
-					SyntaxTree = newSyntax,
-					SemanticModel = newSemanticModel,
-					DeclarationNode = declarationNode,
-					MethodSymbol = symbol
-				};
-			}
-			return null;
-		}
+		//	visitor.Visit(root);
+		//	if (visitor.Result != null)
+		//	{
+		//		var declarationNode = visitor.Result;
+		//		var symbol = newSemanticModel.GetDeclaredSymbol(declarationNode) as IMethodSymbol;
+		//		return new MethodParserInfo(methodDescriptor)
+		//		{
+		//			SyntaxTree = newSyntax,
+		//			SemanticModel = newSemanticModel,
+		//			DeclarationNode = declarationNode,
+		//			MethodSymbol = symbol
+		//		};
+		//	}
+		//	return null;
+		//}
 
-		internal async Task PerformUpdateAsync(MethodParserInfo oldMethodInfo, MethodParserInfo newMethodInfo)
-		{
-			var newMethodParser = new MethodParser(newMethodInfo);
-			var newMethodEntity = newMethodParser.ParseMethod();
-			var oldMethodEntityWP = await this.GetMethodEntityAsync(newMethodInfo.MethodDescriptor);
-		}
+		//internal async Task PerformUpdateAsync(MethodInfo oldMethodInfo, MethodInfo newMethodInfo)
+		//{
+		//	var newMethodParser = new MethodParser(newMethodInfo);
+		//	var newMethodEntity = newMethodParser.ParseMethod();
+		//	var oldMethodEntityWP = await this.GetMethodEntityAsync(newMethodInfo.MethodDescriptor);
+		//}
 /*
 		private void RemoveCall(AMethod aCallee, AInvocationExp<AMethod, AType, ANode> invocation)
 		{

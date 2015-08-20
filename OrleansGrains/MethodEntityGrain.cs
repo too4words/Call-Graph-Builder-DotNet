@@ -186,7 +186,6 @@ namespace ReachingTypeAnalysis.Analysis
         //    return State.WriteStateAsync();
         //}
 
-
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
            return this.methodEntityPropagator.GetInstantiatedTypesAsync();
@@ -196,6 +195,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.methodEntityPropagator.GetDeclarationInfoAsync();
         }
+
+		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
+		{
+			return this.methodEntityPropagator.GetAnnotationsAsync();
+		}
 
         public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
         {
@@ -212,11 +216,10 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.UnregisterCallerAsync(callContext);
 		}
 
-		public Task UnregisterCalleeAsync(CallContext callContext)
-		{
-			return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
-		}
-
+		//public Task UnregisterCalleeAsync(CallContext callContext)
+		//{
+		//	return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
+		//}
 	}
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider

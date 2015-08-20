@@ -204,11 +204,36 @@ namespace ReachingTypeAnalysis
 
 		public static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
 		{
-			var span = syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span);
-			var filePath = span.Path;
+			var span = CodeGraphHelper.GetSpan(syntaxNode);			
 			var range = CodeGraphHelper.GetRange(span);
+			var filePath = span.Path;
 			return new LocationDescriptor(invocationPosition, range, filePath);
 		}
+
+		public static AnalysisCallNodeAdditionalInfo CreateAnalysisCallNodeAdditionalInfo(ISymbol symbol)
+		{
+			IMethodSymbol methodSymbol = null;
+
+			if (symbol is IMethodSymbol)
+			{
+				methodSymbol = symbol as IMethodSymbol;
+			}
+			else if (symbol is IPropertySymbol)
+			{
+				// TODO: Hack! How do we know if this is a get or set property access?
+				var propertySymbol = symbol as IPropertySymbol;
+				methodSymbol = propertySymbol.GetMethod;
+			}
+			else
+			{
+				throw new Exception("Unknown symbol type");
+			}
+
+			var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+			var declarationPath = symbol.Locations.First().GetMappedLineSpan().Path;
+			var displayString = symbol.ToDisplayString();
+			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
+        }
 
 		private static MetadataReference mscorlib;
 
@@ -237,7 +262,7 @@ namespace ReachingTypeAnalysis
 			var solution = ws.CurrentSolution
 				.AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
 				.AddMetadataReference(projectId, Mscorlib)
-				.AddDocument(documentId, "MyFile.cs", source);
+				.AddDocument(documentId, "MyFile.cs", source, null, @"C:\MyFile.cs");
 
 			return solution;
 		}
