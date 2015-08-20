@@ -21,11 +21,11 @@ namespace ReachingTypeAnalysis.Analysis
 		public SemanticModel SemanticModel { get; private set; }		
 		public SyntaxTree SyntaxTree { get; private set; }
 		public SyntaxNode SyntaxTreeRoot { get; private set; }
-		public IList<MethodDescriptor> Methods { get; private set; }
+		public ISet<MethodDescriptor> Methods { get; private set; }
 
 		private DocumentInfo()
 		{
-			this.Methods = new List<MethodDescriptor>();
+			this.Methods = new HashSet<MethodDescriptor>();
         }
 
 		public static async Task<DocumentInfo> CreateAsync(Document document, Compilation compilation)
@@ -205,13 +205,18 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var methodEntity = await this.GetMethodEntityAsync(methodDescriptor);
 			var propagationEffects = await methodEntity.RemoveMethodAsync();
-			return propagationEffects;
+
+			this.RemoveMethodFromDocumentInfo(methodDescriptor);
+            return propagationEffects;
 		}
 
 		internal async Task ReplaceSourceAsync(string source, string documentName)
 		{
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
 			var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
+
+			this.RemoveDocumentInfo(oldDocument.FilePath);
+
 			this.project = this.project.RemoveDocument(oldDocument.Id);
 			var newDocument = this.project.AddDocument(documentName, source, null, oldDocument.FilePath);
 			this.project = newDocument.Project;
@@ -222,6 +227,25 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//this.semanticModels.Remove(oldDocument.Id.Id);
 			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
+		}
+
+		private void RemoveDocumentInfo(string documentPath)
+		{
+			DocumentInfo documentInfo;
+
+			if (this.documentsInfo.TryGetValue(documentPath, out documentInfo))
+			{
+				this.documentsInfo.Remove(documentPath);
+			}
+		}
+
+		private void RemoveMethodFromDocumentInfo(MethodDescriptor methodDescriptor)
+		{
+			foreach (var documentInfo in this.documentsInfo.Values)
+			{
+				var methodFound = documentInfo.Methods.Remove(methodDescriptor);
+				if (methodFound) break;
+			}
 		}
 	}
 }
