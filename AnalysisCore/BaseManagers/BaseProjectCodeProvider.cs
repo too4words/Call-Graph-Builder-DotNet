@@ -15,36 +15,53 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	internal class MethodParserInfo
+	internal class DocumentInfo
 	{
-		public MethodDescriptor MethodDescriptor { get; private set; }
-		public Document Document { get; set; }
-		public SyntaxTree SyntaxTree { get; set; }
-		public SemanticModel SemanticModel { get; set; }
-		public BaseMethodDeclarationSyntax DeclarationNode { get; set; }
-		public IMethodSymbol MethodSymbol { get; set; }
+		public Document Document { get; private set; }
+		public SemanticModel SemanticModel { get; private set; }		
+		public SyntaxTree SyntaxTree { get; private set; }
+		public SyntaxNode SyntaxTreeRoot { get; private set; }
+		public IList<MethodDescriptor> Methods { get; private set; }
 
-		public MethodParserInfo(MethodDescriptor methodDescriptor)
+		private DocumentInfo()
 		{
-			this.MethodDescriptor = methodDescriptor;
+			this.Methods = new List<MethodDescriptor>();
+        }
+
+		public static async Task<DocumentInfo> CreateAsync(Document document, Compilation compilation)
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			var syntaxTree = await document.GetSyntaxTreeAsync(cancellationTokenSource.Token);
+			var syntaxTreeRoot = await syntaxTree.GetRootAsync(cancellationTokenSource.Token);
+			var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+			var result = new DocumentInfo()
+			{
+				Document = document,
+				SyntaxTree = syntaxTree,
+				SyntaxTreeRoot = syntaxTreeRoot,
+                SemanticModel = semanticModel
+			};
+
+			return result;
 		}
 	}
 
-    public  abstract partial class BaseProjectCodeProvider : IProjectCodeProvider
+    public abstract partial class BaseProjectCodeProvider : IProjectCodeProvider
     {
 		protected Project project;
 		protected Compilation compilation;
-		private IDictionary<Guid, SemanticModel> semanticModels;
+		private IDictionary<string, DocumentInfo> documentsInfo;
 
 		protected BaseProjectCodeProvider(Project project, Compilation compilation)
         {
             this.project = project;
 			this.compilation = compilation;
-			this.semanticModels = new Dictionary<Guid, SemanticModel>();
-		}
+			this.documentsInfo = new Dictionary<string, DocumentInfo>();
+        }
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
-        {            
+        {
             var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor);
 			MethodEntity methodEntity = null;
 
@@ -62,13 +79,27 @@ namespace ReachingTypeAnalysis.Analysis
             return methodEntity;
         }
 
+		private async Task<DocumentInfo> GetDocumentInfoAsync(string documentPath)
+		{
+			DocumentInfo documentInfo;
+
+			if (!this.documentsInfo.TryGetValue(documentPath, out documentInfo))
+            {
+				var document = this.project.Documents.Single(doc => doc.FilePath.Equals(documentPath, StringComparison.InvariantCultureIgnoreCase));
+				documentInfo = await DocumentInfo.CreateAsync(document, this.compilation);
+				this.documentsInfo.Add(documentPath, documentInfo);
+            }
+
+			return documentInfo;
+        }
+
 		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor methodDescriptor)
 		{
 			MethodParserInfo result = null;
 
 			foreach (var document in this.project.Documents)
 			{
-				var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor, document);
+				var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor, document.FilePath);
 
 				if (methodParserInfo != null)
 				{
@@ -80,29 +111,15 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-        internal async Task ReplaceSourceAsync(string source, string documentName)
-        {
-			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
-            var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
-            this.project = this.project.RemoveDocument(oldDocument.Id);       
-            var newDocument = this.project.AddDocument(documentName, source);
-            this.project = newDocument.Project;
-
-            var cancellationTokenSource = new CancellationTokenSource();
-            this.compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);            
-			//var semanticModel = await newDocument.GetSyntaxTreeAsync(cancellationTokenSource.Token);
-
-			//this.semanticModels.Remove(oldDocument.Id.Id);
-			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
-        }
-
-		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor method, Document document)
+		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor methodDescriptor, string documentPath)
 		{
 			MethodParserInfo result = null;
-			var tree = await document.GetSyntaxTreeAsync();
-			var root = await tree.GetRootAsync();
-			var model = this.GetSemanticModel(document, tree);			
-			var visitor = new MethodFinder(method, model);
+			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
+			var document = documentInfo.Document;
+            var tree = documentInfo.SyntaxTree;			
+			var root = documentInfo.SyntaxTreeRoot;
+			var model = documentInfo.SemanticModel;
+			var visitor = new MethodFinder(methodDescriptor, model);
 
 			visitor.Visit(root);
 
@@ -111,30 +128,17 @@ namespace ReachingTypeAnalysis.Analysis
 				var declarationNode = visitor.Result;
 				var symbol = model.GetDeclaredSymbol(declarationNode) as IMethodSymbol;
 
-				result = new MethodParserInfo(method)
+				result = new MethodParserInfo(methodDescriptor)
 				{
-					Document = document,
-					SyntaxTree = tree,
 					SemanticModel = model,
 					DeclarationNode = declarationNode,
 					MethodSymbol = symbol
 				};
+
+				documentInfo.Methods.Add(methodDescriptor);
 			}
 
 			return result;
-		}
-
-		private SemanticModel GetSemanticModel(Document document, SyntaxTree tree)
-		{
-			SemanticModel model;
-
-			if (!this.semanticModels.TryGetValue(document.Id.Id, out model))
-			{
-				model = this.compilation.GetSemanticModel(tree);
-				semanticModels.Add(document.Id.Id, model);
-			}
-
-			return model;
 		}
 
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
@@ -184,17 +188,40 @@ namespace ReachingTypeAnalysis.Analysis
 			return CodeGraphHelper.GetDocumentsAsync(this.project);
 		}
 
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		//public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		//{
+		//	var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
+		//	return CodeGraphHelper.GetDocumentEntitiesAsync(document);
+		//}
+
+		public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		{
-			var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(filePath, StringComparison.InvariantCultureIgnoreCase));
-			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
-        }
+			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
+			var result = await CodeGraphHelper.GetDocumentEntitiesAsync(this, documentInfo);
+			return result;
+		}
 
 		public virtual async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var methodEntity = await this.GetMethodEntityAsync(methodDescriptor);
 			var propagationEffects = await methodEntity.RemoveMethodAsync();
 			return propagationEffects;
+		}
+
+		internal async Task ReplaceSourceAsync(string source, string documentName)
+		{
+			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
+			var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
+			this.project = this.project.RemoveDocument(oldDocument.Id);
+			var newDocument = this.project.AddDocument(documentName, source);
+			this.project = newDocument.Project;
+
+			var cancellationTokenSource = new CancellationTokenSource();
+			this.compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
+			//var semanticModel = await newDocument.GetSyntaxTreeAsync(cancellationTokenSource.Token);
+
+			//this.semanticModels.Remove(oldDocument.Id.Id);
+			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
 		}
 	}
 }

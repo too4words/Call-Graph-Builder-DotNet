@@ -73,8 +73,8 @@ namespace ReachingTypeAnalysis.Analysis
 				foreach (var callee in calleeInfo.PossibleCallees)
 				{
 					var calleeEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
-					var callContex = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
-					var task = calleeEntityProc.UnregisterCallerAsync(callContex);
+					var callContext = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
+					var task = calleeEntityProc.UnregisterCallerAsync(callContext);
 					//await task;
 					tasks.Add(task);
 				}

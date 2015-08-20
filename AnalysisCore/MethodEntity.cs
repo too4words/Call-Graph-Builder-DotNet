@@ -3,6 +3,7 @@ using ReachingTypeAnalysis.Communication;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
@@ -67,7 +68,8 @@ namespace ReachingTypeAnalysis.Analysis
         /// </summary>
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
 
-		internal CodeGraphModel.SymbolReference DeclarationInfo { get; private set; }
+		internal CodeGraphModel.DeclarationAnnotation DeclarationInfo { get; private set; }
+		internal CodeGraphModel.SymbolReference ReferenceInfo { get; private set; }
 
 		/// <summary>
 		/// The next properties obtains info from MethodDataInterface
@@ -141,11 +143,13 @@ namespace ReachingTypeAnalysis.Analysis
             IEntityDescriptor descriptor,
             IEnumerable<TypeDescriptor> instantiatedTypes,
             IDictionary<AnonymousMethodDescriptor, MethodEntity> anonymousMethods,
-			CodeGraphModel.SymbolReference declarationInfo)
+			CodeGraphModel.DeclarationAnnotation declarationInfo,
+            CodeGraphModel.SymbolReference referenceInfo)
             : this(methodDescriptor, mid, propGraph, descriptor, instantiatedTypes)
         {
             this.anonymousMethods = anonymousMethods;
 			this.DeclarationInfo = declarationInfo;
+			this.ReferenceInfo = referenceInfo;
         }
 
         public MethodEntity GetAnonymousMethodEntity(AnonymousMethodDescriptor methodDescriptor)
@@ -296,7 +300,21 @@ namespace ReachingTypeAnalysis.Analysis
             throw new ArgumentException();
             //return null;
         }
-    }
+
+		internal IEnumerable<CodeGraphModel.Annotation> GetAnnotations()
+		{
+			var result = new List<CodeGraphModel.Annotation>();
+			result.Add(this.DeclarationInfo);
+
+			foreach (var callNode in this.propGraph.CallNodes)
+			{
+				var invocationInfo = AnalysisCore.Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.MethodDescriptor, callNode);
+				result.Add(invocationInfo);
+            }				
+
+			return result;
+		}
+	}
 
     [Serializable]
 	internal class MethodEntityDescriptor : IEntityDescriptor

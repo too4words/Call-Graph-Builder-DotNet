@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(result.AsEnumerable());
 		}
 
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string filePath)
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		{
 			var result = new HashSet<CodeGraphModel.FileResponse>();
 			return Task.FromResult(result.AsEnumerable());

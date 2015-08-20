@@ -252,12 +252,25 @@ namespace ReachingTypeAnalysis
         //}
     }
 
-    /// <summary>
-    /// This is the visitor for one method
-    /// It creates an entity for the method that includes a statment procesor. 
-    /// It models the propagation graph for the intraprocedural analysis
-    /// </summary>
-    internal class MethodParser : GeneralRoslynMethodParser
+	internal class MethodParserInfo
+	{
+		public MethodDescriptor MethodDescriptor { get; private set; }
+		public SemanticModel SemanticModel { get; set; }
+		public BaseMethodDeclarationSyntax DeclarationNode { get; set; }
+		public IMethodSymbol MethodSymbol { get; set; }
+
+		public MethodParserInfo(MethodDescriptor methodDescriptor)
+		{
+			this.MethodDescriptor = methodDescriptor;
+		}
+	}
+
+	/// <summary>
+	/// This is the visitor for one method
+	/// It creates an entity for the method that includes a statment procesor. 
+	/// It models the propagation graph for the intraprocedural analysis
+	/// </summary>
+	internal class MethodParser : GeneralRoslynMethodParser
     {
         private BaseMethodDeclarationSyntax methodNode;
         private SemanticModel model;
@@ -305,14 +318,15 @@ namespace ReachingTypeAnalysis
             propGraphGenerator.Visit(this.methodNode);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-			var declarationInfo = CodeGraphHelper.GetDeclarationInfo(this.RoslynMethod);
+			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(this.methodNode, this.RoslynMethod);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod);
 
-            var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
+			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,
                                                 propGraphGenerator.PropGraph, descriptor,
                                                 propGraphGenerator.InstantiatedTypes,
                                                 propGraphGenerator.StatementProcessor.AnonymousMethods,
-												declarationInfo);
+												declarationInfo, referenceInfo);
             return methodEntity;
         }
     }
@@ -337,14 +351,15 @@ namespace ReachingTypeAnalysis
             propGraphGenerator.Visit(this.lambdaExpression);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
-			var declarationInfo = CodeGraphHelper.GetDeclarationInfo(this.RoslynMethod);
+			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(this.lambdaExpression, this.RoslynMethod);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,
                                                 propGraphGenerator.PropGraph, descriptor,
                                                 propGraphGenerator.InstantiatedTypes,
                                                 propGraphGenerator.StatementProcessor.AnonymousMethods,
-												declarationInfo);
+												declarationInfo, referenceInfo);
             return methodEntity;
         }
     }

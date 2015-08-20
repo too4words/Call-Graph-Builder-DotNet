@@ -406,7 +406,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<SymbolReference> GetDeclarationInfoAsync()
 		{
-			return Task.FromResult(this.methodEntity.DeclarationInfo);
+			return Task.FromResult(this.methodEntity.ReferenceInfo);
+		}
+
+		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
+		{
+			var result = this.methodEntity.GetAnnotations();
+			return Task.FromResult(result);
 		}
 
 		public async Task<PropagationEffects> RemoveMethodAsync()
@@ -432,12 +438,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		public Task UnregisterCalleeAsync(CallContext callContext)
-		{
-            var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
-            var receiverTypes = this.GetTypes(invoInfo.Receiver);
-			//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
-			return TaskDone.Done;
-		}
+		//public Task UnregisterCalleeAsync(CallContext callContext)
+		//{
+		//	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
+		//	var receiverTypes = this.GetTypes(invoInfo.Receiver);
+		//	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
+		//	return TaskDone.Done;
+		//}
 	}
 }
