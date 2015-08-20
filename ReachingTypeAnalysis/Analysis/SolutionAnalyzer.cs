@@ -178,10 +178,10 @@ namespace ReachingTypeAnalysis
             await orchestator.AnalyzeAsync(mainMethods);
         }
 
-		internal async Task AnalyzeOnDemandOrleans()
+		public async Task AnalyzeOnDemandOrleans()
         {
-			//SolutionAnalyzer.MessageCounter = 0;
-			//GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+			SolutionAnalyzer.MessageCounter = 0;
+			GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
 			// For orleans we cannot use the strategy to create a solution
 			// The solution grain creates an internal strategy and contain an internal 
@@ -202,7 +202,7 @@ namespace ReachingTypeAnalysis
             var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
-			//Logger.LogS("SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+			Logger.Log(GrainClient.Logger, "SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
 			//return callGraph;
         }
 

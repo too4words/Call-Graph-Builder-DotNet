@@ -269,33 +269,15 @@
     <Content Include="OrleansConfiguration.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="scripts\External\AzCopy\AzCopy.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.Data.Edm.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.Data.OData.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.Data.Services.Client.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.DataMovement.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.TableDataMovement.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\Newtonsoft.Json.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="scripts\External\AzCopy\System.Spatial.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="scripts\External\AzCopy\AzCopy.exe" />
+    <Content Include="scripts\External\AzCopy\Microsoft.Data.Edm.dll" />
+    <Content Include="scripts\External\AzCopy\Microsoft.Data.OData.dll" />
+    <Content Include="scripts\External\AzCopy\Microsoft.Data.Services.Client.dll" />
+    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.DataMovement.dll" />
+    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.dll" />
+    <Content Include="scripts\External\AzCopy\Microsoft.WindowsAzure.Storage.TableDataMovement.dll" />
+    <Content Include="scripts\External\AzCopy\Newtonsoft.Json.dll" />
+    <Content Include="scripts\External\AzCopy\System.Spatial.dll" />
     <Content Include="scripts\External\BuildTools_Full.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

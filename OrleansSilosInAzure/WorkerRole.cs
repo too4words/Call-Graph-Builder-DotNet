@@ -149,10 +149,13 @@ namespace OrleansSilosInAzure
 
         public override bool OnStart()
         {
-			// Mount a drive.
-			FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
-				"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+			if (!RoleEnvironment.IsEmulated)
+			{
+				// Mount a drive.
+				FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
+					"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
 
+			}
 			// Unmount a drive.
 			//FilesMappedDrive.Unmount("P:");
 

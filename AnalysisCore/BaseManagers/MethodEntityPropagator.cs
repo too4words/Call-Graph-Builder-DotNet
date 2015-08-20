@@ -59,6 +59,16 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity = methodEntity;
         }
 
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		{
+			Contract.Requires(reWorkSet != null);
+			foreach(var node in reWorkSet) 
+			{
+				methodEntity.PropGraph.AddToWorkList(node);
+			}
+			return PropagateAsync(propKind);
+		}
+
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
@@ -363,17 +373,50 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult<IEntity>(this.methodEntity);
         }
 
-        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
             var codeProvider = this.codeProvider;
             Contract.Assert(codeProvider != null);
-            return CallGraphQueryInterface.GetCalleesAsync(this.methodEntity, codeProvider);
+			var result = new HashSet<MethodDescriptor>();
+
+			foreach (var callNode in methodEntity.PropGraph.CallNodes)
+			{
+				result.UnionWith(await GetCalleesAsync( callNode));
+			}
+
+			return result;
+            // return CallGraphQueryInterface.GetCalleesAsync(this.methodEntity, codeProvider);
         }
 
-        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+        public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
-            return CallGraphQueryInterface.GetCalleesInfo(this.methodEntity, this.codeProvider);
+			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
+
+			foreach (var calleeNode in this.methodEntity.PropGraph.CallNodes)
+			{
+				calleesPerEntity[calleeNode] = await GetCalleesAsync(calleeNode);
+			}
+
+			return calleesPerEntity;
+            // return CallGraphQueryInterface.GetCalleesInfo(this.methodEntity, this.codeProvider);
         }
+
+		private async Task<ISet<MethodDescriptor>> GetCalleesAsync(AnalysisCallNode node)
+        {
+
+            ISet<MethodDescriptor> result;
+            var calleesForNode = new HashSet<MethodDescriptor>();
+            var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+
+            var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
+
+
+            calleesForNode.UnionWith(calleeResult);
+
+            result = calleesForNode;
+            return result;
+        }
+
         public Task<bool> IsInitializedAsync()
         {
             return Task.FromResult(this.methodEntity != null);

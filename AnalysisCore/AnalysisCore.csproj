@@ -153,7 +153,6 @@
     <Compile Include="BaseManagers\MethodEntityPropagator.cs" />
     <Compile Include="BaseManagers\BaseProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\SolutionManager.cs" />
-    <Compile Include="CallGraphQueryInterface.cs" />
     <Compile Include="Graph\Graph.cs" />
     <Compile Include="Graph\GraphAnnotationData.cs" />
     <Compile Include="Graph\GraphvizAdapter.cs" />

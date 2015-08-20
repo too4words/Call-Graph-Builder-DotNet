@@ -24,12 +24,14 @@ namespace WebRole1
             return callgraph;
         }
 
-		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
+		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
+		public async Task<ISolutionManager> AnalyzeTestAsync(string testFullName)
         {
             var source = BasicTests.Test[testFullName];
 			var analyzer = SolutionAnalyzer.CreateFromSource(source);
-			var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-			return callgraph;
+			/// var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			await analyzer.AnalyzeOnDemandOrleans();
+			return analyzer.SolutionManager;
         }
     }
 }

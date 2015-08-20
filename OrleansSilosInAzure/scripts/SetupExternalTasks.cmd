@@ -1,5 +1,6 @@
 if "%EMULATED%"=="true" goto SKIP
-if "%EXTERNALTASKURL%"=="" goto SKIP
+REM if "%EXTERNALTASKURL%"=="" goto SKIP
+
 
 set Source=https://orleanstorage2.blob.core.windows.net/project-files 
 REM https://orleansdatastorage.blob.core.windows.net/project-files 
@@ -22,8 +23,9 @@ md %ROLEROOT%\approot\scripts\external
 
 reg add HKLM\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /d Unrestricted /f
 
-
 powershell .\SetupExternalTasks.ps1 -tasksUrl "%EXTERNALTASKURL%" >> ExternalTasks.log 2>> ExternalTasks_err.log
+
+REM powershell .\SetupExternalTasks.ps1 -tasksUrl "%EXTERNALTASKURL%" >> ExternalTasks.log 2>> ExternalTasks_err.log
 
 :SKIP
 EXIT /B 0
