@@ -213,7 +213,7 @@ namespace ReachingTypeAnalysis.Analysis
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
 			var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
 			this.project = this.project.RemoveDocument(oldDocument.Id);
-			var newDocument = this.project.AddDocument(documentName, source);
+			var newDocument = this.project.AddDocument(documentName, source, null, oldDocument.FilePath);
 			this.project = newDocument.Project;
 
 			var cancellationTokenSource = new CancellationTokenSource();
