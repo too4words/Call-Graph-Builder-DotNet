@@ -64,8 +64,8 @@ cd $localFolder
 
 #####################
 
-$msbuild64 = "$env:windir\Microsoft.NET\Framework64\v4.0.30319\MSBuild\"
-$msbuild32 =  "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild\"
+$msbuild64 = "$env:windir\Program Files\MSBuild\14.0"
+$msbuild32 =  "$env:windir\Program Files (x86)\MSBuild\14.0"
 
 $isms64 = Test-Path $msbuild64 
 $isms32 = Test-Path $msbuild32
