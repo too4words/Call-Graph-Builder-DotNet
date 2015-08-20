@@ -143,6 +143,7 @@ namespace WebRole1
 					var methodDescriptor = new MethodDescriptor(tokens[0], tokens[1], true);
 
 					var invocation = int.Parse(tokens[2]);
+
 					IEnumerable<MethodDescriptor> result = null;
 					var stopWatch = Stopwatch.StartNew();
 					if (invocation > 0)
@@ -174,7 +175,65 @@ namespace WebRole1
 				this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 			}
 		}
-		
+
+		protected void TextBoxPath_TextChanged(object sender, EventArgs e)
+		{
+			
+
+		}
+
+		protected async void Button6_Click(object sender, EventArgs e)
+		{
+			var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
+			if (solutionManager != null)
+			{
+				var random = new Random();
+				string[] tokens = TextRandomQueryInput.Text.Split(';');
+
+				var className = tokens[0];
+				var methodPrejix = tokens[1];
+				var numberOfMethods = int.Parse(tokens[2]);
+				var repetitions = int.Parse(tokens[3]);
+
+				long sumTime = 0;
+				long maxTime = 0;
+				long minTime = long.MaxValue;
+				
+
+				for (int i = 0; i < repetitions; i++)
+				{
+					int methodNumber = random.Next(numberOfMethods) + 1;
+					var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
+					var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
+
+					var invocation = random.Next(invocationCount) + 1;
+
+					IEnumerable<MethodDescriptor> result = null;
+					
+					var stopWatch = Stopwatch.StartNew();
+					if (invocation > 0)
+					{
+						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
+					}
+					else
+					{
+						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
+					}
+
+					stopWatch.Stop();
+
+					var time = stopWatch.ElapsedMilliseconds;
+					if (time > maxTime) maxTime = time;
+					if (time < minTime) minTime = time;
+					sumTime += time;
+				}
+				if(repetitions>0)
+				{
+					var avg = sumTime / repetitions;
+				}
+			}
+		}
+	
     }
 
 }

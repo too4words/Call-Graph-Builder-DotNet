@@ -19,7 +19,8 @@ namespace ReachingTypeAnalysis.Analysis
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
-    [StorageProvider(ProviderName = "MemoryStore")]
+    //[StorageProvider(ProviderName = "MemoryStore")]
+	[StorageProvider(ProviderName = "AzureStore")]
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
         [NonSerialized]

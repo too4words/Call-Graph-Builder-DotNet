@@ -187,7 +187,6 @@ class Program
                     Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
                     Assert.IsFalse(result.IsReachable(new MethodDescriptor("D", "m3"), callgraph));
                     Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m3"), callgraph));
-
 				},
 				strategy);
 		}
