@@ -15,13 +15,13 @@
             <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Test Solution" />
         	<asp:Button ID="Button3" runat="server" OnClick="Button3_Click" Text="TestSource" />
             <asp:Button ID="Button4" runat="server" OnClick="Button4_Click" Text="Test Test" />
-        	<asp:Button ID="Button5" runat="server" OnClick="Button5_Click" Text="Button" />
+        	<asp:Button ID="Button5" runat="server" OnClick="Button5_Click" Text="QueryCallees" />
         </p>
 		<p>
-            <asp:TextBox ID="TextBoxPathPrefix" runat="server" Width="675px">c:\Temp\solutions</asp:TextBox>
+            <asp:TextBox ID="TextBoxPathPrefix" runat="server" Width="675px">C;N2;0</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px">ConsoleApplication1\ConsoleApplication1.sln</asp:TextBox>
+            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px">LongGeneratedTest2</asp:TextBox>
         </p>
     </div>
 

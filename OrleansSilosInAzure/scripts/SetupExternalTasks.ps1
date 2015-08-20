@@ -2,7 +2,7 @@
 # SetupExternalTask.ps1
 #
  param (
-    [string]$tasksUrl = $(throw "-taskUrl is required."),
+#    [string]$tasksUrl = $(throw "-taskUrl is required."),
     [string]$localFolder = ""
  )
 
@@ -64,61 +64,35 @@ cd $localFolder
 
 #####################
 
+$msbuild64 = "$env:windir\Microsoft.NET\Framework64\v4.0.30319\MSBuild\"
+$msbuild32 =  "$env:windir\Microsoft.NET\Framework\v4.0.30319\MSBuild\"
 
+$isms64 = Test-Path $msbuild64 
+$isms32 = Test-Path $msbuild32
+
+Write-Log "$msbuild64" 
+Write-Log "$msbuild32" 
+
+Write-Log "isms64 $isms64 " 
+Write-Log "isms32 $isms32" 
+
+if( ($isms64 -eq $false) -and  ($isms32 -eq $false))
+{
  # To install Build tools. 
- ## Write-Log "Installing Build tools"
- ## $file = "$localFolder\BuildTools_Full.exe"
- ## & $file /Q
- ## Write-Log "Finished installing Build tools"
-cd .. 
-
-
-Write-Log "Mounting share on X:"
-
-# save account pass to reconnect
-#cmdkey /add:orleansstorage2.file.core.windows.net /user:orleansstorage2 /pass:ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
-
-# We add a share to access solution files
-net use X: \\orleansstorage2.file.core.windows.net\solutions  /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
-
-#net use z: \\orleansstorage2.file.core.windows.net\solutions /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ== /persistent:yes
-
-Write-Log "Check mount X:"
-
-net use >> C:\temp\sal.txt
-
-Write-Log "Checking if VS15 is installed "
-
-##$vs = Test-RegistryValue 'HKLM:\Software\Microsoft\VisualStudio\14.0'
-$vs = Test-Path c:\vs2015
-
-$dorestart = $false;
-
-if($vs -eq $false)
-{
-	Write-Log "Installing VS"
-
-	# we need to install VS
-	$vsdir = 'X:\IDEinstall\VS15-parts'
-	$vsinstall = './vs_enterprise.exe' 
-	pushd $vsdir 
-	Write-Log "current dir:" + $pwd
-	Write-Log "Installing VS"
-	Start-Process powershell -verb runas -ArgumentList '.\vs_enterprise.exe /noweb /NoRefresh /silent /norestart /CustomInstallPath c:\vs2015 /Log c:\temp\vs15-log.txt' -Wait
-	# & $vsinstall /noweb /passive /norestart /NoRefresh /CustomInstallPath c:\vs2015 /Log c:\temp\vs15-log.txt
-	Write-Log "Finished installing VS"
-	popd
-	$dorestart = $true;
+ Write-Log "Installing Build tools"
+ $file = "$localFolder\BuildTools_Full.exe"
+ & $file /Q
+ Write-Log "Finished installing Build tools"
 }
-else
+else 
 {
-	Write-Log "VS was already installed"
+	Write-Log "Build tools already installed"
 }
 
-write-Log "unmounting share on X:"
-net use x: /delete
+ cd .. 
 
-Write-Log "Finish statup"
+
+Write-Log "Finish startup"
 
 
 # Now, we run azure copy to copy 

@@ -7,7 +7,7 @@
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
-		<!-- <Setting name="Startup.ExternalTasksUrl" /> -->
+		<!-- <Setting name="Startup.ExternalTasksUrl" />  -->
 		<Setting name="Startup.VsSourceDir" />
 		<Setting name="Startup.VsInstallDir" />
 		<Setting name="Startup.NetSourceDir" />
@@ -27,7 +27,7 @@
     </LocalResources>
     -->
     <Startup>
-		<!--
+		<!-- This is for installing .Net 4.6. Not longer used as VS 2015 also install it
 		<Task executionContext="elevated" commandLine="scripts\InstallNET46.cmd" taskType="simple">
 			<Environment>
 				<Variable name="EMULATED">
@@ -40,6 +40,7 @@
 		</Task>
 		-->
 		
+		<!-- This Script install VS 2015 in the worker role
 		<Task executionContext="elevated" commandLine="scripts\InstallVS2015-v2.cmd" taskType="simple">
 			<Environment>
 				<Variable name="EMULATED">
@@ -53,21 +54,24 @@
 				</Variable>
 			</Environment>
 		</Task>
+		-->
 
-
-<!--
+		<!-- This Script install Build Tools in the worker role -->
 		<Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
         <Environment>
           <Variable name="EMULATED">
             <RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
           </Variable>
-          <Variable name="EXTERNALTASKURL">
+          <!-- 
+		  <Variable name="EXTERNALTASKURL">
             <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.ExternalTasksUrl']/@value" />
           </Variable>
+		  -->
+			
         </Environment>
       </Task>
   
--->
+
   </Startup>	
 	  
   </WorkerRole>

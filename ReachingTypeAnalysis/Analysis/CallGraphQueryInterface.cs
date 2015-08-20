@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ReachingTypeAnalysis.Communication;
 using System.Linq;
 using Orleans;
+using Orleans.Runtime.Host;
 using System.Diagnostics;
 using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Analysis;
@@ -48,6 +49,22 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
+		public static async Task<ISet<MethodDescriptor>> GetCalleesAsync(ISolutionManager solutionManager, MethodDescriptor methodDescriptor)
+		{
+			var totalStopWatch = Stopwatch.StartNew();
+			var stopWatch = Stopwatch.StartNew();
+
+			var entityWithPropagator = await solutionManager.GetMethodEntityAsync(methodDescriptor);
+			Meausure("GetMethodEntityProp", stopWatch);
+
+			var result = await entityWithPropagator.GetCalleesAsync();
+
+			Meausure("entProp.GetCalleesAsync", stopWatch);
+
+			Meausure("Total GetCalleesAsync", totalStopWatch);
+			return result;
+		}
+
         /// <summary>
         ///  Return the numnber of calls sites for a 
         /// </summary>
@@ -74,6 +91,13 @@ namespace ReachingTypeAnalysis
             timer.Stop();
             var timeMS = timer.ElapsedMilliseconds;
             var ticks = timer.ElapsedTicks;
+			if (GrainClient.IsInitialized)
+			{
+				Orleans.Runtime.Logger log = GrainClient.Logger;
+
+				Logger.Log(log, "", "Measure", "{0}: {1} ms, {2} ticks", label, timeMS, ticks);
+			}
+
             Debug.WriteLine("{0}: {1} ms, {2} ticks", label, timeMS, ticks);
             timer.Reset();
             timer.Start();
@@ -83,17 +107,17 @@ namespace ReachingTypeAnalysis
         /// Compute all the calless of this method entities
         /// </summary>
         /// <returns></returns>
-        internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, IProjectCodeProvider codeProvider)
-        {
-            var result = new HashSet<MethodDescriptor>();
+		//internal static async Task<ISet<MethodDescriptor>> GetCalleesAsync(MethodEntity methodEntity, IProjectCodeProvider codeProvider)
+		//{
+		//	var result = new HashSet<MethodDescriptor>();
 
-            foreach (var callNode in methodEntity.PropGraph.CallNodes)
-            {
-                result.UnionWith(await GetCalleesAsync(methodEntity, callNode, codeProvider));
-            }
+		//	foreach (var callNode in methodEntity.PropGraph.CallNodes)
+		//	{
+		//		result.UnionWith(await GetCalleesAsync(methodEntity, callNode, codeProvider));
+		//	}
 
-            return result;
-        }
+		//	return result;
+		//}
 
         /// <summary>
         /// Computes all the potential callees for a particular method invocation

@@ -207,6 +207,10 @@
       <HintPath>..\packages\Microsoft.Orleans.Core.1.0.9\lib\net45\Orleans.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OrleansAzureUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=070f47935e3ed133, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Orleans.OrleansAzureUtils.1.0.9\lib\net45\OrleansAzureUtils.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OrleansProviders, Version=1.0.0.0, Culture=neutral, PublicKeyToken=070f47935e3ed133, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Orleans.OrleansProviders.1.0.9\lib\net45\OrleansProviders.dll</HintPath>
       <Private>True</Private>
@@ -264,6 +268,7 @@
   <ItemGroup>
     <Compile Include="Analysis\AnalysisMessages.cs" />
     <Compile Include="Analysis\AnalysisOrchestator.cs" />
+    <Compile Include="Analysis\CallGraphQueryInterface.cs" />
     <Compile Include="Analysis\SyncVersion\MethodEntityProcessorAsync.cs" />
     <Compile Include="Analysis\SyncVersion\MethodEntityProcessor.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
