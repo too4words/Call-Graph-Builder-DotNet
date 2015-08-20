@@ -120,6 +120,18 @@ namespace AnalysisCore.Roslyn
 			return result;
 		}
 
+		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode)
+		{
+			var result = new SymbolReference()
+			{
+				refType = "ref",
+				preview = callNode.LocationDescriptor.FilePath,
+				trange = callNode.LocationDescriptor.Range
+			};
+
+			return result;
+		}
+
 		public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol)
 		{
 			var span = symbol.Locations.First().GetMappedLineSpan();

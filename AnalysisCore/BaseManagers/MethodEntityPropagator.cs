@@ -427,22 +427,17 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(this.methodEntity.Callers.AsEnumerable());
         }
 
-        public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
-        {
+		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+		{
 			var references = from caller in this.methodEntity.Callers
-						 select new SymbolReference()
-						 {
-							 refType = "ref",
-							 preview = caller.CallNode.LocationDescriptor.FilePath,
-							 trange = caller.CallNode.LocationDescriptor.Range
-						 };
+							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode);
 
 			var result = references.ToList().AsEnumerable();
 			return Task.FromResult(result);
-        }
+		}
 
 
-        public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
             return Task.FromResult(this.methodEntity.InstantiatedTypes.AsEnumerable());
         }
