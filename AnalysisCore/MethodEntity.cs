@@ -308,7 +308,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callNode in this.propGraph.CallNodes)
 			{
-				var invocationInfo = AnalysisCore.Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.MethodDescriptor, callNode);
+				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.MethodDescriptor, callNode);
 				result.Add(invocationInfo);
             }				
 

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
-using AnalysisCore.Roslyn;
 using ReachingTypeAnalysis.Roslyn;
 
 namespace ReachingTypeAnalysis.Analysis

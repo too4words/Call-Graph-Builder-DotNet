@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
-using AnalysisCore.Roslyn;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -267,14 +266,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
             if (visitor.Result != null)
             {
-                return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result, (IMethodSymbol)model.GetDeclaredSymbol(visitor.Result));
+                return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result.DeclarationNode, visitor.Result.MethodSymbol);
             }
             else
             {
                 return null;
             }
-        }
-        
+        }        
 
         //public static async Task<IProjectCodeProviderGrain> GetCodeProviderGrainAsync(MethodDescriptor methodDescriptor, Solution solution, IGrainFactory grainFactory)
         //{

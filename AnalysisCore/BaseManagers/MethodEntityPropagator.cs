@@ -8,7 +8,6 @@ using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using System.Diagnostics.Contracts;
 using CodeGraphModel;
-using AnalysisCore.Roslyn;
 using Orleans;
 
 namespace ReachingTypeAnalysis.Analysis

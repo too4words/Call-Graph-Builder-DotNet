@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
-using AnalysisCore.Roslyn;
 using ReachingTypeAnalysis.Roslyn;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -62,6 +61,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
+			// TODO: We need to visit each document AST only once, maybe on demand the first time this method is called
             var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor);
 			MethodEntity methodEntity = null;
 
@@ -125,16 +125,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (visitor.Result != null)
 			{
-				var declarationNode = visitor.Result;
-				var symbol = model.GetDeclaredSymbol(declarationNode) as IMethodSymbol;
-
-				result = new MethodParserInfo(methodDescriptor)
-				{
-					SemanticModel = model,
-					DeclarationNode = declarationNode,
-					MethodSymbol = symbol
-				};
-
+				result = visitor.Result;
 				documentInfo.Methods.Add(methodDescriptor);
 			}
 
