@@ -107,10 +107,6 @@ namespace WebRole1
             {
                 var program = new AnalysisClient();
                 var testName = TextBoxPath.Text;
-				//var callgraph = await program.AnalyzeTestAsync(testName);
-				// var reachableMethods = callgraph.GetReachableMethods();
-				// string methods = String.Join("\n", reachableMethods);
-				//this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
 				var stopWatch = Stopwatch.StartNew();
 				var solutionManager = await program.AnalyzeTestAsync(testName);
 				stopWatch.Stop();

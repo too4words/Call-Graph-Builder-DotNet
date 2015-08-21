@@ -3,7 +3,8 @@
   <Globals>
     <StorageProviders>
       <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
-      <!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" />-->
+      <Provider Type="Orleans.Storage.MemoryStorage" Name="AzureStore" />
+     <!--  <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" /> -->
     </StorageProviders>
     <SeedNode Address="localhost" Port="22222"/>
     <Messaging ResponseTimeout="180s"/>
