@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Analysis;
 
-namespace AnalysisCore.Roslyn
+namespace ReachingTypeAnalysis.Roslyn
 {
 	class CodeGraphHelper
 	{

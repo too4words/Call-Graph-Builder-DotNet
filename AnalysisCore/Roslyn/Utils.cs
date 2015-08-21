@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System.IO;
 using System.Configuration;
 using System.Threading.Tasks;
-using AnalysisCore.Roslyn;
+using ReachingTypeAnalysis.Roslyn;
 using System.Threading;
 
 namespace ReachingTypeAnalysis

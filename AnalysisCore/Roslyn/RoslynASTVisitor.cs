@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using AnalysisCore.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -263,6 +262,12 @@ namespace ReachingTypeAnalysis
 		{
 			this.MethodDescriptor = methodDescriptor;
 		}
+
+		public override bool Equals(object obj)
+		{
+			var other = obj as MethodParserInfo;
+			return other != null && this.MethodDescriptor.Equals(other.MethodDescriptor);
+		}
 	}
 
 	/// <summary>
@@ -284,7 +289,7 @@ namespace ReachingTypeAnalysis
             var root = tree.GetRoot();
             var visitor = new MethodFinder(method, model);
             visitor.Visit(root);
-            this.methodNode = visitor.Result;
+            this.methodNode = visitor.Result.DeclarationNode;
             Contract.Assert(this.methodNode != null);
 
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
@@ -764,12 +769,13 @@ namespace ReachingTypeAnalysis
 	{
 		private MethodDescriptor MethodDescriptor;
 		private SemanticModel SemanticModel;
-		internal BaseMethodDeclarationSyntax Result { get; private set; }
+
+		internal MethodParserInfo Result { get; private set; }
+		internal ICollection<MethodParserInfo> DeclaredMethods { get; private set; }
 
 		internal MethodFinder(MethodDescriptor descriptor, SemanticModel semanticModel)
 		{
-			this.MethodDescriptor = descriptor;
-			this.SemanticModel = semanticModel;
+			this.Initialize(semanticModel, descriptor);
 		}
 
 		internal MethodFinder(IMethodSymbol symbol, SemanticModel semanticModel)
@@ -777,59 +783,54 @@ namespace ReachingTypeAnalysis
 			Contract.Assert(symbol != null);
 			Contract.Assert(semanticModel != null);
 
-			this.MethodDescriptor = Utils.CreateMethodDescriptor(symbol);
-			this.SemanticModel = semanticModel;
+			var descriptor = Utils.CreateMethodDescriptor(symbol);
+			this.Initialize(semanticModel, descriptor);
 		}
-		//public override object VisitCompilationUnit(CompilationUnitSyntax node)
-		//{
-		//    foreach (var member in node.Members)
-		//    {
-		//        Visit(member);
-		//    }
-		//    return null;
-		//}
-		//public override object VisitClassDeclaration(ClassDeclarationSyntax node)
-		//{
-		//    foreach (var member in node.Members)
-		//    {
-		//        Visit(member);
-		//    }
 
-		//    return null;
-		//}
+		internal MethodFinder(SemanticModel semanticModel)
+		{
+			this.Initialize(semanticModel);
+		}
+
+		private void Initialize(SemanticModel semanticModel, MethodDescriptor descriptor = null)
+		{
+			this.SemanticModel = semanticModel;
+			this.MethodDescriptor = descriptor;			
+			this.DeclaredMethods = new List<MethodParserInfo>();
+		}
 
 		public override void Visit(SyntaxNode syntax)
 		{
 			var kind = syntax.Kind();
-            switch (kind)
+
+			switch (kind)
 			{
 				case SyntaxKind.MethodDeclaration:
-					{
-						var node = (MethodDeclarationSyntax)syntax;
-						var symbol = this.SemanticModel.GetDeclaredSymbol(node);
-						var thisDescriptor = Utils.CreateMethodDescriptor(symbol);
-						if (thisDescriptor.Equals(this.MethodDescriptor))
-						{
-							// found it!
-							this.Result = node;
-						}
-						break;
-					}
 				case SyntaxKind.ConstructorDeclaration:
 					{
-						var node = (ConstructorDeclarationSyntax)syntax;
+						var node = (BaseMethodDeclarationSyntax)syntax;
 						var symbol = this.SemanticModel.GetDeclaredSymbol(node);
 						var thisDescriptor = Utils.CreateMethodDescriptor(symbol);
+
+						var methodInfo = new MethodParserInfo(thisDescriptor)
+						{
+							SemanticModel = this.SemanticModel,
+							DeclarationNode = node,
+							MethodSymbol = symbol
+						};
+
+						this.DeclaredMethods.Add(methodInfo);
+
 						if (thisDescriptor.Equals(this.MethodDescriptor))
 						{
 							// found it!
-							this.Result = node;
+							this.Result = methodInfo;
 						}
 						break;
 					}
 			}
 
 			base.Visit(syntax);
-		}	
+		}
 	}
 }
