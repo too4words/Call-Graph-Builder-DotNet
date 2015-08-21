@@ -1,4 +1,5 @@
 ﻿using Microsoft.WindowsAzure.ServiceRuntime;
+using System.IO;
 using Orleans;
 using Orleans.Runtime.Host;
 using OrleansInterfaces;
@@ -7,12 +8,12 @@ using SolutionTraversal.CallGraph;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 
 namespace WebRole1
 {
@@ -50,9 +51,18 @@ namespace WebRole1
                 this.TextBox1.Text = "Accessing Grains...";
 				var solutionPath = TextBoxPath.Text;
 				var pathPrefix = TextBoxPathPrefix.Text;
-                var reachableMethods = await RunAnalysisAsync(pathPrefix, solutionPath);
-				string methods = String.Join("\n", reachableMethods);
-                this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count,methods);
+				try
+				{
+					var reachableMethods = await RunAnalysisAsync(pathPrefix, solutionPath);
+					string methods = String.Join("\n", reachableMethods);
+					this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
+				}
+				catch(Exception exc)
+				{
+					while (exc is AggregateException) exc = exc.InnerException;
+					System.Diagnostics.Trace.TraceError("Error dutring initialization of WorkerRole {0}", exc.ToString());
+					this.TextBox1.Text = exc.ToString();
+				}
             }
             catch (Exception exc)
             {
@@ -112,6 +122,7 @@ namespace WebRole1
 				stopWatch.Stop();
 				Application["SolutionManager"] = solutionManager;
 				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms",stopWatch.ElapsedMilliseconds);
+				System.Diagnostics.Trace.TraceInformation("Analyzing {0} took \nTime:{1} ms", testName, stopWatch.ElapsedMilliseconds);
             }
             catch (Exception exc)
             {
@@ -155,6 +166,8 @@ namespace WebRole1
 
 					string calleesStr = String.Join("\n", result);
 					TextBox1.Text = String.Format("Callees:{0} \nTime:{1}", calleesStr,stopWatch.ElapsedMilliseconds);
+
+					System.Diagnostics.Trace.TraceInformation("Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
 					//var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 					//var drives = await solutionManager.GetDrives();
 					//string drivesStr = String.Join("\n", drives);
@@ -196,37 +209,51 @@ namespace WebRole1
 				long minTime = long.MaxValue;
 				
 
-				for (int i = 0; i < repetitions; i++)
+				try
 				{
-					int methodNumber = random.Next(numberOfMethods) + 1;
-					var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
-					var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
-
-					var invocation = random.Next(invocationCount) + 1;
-
-					IEnumerable<MethodDescriptor> result = null;
-					
-					var stopWatch = Stopwatch.StartNew();
-					if (invocation > 0)
+			
+					for (int i = 0; i < repetitions; i++)
 					{
-						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
+						int methodNumber = random.Next(numberOfMethods) + 1;
+						var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
+						var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
+
+						if (invocationCount > 0)
+						{
+							var invocation = random.Next(invocationCount) + 1;
+
+							IEnumerable<MethodDescriptor> result = null;
+
+							var stopWatch = Stopwatch.StartNew();
+							if (invocation > 0)
+							{
+								result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
+							}
+							else
+							{
+								result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
+							}
+				
+							stopWatch.Stop();
+							var time = stopWatch.ElapsedMilliseconds;
+							if (time > maxTime) maxTime = time;
+							if (time < minTime) minTime = time;
+							sumTime += time;
+						}
 					}
-					else
+					if(repetitions>0)
 					{
-						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
+						var avgTime = sumTime / repetitions;
+						TextBox1.Text = String.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+						System.Diagnostics.Trace.TraceInformation("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
 					}
-
-					stopWatch.Stop();
-
-					var time = stopWatch.ElapsedMilliseconds;
-					if (time > maxTime) maxTime = time;
-					if (time < minTime) minTime = time;
-					sumTime += time;
 				}
-				if(repetitions>0)
+				catch (Exception exc)
 				{
-					var avg = sumTime / repetitions;
+					while (exc is AggregateException) exc = exc.InnerException;
+					this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 				}
+
 			}
 		}
 	

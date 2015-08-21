@@ -4,9 +4,11 @@
     <Imports>
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
-    </Imports>
+	 <Import moduleName="Diagnostics" />
+	</Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
+		<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
 		<!-- <Setting name="Startup.ExternalTasksUrl" />  -->
 		<Setting name="Startup.VsSourceDir" />
 		<Setting name="Startup.VsInstallDir" />
@@ -16,11 +18,7 @@
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
       <InternalEndpoint name="OrleansProxyEndpoint" protocol="tcp" port="30000" />
     </Endpoints>
-    <!--
-    <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
-    </ConfigurationSettings>
-  -->
+
     <!--
     <LocalResources>
       <LocalStorage name="LocalStorage1" cleanOnRoleRecycle="false" />
@@ -76,8 +74,13 @@
 	  
   </WorkerRole>
   <WebRole name="WebRole1" vmsize="Small">
-    <ConfigurationSettings>
+	  <Imports>
+		  <Import moduleName="Diagnostics" />
+		  <Import moduleName="RemoteAccess" />
+	  </Imports>
+	  <ConfigurationSettings>
       <Setting name="DataConnectionString" />
+		  <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
@@ -89,8 +92,5 @@
     <Endpoints>
       <InputEndpoint name="Endpoint1" protocol="http" port="80" />
     </Endpoints>
-    <Imports>
-      <Import moduleName="RemoteAccess" />
-    </Imports>
   </WebRole>
 </ServiceDefinition>

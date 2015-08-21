@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using CodeGraphModel;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -98,7 +99,15 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
-			return this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
+			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+			Stopwatch timer = new Stopwatch();
+			timer.Start();
+			
+			var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
+			
+			timer.Stop();
+			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit. Took: {0}", timer.ElapsedMilliseconds);
+			return result;
 		}
 
 		public Task<IEnumerable<FileResponse>> GetDocumentsAsync()

@@ -47,7 +47,8 @@ namespace ReachingTypeAnalysis
 
 			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
 
-			Debug.WriteLine(message);
+			Trace.TraceInformation(message);
+			// Debug.WriteLine(message);
 			//Console.WriteLine(message);
             orleansLog.Info(0, message);
         }

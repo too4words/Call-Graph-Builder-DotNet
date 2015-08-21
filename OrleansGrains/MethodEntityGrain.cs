@@ -17,6 +17,7 @@ namespace ReachingTypeAnalysis.Analysis
     public interface IOrleansEntityState: IGrainState
     {
         MethodDescriptor MethodDescriptor { get; set; }
+		long Messages { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
@@ -35,8 +36,9 @@ namespace ReachingTypeAnalysis.Analysis
         //[NonSerialized]
         //private IProjectCodeProvider codeProviderGrain;
         [NonSerialized]
-        private ISolutionGrain solutionGrain; 
+        private ISolutionGrain solutionGrain;
 
+		private long messages = 0;
         public override async Task OnActivateAsync()
         {
             Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
@@ -49,6 +51,7 @@ namespace ReachingTypeAnalysis.Analysis
             if (this.State.Etag!= null)
             {
                 methodDescriptor = this.State.MethodDescriptor;
+				this.messages = this.State.Messages;
             }
 
             this.State.MethodDescriptor = methodDescriptor;
@@ -74,8 +77,17 @@ namespace ReachingTypeAnalysis.Analysis
             // This take cares of doing the progation of types
             this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
+			this.State.Messages = this.messages;
+
             await this.WriteStateAsync();
         }
+
+		private Task IncrementMessageCount()
+		{
+			this.messages++;
+			this.State.Messages = this.messages;
+			return this.WriteStateAsync();
+		}
 
         public override Task OnDeactivateAsync()
         {

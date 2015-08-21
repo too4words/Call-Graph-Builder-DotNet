@@ -5,14 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using Orleans.Runtime.Host;
-using System.Diagnostics.Contracts;
-using System.IO;
-using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime.Configuration;
 using RedDog.Storage.Files;
@@ -34,25 +28,39 @@ namespace OrleansSilosInAzure
 
         public override void Run()
         {
-            var config = new ClusterConfiguration();
-            config.StandardLoad();
+			try
+			{
+				var config = new ClusterConfiguration();
+				config.StandardLoad();
 
-            // First example of how to configure an existing provider
-            Example_ConfigureExistingStorageProvider(config);
-            Example_ConfigureNewStorageProvider(config);
-            Example_ConfigureNewBootstrapProvider(config);
+				// First example of how to configure an existing provider
+				Example_ConfigureExistingStorageProvider(config);
+				Example_ConfigureNewStorageProvider(config);
+				Example_ConfigureNewBootstrapProvider(config);
 
-            // It is IMPORTANT to start the silo not in OnStart but in Run.
-            // Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.
-            orleansAzureSilo = new AzureSilo();
-            bool ok = orleansAzureSilo.Start(config);
+				// It is IMPORTANT to start the silo not in OnStart but in Run.
+				// Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.
+				orleansAzureSilo = new AzureSilo();
+				bool ok = orleansAzureSilo.Start(config);
+				if (ok)
+				{
+					Trace.TraceInformation("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
 
-            Trace.WriteLine("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
+					orleansAzureSilo.Run(); // Call will block until silo is shutdown
 
-            orleansAzureSilo.Run(); // Call will block until silo is shutdown
+					Trace.TraceInformation("OrleansSilosInAzure is running");
+				}
+				else
+				{
+					Trace.TraceError("Orleans Silo could not start");
+				}
 
-            Trace.TraceInformation("OrleansSilosInAzure is running");
-
+			}
+			catch(Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				Trace.TraceError("Error dutring initialization of WorkerRole {0}",exc.ToString());
+			}
             //try
             //{
             //    this.RunAsync(this.cancellationTokenSource.Token).Wait();
@@ -151,9 +159,17 @@ namespace OrleansSilosInAzure
         {
 			if (!RoleEnvironment.IsEmulated)
 			{
-				// Mount a drive.
-				FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
-					"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+				try
+				{
+					// Mount a drive.
+					FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
+						"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+				}
+				catch(Exception exc)
+				{
+					while (exc is AggregateException) exc = exc.InnerException;
+					Trace.TraceError("Error trying to mount Azure File {0}", exc.ToString());
+				}
 
 			}
 			// Unmount a drive.
