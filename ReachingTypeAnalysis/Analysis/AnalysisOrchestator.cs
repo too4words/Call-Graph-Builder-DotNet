@@ -69,14 +69,8 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
 
-			// Is this necessary? 
-			//foreach (var callerInfo in propagationEffects.CallersInfo)
-			//{
-			//	var callContex = callerInfo.CallerContext;
-			//	var reworkSet = new HashSet<PropGraphNodeDescriptor>();
-			//	reworkSet.Add(callContex.CallNode);
-			//	await AnalyzeAsync(callContex.Caller, reworkSet);
-			//}
+			// TODO: Is this necessary? 
+			// await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
 
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
@@ -89,9 +83,9 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				foreach (var callee in calleeInfo.PossibleCallees)
 				{
-					var calleeEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
+					var calleeEntity = await this.solutionManager.GetMethodEntityAsync(callee);
 					var callContext = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
-					var task = calleeEntityProc.UnregisterCallerAsync(callContext);
+					var task = calleeEntity.UnregisterCallerAsync(callContext);
 					//await task;
 					tasks.Add(task);
 				}
@@ -121,22 +115,34 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
 
-			var propagationDeleteEffects = await projectProvider.RemoveMethodAsync(method);
+			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
-			await this.PropagateEffectsAsync(propagationDeleteEffects, PropagationKind.REMOVE_TYPES);
+			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
 			await this.ProcessMessages();
-			await this.UnregisterCallerAsync(propagationDeleteEffects.CalleesInfo);
+			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
 
-			await AddMethodAsync(method, newSource);
+			await this.AddMethodAsync(method, newSource);
 
-			foreach (var callerInfo in propagationDeleteEffects.CallersInfo)
+			await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
+
+			// await this.UnregisterCallee(propagationEffects.CallersInfo);
+		}
+
+		private async Task PropagateFromCallersAsync(IEnumerable<ReturnInfo> callersInfo)
+		{
+			var tasks = new List<Task>();
+
+			foreach (var callerInfo in callersInfo)
 			{
 				var callContex = callerInfo.CallerContext;
 				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
 				reworkSet.Add(callContex.CallNode);
-				await AnalyzeAsync(callContex.Caller, reworkSet);
+				var task = AnalyzeAsync(callContex.Caller, reworkSet);
+				//await task;
+				tasks.Add(task);
 			}
-			// await this.UnregisterCallee(propagationEffects.CallersInfo);
+
+			await Task.WhenAll(tasks);
 		}
 
 		public async Task AddMethodAsync(MethodDescriptor method, string newSource)

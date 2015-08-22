@@ -179,7 +179,10 @@ class Program
 				},
 				(result) =>
 				{
-					result.RemoveMethodAsync(new MethodDescriptor(new TypeDescriptor("", "D"), "m2", false, (new TypeDescriptor[] { new TypeDescriptor("", "C") })), newSource).Wait();
+					var type = new TypeDescriptor("", "D");
+					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+
+                    result.RemoveMethodAsync(new MethodDescriptor(type, "m2", false, parameters), newSource).Wait();
 				},
 				(result, callgraph) =>
 				{
@@ -346,7 +349,10 @@ class Program
 				},
 				(result) =>
 				{
-					result.UpdateMethodAsync(new MethodDescriptor(new TypeDescriptor("", "D"), "Middle", false, (new TypeDescriptor[] { new TypeDescriptor("", "C") })), newSource).Wait();
+					var type = new TypeDescriptor("", "D");
+					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+
+                    result.UpdateMethodAsync(new MethodDescriptor(type, "Middle", false, parameters), newSource).Wait();
 				},
 				(result, callgraph) =>
 				{
