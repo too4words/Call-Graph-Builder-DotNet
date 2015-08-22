@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Orleans;
 using Orleans.Providers;
 using OrleansInterfaces;
+using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Roslyn;
 using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
@@ -72,7 +73,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.State.Source = source;
             // To do: Hack
-            this.State.AssemblyName = "MyProject";
+            this.State.AssemblyName = TestConstants.ProjectAssemblyName;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
 			await this.WriteStateAsync();
         }
@@ -115,7 +116,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetDocumentsAsync();
 		}
 
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		{
 			return this.projectCodeProvider.GetDocumentEntitiesAsync(documentPath);
 		}
@@ -128,6 +129,17 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
 			return this.projectCodeProvider.RemoveMethodAsync(methodToUpdate);
+		}
+
+		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
+		{
+			this.State.Source = source;
+			return this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
+		}
+
+		public Task ReplaceDocumentAsync(string documentPath)
+		{
+			return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
 		}
 	}   
 }

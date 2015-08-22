@@ -326,6 +326,16 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.RemoveMethodAsync(methodDescriptor);
 		}
+
+		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
+		{
+			return codeProvider.ReplaceDocumentSourceAsync(source, documentPath);
+		}
+
+		public Task ReplaceDocumentAsync(string documentPath)
+		{
+			return codeProvider.ReplaceDocumentAsync(documentPath);
+		}
 	}
 
     /// <summary>

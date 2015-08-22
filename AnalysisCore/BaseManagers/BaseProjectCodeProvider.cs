@@ -201,15 +201,15 @@ namespace ReachingTypeAnalysis.Analysis
             return propagationEffects;
 		}
 
-		internal async Task ReplaceSourceAsync(string source, string documentName)
+		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
-			var oldDocument = project.Documents.Single(doc => doc.Name == documentName);
+			var oldDocument = project.Documents.Single(doc => doc.FilePath == documentPath);
 
 			this.RemoveDocumentInfo(oldDocument.FilePath);
 
 			this.project = this.project.RemoveDocument(oldDocument.Id);
-			var newDocument = this.project.AddDocument(documentName, source, null, oldDocument.FilePath);
+			var newDocument = this.project.AddDocument(oldDocument.Name, source, null, oldDocument.FilePath);
 			this.project = newDocument.Project;
 
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -218,6 +218,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//this.semanticModels.Remove(oldDocument.Id.Id);
 			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
+		}
+
+		public Task ReplaceDocumentAsync(string documentPath)
+		{
+			var source = File.ReadAllText(documentPath);
+			return this.ReplaceDocumentSourceAsync(source, documentPath);
 		}
 
 		private void RemoveDocumentInfo(string documentPath)
