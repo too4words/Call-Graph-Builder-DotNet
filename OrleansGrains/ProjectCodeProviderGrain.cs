@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using CodeGraphModel;
 using System.Diagnostics;
+using Orleans.Concurrency;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -27,6 +28,7 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
 	[StorageProvider(ProviderName = "AzureStore")]
+	[Reentrant]
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
@@ -131,10 +133,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.RemoveMethodAsync(methodToUpdate);
 		}
 
-		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
+		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
 			this.State.Source = source;
-			return this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
+			await this.WriteStateAsync();
+
+			await this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
 		}
 
 		public Task ReplaceDocumentAsync(string documentPath)

@@ -115,19 +115,19 @@ namespace ReachingTypeAnalysis
             }
         }
 
-		internal Task RemoveMethod(MethodDescriptor methodDescriptor, string newSource)
+		internal Task RemoveMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
 			return orchestator.RemoveMethodAsync(methodDescriptor, newSource);
 		}
 
-		internal Task AddMethod(MethodDescriptor methodDescriptor, string newSource)
+		internal Task AddMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
 			return orchestator.AddMethodAsync(methodDescriptor, newSource);
 		}
 
-		internal Task UpdateMethod(MethodDescriptor methodDescriptor, string newSource)
+		internal Task UpdateMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
 			return orchestator.UpdateMethodAsync(methodDescriptor, newSource);

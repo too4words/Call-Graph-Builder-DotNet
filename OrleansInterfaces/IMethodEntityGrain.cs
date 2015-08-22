@@ -30,6 +30,7 @@ namespace OrleansInterfaces
         //Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
         //Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
         //Task<int> GetInvocationCountAsync();
-    }
+		Task ForceDeactivationAsync();
+	}
 
 }

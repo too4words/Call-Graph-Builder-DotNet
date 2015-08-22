@@ -186,6 +186,18 @@ namespace OrleansInterfaces
 
                 return base.InvokeMethodAsync<ReachingTypeAnalysis.PropagationEffects>(-712939535, new object[] {@methodToUpdate} );
             }
+            
+            System.Threading.Tasks.Task ReachingTypeAnalysis.IProjectCodeProvider.ReplaceDocumentSourceAsync(string @source, string @documentPath)
+            {
+
+                return base.InvokeMethodAsync<object>(-1249255428, new object[] {@source, @documentPath} );
+            }
+            
+            System.Threading.Tasks.Task ReachingTypeAnalysis.IProjectCodeProvider.ReplaceDocumentAsync(string @documentPath)
+            {
+
+                return base.InvokeMethodAsync<object>(-1924154279, new object[] {@documentPath} );
+            }
         }
     }
     
@@ -233,6 +245,10 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).GetDocumentEntitiesAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -712939535: 
                                 return ((IProjectCodeProviderGrain)grain).RemoveMethodAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1249255428: 
+                                return ((IProjectCodeProviderGrain)grain).ReplaceDocumentSourceAsync((String)arguments[0], (String)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -1924154279: 
+                                return ((IProjectCodeProviderGrain)grain).ReplaceDocumentAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -282,6 +298,10 @@ namespace OrleansInterfaces
                             return "GetDocumentEntitiesAsync";
                     case -712939535:
                             return "RemoveMethodAsync";
+                    case -1249255428:
+                            return "ReplaceDocumentSourceAsync";
+                    case -1924154279:
+                            return "ReplaceDocumentAsync";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -663,6 +683,12 @@ namespace OrleansInterfaces
                 return MethodEntityGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
+            System.Threading.Tasks.Task OrleansInterfaces.IMethodEntityGrain.ForceDeactivationAsync()
+            {
+
+                return base.InvokeMethodAsync<object>(2021534182, null );
+            }
+            
             System.Threading.Tasks.Task<ReachingTypeAnalysis.PropagationEffects> ReachingTypeAnalysis.IMethodEntityWithPropagator.PropagateAsync(ReachingTypeAnalysis.PropagationKind @propKind)
             {
 
@@ -779,6 +805,8 @@ namespace OrleansInterfaces
                     case 898358989:  // IMethodEntityGrain
                         switch (methodId)
                         {
+                            case 2021534182: 
+                                return ((IMethodEntityGrain)grain).ForceDeactivationAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1262137734: 
                                 return ((IMethodEntityGrain)grain).PropagateAsync((PropagationKind)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -70322529: 
@@ -838,7 +866,9 @@ namespace OrleansInterfaces
                 case 898358989:  // IMethodEntityGrain
                     switch (methodId)
                     {
-                        case 1262137734:
+                        case 2021534182:
+                            return "ForceDeactivationAsync";
+                    case 1262137734:
                             return "PropagateAsync";
                     case -70322529:
                             return "PropagateAsync";

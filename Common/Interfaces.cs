@@ -50,6 +50,7 @@ namespace ReachingTypeAnalysis
 		Task UnregisterCallerAsync(CallContext callContext);
 
 		//Task UnregisterCalleeAsync(CallContext callContext);
+
 	}
 
     public interface IProjectCodeProvider

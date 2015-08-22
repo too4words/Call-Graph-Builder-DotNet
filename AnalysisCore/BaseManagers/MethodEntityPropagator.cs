@@ -61,6 +61,10 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
 			Contract.Requires(reWorkSet != null);
+			if(reWorkSet.Count()>0)
+			{
+
+			}
 			foreach(var node in reWorkSet) 
 			{
 				methodEntity.PropGraph.AddToWorkList(node);
@@ -390,6 +394,10 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
 			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
+			if(this.methodEntity.MethodDescriptor.MethodName.Equals("Main"))
+			{
+				methodEntity.Save(@"c:\Temp\p1.dot");
+			}
 
 			foreach (var calleeNode in this.methodEntity.PropGraph.CallNodes)
 			{

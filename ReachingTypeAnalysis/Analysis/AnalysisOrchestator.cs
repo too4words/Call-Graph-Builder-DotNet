@@ -31,17 +31,12 @@ namespace ReachingTypeAnalysis.Analysis
 			this.solutionManager = solutionManager;
 		}
 
-		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
+		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
-			if(reworkSet==null)
-			{
-				reworkSet = new HashSet<PropGraphNodeDescriptor>();
-			}
-
 			foreach (var method in rootMethods)
 			{
 				var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
-				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES, reworkSet);
+				var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
 
 				await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			}
@@ -49,10 +44,17 @@ namespace ReachingTypeAnalysis.Analysis
 			await ProcessMessages();
 		}
 
-        public Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
+        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
 		{
 			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
-			return AnalyzeAsync(new MethodDescriptor[] { method }, reworkSet);
+			if (reworkSet == null)
+			{
+				reworkSet = new HashSet<PropGraphNodeDescriptor>();
+			}
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
+			var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES, reworkSet);
+			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+			await ProcessMessages();
 		}
 
 		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
@@ -66,6 +68,16 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
 			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
+
+			// Is this necessary? 
+			//foreach (var callerInfo in propagationEffects.CallersInfo)
+			//{
+			//	var callContex = callerInfo.CallerContext;
+			//	var reworkSet = new HashSet<PropGraphNodeDescriptor>();
+			//	reworkSet.Add(callContex.CallNode);
+			//	await AnalyzeAsync(callContex.Caller, reworkSet);
+			//}
+
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 

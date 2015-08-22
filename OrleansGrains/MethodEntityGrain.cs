@@ -43,16 +43,32 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
-            solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
 
-            var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
-
-	        // Shold not be null..
-            if (this.State.Etag!= null)
-            {
-                methodDescriptor = this.State.MethodDescriptor;
+			// Shold not be null..
+			if (this.State.Etag != null)
+			{
+				methodDescriptor = this.State.MethodDescriptor;
 				this.messages = this.State.Messages;
-            }
+			}
+			await CreateMethodEntityAsync(methodDescriptor);
+            
+        }
+
+		public async Task ForceDeactivationAsync()
+		{
+			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKeyString());
+			// TODO: Make sure state is removed
+			await this.ClearStateAsync();
+			
+			//await this.CreateMethodEntityAsync(methodDescriptor);
+
+			this.DeactivateOnIdle();
+		}
+
+		private async Task CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
@@ -80,7 +96,8 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.Messages = this.messages;
 
             await this.WriteStateAsync();
-        }
+		}
+
 
 		private Task IncrementMessageCount()
 		{
