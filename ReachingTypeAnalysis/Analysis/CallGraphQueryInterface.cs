@@ -95,7 +95,7 @@ namespace ReachingTypeAnalysis
 			{
 				Orleans.Runtime.Logger log = GrainClient.Logger;
 
-				Logger.Log(log, "", "Measure", "{0}: {1} ms, {2} ticks", label, timeMS, ticks);
+				Logger.LogVerbose(log, "", "Measure", "{0}: {1} ms, {2} ticks", label, timeMS, ticks);
 			}
 
             Debug.WriteLine("{0}: {1} ms, {2} ticks", label, timeMS, ticks);

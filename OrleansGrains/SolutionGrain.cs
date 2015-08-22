@@ -8,6 +8,7 @@ using Orleans.Providers;
 using OrleansInterfaces;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -28,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override  async Task OnActivateAsync()
         {
-            Logger.Log(this.GetLogger(), "SolGrain", "OnActivate","");
+            Logger.LogVerbose(this.GetLogger(), "SolGrain", "OnActivate","");
 
             if (this.State.SolutionPath != null)
             {
@@ -42,25 +43,25 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task SetSolutionPathAsync(string solutionPath)
         {
-			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolution", "Enter");
 
             this.State.SolutionPath = solutionPath;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
 
 			this.State.Source = null;
 			await this.WriteStateAsync();
-			Logger.Log(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
 		}
 
         public async Task SetSolutionSourceAsync(string source)
         {
-            Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Enter");
+            Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Enter");
 
             this.State.Source = source;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
 			this.State.SolutionPath = null;
             await this.WriteStateAsync();
-            Logger.Log(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
+            Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
@@ -90,12 +91,15 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
-			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
-
+			Logger.LogVerbose(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
+		
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
             var roots = await this.solutionManager.GetRootsAsync();
 
-			Logger.Log(this.GetLogger(), "SolGrain", "GetRoots", "Exit");
-            return roots; 
+			Logger.LogInfo(this.GetLogger(), "SolGrain", "GetRoots", "End Time elapsed {0}", sw.Elapsed);
+			
+			return roots; 
         }
 
 		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()

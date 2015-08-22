@@ -41,7 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private long messages = 0;
         public override async Task OnActivateAsync()
         {
-            Logger.Log(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
+            Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
             solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
@@ -91,7 +91,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override Task OnDeactivateAsync()
         {
-            Logger.Log(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
+            Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
             this.methodEntity = null;
             return TaskDone.Done;
         }
@@ -143,13 +143,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            Logger.Log(this.GetLogger(), "MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+            Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(propKind);
             sw.Stop();
-            Logger.Log(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0}. Time elapsed {1} ", this.methodEntity.MethodDescriptor,sw.Elapsed);
+            Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0}. Time elapsed {1} ", this.methodEntity.MethodDescriptor,sw.Elapsed);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }

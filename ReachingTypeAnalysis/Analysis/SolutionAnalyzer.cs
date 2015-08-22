@@ -202,7 +202,7 @@ namespace ReachingTypeAnalysis
             var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
-			Logger.Log(GrainClient.Logger, "SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
+			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
 			//return callGraph;
         }
 

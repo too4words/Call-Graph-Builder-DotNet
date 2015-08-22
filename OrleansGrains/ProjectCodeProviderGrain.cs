@@ -33,7 +33,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
-			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
 			this.State.AssemblyName = this.GetPrimaryKeyString();
 
@@ -56,16 +56,16 @@ namespace ReachingTypeAnalysis.Analysis
                 }
             }
 
-			Logger.Log(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
         }
 
         public async Task SetProjectPath(string fullPath)
         {
-			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
             this.State.ProjectPath = fullPath;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 			await this.WriteStateAsync();
-			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
         public async Task SetProjectSourceCode(string source)
@@ -99,14 +99,14 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
-			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
 			Stopwatch timer = new Stopwatch();
 			timer.Start();
 			
 			var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 			
 			timer.Stop();
-			Logger.Log(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit. Took: {0}", timer.ElapsedMilliseconds);
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit. Took: {0}", timer.ElapsedMilliseconds);
 			return result;
 		}
 
