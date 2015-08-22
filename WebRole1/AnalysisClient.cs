@@ -6,6 +6,7 @@ using Orleans.Runtime.Host;
 using ReachingTypeAnalysis;
 using SolutionTraversal.CallGraph;
 using System.Threading.Tasks;
+using TestSources;
 
 namespace WebRole1
 {
@@ -27,7 +28,7 @@ namespace WebRole1
 		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
 		public async Task<ISolutionManager> AnalyzeTestAsync(string testFullName)
         {
-            var source = BasicTests.Test[testFullName];
+            var source = BasicTestsSources.Test[testFullName];
 			var analyzer = SolutionAnalyzer.CreateFromSource(source);
 			/// var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
 			await analyzer.AnalyzeOnDemandOrleans();

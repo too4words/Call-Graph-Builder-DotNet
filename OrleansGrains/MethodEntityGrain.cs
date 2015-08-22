@@ -33,8 +33,6 @@ namespace ReachingTypeAnalysis.Analysis
         private MethodEntity methodEntity;
         [NonSerialized]
         private IProjectCodeProvider codeProvider;
-        //[NonSerialized]
-        //private IProjectCodeProvider codeProviderGrain;
         [NonSerialized]
         private ISolutionGrain solutionGrain;
 
@@ -48,8 +46,12 @@ namespace ReachingTypeAnalysis.Analysis
 			// Shold not be null..
 			if (this.State.Etag != null)
 			{
-				methodDescriptor = this.State.MethodDescriptor;
-				this.messages = this.State.Messages;
+                if(this.State.MethodDescriptor!=null  
+                    && !this.State.MethodDescriptor.Name.Equals("."))
+                {
+                    methodDescriptor = this.State.MethodDescriptor;
+				    this.messages = this.State.Messages;
+                }
 			}
 			await CreateMethodEntityAsync(methodDescriptor);
             
@@ -58,9 +60,14 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task ForceDeactivationAsync()
 		{
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKeyString());
-			// TODO: Make sure state is removed
-			await this.ClearStateAsync();
 			
+            
+            //await this.ClearStateAsync();
+
+            //this.State.Etag = null;
+            this.State.MethodDescriptor = null;
+            await this.WriteStateAsync();
+
 			//await this.CreateMethodEntityAsync(methodDescriptor);
 
 			this.DeactivateOnIdle();

@@ -16,5 +16,6 @@ namespace OrleansInterfaces
         //Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
         Task SetProjectPath(string fullPath);
         Task SetProjectSourceCode(string source);
+        Task ForceDeactivationAsync();
     }
 }

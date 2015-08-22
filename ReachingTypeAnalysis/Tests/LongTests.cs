@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using TestSources;
 
 namespace ReachingTypeAnalysis
 {
@@ -199,7 +200,7 @@ class C
 
 		public static void LongGeneratedTestAsync2(AnalysisStrategyKind strategy)
 		{
-			var source = BasicTests.Test["LongGeneratedTest2"];
+            var source = BasicTestsSources.Test["LongGeneratedTest2"];
 
 			AnalyzeExample(source, (s, callgraph) =>
             {
@@ -235,7 +236,7 @@ class C
 
 		public static void LongGeneratedTestAsync3(AnalysisStrategyKind strategy)
 		{
-			var source = BasicTests.Test["LongGeneratedTest3"];
+            var source = BasicTestsSources.Test["LongGeneratedTest3"];
 			
             AnalyzeExample(source, (s, callgraph) =>
             {
@@ -272,7 +273,7 @@ class C
 
 		public static void LongGeneratedTestAsync4(AnalysisStrategyKind strategy)
 		{
-			var source = BasicTests.Test["LongGeneratedTest4"];
+            var source = BasicTestsSources.Test["LongGeneratedTest4"];
 
 			AnalyzeExample(source, (s, callgraph) =>
             {

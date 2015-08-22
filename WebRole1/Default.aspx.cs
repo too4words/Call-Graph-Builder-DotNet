@@ -150,7 +150,10 @@ namespace WebRole1
 				{
 					string[] tokens = TextBoxPathPrefix.Text.Split(';');
 
-					var methodDescriptor = new MethodDescriptor(tokens[0], tokens[1], true);
+                    var type = new TypeDescriptor("", tokens[0]);
+					var parameters = new TypeDescriptor[] { };
+
+					var methodDescriptor = new MethodDescriptor(type, tokens[1], true,parameters);
 
 					var invocation = int.Parse(tokens[2]);
 
@@ -262,6 +265,21 @@ namespace WebRole1
 
 			}
 		}
+
+        protected async void Button7_Click(object sender, EventArgs e)
+        {
+            var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
+			if (solutionManager != null)
+            {
+                if(solutionManager is ISolutionGrain)
+                {
+                    ISolutionGrain solutionGrain = (ISolutionGrain)solutionManager;
+                    await solutionGrain.ForceDeactivation();
+                    this.TextBox1.Text = "All Grains Deactivated!";
+                }
+            }
+		
+        }
 	
     }
 

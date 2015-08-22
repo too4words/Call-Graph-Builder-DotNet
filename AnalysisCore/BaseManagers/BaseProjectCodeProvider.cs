@@ -192,6 +192,17 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
+        internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
+        {
+            var result = new HashSet<MethodDescriptor>();
+            foreach(var documentPath in this.documentsInfo.Keys)
+            {
+                var documentInfo = this.documentsInfo[documentPath];
+                result.UnionWith(documentInfo.Methods);
+            }
+            return Task.FromResult(result.AsEnumerable());
+        }
+
 		public virtual async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var methodEntity = await this.GetMethodEntityAsync(methodDescriptor);

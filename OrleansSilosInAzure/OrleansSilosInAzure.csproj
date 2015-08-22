@@ -289,6 +289,9 @@
     <Content Include="OrleansConfiguration.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="OrleansLocalConfiguration.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="scripts\External\AzCopy\AzCopy.exe" />
     <Content Include="scripts\External\AzCopy\Microsoft.Data.Edm.dll" />
     <Content Include="scripts\External\AzCopy\Microsoft.Data.OData.dll" />

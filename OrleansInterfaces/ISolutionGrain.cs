@@ -12,6 +12,8 @@ namespace OrleansInterfaces
     {
         Task SetSolutionPathAsync(string solutionPath);
         Task SetSolutionSourceAsync(string solutionSource);
+        Task ForceDeactivation();
+
 		Task<IEnumerable<string>> GetDrives();
     }
 }

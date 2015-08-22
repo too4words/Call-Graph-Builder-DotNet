@@ -31,12 +31,20 @@ namespace OrleansSilosInAzure
 			try
 			{
 				var config = new ClusterConfiguration();
-				config.StandardLoad();
+                //config.StandardLoad();
+                if (RoleEnvironment.IsEmulated)
+                {
+                    config.LoadFromFile(@"OrleansLocalConfiguration.xml");
+                }
+                else
+                {
+                    config.LoadFromFile(@"OrleansConfiguration.xml");
+                }
 
-				// First example of how to configure an existing provider
-				Example_ConfigureExistingStorageProvider(config);
-				Example_ConfigureNewStorageProvider(config);
-				Example_ConfigureNewBootstrapProvider(config);
+					// First example of how to configure an existing provider
+                //Example_ConfigureExistingStorageProvider(config);
+                //Example_ConfigureNewStorageProvider(config);
+                //Example_ConfigureNewBootstrapProvider(config);
 
 				// It is IMPORTANT to start the silo not in OnStart but in Run.
 				// Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.

@@ -25,17 +25,18 @@ namespace ReachingTypeAnalysis.Analysis
     public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
     {
         [NonSerialized]
-        ISolutionManager solutionManager;
+        //ISolutionManager solutionManager;
+        OrleansSolutionManager solutionManager;
 
         public override  async Task OnActivateAsync()
         {
             Logger.LogVerbose(this.GetLogger(), "SolGrain", "OnActivate","");
 
-            if (this.State.SolutionPath != null)
+            if (!String.IsNullOrEmpty(this.State.SolutionPath))
             {
 				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
             }
-            else if (this.State.Source != null)
+            else if (!String.IsNullOrEmpty(this.State.Source))
             {
 				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
             }
@@ -106,6 +107,20 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.solutionManager.GetProjectCodeProvidersAsync();
 		}
+
+        public async Task ForceDeactivation()
+        {
+            await this.solutionManager.ForceDeactivationOfProjects();
+
+            //this.State.Etag = null;
+            this.State.SolutionPath = null;
+            this.State.Source = null;
+            await this.WriteStateAsync();
+
+            //await this.ClearStateAsync();
+
+            this.DeactivateOnIdle();
+        }
 
 		// TODO: remove this hack!
 		public Task<IEnumerable<string>> GetDrives()

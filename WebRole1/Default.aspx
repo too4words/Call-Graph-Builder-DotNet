@@ -19,6 +19,7 @@
         </p>
 		<p>
             <asp:Button ID="Button6" runat="server" OnClick="Button6_Click" Text="RandomQueries" />
+            <asp:Button ID="Button7" runat="server" OnClick="Button7_Click" Text="RemoveGrains" />
         </p>
 		<p>
             <asp:TextBox ID="TextBoxPathPrefix" runat="server" Width="675px">C;N2;0</asp:TextBox>

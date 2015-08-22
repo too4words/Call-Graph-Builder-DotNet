@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReachingTypeAnalysis
+namespace TestSources
 {
- public partial class BasicTests
+ public class BasicTestsSources
     {
 	    public static IDictionary<string,string> Test = new Dictionary<string,string>
 		{

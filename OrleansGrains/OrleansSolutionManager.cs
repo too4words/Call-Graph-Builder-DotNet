@@ -74,5 +74,19 @@ namespace ReachingTypeAnalysis.Analysis
 			var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
+        public async Task ForceDeactivationOfProjects()
+        {
+            var tasks = new List<Task>();
+
+            foreach (var project in this.projects)
+            {
+                var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(project.AssemblyName);
+                tasks.Add(provider.ForceDeactivationAsync());
+            }
+            await Task.WhenAll(tasks);
+        }
+
 	}
+
+
 }

@@ -71,5 +71,18 @@ namespace ReachingTypeAnalysis.Analysis
 			await methodEntityGrain.ForceDeactivationAsync();
 			return propagationEffects;
 		}
+
+        public async Task ForceDeactivationOfMethodEntitiesAsync()
+        {
+            var allMethodDescriptors = await base.GetAllMethodDescriptors();
+            var tasks = new List<Task>();
+            foreach (var methodDescriptor in allMethodDescriptors)
+            {
+                var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+                tasks.Add(methodEntityGrain.ForceDeactivationAsync());
+            }
+            await Task.WhenAll(tasks);
+        }
+
 	}
 }

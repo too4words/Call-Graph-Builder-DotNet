@@ -183,6 +183,7 @@
     <Compile Include="Roslyn\RoslynSymbolFactory.cs" />
     <Compile Include="Roslyn\Utils.cs" />
     <Compile Include="StatementProcessor.cs" />
+    <Compile Include="Tests\TestSources.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CodeGraphModel\CodeGraphModel.csproj">

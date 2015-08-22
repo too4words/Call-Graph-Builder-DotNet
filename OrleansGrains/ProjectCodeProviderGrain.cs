@@ -40,13 +40,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.State.AssemblyName = this.GetPrimaryKeyString();
 
-			if (this.State.ProjectPath != null)
+			if (!String.IsNullOrEmpty(this.State.ProjectPath))
 			{
 				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 			}
             else
             {
-                if (this.State.Source != null && this.State.AssemblyName != null)
+                if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
                 {
                     this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);                    
                 }
@@ -145,5 +145,30 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
 		}
+
+        /// <summary>
+        /// Deactivates the grain and all method entity grains it has created
+        /// </summary>
+        /// <returns></returns>
+        public async Task ForceDeactivationAsync()
+        {
+            /// TODO: Change interface by OrleansCodeProvider but we need to fix the Dummy provider
+
+            if (this.projectCodeProvider is OrleansProjectCodeProvider)
+            {
+                OrleansProjectCodeProvider orleansProvider = (OrleansProjectCodeProvider)this.projectCodeProvider;
+                await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
+            }
+
+            //this.State.Etag = null;
+            this.State.ProjectPath = null;
+            this.State.Source = null;
+            await this.WriteStateAsync();
+            
+            //await this.ClearStateAsync();
+
+            this.DeactivateOnIdle();
+            
+        }
 	}   
 }
