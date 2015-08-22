@@ -42,6 +42,14 @@ namespace ReachingTypeAnalysis
 		}
 
 		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("IncrementalOrleans")]
+		public void TestUpdateMethodSimpleCallOnDemandOrleans()
+		{
+			BasicTests.TestUpdateMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandOrleans")]
         public void TestRecursionOnDemandOrleans()

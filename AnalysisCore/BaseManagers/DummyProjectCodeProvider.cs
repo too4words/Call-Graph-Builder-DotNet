@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
 using ReachingTypeAnalysis.Roslyn;
+using Orleans;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -56,6 +57,16 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
 			return Task.FromResult(new PropagationEffects(new HashSet<CallInfo>(), false));
+		}
+
+		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
+		{
+			return TaskDone.Done;
+		}
+
+		public Task ReplaceDocumentAsync(string documentPath)
+		{
+			return TaskDone.Done;
 		}
 	}
 }

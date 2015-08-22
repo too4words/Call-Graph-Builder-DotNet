@@ -16,7 +16,7 @@ using System.Threading;
 
 namespace ReachingTypeAnalysis
 {
-	public class Utils
+	public static class Utils
 	{
 		public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
 		{
@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis
 		public static IList<Project> FilterProjects(Solution solution)
 		{
 			var filteredProjects = from project in solution.Projects
-								   where project.Language == "C#"
+								   where project.Language == LanguageNames.CSharp
 								   select project;
 
 			return new List<Project>(filteredProjects);
@@ -260,9 +260,9 @@ namespace ReachingTypeAnalysis
 			props["CheckForSystemRuntimeDependency"] = "true";
 			var ws = MSBuildWorkspace.Create(props);
 			var solution = ws.CurrentSolution
-				.AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
+				.AddProject(projectId, TestConstants.ProjectName, TestConstants.ProjectAssemblyName, LanguageNames.CSharp)
 				.AddMetadataReference(projectId, Mscorlib)
-				.AddDocument(documentId, "MyFile.cs", source, null, @"C:\MyFile.cs");
+				.AddDocument(documentId, TestConstants.DocumentName, source, null, TestConstants.DocumentPath);
 
 			return solution;
 		}

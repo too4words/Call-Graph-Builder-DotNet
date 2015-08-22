@@ -133,7 +133,6 @@ namespace ReachingTypeAnalysis
 			return orchestator.UpdateMethodAsync(methodDescriptor, newSource);
 		}
 
-
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)

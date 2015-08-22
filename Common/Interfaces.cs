@@ -69,7 +69,11 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
 
 		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
-	}
+
+		Task ReplaceDocumentSourceAsync(string source, string documentPath);
+
+		Task ReplaceDocumentAsync(string documentPath);
+    }
 
     public interface ISolutionManager
     {

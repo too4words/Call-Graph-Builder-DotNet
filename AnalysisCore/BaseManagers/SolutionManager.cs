@@ -47,7 +47,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var solution = Utils.CreateSolution(source);
 			this.projects = Utils.FilterProjects(solution);
 
-			return this.CreateProjectCodeProviderFromSourceAsync(source, "MyProject");
+			return this.CreateProjectCodeProviderFromSourceAsync(source, TestConstants.ProjectAssemblyName);
 		}
 
 		protected abstract Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName);

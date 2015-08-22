@@ -9,11 +9,19 @@ using CodeGraphModel;
 
 namespace ReachingTypeAnalysis
 {
-    /// <summary>
-    /// This is a string represenation of a method designed to be 
-    /// put as keys in Dictionaries and used for comparison.
-    /// </summary>
-    [Serializable]
+	public static class TestConstants
+	{
+		public const string ProjectName = "MyProject";
+		public const string ProjectAssemblyName = "MyProject";
+		public const string DocumentName = "MyFile.cs";
+		public const string DocumentPath = @"C:\MyFile.cs";
+	}
+
+	/// <summary>
+	/// This is a string represenation of a method designed to be 
+	/// put as keys in Dictionaries and used for comparison.
+	/// </summary>
+	[Serializable]
     public class MethodDescriptor
     {
 		protected string name;
@@ -318,7 +326,7 @@ namespace ReachingTypeAnalysis
         public string ClassName { get; private set; }
         public string AssemblyName { get; private set; }
 
-        public TypeDescriptor(string namespaceName, string className, string assemblyName = "MyProject", bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
+        public TypeDescriptor(string namespaceName, string className, string assemblyName = TestConstants.ProjectAssemblyName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
         {
             this.NamespaceName = namespaceName;
             this.ClassName = className;

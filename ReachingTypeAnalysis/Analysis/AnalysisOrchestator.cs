@@ -55,12 +55,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return AnalyzeAsync(new MethodDescriptor[] { method }, reworkSet);
 		}
 
-
 		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 
-			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
 
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
@@ -108,7 +107,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 
-			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
 
 			var propagationDeleteEffects = await projectProvider.RemoveMethodAsync(method);
 
@@ -118,7 +117,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await AddMethodAsync(method, newSource);
 
-			foreach(var callerInfo in propagationDeleteEffects.CallersInfo)
+			foreach (var callerInfo in propagationDeleteEffects.CallersInfo)
 			{
 				var callContex = callerInfo.CallerContext;
 				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
@@ -132,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 
-			await ((BaseProjectCodeProvider)projectProvider).ReplaceSourceAsync(newSource, "MyFile.cs");
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
 		}
 
 		private async Task ProcessMessages()
