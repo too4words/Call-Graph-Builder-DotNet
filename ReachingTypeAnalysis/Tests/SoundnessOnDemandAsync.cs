@@ -16,31 +16,6 @@ namespace ReachingTypeAnalysis
         }
 
 		[TestMethod]
-		[TestCategory("Soundness")]
-		[TestCategory("IncrementalAsync")]
-		public void TestRemoveMethodSimpleCallOnDemandAsync()
-		{
-			BasicTests.TestRemoveMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
-		}
-
-
-		[TestMethod]
-		[TestCategory("Soundness")]
-		[TestCategory("IncrementalAsync")]
-		public void TestUpdateMethodSimpleCallOnDemandAsync()
-		{
-			BasicTests.TestUpdateMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
-		}
-
-		[TestMethod]
-		[TestCategory("Soundness")]
-		[TestCategory("IncrementalAsync")]
-		public void TestAddMethodSimpleCallOnDemandAsync()
-		{
-			BasicTests.TestAddMethodSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
-		}
-
-		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestRecursionOnDemandAsync()

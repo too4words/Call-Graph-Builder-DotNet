@@ -297,12 +297,14 @@
     <Compile Include="Tests\ConcurrencyTest.cs" />
     <Compile Include="Tests\BasicTest.cs" />
     <Compile Include="Tests\CallGraphGenerator.cs" />
-    <Compile Include="Tests\IncrementalDiffTests.cs" />
+    <Compile Include="Tests\IncrementalOrleans.cs" />
+    <Compile Include="Tests\IncrementalAsync.cs" />
+    <Compile Include="Tests\IncrementalDiff.cs" />
     <Compile Include="Tests\QueryTests.cs" />
     <Compile Include="Tests\Incremental.cs" />
     <Compile Include="Tests\LongTests.cs" />
     <Compile Include="Tests\SoundnessEntireAsync.cs" />
-    <Compile Include="Tests\SoundnessOnDemandAsyncOrleans.cs" />
+    <Compile Include="Tests\SoundnessOnDemandOrleans.cs" />
     <Compile Include="Tests\SoundnessOnDemandAsync.cs" />
     <Compile Include="Tests\SoundnessEntireSync.cs" />
     <Compile Include="Tests\SoundnessOnDemandSync.cs" />
