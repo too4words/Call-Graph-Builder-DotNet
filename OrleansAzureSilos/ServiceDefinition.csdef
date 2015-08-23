@@ -3,8 +3,8 @@
   <WorkerRole name="OrleansSilosInAzure" vmsize="ExtraLarge">
     <Imports>
       <Import moduleName="RemoteAccess" />
-      <Import moduleName="RemoteForwarder" />
-      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteForwarder" /> 
+      <Import moduleName="Diagnostics" /> 
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
@@ -13,7 +13,7 @@
       <Setting name="Startup.VsInstallDir" />
       <Setting name="Startup.NetSourceDir" />
     </ConfigurationSettings>
-    <Endpoints>
+   <Endpoints>
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
       <InternalEndpoint name="OrleansProxyEndpoint" protocol="tcp" port="30000" />
     </Endpoints>

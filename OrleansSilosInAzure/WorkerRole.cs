@@ -31,15 +31,15 @@ namespace OrleansSilosInAzure
 			try
 			{
 				var config = new ClusterConfiguration();
-                config.StandardLoad();
-				//if (RoleEnvironment.IsEmulated)
-				//{
-				//	config.LoadFromFile(@"OrleansLocalConfiguration.xml");
-				//}
-				//else
-				//{
-				//	config.LoadFromFile(@"OrleansConfiguration.xml");
-				//}
+                //config.StandardLoad();
+				if (RoleEnvironment.IsEmulated)
+				{
+					config.LoadFromFile(@"OrleansLocalConfiguration.xml");
+				}
+				else
+				{
+					config.LoadFromFile(@"OrleansConfiguration.xml");
+				}
 
 					// First example of how to configure an existing provider
                 //Example_ConfigureExistingStorageProvider(config);
