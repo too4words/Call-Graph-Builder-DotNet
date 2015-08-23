@@ -31,6 +31,13 @@ namespace ReachingTypeAnalysis.Analysis
             return manager;
         }
 
+        public static async Task<OrleansSolutionManager> CreateFromTestAsync(IGrainFactory grainFactory, string testName)
+        {
+            var manager = new OrleansSolutionManager(grainFactory);
+            await manager.LoadTestAsync(testName);
+            return manager;
+        }
+
         protected override Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
         {
             var projectGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);

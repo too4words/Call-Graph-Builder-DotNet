@@ -47,7 +47,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
 			else if (!String.IsNullOrEmpty(this.State.TestName))
 			{
-				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName]);
+				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
 			}
         }
 
@@ -59,7 +59,9 @@ namespace ReachingTypeAnalysis.Analysis
 			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
 
 			this.State.Source = null;
-			await this.WriteStateAsync();
+            this.State.TestName = null;
+
+            await this.WriteStateAsync();
 			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
 		}
 
@@ -70,6 +72,8 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.Source = source;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
 			this.State.SolutionPath = null;
+            this.State.TestName = null;
+
             await this.WriteStateAsync();
             Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
@@ -77,8 +81,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			this.State.TestName = testName;
 			var source = BasicTestsSources.Test[testName];
-			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, source);
+			this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, testName);
 			this.State.SolutionPath = null;
+            this.State.Source = null;
 			await this.WriteStateAsync();
 			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolTest", "Exit");
 		}
