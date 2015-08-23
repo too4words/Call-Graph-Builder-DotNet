@@ -348,7 +348,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			throw new NotImplementedException();
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath=null)
 		{
 			throw new NotImplementedException();
 		}

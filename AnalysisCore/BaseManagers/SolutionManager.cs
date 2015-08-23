@@ -50,8 +50,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.CreateProjectCodeProviderFromSourceAsync(source, TestConstants.ProjectAssemblyName);
 		}
 
+		protected Task LoadTestAsync(string testName)
+		{
+			var source = TestSources.BasicTestsSources.Test[testName];
+			var solution = Utils.CreateSolution(source);
+			this.projects = Utils.FilterProjects(solution);
+
+			return this.CreateProjectCodeProviderFromTestAsync(testName, TestConstants.ProjectAssemblyName);
+		}
+
 		protected abstract Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName);
 		protected abstract Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName);
+		protected abstract Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName);
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {

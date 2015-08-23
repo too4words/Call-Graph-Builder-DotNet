@@ -9,6 +9,7 @@ using OrleansInterfaces;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -17,7 +18,9 @@ namespace ReachingTypeAnalysis.Analysis
     {
         string SolutionPath { get; set; }
         string Source { get; set; }
-    }
+
+		string TestName { get; set; }
+	}
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
@@ -30,6 +33,8 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override  async Task OnActivateAsync()
         {
+			Logger.OrleansLogger = this.GetLogger();
+
             Logger.LogVerbose(this.GetLogger(), "SolGrain", "OnActivate","");
 
             if (!String.IsNullOrEmpty(this.State.SolutionPath))
@@ -40,6 +45,11 @@ namespace ReachingTypeAnalysis.Analysis
             {
 				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
             }
+			else if (!String.IsNullOrEmpty(this.State.TestName))
+			{
+				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName]);
+			}
+
         }
 
         public async Task SetSolutionPathAsync(string solutionPath)
@@ -64,6 +74,15 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
             Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
         }
+		public async Task SetSolutionFromTestAsync(string testName)
+		{
+			this.State.TestName = testName;
+			var source = BasicTestsSources.Test[testName];
+			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, source);
+			this.State.SolutionPath = null;
+			await this.WriteStateAsync();
+			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolTest", "Exit");
+		}
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{

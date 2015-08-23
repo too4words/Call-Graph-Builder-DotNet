@@ -15,6 +15,7 @@ using System.Threading;
 using CodeGraphModel;
 using System.Diagnostics;
 using Orleans.Concurrency;
+using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -23,7 +24,9 @@ namespace ReachingTypeAnalysis.Analysis
         string ProjectPath { get; set; }
         string AssemblyName { get; set; } 
         string Source { get; set; }
-    }
+
+		string TestName { get; set; }
+	}
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
@@ -36,6 +39,8 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
+			Logger.OrleansLogger = this.GetLogger();
+
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
 			this.State.AssemblyName = this.GetPrimaryKeyString();
@@ -50,13 +55,20 @@ namespace ReachingTypeAnalysis.Analysis
                 {
                     this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);                    
                 }
-                else
-                {
-                    if(this.State.AssemblyName.Equals("DUMMY"))
-                    {
-                        this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
-                    }
-                }
+				else 
+				{
+					if (!String.IsNullOrEmpty(this.State.TestName) & !String.IsNullOrEmpty(this.State.AssemblyName))
+					{
+						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName], this.State.AssemblyName);
+					}
+					else
+					{
+						if(this.State.AssemblyName.Equals("DUMMY"))
+						{
+							this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+						}
+					}
+				}
             }
 
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
@@ -79,6 +91,15 @@ namespace ReachingTypeAnalysis.Analysis
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
 			await this.WriteStateAsync();
         }
+
+		public async Task SetProjectTest(string testName)
+		{
+			this.State.TestName= testName;
+			// To do: Hack
+			this.State.AssemblyName = TestConstants.ProjectAssemblyName;
+			this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName], this.State.AssemblyName);
+			await this.WriteStateAsync();
+		}
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
@@ -141,7 +162,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
 		{
 			return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
 		}

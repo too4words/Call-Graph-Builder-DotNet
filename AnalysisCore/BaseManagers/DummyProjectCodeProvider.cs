@@ -64,7 +64,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath=null)
 		{
 			return TaskDone.Done;
 		}

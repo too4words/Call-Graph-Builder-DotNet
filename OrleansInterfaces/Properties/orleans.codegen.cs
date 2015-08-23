@@ -139,6 +139,18 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<object>(-113155710, new object[] {@source} );
             }
             
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.SetProjectTest(string @testName)
+            {
+
+                return base.InvokeMethodAsync<object>(15776217, new object[] {@testName} );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.IProjectCodeProviderGrain.ForceDeactivationAsync()
+            {
+
+                return base.InvokeMethodAsync<object>(2021534182, null );
+            }
+            
             System.Threading.Tasks.Task<bool> ReachingTypeAnalysis.IProjectCodeProvider.IsSubtypeAsync(ReachingTypeAnalysis.TypeDescriptor @typeDescriptor1, ReachingTypeAnalysis.TypeDescriptor @typeDescriptor2)
             {
 
@@ -193,10 +205,10 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<object>(-1249255428, new object[] {@source, @documentPath} );
             }
             
-            System.Threading.Tasks.Task ReachingTypeAnalysis.IProjectCodeProvider.ReplaceDocumentAsync(string @documentPath)
+            System.Threading.Tasks.Task ReachingTypeAnalysis.IProjectCodeProvider.ReplaceDocumentAsync(string @documentPath, string @newDocumentPath)
             {
 
-                return base.InvokeMethodAsync<object>(-1924154279, new object[] {@documentPath} );
+                return base.InvokeMethodAsync<object>(-376506142, new object[] {@documentPath, @newDocumentPath} );
             }
         }
     }
@@ -229,6 +241,10 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).SetProjectPath((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -113155710: 
                                 return ((IProjectCodeProviderGrain)grain).SetProjectSourceCode((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 15776217: 
+                                return ((IProjectCodeProviderGrain)grain).SetProjectTest((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 2021534182: 
+                                return ((IProjectCodeProviderGrain)grain).ForceDeactivationAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 747974890: 
                                 return ((IProjectCodeProviderGrain)grain).IsSubtypeAsync((TypeDescriptor)arguments[0], (TypeDescriptor)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -819592028: 
@@ -247,8 +263,8 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).RemoveMethodAsync((MethodDescriptor)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1249255428: 
                                 return ((IProjectCodeProviderGrain)grain).ReplaceDocumentSourceAsync((String)arguments[0], (String)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
-                            case -1924154279: 
-                                return ((IProjectCodeProviderGrain)grain).ReplaceDocumentAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case -376506142: 
+                                return ((IProjectCodeProviderGrain)grain).ReplaceDocumentAsync((String)arguments[0], (String)arguments[1]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -282,6 +298,10 @@ namespace OrleansInterfaces
                             return "SetProjectPath";
                     case -113155710:
                             return "SetProjectSourceCode";
+                    case 15776217:
+                            return "SetProjectTest";
+                    case 2021534182:
+                            return "ForceDeactivationAsync";
                     case 747974890:
                             return "IsSubtypeAsync";
                     case -819592028:
@@ -300,7 +320,7 @@ namespace OrleansInterfaces
                             return "RemoveMethodAsync";
                     case -1249255428:
                             return "ReplaceDocumentSourceAsync";
-                    case -1924154279:
+                    case -376506142:
                             return "ReplaceDocumentAsync";
                     
                         default: 
@@ -427,10 +447,22 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<object>(358217058, new object[] {@solutionSource} );
             }
             
+            System.Threading.Tasks.Task OrleansInterfaces.ISolutionGrain.ForceDeactivation()
+            {
+
+                return base.InvokeMethodAsync<object>(1401366121, null );
+            }
+            
             System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string>> OrleansInterfaces.ISolutionGrain.GetDrives()
             {
 
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<System.String>>(-928521370, null );
+            }
+            
+            System.Threading.Tasks.Task OrleansInterfaces.ISolutionGrain.SetSolutionFromTestAsync(string @testName)
+            {
+
+                return base.InvokeMethodAsync<object>(-1647620950, new object[] {@testName} );
             }
             
             System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> ReachingTypeAnalysis.ISolutionManager.GetRootsAsync()
@@ -505,8 +537,12 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).SetSolutionPathAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 358217058: 
                                 return ((ISolutionGrain)grain).SetSolutionSourceAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 1401366121: 
+                                return ((ISolutionGrain)grain).ForceDeactivation().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -928521370: 
                                 return ((ISolutionGrain)grain).GetDrives().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -1647620950: 
+                                return ((ISolutionGrain)grain).SetSolutionFromTestAsync((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -1382348266: 
                                 return ((ISolutionGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1200848455: 
@@ -554,8 +590,12 @@ namespace OrleansInterfaces
                             return "SetSolutionPathAsync";
                     case 358217058:
                             return "SetSolutionSourceAsync";
+                    case 1401366121:
+                            return "ForceDeactivation";
                     case -928521370:
                             return "GetDrives";
+                    case -1647620950:
+                            return "SetSolutionFromTestAsync";
                     case -1382348266:
                             return "GetRootsAsync";
                     case -1200848455:

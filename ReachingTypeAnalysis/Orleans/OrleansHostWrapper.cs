@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (ok)
                 {
-                    Logger.Instance.Log("OrleansHostWrapper", "Run", "Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type);
+                    Logger.LogS("OrleansHostWrapper", "Run", "Successfully started Orleans silo '{0}' as a {1} node.", siloHost.Name, siloHost.Type);
                 }
                 else
                 {
@@ -41,7 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
             catch (Exception ex)
             {
                 siloHost.ReportStartupError(ex);
-                Logger.Instance.Log("OrleansHostWrapper", "Run", "{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
+                Logger.LogS("OrleansHostWrapper", "Run", "{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
             }
 
             return ok;
@@ -55,12 +55,12 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 siloHost.StopOrleansSilo();
 
-                Logger.Instance.Log("OrleansHostWrapper", "Stop", "Orleans silo '{0}' shutdown.", siloHost.Name);
+                Logger.LogS("OrleansHostWrapper", "Stop", "Orleans silo '{0}' shutdown.", siloHost.Name);
             }
             catch (Exception ex)
             {
                 siloHost.ReportStartupError(ex);
-                Logger.Instance.Log("OrleansHostWrapper", "Stop", "{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
+                Logger.LogS("OrleansHostWrapper", "Stop", "{0}:\n{1}\n{2}", ex.GetType().FullName, ex.Message, ex.StackTrace);
             }
 
             return ok;

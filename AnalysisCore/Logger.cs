@@ -16,6 +16,8 @@ namespace ReachingTypeAnalysis
 		private static readonly object syncObject = new object();
 		private string filename;
 		private static Logger instance;
+		// private static Orleans.Runtime.Logger.Severity level = Orleans.Runtime.Logger.Severity.Info;
+		public static Orleans.Runtime.Logger OrleansLogger;
 
 		public Logger(string filename)
 		{
@@ -42,15 +44,17 @@ namespace ReachingTypeAnalysis
 
         public static void LogVerbose(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
         {
-            var message = string.Format(format, arguments);
-			var threadId = Thread.CurrentThread.ManagedThreadId;
+			if (orleansLog.IsVerbose)
+			{
+				var message = string.Format(format, arguments);
+				var threadId = Thread.CurrentThread.ManagedThreadId;
 
-			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
-
-			Trace.TraceInformation(message);
-			// Debug.WriteLine(message);
-			//Console.WriteLine(message);
-            orleansLog.Verbose(0, message);
+				message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
+				Trace.TraceInformation(message);
+				// Debug.WriteLine(message);
+				//Console.WriteLine(message);
+				orleansLog.Verbose(0, message);
+			}
         }
 
 		public static void LogInfo(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
@@ -68,7 +72,14 @@ namespace ReachingTypeAnalysis
 
         public static void LogS(string type, string method, string format, params object[] arguments)
         {
-            Instance.Log(type, method, format, arguments);
+			if(OrleansLogger!=null)
+			{
+				LogVerbose(OrleansLogger,type, method, format, arguments);
+			}
+			else 
+			{
+				Instance.Log(type, method, format, arguments);
+			}
         }
         
 		public void Log(string type, string method, string format, params object[] arguments)

@@ -15,5 +15,7 @@ namespace OrleansInterfaces
         Task ForceDeactivation();
 
 		Task<IEnumerable<string>> GetDrives();
-    }
+
+		Task SetSolutionFromTestAsync(string testName);
+	}
 }

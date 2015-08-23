@@ -25,7 +25,7 @@ namespace ReachingTypeAnalysis
     {
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
         {
-            Logger.Instance.Log("PropagationGraph", "DiffPropAsync", "Diff({0},{1})", src, n);
+            Logger.LogS("PropagationGraph", "DiffPropAsync", "Diff({0},{1})", src, n);
 
             if (propKind == PropagationKind.REMOVE_TYPES || propKind == PropagationKind.REMOVE_ASSIGNMENT)
             {

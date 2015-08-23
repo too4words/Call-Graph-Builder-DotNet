@@ -36,6 +36,7 @@ namespace ReachingTypeAnalysis
 
 		private Solution solution;
 		private IDispatcher dispatcher;
+		private string testName;
 
 		public ISolutionManager SolutionManager { get; private set; }
 
@@ -58,6 +59,14 @@ namespace ReachingTypeAnalysis
 			analyzer.source = source;
 			return analyzer;
 		}
+
+		public static SolutionAnalyzer CreateFromTest(string testName)
+		{
+			var analyzer = new SolutionAnalyzer();
+			analyzer.testName= testName;
+			return analyzer;
+		}
+
 
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
@@ -192,6 +201,10 @@ namespace ReachingTypeAnalysis
             {
                 await solutionManager.SetSolutionSourceAsync(this.source);
             }
+			else if (this.testName!= null)
+			{
+				await solutionManager.SetSolutionFromTestAsync(this.testName);
+			}
             else
             {
                 await solutionManager.SetSolutionPathAsync(this.solutionPath);
@@ -207,7 +220,7 @@ namespace ReachingTypeAnalysis
 
 		internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
 		{
-			Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
+			Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
 			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();		
 			var roots = await SolutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
@@ -219,7 +232,7 @@ namespace ReachingTypeAnalysis
 			{
 				var currentMethodDescriptor = worklist.Dequeue();
 				visited.Add(currentMethodDescriptor);
-				Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
+				Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
 
 				var methodEntity = await this.SolutionManager.GetMethodEntityAsync(currentMethodDescriptor);
 				var calleesInfoForMethod = await methodEntity.GetCalleesInfoAsync();
@@ -231,7 +244,7 @@ namespace ReachingTypeAnalysis
 
 					foreach (var calleeDescriptor in callees)
 					{
-						Logger.Instance.Log("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG", currentMethodDescriptor, calleeDescriptor);
+						Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG", currentMethodDescriptor, calleeDescriptor);
 						callgraph.AddCallAtLocation(analysisNode.LocationDescriptor, currentMethodDescriptor, calleeDescriptor);
 
 						if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
@@ -353,7 +366,7 @@ namespace ReachingTypeAnalysis
                     this.dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
                     var mainEntityProcessor = new MethodEntityProcessor(mainMethodEntity, this.dispatcher);
 					mainEntityProcessor.DoAnalysis();
-					Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemand", "--- Done with propagation ---");
+					Logger.LogS("SolutionAnalyzer", "AnalyzeOnDemand", "--- Done with propagation ---");
 				}
 			}
 
@@ -363,7 +376,7 @@ namespace ReachingTypeAnalysis
 
                 while (!qd.IsDoneProcessing)
                 {
-                    Logger.Instance.Log("SolutionAnalyzer", "AnalyzeOnDemand", "Waiting for the queue to empty up...");
+                    Logger.LogS("SolutionAnalyzer", "AnalyzeOnDemand", "Waiting for the queue to empty up...");
                     Thread.Sleep(1000);
                 }
             }
@@ -476,7 +489,7 @@ namespace ReachingTypeAnalysis
 					{
 						//var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
 						var callee = calleeAMethod;
-						Logger.Instance.Log("SolutionAnalyzer", "UpdateCallGraph", "\t-> {0}", callee);
+						Logger.LogS("SolutionAnalyzer", "UpdateCallGraph", "\t-> {0}", callee);
 						callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
 					}
 				}

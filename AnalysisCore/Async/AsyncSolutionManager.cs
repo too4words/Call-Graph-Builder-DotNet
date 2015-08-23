@@ -64,6 +64,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 			projectsCache.Add(assemblyName, provider);
 		}
+		protected override Task CreateProjectCodeProviderFromTestAsync(string testName, AssemblyName assemblyName)
+		{
+			var source = TestSources.BasicTestsSources.Test[testName];
+			return CreateProjectCodeProviderFromSourceAsync(source, assemblyName);
+		}
+
 
 		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{

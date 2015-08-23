@@ -16,6 +16,11 @@
 	  -->
     </StorageProviders>
 	  <Messaging ResponseTimeout="600s"/>
+	  <Application>
+		  <Defaults>
+			  <Deactivation AgeLimit="30m"/>
+		  </Defaults>
+	  </Application>
   </Globals>
   <Defaults>
     <!--

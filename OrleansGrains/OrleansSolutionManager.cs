@@ -42,6 +42,11 @@ namespace ReachingTypeAnalysis.Analysis
             var projectGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
             return projectGrain.SetProjectSourceCode(source);
         }
+		protected override Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
+		{
+			var projectGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
+			return projectGrain.SetProjectTest(testName);
+		}
 
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {

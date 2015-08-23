@@ -231,11 +231,23 @@ namespace ReachingTypeAnalysis.Analysis
 			//this.semanticModels.Add(newDocument.Id.Id, compilation.GetSemanticModel(semanticModel));
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
 		{
-			var source = File.ReadAllText(documentPath);
-			return this.ReplaceDocumentSourceAsync(source, documentPath);
+			if(newDocumentPath==null)
+			{
+				newDocumentPath = documentPath;
+			}
+			var sourceText = File.ReadAllText(newDocumentPath);
+
+			return this.ReplaceDocumentSourceAsync(sourceText, documentPath);
 		}
+
+
+		//public Task ReplaceDocumentAsync(string documentPath)
+		//{
+		//	var source = File.ReadAllText(documentPath);
+		//	return this.ReplaceDocumentSourceAsync(source, documentPath);
+		//}
 
 		private void RemoveDocumentInfo(string documentPath)
 		{

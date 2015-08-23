@@ -4,28 +4,26 @@
     <Imports>
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
-	 <Import moduleName="Diagnostics" />
-	</Imports>
+      <Import moduleName="Diagnostics" />
+    </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
-		<Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
-		<!-- <Setting name="Startup.ExternalTasksUrl" />  -->
-		<Setting name="Startup.VsSourceDir" />
-		<Setting name="Startup.VsInstallDir" />
-		<Setting name="Startup.NetSourceDir" />
+      <!-- <Setting name="Startup.ExternalTasksUrl" />  -->
+      <Setting name="Startup.VsSourceDir" />
+      <Setting name="Startup.VsInstallDir" />
+      <Setting name="Startup.NetSourceDir" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
       <InternalEndpoint name="OrleansProxyEndpoint" protocol="tcp" port="30000" />
     </Endpoints>
-
     <!--
     <LocalResources>
       <LocalStorage name="LocalStorage1" cleanOnRoleRecycle="false" />
     </LocalResources>
     -->
     <Startup>
-		<!-- This is for installing .Net 4.6. Not longer used as VS 2015 also install it
+      <!-- This is for installing .Net 4.6. Not longer used as VS 2015 also install it
 		<Task executionContext="elevated" commandLine="scripts\InstallNET46.cmd" taskType="simple">
 			<Environment>
 				<Variable name="EMULATED">
@@ -37,8 +35,7 @@
 			</Environment>
 		</Task>
 		-->
-		
-		<!-- This Script install VS 2015 in the worker role
+      <!-- This Script install VS 2015 in the worker role
 		<Task executionContext="elevated" commandLine="scripts\InstallVS2015-v2.cmd" taskType="simple">
 			<Environment>
 				<Variable name="EMULATED">
@@ -53,9 +50,8 @@
 			</Environment>
 		</Task>
 		-->
-
-		<!-- This Script install Build Tools in the worker role -->
-		<Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
+      <!-- This Script install Build Tools in the worker role -->
+      <Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
         <Environment>
           <Variable name="EMULATED">
             <RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
@@ -65,22 +61,17 @@
             <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.ExternalTasksUrl']/@value" />
           </Variable>
 		  -->
-			
         </Environment>
       </Task>
-  
-
-  </Startup>	
-	  
+    </Startup>
   </WorkerRole>
   <WebRole name="WebRole1" vmsize="Small">
-	  <Imports>
-		  <Import moduleName="Diagnostics" />
-		  <Import moduleName="RemoteAccess" />
-	  </Imports>
-	  <ConfigurationSettings>
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+    </Imports>
+    <ConfigurationSettings>
       <Setting name="DataConnectionString" />
-		  <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">

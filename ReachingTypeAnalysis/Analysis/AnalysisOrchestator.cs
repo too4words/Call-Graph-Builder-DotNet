@@ -46,7 +46,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
 		{
-			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
+			Logger.LogS("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 			if (reworkSet == null)
 			{
 				reworkSet = new HashSet<PropGraphNodeDescriptor>();
@@ -55,101 +55,6 @@ namespace ReachingTypeAnalysis.Analysis
 			var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES, reworkSet);
 			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
 			await ProcessMessages();
-		}
-
-		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
-		{
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-
-			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
-
-			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
-
-			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
-			await this.ProcessMessages();
-			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
-
-			// TODO: Is this necessary? 
-			// await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
-
-			// await this.UnregisterCallee(propagationEffects.CallersInfo);
-		}
-
-		private async Task UnregisterCallerAsync(IEnumerable<CallInfo> calleesInfo)
-		{
-			var tasks = new List<Task>();
-
-			foreach (var calleeInfo in calleesInfo)
-			{
-				foreach (var callee in calleeInfo.PossibleCallees)
-				{
-					var calleeEntity = await this.solutionManager.GetMethodEntityAsync(callee);
-					var callContext = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
-					var task = calleeEntity.UnregisterCallerAsync(callContext);
-					//await task;
-					tasks.Add(task);
-				}
-			}
-
-			await Task.WhenAll(tasks);
-		}
-
-		//private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
-		//{
-		//    var tasks = new List<Task>();
-
-		//    foreach (var callerInfo in callersInfo)
-		//    {
-		//        var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
-		//        var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
-		//        //await task;
-		//        tasks.Add(task);
-		//    }
-
-		//    await Task.WhenAll(tasks);
-		//}
-
-		public async Task UpdateMethodAsync(MethodDescriptor method, string newSource)
-		{
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-
-			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
-
-			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
-
-			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
-			await this.ProcessMessages();
-			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
-
-			await this.AddMethodAsync(method, newSource);
-
-			await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
-
-			// await this.UnregisterCallee(propagationEffects.CallersInfo);
-		}
-
-		private async Task PropagateFromCallersAsync(IEnumerable<ReturnInfo> callersInfo)
-		{
-			var tasks = new List<Task>();
-
-			foreach (var callerInfo in callersInfo)
-			{
-				var callContex = callerInfo.CallerContext;
-				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
-				reworkSet.Add(callContex.CallNode);
-				var task = AnalyzeAsync(callContex.Caller, reworkSet);
-				//await task;
-				tasks.Add(task);
-			}
-
-			await Task.WhenAll(tasks);
-		}
-
-		public async Task AddMethodAsync(MethodDescriptor method, string newSource)
-		{
-			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-
-			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
 		}
 
 		private async Task ProcessMessages()
@@ -174,7 +79,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind)
 		{
-			Logger.Instance.Log("AnalysisOrchestator", "DoPropagationOfEffects", "");
+			Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
 
 			await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
@@ -265,13 +170,13 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <returns></returns>
 		private async Task AnalyzeCalleeAsync(MethodDescriptor callee, CallerMessage callerMessage, PropagationKind propKind)
 		{
-			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
+			Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
             var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
 			await this.PropagateEffectsAsync(propagationEffects, propKind);
 
-            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
+            Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
 		}
 
 		private async Task ProcessReturnAsync(IEnumerable<ReturnInfo> callersInfo, PropagationKind propKind)
@@ -317,13 +222,142 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <returns></returns>
 		private async Task AnalyzeReturnAsync(MethodDescriptor caller, CalleeMessage calleeMessage, PropagationKind propKind)
 		{
-			Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
+			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
 			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
 			await this.PropagateEffectsAsync(propagationEffects, propKind);
 
-            Logger.Instance.Log("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
+            Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
-    }
+
+	#region incremental analysis
+		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
+		{
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
+
+
+			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
+			await this.ProcessMessages();
+			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
+
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
+
+			// TODO: Is this necessary? 
+			// await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
+
+			// await this.UnregisterCallee(propagationEffects.CallersInfo);
+		}
+
+		private async Task UnregisterCallerAsync(IEnumerable<CallInfo> calleesInfo)
+		{
+			var tasks = new List<Task>();
+
+			foreach (var calleeInfo in calleesInfo)
+			{
+				foreach (var callee in calleeInfo.PossibleCallees)
+				{
+					var calleeEntity = await this.solutionManager.GetMethodEntityAsync(callee);
+					var callContext = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
+					var task = calleeEntity.UnregisterCallerAsync(callContext);
+					//await task;
+					tasks.Add(task);
+				}
+			}
+
+			await Task.WhenAll(tasks);
+		}
+
+		//private async Task UnregisterCallee(IEnumerable<ReturnInfo> callersInfo)
+		//{
+		//    var tasks = new List<Task>();
+
+		//    foreach (var callerInfo in callersInfo)
+		//    {
+		//        var callerMethodEntity = await this.solutionManager.GetMethodEntityAsync(callerInfo.CallerContext.Caller);
+		//        var task = callerMethodEntity.UnregisterCalleeAsync(callerInfo.CallerContext);
+		//        //await task;
+		//        tasks.Add(task);
+		//    }
+
+		//    await Task.WhenAll(tasks);
+		//}
+
+		public async Task UpdateMethodAsync(MethodDescriptor method, string newSource)
+		{
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+			
+			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
+
+			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
+			await this.ProcessMessages();
+			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
+
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
+
+			// TODO: if there is no caller (e.g., main in the future public method) you should call yourself
+
+			await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
+
+
+			await this.AddMethodAsync(method, newSource);
+
+			
+			// await this.UnregisterCallee(propagationEffects.CallersInfo);
+		}
+
+		private async Task PropagateFromCallersAsync(IEnumerable<ReturnInfo> callersInfo)
+		{
+			var tasks = new List<Task>();
+
+			foreach (var callerInfo in callersInfo)
+			{
+				var callContex = callerInfo.CallerContext;
+				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
+				reworkSet.Add(callContex.CallNode);
+				var task = AnalyzeAsync(callContex.Caller, reworkSet);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
+
+		public async Task AddMethodAsync(MethodDescriptor method, string newSource)
+		{
+			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
+
+			// TODO: is the method is an overrride reanalize callers of *base* method
+			// For the case of overload we need to detect the callers of all possible overloads for all "compatible" types
+		}
+
+		public async Task IncrementalUpdateAsync(IEnumerable<string> modifiedFiles)
+		{
+			/*
+			 * 1) Compute diffs
+			 *		In every code provider compute diff (optionally keep a copy of compilation and semantic models). Do not replace old compilation and models
+			 *		Return list of method descriptors and action (or 3 lists, remove, update, add)
+			 *	2) Perfom propagation
+			 *		Start from Deletes (and updates seeing as delete)
+			 *			a)
+			 *			For each method m: compute propagation effects (call method entity remove)
+			 *				Enqueue as Remove_Types
+			 *			Process all together
+			 *		Swtich all providers to their new verions
+			 *			Replace compilation and semantic models in providers 
+			 *			Replace solution (in grain and manager)
+			 *		b) finalize remove code (propagate from callers)
+			 *		Now propagate Adds	
+			*/
+		}
+
+
+
+	#endregion
+
+	}
 }

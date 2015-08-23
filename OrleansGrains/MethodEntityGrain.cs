@@ -39,6 +39,8 @@ namespace ReachingTypeAnalysis.Analysis
 		private long messages = 0;
         public override async Task OnActivateAsync()
         {
+			Logger.OrleansLogger = this.GetLogger();
+
             Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
 			var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
@@ -356,9 +358,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.ReplaceDocumentSourceAsync(source, documentPath);
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
 		{
-			return codeProvider.ReplaceDocumentAsync(documentPath);
+			return codeProvider.ReplaceDocumentAsync(documentPath, newDocumentPath);
 		}
 	}
 

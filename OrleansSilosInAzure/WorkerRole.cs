@@ -31,15 +31,15 @@ namespace OrleansSilosInAzure
 			try
 			{
 				var config = new ClusterConfiguration();
-                //config.StandardLoad();
-                if (RoleEnvironment.IsEmulated)
-                {
-                    config.LoadFromFile(@"OrleansLocalConfiguration.xml");
-                }
-                else
-                {
-                    config.LoadFromFile(@"OrleansConfiguration.xml");
-                }
+                config.StandardLoad();
+				//if (RoleEnvironment.IsEmulated)
+				//{
+				//	config.LoadFromFile(@"OrleansLocalConfiguration.xml");
+				//}
+				//else
+				//{
+				//	config.LoadFromFile(@"OrleansConfiguration.xml");
+				//}
 
 					// First example of how to configure an existing provider
                 //Example_ConfigureExistingStorageProvider(config);
@@ -220,20 +220,20 @@ namespace OrleansSilosInAzure
 		private void RoleEnvironmentOnChanging(object sender, RoleEnvironmentChangingEventArgs e)
 		{
 			// Implements the changes after restarting the role instance
-			foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
-			{
-				switch (settingChange.ConfigurationSettingName)
-				{
-					case "Startup.ExternalTasksUrl":
-						Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
-						e.Cancel = true;
-						return;
-					case "Startup.VsInstallDir":
-						Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
-						e.Cancel = true;
-						return;
-				}
-			}
+			//foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
+			//{
+			//	switch (settingChange.ConfigurationSettingName)
+			//	{
+			//		case "Startup.ExternalTasksUrl":
+			//			Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+			//			e.Cancel = true;
+			//			return;
+			//		case "Startup.VsInstallDir":
+			//			Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+			//			e.Cancel = true;
+			//			return;
+			//	}
+			//}
 		}
 
 

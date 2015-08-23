@@ -123,7 +123,7 @@ namespace WebRole1
 				Application["SolutionManager"] = solutionManager;
 				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms",stopWatch.ElapsedMilliseconds);
 
-				Logger.LogInfo(GrainClient.Logger, "", "", "Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
+				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
 
 				//System.Diagnostics.Trace.TraceInformation("Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
             }
@@ -173,7 +173,7 @@ namespace WebRole1
 					string calleesStr = String.Join("\n", result);
 					TextBox1.Text = String.Format("Callees:{0} \nTime:{1}", calleesStr,stopWatch.ElapsedMilliseconds);
 
-					Logger.LogInfo(GrainClient.Logger,"","","Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
+					Logger.LogInfo(GrainClient.Logger,"Stats","Query","Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
 					
 					// System.Diagnostics.Trace.TraceInformation("Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
 					//var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
@@ -254,7 +254,7 @@ namespace WebRole1
 						var avgTime = sumTime / repetitions;
 						TextBox1.Text = String.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
 						System.Diagnostics.Trace.TraceInformation("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
-						Logger.LogInfo(GrainClient.Logger,"","","Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+						Logger.LogInfo(GrainClient.Logger, "Stats", "Random Query times; ", "Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
 					}
 				}
 				catch (Exception exc)

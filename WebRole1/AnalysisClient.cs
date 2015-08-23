@@ -28,8 +28,8 @@ namespace WebRole1
 		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
 		public async Task<ISolutionManager> AnalyzeTestAsync(string testFullName)
         {
-            var source = BasicTestsSources.Test[testFullName];
-			var analyzer = SolutionAnalyzer.CreateFromSource(source);
+            //var source = BasicTestsSources.Test[testFullName];
+			var analyzer = SolutionAnalyzer.CreateFromTest(testFullName);
 			/// var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
 			await analyzer.AnalyzeOnDemandOrleans();
 			return analyzer.SolutionManager;
