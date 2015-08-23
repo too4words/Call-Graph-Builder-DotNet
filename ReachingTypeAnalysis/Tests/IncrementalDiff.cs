@@ -67,9 +67,9 @@ class Program
 			var documentDiff = new DocumentDiff();
 			var modifications = await documentDiff.GetDifferencesAsync(document, newDocument);
 
-			var remove = new MethodModification(new MethodDescriptor("Program", "MethodToRemove", true), MethodModificationKind.Remove);
-			var update = new MethodModification(new MethodDescriptor("Program", "MethodToUpdate", true), MethodModificationKind.Update);
-			var add = new MethodModification(new MethodDescriptor("Program", "MethodToAdd", true), MethodModificationKind.Add);
+			var remove = new MethodModification(new MethodDescriptor("Program", "MethodToRemove", true), ModificationKind.MethodRemoved);
+			var update = new MethodModification(new MethodDescriptor("Program", "MethodToUpdate", true), ModificationKind.MethodUpdated);
+			var add = new MethodModification(new MethodDescriptor("Program", "MethodToAdd", true), ModificationKind.MethodAdded);
 
 			Assert.IsTrue(modifications.Contains(remove));
 			Assert.IsTrue(modifications.Contains(update));

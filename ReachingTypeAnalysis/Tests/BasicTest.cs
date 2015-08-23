@@ -51,19 +51,18 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (result, callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
-                Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsTrue(result.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object","mscorlib"), "Equals", false), callgraph));
-                Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-                Assert.IsTrue(result.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object","mscorlib"), "Equals", false), callgraph));
+                Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+                Assert.IsTrue(s.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
 
                 // Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountAsync(result.Strategy, new MethodDescriptor("C", "m1")).Result == 2);
                 // I don't know why I started numbering by 1
                 //var callees = CallGraphQueryInterface.GetCalleesAsync(result.Strategy, new MethodDescriptor("C", "m1"), 1).Result;
                 //Assert.IsTrue(callees.Contains(new MethodDescriptor("D", "m2")));
-
             }, strategy);
         }
 
@@ -162,34 +161,34 @@ class Program
             #endregion
 
 			AnalyzeExample(source,
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
 //					Assert.IsTrue(result.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object", "mscorlib"), "Equals", false), callgraph));
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-					Assert.IsTrue(result.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
-                    Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "m3"), callgraph));
-                    Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "m3"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+					Assert.IsTrue(s.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
+                    Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m3"), callgraph));
+                    Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m3"), callgraph));
 
 					// Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountAsync(result.Strategy, new MethodDescriptor("C", "m1")).Result == 2);
 					// I don't know why I started numbering by 1
 					//var callees = CallGraphQueryInterface.GetCalleesAsync(result.Strategy, new MethodDescriptor("C", "m1"), 1).Result;
 					//Assert.IsTrue(callees.Contains(new MethodDescriptor("D", "m2")));
 				},
-				(result) =>
+				(s) =>
 				{
 					var type = new TypeDescriptor("", "D");
 					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
 
-                    result.RemoveMethodAsync(new MethodDescriptor(type, "m2", false, parameters), newSource).Wait();
+                    s.RemoveMethodAsync(new MethodDescriptor(type, "m2", false, parameters), newSource).Wait();
 				},
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                    Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-                    Assert.IsFalse(result.IsReachable(new MethodDescriptor("D", "m3"), callgraph));
-                    Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "m3"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+                    Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+                    Assert.IsFalse(s.IsReachable(new MethodDescriptor("D", "m3"), callgraph));
+                    Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m3"), callgraph));
 				},
 				strategy);
 		}
@@ -227,19 +226,19 @@ class Program
 			#endregion
 
 			AnalyzeExample(source,
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
 				},
-				(result) =>
+				(s) =>
 				{
-					result.AddMethodAsync(new MethodDescriptor("Program", "NewMethod", true), newSource).Wait();
-					result.UpdateMethodAsync(new MethodDescriptor("Program", "Main", true), newSource).Wait();
+					s.AddMethodAsync(new MethodDescriptor("Program", "NewMethod", true), newSource).Wait();
+					s.UpdateMethodAsync(new MethodDescriptor("Program", "Main", true), newSource).Wait();
 				},
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "NewMethod", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "NewMethod", true), callgraph));
 				},
 				strategy);
 		}
@@ -339,28 +338,28 @@ class Program
 			#endregion
 
 			AnalyzeExample(source,
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "Middle"), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("C", "M1"), callgraph));
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "M2"), callgraph));
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("D", "M2"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "Middle"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "M1"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "M2"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("D", "M2"), callgraph));
 				},
-				(result) =>
+				(s) =>
 				{
 					var type = new TypeDescriptor("", "D");
 					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
 
-                    result.UpdateMethodAsync(new MethodDescriptor(type, "Middle", false, parameters), newSource).Wait();
+                    s.UpdateMethodAsync(new MethodDescriptor(type, "Middle", false, parameters), newSource).Wait();
 				},
-				(result, callgraph) =>
+				(s, callgraph) =>
 				{
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "Middle"), callgraph));
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "M1"), callgraph));
-					Assert.IsFalse(result.IsReachable(new MethodDescriptor("C", "M2"), callgraph));
-					Assert.IsTrue(result.IsReachable(new MethodDescriptor("D", "M2"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "Middle"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "M1"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "M2"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "M2"), callgraph));
 				},
 				strategy);
 		}
@@ -397,7 +396,7 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s,callgraph) =>
+			AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r", true), callgraph));
                 Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "r", true), callgraph));

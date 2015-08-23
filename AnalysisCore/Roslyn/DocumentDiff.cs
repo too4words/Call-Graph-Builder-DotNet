@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-	public enum MethodModificationKind
+	public enum ModificationKind
 	{
-		Add, Remove, Update
+		MethodAdded, MethodRemoved, MethodUpdated
 	}
 
 	public class MethodModification
 	{
-		public MethodModificationKind ModificationKind { get; private set; }
+		public ModificationKind ModificationKind { get; private set; }
 		public MethodDescriptor MethodDescriptor { get; private set; }
 
-		public MethodModification(MethodDescriptor methodDescriptor, MethodModificationKind modificationKind)
+		public MethodModification(MethodDescriptor methodDescriptor, ModificationKind modificationKind)
 		{
 			this.MethodDescriptor = methodDescriptor;
 			this.ModificationKind = modificationKind;
@@ -91,13 +91,13 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			foreach (var methodInfo in methodsAdded)
 			{
-				var modification = new MethodModification(methodInfo.MethodDescriptor, MethodModificationKind.Add);
+				var modification = new MethodModification(methodInfo.MethodDescriptor, ModificationKind.MethodAdded);
 				result.Add(modification);
             }
 
 			foreach (var methodInfo in methodsRemoved)
 			{
-				var modification = new MethodModification(methodInfo.MethodDescriptor, MethodModificationKind.Remove);
+				var modification = new MethodModification(methodInfo.MethodDescriptor, ModificationKind.MethodRemoved);
 				result.Add(modification);
 			}
 
@@ -110,7 +110,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				// TODO: Hack! We should compare the method bodies better!
 				if (oldMethodBody != newMethodBody)
 				{
-					var modification = new MethodModification(methodInfo.MethodDescriptor, MethodModificationKind.Update);
+					var modification = new MethodModification(methodInfo.MethodDescriptor, ModificationKind.MethodUpdated);
 					result.Add(modification);
 				}
 			}

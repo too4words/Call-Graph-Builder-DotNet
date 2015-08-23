@@ -7,6 +7,7 @@ using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.CallGraph;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -41,15 +42,26 @@ namespace ReachingTypeAnalysis
 			updatesChecker(solAnalyzer, callgraph);
 		}
 
-		private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind type = AnalysisStrategyKind.NONE)
+		private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
         {
             var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-            var callgraph = solAnalyzer.Analyze(type);
+            var callgraph = solAnalyzer.Analyze(strategy);
             
             checker(solAnalyzer, callgraph);
         }
 
-        [TestMethod]
+		private static void AnalizeSolution(string solutionPath, RunChecks initialChecker, Action<SolutionAnalyzer> updates, RunChecks updatesChecker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
+		{
+			var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
+			var callgraph = solAnalyzer.Analyze(strategy);
+
+			initialChecker(solAnalyzer, callgraph);
+			updates(solAnalyzer);
+			callgraph = solAnalyzer.GenerateCallGraphAsync().Result;
+			updatesChecker(solAnalyzer, callgraph);
+		}
+
+		[TestMethod]
         [TestCategory("Solutions")]
         public void TestSolution1OnDemandAsync()
         {
@@ -62,8 +74,7 @@ namespace ReachingTypeAnalysis
         {
             BasicTests.TestSolution1Share(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
-
-
+		
         public static void TestSolution1Local(AnalysisStrategyKind strategy)
         {
             string currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -95,7 +106,32 @@ namespace ReachingTypeAnalysis
             }, strategy);
         }
 
-        [TestMethod]
+		private static void TestSolutionIncremental1(AnalysisStrategyKind strategy, string solutionPath)
+		{
+			AnalizeSolution(solutionPath,
+				(s, callgraph) =>
+				{
+					//callgraph.Save("solution1.dot");
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
+																																										// Fails is I use only Contains with hascode!
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ClassLibrary1", "RemoteClass1", "ClassLibrary1"), "Bar", false), callgraph)); // ClassLibrary
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "LocalClass2", "ConsoleApplication1"), "Bar"), callgraph)); // ConsoleApplication1
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
+				},
+				(s) =>
+				{
+					//var modifications = s.GetModifications(solutionPath);
+
+					//s.ApplyModifications(modifications);
+				},
+				(s, callgraph) =>
+				{
+					
+				},
+				strategy);
+		}
+
+		[TestMethod]
         [TestCategory("Solutions")]
         public void TestPrecisionVsFindReferences()
         {
