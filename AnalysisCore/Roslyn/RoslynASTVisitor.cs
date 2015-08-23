@@ -263,10 +263,20 @@ namespace ReachingTypeAnalysis
 			this.MethodDescriptor = methodDescriptor;
 		}
 
+		public override int GetHashCode()
+		{
+			return this.MethodDescriptor.GetHashCode();
+		}
+
 		public override bool Equals(object obj)
 		{
 			var other = obj as MethodParserInfo;
 			return other != null && this.MethodDescriptor.Equals(other.MethodDescriptor);
+		}
+
+		public override string ToString()
+		{
+			return this.MethodDescriptor.ToString();
 		}
 	}
 

@@ -297,6 +297,7 @@
     <Compile Include="Tests\ConcurrencyTest.cs" />
     <Compile Include="Tests\BasicTest.cs" />
     <Compile Include="Tests\CallGraphGenerator.cs" />
+    <Compile Include="Tests\IncrementalDiffTests.cs" />
     <Compile Include="Tests\QueryTests.cs" />
     <Compile Include="Tests\Incremental.cs" />
     <Compile Include="Tests\LongTests.cs" />

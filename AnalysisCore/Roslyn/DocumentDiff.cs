@@ -24,10 +24,31 @@ namespace ReachingTypeAnalysis.Roslyn
 			this.MethodDescriptor = methodDescriptor;
 			this.ModificationKind = modificationKind;
 		}
+
+		public override int GetHashCode()
+		{
+			return this.MethodDescriptor.GetHashCode() ^
+				   this.ModificationKind.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			var other = obj as MethodModification;
+			return other != null &&
+				   this.MethodDescriptor.Equals(other.MethodDescriptor) &&
+				   this.ModificationKind == other.ModificationKind;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("{0}: {1}", this.ModificationKind, this.MethodDescriptor);
+		}
 	}
 
 	public class DocumentDiff
 	{
+		#region class MethodUpdateInfo
+
 		private class MethodUpdateInfo
 		{
 			public MethodDescriptor MethodDescriptor { get; private set; }
@@ -41,6 +62,8 @@ namespace ReachingTypeAnalysis.Roslyn
 				this.NewDeclarationNode = newDeclarationNode;
 			}
 		}
+
+		#endregion
 
 		public async Task<IEnumerable<MethodModification>> GetDifferencesAsync(Document oldDocument, Document newDocument)
 		{
