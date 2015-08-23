@@ -49,7 +49,6 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName]);
 			}
-
         }
 
         public async Task SetSolutionPathAsync(string solutionPath)
@@ -127,7 +126,17 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.solutionManager.GetProjectCodeProvidersAsync();
 		}
 
-        public async Task ForceDeactivation()
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			return this.solutionManager.GetModificationsAsync(modifiedDocuments);
+        }
+
+		public Task ReloadAsync()
+		{
+			return this.solutionManager.ReloadAsync();
+        }
+
+		public async Task ForceDeactivation()
         {
             await this.solutionManager.ForceDeactivationOfProjects();
 

@@ -231,7 +231,8 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
-	#region incremental analysis
+		#region Incremental Analysis
+
 		public async Task RemoveMethodAsync(MethodDescriptor method, string newSource)
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
@@ -314,10 +315,10 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callerInfo in callersInfo)
 			{
-				var callContex = callerInfo.CallerContext;
 				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
-				reworkSet.Add(callContex.CallNode);
-				var task = AnalyzeAsync(callContex.Caller, reworkSet);
+				var callContext = callerInfo.CallerContext;
+				reworkSet.Add(callContext.CallNode);
+				var task = this.AnalyzeAsync(callContext.Caller, reworkSet);
 				//await task;
 				tasks.Add(task);
 			}
@@ -335,29 +336,61 @@ namespace ReachingTypeAnalysis.Analysis
 			// For the case of overload we need to detect the callers of all possible overloads for all "compatible" types
 		}
 
-		public async Task IncrementalUpdateAsync(IEnumerable<string> modifiedFiles)
+		public async Task UpdateDocumentsAsync(IEnumerable<string> modifiedDocuments)
 		{
 			/*
 			 * 1) Compute diffs
 			 *		In every code provider compute diff (optionally keep a copy of compilation and semantic models). Do not replace old compilation and models
 			 *		Return list of method descriptors and action (or 3 lists, remove, update, add)
-			 *	2) Perfom propagation
+			 * 2) Perfom propagation
 			 *		Start from Deletes (and updates seeing as delete)
-			 *			a)
-			 *			For each method m: compute propagation effects (call method entity remove)
-			 *				Enqueue as Remove_Types
+			 *		a) For each method m: compute propagation effects (call method entity remove)
+			 *			Enqueue as Remove_Types
 			 *			Process all together
-			 *		Swtich all providers to their new verions
+			 *		b) Swtich all providers to their new verions
 			 *			Replace compilation and semantic models in providers 
 			 *			Replace solution (in grain and manager)
-			 *		b) finalize remove code (propagate from callers)
+			 *		c) finalize remove code (propagate from callers)
 			 *		Now propagate Adds	
 			*/
+
+			var calleesInfo = new List<CallInfo>();
+			var callersInfo = new List<ReturnInfo>();
+			var modifications = await this.solutionManager.GetModificationsAsync(modifiedDocuments);
+
+			var methodsRemoved = from m in modifications
+								 where m.ModificationKind == ModificationKind.MethodRemoved ||
+									   m.ModificationKind == ModificationKind.MethodUpdated
+								 select m.MethodDescriptor;
+
+			var methodsAdded = from m in modifications
+							   where m.ModificationKind == ModificationKind.MethodAdded ||
+									 m.ModificationKind == ModificationKind.MethodUpdated
+							   select m.MethodDescriptor;
+
+			foreach (var method in methodsRemoved)
+			{
+				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+				var propagationEffects = await projectProvider.RemoveMethodAsync(method);
+
+				calleesInfo.AddRange(propagationEffects.CalleesInfo);
+				callersInfo.AddRange(propagationEffects.CallersInfo);
+
+				await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
+			}
+
+			await this.ProcessMessages();
+			await this.UnregisterCallerAsync(calleesInfo);
+			await this.solutionManager.ReloadAsync();
+			await this.PropagateFromCallersAsync(callersInfo);
+
+			foreach (var method in methodsAdded)
+			{
+				// TODO: is the method is an overrride reanalyze callers of *base* method
+				// For the case of overload we need to detect the callers of all possible overloads for all "compatible" types
+			}
 		}
 
-
-
-	#endregion
-
+		#endregion
 	}
 }

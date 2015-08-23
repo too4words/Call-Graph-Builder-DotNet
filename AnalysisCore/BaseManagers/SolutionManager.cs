@@ -12,7 +12,8 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal abstract class SolutionManager : ISolutionManager
     {
-        //protected Solution solution;
+		//protected Solution solution;
+		protected string solutionPath;
 		protected IList<Project> projects;
         protected ISet<TypeDescriptor> instantiatedTypes;
 
@@ -24,8 +25,9 @@ namespace ReachingTypeAnalysis.Analysis
 		protected Task LoadSolutionAsync(string solutionPath)
 		{
 			var tasks = new List<Task>();
-			var cancellationTokenSource = new CancellationTokenSource();
 			var solution = Utils.ReadSolution(solutionPath);
+
+			this.solutionPath = solutionPath;
 			this.projects = Utils.FilterProjects(solution);
 
 			var projectsCount = this.projects.Count;
@@ -36,6 +38,7 @@ namespace ReachingTypeAnalysis.Analysis
 				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
 
 				var task = this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				//await task;
 				tasks.Add(task);
             }
 
@@ -129,5 +132,46 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			return Task.FromResult(instantiatedTypes);
         }
-    }
+
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			// TODO: Who returns the modifications for newly added documents?
+			// Think the case of new projects added: there are no providers
+			// for them but we need to return the newly added methods.
+			throw new NotImplementedException();
+		}
+
+		public async Task ReloadAsync()
+		{
+			var tasks = new List<Task>();
+			var existingProjectNames = this.projects.Select(p => p.Name).ToList();
+			var solution = Utils.ReadSolution(this.solutionPath);
+			this.projects = Utils.FilterProjects(solution);
+
+			var projectsCount = this.projects.Count;
+			var currentProjectNumber = 1;
+
+			foreach (var project in this.projects)
+			{
+				Task task = null;
+
+				if (existingProjectNames.Contains(project.Name))
+				{
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					//task = provider.ReloadAsync();
+				}
+				else
+				{
+					Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
+
+					task = this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+				}
+
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
+	}
 }

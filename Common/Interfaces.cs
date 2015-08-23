@@ -92,7 +92,11 @@ namespace ReachingTypeAnalysis
 		Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
 
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
-    }
+
+		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
+
+		Task ReloadAsync();
+	}
 
     public delegate void MessageHandler(IMessage message);
 
