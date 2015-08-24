@@ -9,7 +9,7 @@
 			CG Azure Starting Point</h1>
         <p class="lead">Trying to run the Silos</p>
         <p>
-            <asp:TextBox ID="TextBox1" runat="server" Height="341px" Width="670px" TextMode="MultiLine" OnTextChanged="TextBox1_TextChanged"></asp:TextBox>
+            <asp:TextBox ID="TextBox1" runat="server" Height="250px" Width="670px" TextMode="MultiLine" OnTextChanged="TextBox1_TextChanged"></asp:TextBox>
         </p>
         <p>
             <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Test Solution" />
@@ -28,7 +28,7 @@
             <asp:TextBox ID="TextBoxPath" runat="server" Width="680px" OnTextChanged="TextBoxPath_TextChanged">LongGeneratedTest2</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;100;10</asp:TextBox>
+            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;100;10;1</asp:TextBox>
         </p>
     </div>
 

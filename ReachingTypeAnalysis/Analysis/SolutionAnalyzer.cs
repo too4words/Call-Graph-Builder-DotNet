@@ -205,9 +205,13 @@ namespace ReachingTypeAnalysis
 			{
 				await solutionManager.SetSolutionFromTestAsync(this.testName);
 			}
-            else
+            else if(this.solutionPath!=null)
             {
                 await solutionManager.SetSolutionPathAsync(this.solutionPath);
+            }
+            else
+            {
+                throw new Exception("We need a solutionPath or source code or testName to analyze");
             }
 
             var mainMethods = await this.SolutionManager.GetRootsAsync();

@@ -10,6 +10,9 @@ using Orleans.Runtime.Host;
 using Orleans.Providers;
 using Orleans.Runtime.Configuration;
 using RedDog.Storage.Files;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure;
+using System.IO;
 
 namespace OrleansSilosInAzure
 {
@@ -61,6 +64,7 @@ namespace OrleansSilosInAzure
 				else
 				{
 					Trace.TraceError("Orleans Silo could not start");
+                    SaveErrorToBlob("Orleans Silo could not start");
 				}
 
 			}
@@ -68,6 +72,12 @@ namespace OrleansSilosInAzure
 			{
 				while (exc is AggregateException) exc = exc.InnerException;
 				Trace.TraceError("Error dutring initialization of WorkerRole {0}",exc.ToString());
+                var excString = exc.ToString();
+
+                SaveErrorToBlob(excString);
+                
+                throw exc;
+
 			}
             //try
             //{
@@ -79,6 +89,28 @@ namespace OrleansSilosInAzure
             //}
         }
 
+        private void SaveErrorToBlob(string excString)
+        {
+            using (Stream s = GenerateStreamFromString(excString))
+            {
+                var container = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"))
+                            .CreateCloudBlobClient().GetContainerReference("errors");
+                container.CreateIfNotExists();
+                var reference = container.GetBlobReferenceFromServer(string.Format("error-{0}-{1}",
+                        RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks));
+                reference.UploadFromStream(s);
+            }
+        }
+
+        private Stream GenerateStreamFromString(string s)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
 
         // Storage Provider is already configured in the OrleansConfiguration.xml as:
         // <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />

@@ -53,7 +53,15 @@ namespace WebRole1
 				var pathPrefix = TextBoxPathPrefix.Text;
 				try
 				{
-					var reachableMethods = await RunAnalysisAsync(pathPrefix, solutionPath);
+                    string[] tokens = TextRandomQueryInput.Text.Split(';');
+
+                    var className = tokens[0];
+                    var methodPrejix = tokens[1];
+                    var numberOfMethods = int.Parse(tokens[2]);
+                    var repetitions = int.Parse(tokens[3]);
+                    var machines = int.Parse(tokens[4]);
+
+					var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
 					string methods = String.Join("\n", reachableMethods);
 					this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
 				}
@@ -71,22 +79,23 @@ namespace WebRole1
                 this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
             }
         }
-        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync(string pathPrefix, 
+        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync(int machines, string pathPrefix, 
 																	string solutionRelativePath)
         {
 			string currentSolutionPath = pathPrefix;
 			
             string solutionFileName = Path.Combine(currentSolutionPath, solutionRelativePath);
             
-            var program = new AnalysisClient();
+            var program = new AnalysisClient(0,0,solutionFileName);
             var callgraph = await program.AnalyzeSolutionAsync(solutionFileName);
             var reachableMethods = callgraph.GetReachableMethods();
             return await Task.FromResult(reachableMethods);
         }
 
-		private static async Task<ISet<MethodDescriptor>> RunAnalysisFromSourceAsync(string source)
+		private static async Task<ISet<MethodDescriptor>> RunAnalysisFromSourceAsync(int machines, string source)
 		{
-			var program = new AnalysisClient();
+
+			var program = new AnalysisClient(machines, 0, "Source");
 			var callgraph = await program.AnalyzeSourceCodeAsync(source);
 			var reachableMethods = callgraph.GetReachableMethods();
 			return await Task.FromResult(reachableMethods);
@@ -97,8 +106,16 @@ namespace WebRole1
 		{
 			try
             {
+                string[] tokens = TextRandomQueryInput.Text.Split(';');
+
+                var className = tokens[0];
+                var methodPrejix = tokens[1];
+                var numberOfMethods = int.Parse(tokens[2]);
+                var repetitions = int.Parse(tokens[3]);
+                var machines = int.Parse(tokens[4]);
+
 				var solutionSource = TextBox1.Text;
-                var reachableMethods = await RunAnalysisFromSourceAsync(solutionSource);
+                var reachableMethods = await RunAnalysisFromSourceAsync(machines, solutionSource);
 				string methods = String.Join("\n", reachableMethods);
                 this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count,methods);
             }
@@ -115,15 +132,32 @@ namespace WebRole1
         {
             try
             {
-                var program = new AnalysisClient();
                 var testName = TextBoxPath.Text;
-				var stopWatch = Stopwatch.StartNew();
-				var solutionManager = await program.AnalyzeTestAsync(testName);
-				stopWatch.Stop();
-				Application["SolutionManager"] = solutionManager;
-				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms",stopWatch.ElapsedMilliseconds);
 
-				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
+                string[] tokens = TextRandomQueryInput.Text.Split(';');
+
+                var className = tokens[0];
+                var methodPrejix = tokens[1];
+                var numberOfMethods = int.Parse(tokens[2]);
+                var repetitions = int.Parse(tokens[3]);
+                var machines = int.Parse(tokens[4]);
+
+                var analysisClient = new AnalysisClient(machines,numberOfMethods,testName);
+
+				//var stopWatch = Stopwatch.StartNew();
+				var results = await analysisClient.AnalyzeTestAsync();
+
+				//stopWatch.Stop();
+				Application["SolutionManager"] = analysisClient.SolutionManager;
+
+				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+
+				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, results.ElapsedTime);
+
+                var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, repetitions);
+
+
+                //program.RetriveInfoFromAnalysis();
 
 				//System.Diagnostics.Trace.TraceInformation("Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
             }
@@ -156,6 +190,7 @@ namespace WebRole1
 					var methodDescriptor = new MethodDescriptor(type, tokens[1], true,parameters);
 
 					var invocation = int.Parse(tokens[2]);
+
 
 					IEnumerable<MethodDescriptor> result = null;
 					var stopWatch = Stopwatch.StartNew();
@@ -204,67 +239,36 @@ namespace WebRole1
 			var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
 			if (solutionManager != null)
 			{
-				var random = new Random();
 				string[] tokens = TextRandomQueryInput.Text.Split(';');
 
 				var className = tokens[0];
 				var methodPrejix = tokens[1];
 				var numberOfMethods = int.Parse(tokens[2]);
 				var repetitions = int.Parse(tokens[3]);
+                var machines = int.Parse(tokens[4]);
+                try
+                {
+                    var testName = TextBoxPath.Text;
 
-				long sumTime = 0;
-				long maxTime = 0;
-				long minTime = long.MaxValue;
-				
+                    var analysisClient = new AnalysisClient(machines, numberOfMethods, testName);
+                    analysisClient.SolutionManager = solutionManager;
+                    var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, repetitions);
+                    var avgTime = result.Item1;
+                    var minTime = result.Item2;
+                    var maxTime = result.Item3;
 
-				try
-				{
-			
-					for (int i = 0; i < repetitions; i++)
-					{
-						int methodNumber = random.Next(numberOfMethods) + 1;
-						var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
-						var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
-
-						if (invocationCount > 0)
-						{
-							var invocation = random.Next(invocationCount) + 1;
-
-							IEnumerable<MethodDescriptor> result = null;
-
-							var stopWatch = Stopwatch.StartNew();
-							if (invocation > 0)
-							{
-								result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
-							}
-							else
-							{
-								result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
-							}
-				
-							stopWatch.Stop();
-							var time = stopWatch.ElapsedMilliseconds;
-							if (time > maxTime) maxTime = time;
-							if (time < minTime) minTime = time;
-							sumTime += time;
-						}
-					}
-					if(repetitions>0)
-					{
-						var avgTime = sumTime / repetitions;
-						TextBox1.Text = String.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
-						System.Diagnostics.Trace.TraceInformation("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
-						Logger.LogInfo(GrainClient.Logger, "Stats", "Random Query times; ", "Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
-					}
-				}
-				catch (Exception exc)
-				{
-					while (exc is AggregateException) exc = exc.InnerException;
-					this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-				}
-
+                    TextBox1.Text = String.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+                    System.Diagnostics.Trace.TraceInformation("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+                    Logger.LogInfo(GrainClient.Logger, "Stats", "Random Query times; ", "Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+                }
+                catch (Exception exc)
+                {
+                    while (exc is AggregateException) exc = exc.InnerException;
+                    this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+                }
 			}
 		}
+
 
         protected async void Button7_Click(object sender, EventArgs e)
         {
