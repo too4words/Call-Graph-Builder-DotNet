@@ -330,6 +330,7 @@ namespace ReachingTypeAnalysis.Analysis
 				var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
 				this.useNewFieldsVersion = true;
 
+				this.RemoveDocumentInfo(documentPath);
 				var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
 				this.useNewFieldsVersion = false;
 

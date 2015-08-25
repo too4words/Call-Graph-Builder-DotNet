@@ -88,15 +88,15 @@ namespace ReachingTypeAnalysis.Roslyn
 			return modifications;
 		}
 
-		public override Task ReloadAsync()
+		public override async Task ReloadAsync()
 		{
+			
 			if (newMethodEntities != null)
 			{
 				this.methodEntities = newMethodEntities;
 				this.newMethodEntities = null;
 			}
-
-			return TaskDone.Done;
+			await base.ReloadAsync();
 		}
     }
 }

@@ -153,12 +153,9 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.SolutionPath = null;
             this.State.Source = null;
 			this.State.TestName = null;
-            
 			await this.WriteStateAsync();
 
-            
-
-            this.DeactivateOnIdle();
+			this.DeactivateOnIdle();
         }
 
 		// TODO: remove this hack!

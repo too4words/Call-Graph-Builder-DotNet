@@ -382,7 +382,19 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(calleesInfo);
 			await this.solutionManager.ReloadAsync();
-			await this.PropagateFromCallersAsync(callersInfo);
+
+			// TODO: if there is no caller (e.g., main in the future public method) you should call yourself
+			if (callersInfo.Count > 0)
+			{
+				await this.PropagateFromCallersAsync(callersInfo);
+			}
+			else
+			{
+				await AnalyzeAsync(await this.solutionManager.GetRootsAsync());
+			}
+
+
+
 
 			foreach (var method in methodsAdded)
 			{

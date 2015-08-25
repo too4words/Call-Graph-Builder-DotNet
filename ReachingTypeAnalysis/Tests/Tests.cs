@@ -85,6 +85,24 @@ namespace ReachingTypeAnalysis
             TestSolution1(strategy, solutionPath);
         }
 
+		[TestMethod]
+		[TestCategory("Solutions")]
+		[TestCategory("IncrementalAsync")]
+		public void TestSolution1IncrementalOnDemandAsync()
+		{
+			BasicTests.TestSolution1Incremental(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		public static void TestSolution1Incremental(AnalysisStrategyKind strategy)
+		{
+			string currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+			string solutionPath = Path.Combine(
+				Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(currentSolutionPath).FullName).FullName).FullName).FullName,
+				ConfigurationManager.AppSettings["TestIncremental"]);
+			TestSolutionIncremental1(strategy, solutionPath);
+		}
+
+
         public static void TestSolution1Share(AnalysisStrategyKind strategy)
         {
             string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
@@ -106,8 +124,29 @@ namespace ReachingTypeAnalysis
             }, strategy);
         }
 
+
+
 		private static void TestSolutionIncremental1(AnalysisStrategyKind strategy, string solutionPath)
 		{
+			var baseFolder = Path.GetDirectoryName(solutionPath);
+			var testRootFolder = Directory.GetParent(baseFolder).FullName;
+			var currentFolder= Path.Combine(testRootFolder, "current");
+			var changesFolder = Path.Combine(testRootFolder, "changes");
+
+			solutionPath = solutionPath.Replace(baseFolder, currentFolder);
+
+			foreach (var fileName in Directory.EnumerateFiles(baseFolder, "*", SearchOption.AllDirectories))
+			{
+				var newPathForFile = fileName.Replace(baseFolder,currentFolder);
+				var targetPath = Path.GetDirectoryName(newPathForFile);
+				if (!System.IO.Directory.Exists(targetPath))
+				{
+					System.IO.Directory.CreateDirectory(targetPath);
+				}
+
+				File.Copy(fileName, newPathForFile, true);
+			}
+
 			AnalizeSolution(solutionPath,
 				(s, callgraph) =>
 				{
@@ -120,9 +159,21 @@ namespace ReachingTypeAnalysis
 				},
 				(s) =>
 				{
-					// TODO: fill with modified documents
-					var modifiedDocuments = new string[] { };
-					s.ApplyModificationsAsync(modifiedDocuments).Wait();
+					var modifications = new List<string>();
+					foreach (var fileName in Directory.EnumerateFiles(changesFolder, "*.cs", SearchOption.AllDirectories))
+					{
+						var newPathForFile = fileName.Replace(changesFolder, currentFolder);
+						var targetPath = Path.GetDirectoryName(newPathForFile);
+						if (!System.IO.Directory.Exists(targetPath))
+						{
+							System.IO.Directory.CreateDirectory(targetPath);
+						}
+
+						modifications.Add(newPathForFile);
+						File.Copy(fileName, newPathForFile, true);
+					}
+
+					s.ApplyModificationsAsync(modifications).Wait();
 				},
 				(s, callgraph) =>
 				{
