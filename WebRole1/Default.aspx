@@ -28,7 +28,7 @@
             <asp:TextBox ID="TextBoxPath" runat="server" Width="680px" OnTextChanged="TextBoxPath_TextChanged">LongGeneratedTest2</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;100;10;1</asp:TextBox>
+            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;100;50;1</asp:TextBox>
         </p>
     </div>
 

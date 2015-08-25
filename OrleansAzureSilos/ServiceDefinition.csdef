@@ -4,7 +4,7 @@
     <Imports>
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" /> 
-      <Import moduleName="Diagnostics" /> 
+<!--      <Import moduleName="Diagnostics" />  -->
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
@@ -62,12 +62,19 @@
           </Variable>
 		  -->
         </Environment>
-      </Task>
-    </Startup>
+	  </Task>
+			<Task commandLine="scripts\ServerGC.cmd" executionContext="elevated" taskType="simple">
+				<Environment>
+					<Variable name="UseServerGC" value="True" />
+					<Variable name="UseBackgroundGC" value="True" />
+				</Environment>
+			</Task>
+
+	</Startup>
   </WorkerRole>
-  <WebRole name="WebRole1" vmsize="Small">
+  <WebRole name="WebRole1" vmsize="Large">
     <Imports>
-      <Import moduleName="Diagnostics" />
+		<!--      <Import moduleName="Diagnostics" />  -->
       <Import moduleName="RemoteAccess" />
     </Imports>
     <ConfigurationSettings>

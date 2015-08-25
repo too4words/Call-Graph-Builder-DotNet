@@ -181,12 +181,13 @@ namespace ReachingTypeAnalysis.Analysis
                 await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
             }
 
+			await this.ClearStateAsync();
+
             //this.State.Etag = null;
             this.State.ProjectPath = null;
             this.State.Source = null;
+			this.State.TestName = null;
             await this.WriteStateAsync();
-            
-            //await this.ClearStateAsync();
 
             this.DeactivateOnIdle();
             

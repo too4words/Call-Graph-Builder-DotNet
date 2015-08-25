@@ -28,4 +28,4 @@ powershell .\SetupExternalTasks.ps1 -tasksUrl "%EXTERNALTASKURL%" >> ExternalTas
 REM powershell .\SetupExternalTasks.ps1 -tasksUrl "%EXTERNALTASKURL%" >> ExternalTasks.log 2>> ExternalTasks_err.log
 
 :SKIP
-EXIT /B 0
+EXIT /B 

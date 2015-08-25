@@ -245,16 +245,19 @@
     <None Include="scripts\InstallNET46.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="scripts\InstallVS2015 - Copy.cmd">
+    <None Include="scripts\InstallVS2015-v2.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="scripts\InstallVS2015-v2.cmd">
+    <None Include="scripts\ServerGC.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="scripts\RunAzureCopy.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="scripts\InstallVS2015.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="scripts\GCSettingsManagement.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="scripts\SetupExternalTasks.ps1">

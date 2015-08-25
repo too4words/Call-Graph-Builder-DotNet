@@ -145,12 +145,16 @@ namespace ReachingTypeAnalysis.Analysis
         {
             await this.solutionManager.ForceDeactivationOfProjects();
 
+			await this.ClearStateAsync();
+
             //this.State.Etag = null;
             this.State.SolutionPath = null;
             this.State.Source = null;
-            await this.WriteStateAsync();
+			this.State.TestName = null;
+            
+			await this.WriteStateAsync();
 
-            //await this.ClearStateAsync();
+            
 
             this.DeactivateOnIdle();
         }

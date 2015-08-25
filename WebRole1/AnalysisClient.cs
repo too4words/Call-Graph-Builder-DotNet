@@ -35,6 +35,7 @@ namespace WebRole1
         public long AvgTime { get; set; }
         public long MinTime { get; set; }
         public long MaxTime { get; set; }
+		public long Median { get; set; }
         public int Repeticions { get; set; }
         public string Observations { get; set; }
     }
@@ -101,6 +102,7 @@ namespace WebRole1
             long sumTime = 0;
             long maxTime = 0;
             long minTime = long.MaxValue;
+			long[] times = new long[repetitions];
 
             for (int i = 0; i < repetitions; i++)
             {
@@ -126,6 +128,7 @@ namespace WebRole1
 
                     stopWatch.Stop();
                     var time = stopWatch.ElapsedMilliseconds;
+					times[i] = time;
                     if (time > maxTime) maxTime = time;
                     if (time < minTime) minTime = time;
                     sumTime += time;
@@ -145,6 +148,7 @@ namespace WebRole1
                     AvgTime = avgTime,
                     MinTime  = minTime,
                     MaxTime = maxTime,
+					Median = times[repetitions / 2],
                     Observations = "From web",
                     PartitionKey = this.subject,
                     RowKey = time.ToFileTime().ToString()
@@ -157,18 +161,19 @@ namespace WebRole1
             return Tuple.Create<long, long, long>(0, 0, 0);
 
         }
-        private CloudTable CreateTable(string name)
-        {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 
-            // Create the table client.
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+		private static CloudTable CreateTable(string name)
+		{
+			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 
-            // Create the table if it doesn't exist.
-            CloudTable table = tableClient.GetTableReference(name);
-            table.CreateIfNotExists();
-            return table;
-        }
+			// Create the table client.
+			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+			// Create the table if it doesn't exist.
+			CloudTable table = tableClient.GetTableReference(name);
+			table.CreateIfNotExists();
+			return table;
+		}
         
         internal void AddSubjetResults(SubjectExperimentResults results)
         {
@@ -184,7 +189,7 @@ namespace WebRole1
         {
             if (this.querytimes == null)
             {
-                this.querytimes = CreateTable("QueryResults");
+				this.querytimes = CreateTable("QueryResults");
             }
             TableOperation insertOperation = TableOperation.Insert(results);
             // Execute the insert operation.
