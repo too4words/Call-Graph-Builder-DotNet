@@ -89,7 +89,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.codeProvider = codeProviderGrain;
 
+			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
             this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
+
+			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {

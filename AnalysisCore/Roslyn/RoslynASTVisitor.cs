@@ -251,7 +251,7 @@ namespace ReachingTypeAnalysis
         //}
     }
 
-	internal class MethodParserInfo
+	public  class MethodParserInfo
 	{
 		public MethodDescriptor MethodDescriptor { get; private set; }
 		public SemanticModel SemanticModel { get; set; }
@@ -781,7 +781,7 @@ namespace ReachingTypeAnalysis
 		private SemanticModel SemanticModel;
 
 		internal MethodParserInfo Result { get; private set; }
-		internal ICollection<MethodParserInfo> DeclaredMethods { get; private set; }
+		internal IDictionary<MethodDescriptor, MethodParserInfo> DeclaredMethods { get; private set; }
 
 		internal MethodFinder(MethodDescriptor descriptor, SemanticModel semanticModel)
 		{
@@ -806,7 +806,7 @@ namespace ReachingTypeAnalysis
 		{
 			this.SemanticModel = semanticModel;
 			this.MethodDescriptor = descriptor;			
-			this.DeclaredMethods = new List<MethodParserInfo>();
+			this.DeclaredMethods = new Dictionary<MethodDescriptor, MethodParserInfo>();
 		}
 
 		public override void Visit(SyntaxNode syntax)
@@ -829,7 +829,7 @@ namespace ReachingTypeAnalysis
 							MethodSymbol = symbol
 						};
 
-						this.DeclaredMethods.Add(methodInfo);
+						this.DeclaredMethods.Add(thisDescriptor, methodInfo);
 
 						if (thisDescriptor.Equals(this.MethodDescriptor))
 						{

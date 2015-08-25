@@ -23,11 +23,11 @@ namespace ReachingTypeAnalysis.Analysis
 		public SemanticModel SemanticModel { get; private set; }		
 		public SyntaxTree SyntaxTree { get; private set; }
 		public SyntaxNode SyntaxTreeRoot { get; private set; }
-		public ISet<MethodDescriptor> Methods { get; private set; }
+		public IDictionary<MethodDescriptor,MethodParserInfo> Methods { get;  set; }
 
 		private DocumentInfo()
 		{
-			this.Methods = new HashSet<MethodDescriptor>();
+			this.Methods = new Dictionary<MethodDescriptor, MethodParserInfo>();
         }
 
 		public static async Task<DocumentInfo> CreateAsync(Document document, Compilation compilation)
@@ -37,12 +37,16 @@ namespace ReachingTypeAnalysis.Analysis
 			var syntaxTreeRoot = await syntaxTree.GetRootAsync(cancellationTokenSource.Token);
 			var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
+			var visitor = new MethodFinder(semanticModel);
+			visitor.Visit(syntaxTreeRoot);
+
 			var result = new DocumentInfo()
 			{
 				Document = document,
 				SyntaxTree = syntaxTree,
 				SyntaxTreeRoot = syntaxTreeRoot,
-                SemanticModel = semanticModel
+                SemanticModel = semanticModel,
+				Methods = visitor.DeclaredMethods
 			};
 
 			return result;
@@ -166,14 +170,18 @@ namespace ReachingTypeAnalysis.Analysis
             var tree = documentInfo.SyntaxTree;			
 			var root = documentInfo.SyntaxTreeRoot;
 			var model = documentInfo.SemanticModel;
-			var visitor = new MethodFinder(methodDescriptor, model);
 
-			visitor.Visit(root);
-
-			if (visitor.Result != null)
+			if (!documentInfo.Methods.TryGetValue(methodDescriptor, out result))
 			{
-				result = visitor.Result;
-				documentInfo.Methods.Add(methodDescriptor);
+				return null;
+				//var visitor = new MethodFinder(methodDescriptor, model);
+				//visitor.Visit(root);
+
+				//if (visitor.Result != null)
+				//{
+				//	result = visitor.Result;
+				//	documentInfo.Methods = visitor.DeclaredMethods;
+				//}
 			}
 
 			return result;
@@ -189,7 +197,35 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
         }
 
-        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+		public async Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+		{
+			IMethodSymbol roslynMethod = null;
+			foreach(var document in this.Project.Documents)
+			{
+				var docInfo = await this.GetDocumentInfoAsync(document.FilePath);
+				MethodParserInfo result = null;
+				if(docInfo.Methods.TryGetValue(methodDescriptor, out result))
+				{
+					roslynMethod = result.MethodSymbol;
+					break; 
+				}
+			}
+
+			//var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+
+			if (roslynMethod != null)
+			{
+				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
+				var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+				Contract.Assert(implementedMethod != null);
+				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+			}
+
+			// If we cannot resolve the method, we return the same method.
+			return methodDescriptor;
+		}
+
+        public Task<MethodDescriptor> FindMethodImplementationAsyncUsingRoslyn(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
 			var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
 
@@ -251,10 +287,9 @@ namespace ReachingTypeAnalysis.Analysis
         internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
         {
             var result = new HashSet<MethodDescriptor>();
-            foreach(var documentPath in this.DocumentsInfo.Keys)
+            foreach(var documentInfo in this.DocumentsInfo.Values)
             {
-                var documentInfo = this.DocumentsInfo[documentPath];
-                result.UnionWith(documentInfo.Methods);
+                result.UnionWith(documentInfo.Methods.Keys);
             }
             return Task.FromResult(result.AsEnumerable());
         }

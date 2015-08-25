@@ -10,7 +10,7 @@ using ReachingTypeAnalysis.Analysis;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-	public class DocumentDiff
+	internal class DocumentDiff
 	{
 		#region class MethodUpdateInfo
 
@@ -119,7 +119,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				var visitor = new MethodFinder(semanticModel);
 
 				visitor.Visit(root);
-				result = visitor.DeclaredMethods;
+				result = visitor.DeclaredMethods.Values;
 			}
 
 			return result;
@@ -140,7 +140,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				var visitor = new MethodFinder(semanticModel);
 
 				visitor.Visit(root);
-				result = visitor.DeclaredMethods;
+				result = visitor.DeclaredMethods.Values;
 			}
 
 			return result;
