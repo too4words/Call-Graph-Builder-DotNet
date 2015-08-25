@@ -18,7 +18,10 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
-        const string WelcomeMessage = @"Console Server started
+		//const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+		const string SolutionToTest = @"Coby\Coby.sln";
+
+		const string WelcomeMessage = @"Console Server started
 -----------------
 Routes: 
    - Get All Files........:  api/{{graph}}/files
@@ -52,9 +55,7 @@ Listening on Port {0} ...
             // read port argument
             var port = GetValidPort(args.Length >= 1 ? args[0] : null);
             var baseAddress = string.Format("http://localhost:{0}/", port);
-			//var solutionPath = @"..\..\..\ConsoleApplication1\ConsoleApplication1.sln";
-			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, @"ConsoleApplication1\ConsoleApplication1.sln");
-			//var solutionPath = @"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln";
+			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, SolutionToTest);
 
 			var program = new Program(AnalysisStrategyKind.ONDEMAND_ASYNC);
 			program.Start(baseAddress, port, solutionPath);

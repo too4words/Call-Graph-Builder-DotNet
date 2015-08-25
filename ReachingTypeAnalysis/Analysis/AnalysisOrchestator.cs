@@ -413,11 +413,10 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			else
 			{
-				await AnalyzeAsync(await this.solutionManager.GetRootsAsync());
+				// TODO: Hack! we don't want to recompute the roots.
+				var roots = await this.solutionManager.GetRootsAsync();
+                await AnalyzeAsync(roots);
 			}
-
-
-
 
 			foreach (var method in methodsAdded)
 			{

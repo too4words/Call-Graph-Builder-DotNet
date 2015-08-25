@@ -197,8 +197,16 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
 				var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
-				Contract.Assert(implementedMethod != null);
-				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+				//Contract.Assert(implementedMethod != null);
+
+				if (implementedMethod != null)
+				{
+					methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+				}
+				else
+				{
+					Logger.LogS("BaseProjectCodeProvider", "FindMethodImplementationAsync", "Cannot find implementation for method {0}", methodDescriptor);
+				}
 			}
 
 			// If we cannot resolve the method, we return the same method.
