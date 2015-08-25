@@ -24,7 +24,6 @@ namespace ReachingTypeAnalysis.Analysis
         string ProjectPath { get; set; }
         string AssemblyName { get; set; } 
         string Source { get; set; }
-
 		string TestName { get; set; }
 	}
 
@@ -37,10 +36,9 @@ namespace ReachingTypeAnalysis.Analysis
         [NonSerialized]
         private IProjectCodeProvider projectCodeProvider;
 
-        public override async Task OnActivateAsync()
-        {
+		public override async Task OnActivateAsync()
+		{
 			Logger.OrleansLogger = this.GetLogger();
-
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
 			this.State.AssemblyName = this.GetPrimaryKeyString();
@@ -49,56 +47,62 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 			}
-            else
-            {
-                if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
-                {
-                    this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);                    
-                }
-				else 
-				{
-					if (!String.IsNullOrEmpty(this.State.TestName) & !String.IsNullOrEmpty(this.State.AssemblyName))
-					{
-						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName], this.State.AssemblyName);
-					}
-					else
-					{
-						if(this.State.AssemblyName.Equals("DUMMY"))
-						{
-							this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
-						}
-					}
-				}
-            }
+			else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+			{
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+			}
+			else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
+			{
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+			}
+			else if (this.State.AssemblyName.Equals("DUMMY"))
+			{
+				this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+			}
 
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
-        }
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
+		}
 
         public async Task SetProjectPath(string fullPath)
         {
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+
             this.State.ProjectPath = fullPath;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+			this.State.AssemblyName = null;
+			this.State.Source = null;
+			this.State.TestName = null;
+
 			await this.WriteStateAsync();
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
         public async Task SetProjectSourceCode(string source)
         {
-            this.State.Source = source;
-            // To do: Hack
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Enter");
+
+			this.State.Source = source;
             this.State.AssemblyName = TestConstants.ProjectAssemblyName;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+			this.State.ProjectPath = null;
+			this.State.TestName = null;
+
 			await this.WriteStateAsync();
-        }
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
+		}
 
 		public async Task SetProjectTest(string testName)
 		{
-			this.State.TestName= testName;
-			// To do: Hack
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Enter");
+
+			this.State.TestName = testName;
 			this.State.AssemblyName = TestConstants.ProjectAssemblyName;
-			this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, BasicTestsSources.Test[this.State.TestName], this.State.AssemblyName);
+			this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+			this.State.ProjectPath = null;
+			this.State.Source = null;
+
 			await this.WriteStateAsync();
+			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Exit");
 		}
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
@@ -167,29 +171,40 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
 		}
 
-        /// <summary>
-        /// Deactivates the grain and all method entity grains it has created
-        /// </summary>
-        /// <returns></returns>
-        public async Task ForceDeactivationAsync()
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			return this.projectCodeProvider.GetModificationsAsync(modifiedDocuments);
+		}
+
+		public Task ReloadAsync()
+		{
+			return this.projectCodeProvider.ReloadAsync();
+		}
+
+		/// <summary>
+		/// Deactivates the grain and all method entity grains it has created
+		/// </summary>
+		/// <returns></returns>
+		public async Task ForceDeactivationAsync()
         {
             /// TODO: Change interface by OrleansCodeProvider but we need to fix the Dummy provider
 
             if (this.projectCodeProvider is OrleansProjectCodeProvider)
             {
-                OrleansProjectCodeProvider orleansProvider = (OrleansProjectCodeProvider)this.projectCodeProvider;
+                var orleansProvider = this.projectCodeProvider as OrleansProjectCodeProvider;
                 await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
             }
 
             //this.State.Etag = null;
             this.State.ProjectPath = null;
             this.State.Source = null;
+			this.State.TestName = null;
+			this.State.AssemblyName = null;
             await this.WriteStateAsync();
             
             //await this.ClearStateAsync();
 
-            this.DeactivateOnIdle();
-            
+            this.DeactivateOnIdle();            
         }
 	}   
 }

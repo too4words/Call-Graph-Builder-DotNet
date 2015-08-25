@@ -19,43 +19,30 @@ namespace ReachingTypeAnalysis.Analysis
     {
 		private IGrainFactory grainFactory;
 
-		private OrleansProjectCodeProvider(IGrainFactory grainFactory, Project project, Compilation compilation)
-			: base(project, compilation)
+		private OrleansProjectCodeProvider(IGrainFactory grainFactory)
         {
 			this.grainFactory = grainFactory;
 		}
 
-		public static async Task<IProjectCodeProvider> CreateFromProjectAsync(IGrainFactory grainFactory, string projectPath)
+		public static async Task<OrleansProjectCodeProvider> CreateFromProjectAsync(IGrainFactory grainFactory, string projectPath)
 		{
-			var cancellationTokenSource = new CancellationTokenSource();
-			var project = await Utils.ReadProjectAsync(projectPath);
-
-			if (project != null)
-			{
-				var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
-				return new OrleansProjectCodeProvider(grainFactory, project, compilation);
-			}
-
-			Contract.Assert(false, "Can't read project at path = " + projectPath);
-			return null;
+			var provider = new OrleansProjectCodeProvider(grainFactory);
+			await provider.LoadProjectAsync(projectPath);
+			return provider;
 		}
 
-		public static async Task<IProjectCodeProvider> CreateFromSourceAsync(IGrainFactory grainFactory, string source, string assemblyName)
+		public static async Task<OrleansProjectCodeProvider> CreateFromSourceAsync(IGrainFactory grainFactory, string source, string assemblyName)
 		{
-			var cancellationTokenSource = new CancellationTokenSource();
-			var solution = Utils.CreateSolution(source);
+			var provider = new OrleansProjectCodeProvider(grainFactory);
+			await provider.LoadSourceAsync(source, assemblyName);
+			return provider;
+		}
 
-			foreach (var project in solution.Projects)
-			{
-				if (project.AssemblyName.Equals(assemblyName))
-				{
-					var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
-					return new OrleansProjectCodeProvider(grainFactory, project, compilation);
-				}
-			}
-
-			Contract.Assert(false, "Can't find project with assembly name = " + assemblyName);
-			return null;
+		public static async Task<OrleansProjectCodeProvider> CreateFromTestAsync(IGrainFactory grainFactory, string testName, string assemblyName)
+		{
+			var provider = new OrleansProjectCodeProvider(grainFactory);
+			await provider.LoadTestAsync(testName, assemblyName);
+			return provider;
 		}
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)

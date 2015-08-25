@@ -49,6 +49,7 @@ namespace ReachingTypeAnalysis.Analysis
             var projectGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
             return projectGrain.SetProjectSourceCode(source);
         }
+
 		protected override Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
 		{
 			var projectGrain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
@@ -58,7 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {
 			IProjectCodeProvider provider = null;
-			var isExistingProject = this.projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
+			var isExistingProject = this.Projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
 
 			if (isExistingProject)
 			{
@@ -91,7 +92,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var tasks = new List<Task>();
 
-            foreach (var project in this.projects)
+            foreach (var project in this.Projects)
             {
                 var provider = grainFactory.GetGrain<IProjectCodeProviderGrain>(project.AssemblyName);
 				var task = provider.ForceDeactivationAsync();

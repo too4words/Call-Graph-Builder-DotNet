@@ -15,6 +15,7 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class AsyncSolutionManager : SolutionManager
 	{
 		private IDictionary<AssemblyName, IProjectCodeProvider> projectsCache;
+		private IDictionary<AssemblyName, IProjectCodeProvider> newProjectsCache;
 
 		private AsyncSolutionManager()
 		{
@@ -35,11 +36,21 @@ namespace ReachingTypeAnalysis.Analysis
 			return manager;
 		}
 
+		public static async Task<AsyncSolutionManager> CreateFromTestAsync(string testName)
+		{
+			var manager = new AsyncSolutionManager();
+			await manager.LoadTestAsync(testName);
+			return manager;
+		}
+
+		private IDictionary<AssemblyName, IProjectCodeProvider> ProjectsCache
+		{
+			get { return useNewFieldsVersion ? newProjectsCache : projectsCache; }
+		}
+
 		protected override async Task CreateProjectCodeProviderAsync(string projectPath, string assemblyName)
 		{
-			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath);
-
-			if (projectsCache.ContainsKey(assemblyName))
+			if (this.ProjectsCache.ContainsKey(assemblyName))
 			{
 				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
 				Console.WriteLine(message);
@@ -47,14 +58,13 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			projectsCache.Add(assemblyName, provider);
+			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath);
+			this.ProjectsCache.Add(assemblyName, provider);
 		}
 
 		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
 		{
-			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName);
-
-			if (projectsCache.ContainsKey(assemblyName))
+			if (this.ProjectsCache.ContainsKey(assemblyName))
 			{
 				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
 				Console.WriteLine(message);
@@ -62,23 +72,32 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			projectsCache.Add(assemblyName, provider);
-		}
-		protected override Task CreateProjectCodeProviderFromTestAsync(string testName, AssemblyName assemblyName)
-		{
-			var source = TestSources.BasicTestsSources.Test[testName];
-			return CreateProjectCodeProviderFromSourceAsync(source, assemblyName);
+			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName);
+			this.ProjectsCache.Add(assemblyName, provider);
 		}
 
+		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
+		{
+			if (this.ProjectsCache.ContainsKey(assemblyName))
+			{
+				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
+				Console.WriteLine(message);
+				return;
+				//throw new Exception(message);
+			}
+
+			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName);
+			this.ProjectsCache.Add(assemblyName, provider);
+		}
 
 		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{
 			IProjectCodeProvider provider = null;
 
-			if (!projectsCache.TryGetValue(assemblyName, out provider))
+			if (!this.ProjectsCache.TryGetValue(assemblyName, out provider))
 			{
 				provider = this.GetDummyProjectCodeProvider();
-				projectsCache.Add(assemblyName, provider);
+				this.ProjectsCache.Add(assemblyName, provider);
 			}
 
 			return Task.FromResult(provider);
@@ -97,5 +116,22 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return methodEntity;
 		}
-	}
+
+		public override Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			this.newProjectsCache = new Dictionary<AssemblyName, IProjectCodeProvider>(this.ProjectsCache);
+			return base.GetModificationsAsync(modifiedDocuments);
+		}
+
+		public override async Task ReloadAsync()
+		{
+			if (newProjectsCache != null)
+			{
+				this.projectsCache = newProjectsCache;
+				this.newProjectsCache = null;
+			}
+
+			await base.ReloadAsync();
+		}
+    }
 }

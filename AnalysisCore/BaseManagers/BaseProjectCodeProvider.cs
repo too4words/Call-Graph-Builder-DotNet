@@ -12,9 +12,12 @@ using System.IO;
 using ReachingTypeAnalysis.Roslyn;
 using Microsoft.CodeAnalysis.CSharp;
 
+using DocumentPath = System.String;
+using Orleans;
+
 namespace ReachingTypeAnalysis.Analysis
 {
-	internal class DocumentInfo
+	public class DocumentInfo
 	{
 		public Document Document { get; private set; }
 		public SemanticModel SemanticModel { get; private set; }		
@@ -48,15 +51,55 @@ namespace ReachingTypeAnalysis.Analysis
 
     public abstract partial class BaseProjectCodeProvider : IProjectCodeProvider
     {
-		protected Project project;
-		protected Compilation compilation;
-		private IDictionary<string, DocumentInfo> documentsInfo;
+		protected string projectPath;
+		private Project project;
+		private Project newProject;
+		private Compilation compilation;
+		private Compilation newCompilation;
+		private IDictionary<DocumentPath, DocumentInfo> documentsInfo;
+		private IDictionary<DocumentPath, DocumentInfo> newDocumentsInfo;
+		protected bool useNewFieldsVersion;
 
-		protected BaseProjectCodeProvider(Project project, Compilation compilation)
+		protected BaseProjectCodeProvider()
         {
-            this.project = project;
-			this.compilation = compilation;
-			this.documentsInfo = new Dictionary<string, DocumentInfo>();
+			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();
+        }
+
+		protected Project Project
+		{
+			get { return useNewFieldsVersion ? newProject : project; }
+		}
+
+		protected Compilation Compilation
+		{
+			get { return useNewFieldsVersion ? newCompilation : compilation; }
+		}
+
+		protected IDictionary<DocumentPath, DocumentInfo> DocumentsInfo
+		{
+			get { return useNewFieldsVersion ? newDocumentsInfo : documentsInfo; }
+		}
+
+		protected async Task LoadProjectAsync(string projectPath)
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			this.projectPath = projectPath;
+			this.project = await Utils.ReadProjectAsync(projectPath);			
+			this.compilation = await Utils.CompileProjectAsync(this.Project, cancellationTokenSource.Token);
+		}
+
+		protected async Task LoadSourceAsync(string source, string assemblyName)
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			var solution = Utils.CreateSolution(source);
+			this.project = solution.Projects.Single(p => p.AssemblyName == assemblyName);
+			this.compilation = await Utils.CompileProjectAsync(this.Project, cancellationTokenSource.Token);
+		}
+
+		protected Task LoadTestAsync(string testName, string assemblyName)
+		{
+			var source = TestSources.BasicTestsSources.Test[testName];
+			return this.LoadSourceAsync(source, assemblyName);
         }
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
@@ -81,13 +124,17 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task<DocumentInfo> GetDocumentInfoAsync(string documentPath)
 		{
-			DocumentInfo documentInfo;
+			DocumentInfo documentInfo = null;
 
-			if (!this.documentsInfo.TryGetValue(documentPath, out documentInfo))
+			if (!this.DocumentsInfo.TryGetValue(documentPath, out documentInfo))
             {
-				var document = this.project.Documents.Single(doc => doc.FilePath.Equals(documentPath, StringComparison.InvariantCultureIgnoreCase));
-				documentInfo = await DocumentInfo.CreateAsync(document, this.compilation);
-				this.documentsInfo.Add(documentPath, documentInfo);
+				var document = this.Project.Documents.SingleOrDefault(doc => doc.FilePath.Equals(documentPath, StringComparison.InvariantCultureIgnoreCase));
+
+				if (document != null)
+				{
+					documentInfo = await DocumentInfo.CreateAsync(document, this.Compilation);
+					this.DocumentsInfo.Add(documentPath, documentInfo);
+				}
             }
 
 			return documentInfo;
@@ -97,7 +144,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			MethodParserInfo result = null;
 
-			foreach (var document in this.project.Documents)
+			foreach (var document in this.Project.Documents)
 			{
 				var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor, document.FilePath);
 
@@ -136,19 +183,19 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.compilation);
-            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.compilation);
+            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
+            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
 
             return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
         }
 
         public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-			var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.compilation);
+			var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
 
 			if (roslynMethod != null)
 			{
-				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.compilation);
+				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
 				var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
 				Contract.Assert(implementedMethod != null);
 				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
@@ -162,7 +209,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var result = new HashSet<MethodDescriptor>();
             var cancellationTokenSource = new CancellationTokenSource();
-            var mainMethod = this.compilation.GetEntryPoint(cancellationTokenSource.Token);
+            var mainMethod = this.Compilation.GetEntryPoint(cancellationTokenSource.Token);
 
             if (mainMethod != null)
             {
@@ -176,9 +223,10 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
 		{
-			return CodeGraphHelper.GetDocumentsAsync(this.project);
+			return CodeGraphHelper.GetDocumentsAsync(this.Project);
 		}
 
+		// Old version using DocumentVisitor
 		//public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		//{
 		//	var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
@@ -195,9 +243,9 @@ namespace ReachingTypeAnalysis.Analysis
         internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
         {
             var result = new HashSet<MethodDescriptor>();
-            foreach(var documentPath in this.documentsInfo.Keys)
+            foreach(var documentPath in this.DocumentsInfo.Keys)
             {
-                var documentInfo = this.documentsInfo[documentPath];
+                var documentInfo = this.DocumentsInfo[documentPath];
                 result.UnionWith(documentInfo.Methods);
             }
             return Task.FromResult(result.AsEnumerable());
@@ -215,12 +263,12 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);
-			var oldDocument = project.Documents.Single(doc => doc.FilePath == documentPath);
+			var oldDocument = this.Project.Documents.Single(doc => doc.FilePath == documentPath);
 
 			this.RemoveDocumentInfo(oldDocument.FilePath);
 
-			this.project = this.project.RemoveDocument(oldDocument.Id);
-			var newDocument = this.project.AddDocument(oldDocument.Name, source, null, oldDocument.FilePath);
+			this.project = this.Project.RemoveDocument(oldDocument.Id);
+			var newDocument = project.AddDocument(oldDocument.Name, source, null, oldDocument.FilePath);
 			this.project = newDocument.Project;
 
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -233,15 +281,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
 		{
-			if(newDocumentPath==null)
+			if (newDocumentPath == null)
 			{
 				newDocumentPath = documentPath;
 			}
-			var sourceText = File.ReadAllText(newDocumentPath);
 
+			var sourceText = File.ReadAllText(newDocumentPath);
 			return this.ReplaceDocumentSourceAsync(sourceText, documentPath);
 		}
-
 
 		//public Task ReplaceDocumentAsync(string documentPath)
 		//{
@@ -253,19 +300,67 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			DocumentInfo documentInfo;
 
-			if (this.documentsInfo.TryGetValue(documentPath, out documentInfo))
+			if (this.DocumentsInfo.TryGetValue(documentPath, out documentInfo))
 			{
-				this.documentsInfo.Remove(documentPath);
+				this.DocumentsInfo.Remove(documentPath);
 			}
 		}
 
 		private void RemoveMethodFromDocumentInfo(MethodDescriptor methodDescriptor)
 		{
-			foreach (var documentInfo in this.documentsInfo.Values)
+			foreach (var documentInfo in this.DocumentsInfo.Values)
 			{
 				var methodFound = documentInfo.Methods.Remove(methodDescriptor);
 				if (methodFound) break;
 			}
+		}
+
+		public virtual async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			var result = new List<MethodModification>();
+			var documentDiff = new DocumentDiff();
+
+			this.newProject = await Utils.ReadProjectAsync(projectPath);
+			this.newCompilation = await Utils.CompileProjectAsync(newProject, cancellationTokenSource.Token);
+			this.newDocumentsInfo = new Dictionary<DocumentPath, DocumentInfo>(this.DocumentsInfo);
+
+			foreach (var documentPath in modifiedDocuments)
+			{
+				var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+				this.useNewFieldsVersion = true;
+
+				var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+				this.useNewFieldsVersion = false;
+
+				var modifications = documentDiff.GetDifferences(oldDocumentInfo, newDocumentInfo);
+				result.AddRange(modifications);
+			}
+
+			return result;
+		}
+
+		public virtual Task ReloadAsync()
+		{
+			if (newProject != null)
+			{
+				this.project = newProject;
+				this.newProject = null;
+			}
+
+			if (newCompilation != null)
+			{
+				this.compilation = newCompilation;
+				this.newCompilation = null;
+			}
+
+			if (newDocumentsInfo != null)
+			{
+				this.documentsInfo = newDocumentsInfo;
+				this.newDocumentsInfo = null;
+			}
+
+			return TaskDone.Done;
 		}
 	}
 }

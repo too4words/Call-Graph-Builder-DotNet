@@ -336,7 +336,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// For the case of overload we need to detect the callers of all possible overloads for all "compatible" types
 		}
 
-		public async Task UpdateDocumentsAsync(IEnumerable<string> modifiedDocuments)
+		public async Task ApplyModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
 			/*
 			 * 1) Compute diffs

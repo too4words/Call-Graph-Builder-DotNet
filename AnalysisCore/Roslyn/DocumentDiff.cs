@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ReachingTypeAnalysis.Analysis;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
@@ -29,6 +30,22 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		#endregion
 
+		public IEnumerable<MethodModification> GetDifferences(Analysis.DocumentInfo oldDocumentInfo, Analysis.DocumentInfo newDocumentInfo)
+		{
+			var oldDeclaredMethods = GetDeclaredMethodsAsync(oldDocumentInfo);
+			var newDeclaredMethods = GetDeclaredMethodsAsync(newDocumentInfo);
+
+			//// More async version
+			//var oldDeclaredMethodsTask = GetDeclaredMethodsAsync(this.oldDocument, cancellationTokenSource.Token);
+			//var newDeclaredMethodsTask = GetDeclaredMethodsAsync(this.newDocument, cancellationTokenSource.Token);
+
+			//await Task.WhenAll(oldDeclaredMethodsTask, newDeclaredMethodsTask);
+			//var oldDeclaredMethods = oldDeclaredMethodsTask.Result;
+			//var newDeclaredMethods = newDeclaredMethodsTask.Result;
+
+			return this.GetDifferences(oldDeclaredMethods, newDeclaredMethods);
+		}
+
 		public async Task<IEnumerable<MethodModification>> GetDifferencesAsync(Document oldDocument, Document newDocument)
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -43,6 +60,11 @@ namespace ReachingTypeAnalysis.Roslyn
 			//var oldDeclaredMethods = oldDeclaredMethodsTask.Result;
 			//var newDeclaredMethods = newDeclaredMethodsTask.Result;
 
+			return this.GetDifferences(oldDeclaredMethods, newDeclaredMethods);
+		}
+
+		private IEnumerable<MethodModification> GetDifferences(IEnumerable<MethodParserInfo> oldDeclaredMethods, IEnumerable<MethodParserInfo> newDeclaredMethods)
+		{
 			var result = new List<MethodModification>();
 			var methodsAdded = newDeclaredMethods.Except(oldDeclaredMethods);
 			var methodsRemoved = oldDeclaredMethods.Except(newDeclaredMethods);
@@ -82,14 +104,46 @@ namespace ReachingTypeAnalysis.Roslyn
 			return result;
 		}
 
+		private static IEnumerable<MethodParserInfo> GetDeclaredMethodsAsync(Analysis.DocumentInfo documentInfo)
+		{
+			IEnumerable<MethodParserInfo> result;
+
+			if (documentInfo == null)
+			{
+				result = new List<MethodParserInfo>();
+			}
+			else
+			{
+				var root = documentInfo.SyntaxTreeRoot;
+				var semanticModel = documentInfo.SemanticModel;
+				var visitor = new MethodFinder(semanticModel);
+
+				visitor.Visit(root);
+				result = visitor.DeclaredMethods;
+			}
+
+			return result;
+		}
+
 		private static async Task<IEnumerable<MethodParserInfo>> GetDeclaredMethodsAsync(Document document, CancellationToken cancellationToken)
 		{
-			var root = await document.GetSyntaxRootAsync();
-			var semanticModel = await document.GetSemanticModelAsync(cancellationToken);			
-			var visitor = new MethodFinder(semanticModel);
+			IEnumerable<MethodParserInfo> result;
 
-			visitor.Visit(root);
-			return visitor.DeclaredMethods;
-        }
+			if (document == null)
+			{
+				result = new List<MethodParserInfo>();
+			}
+			else
+			{
+				var root = await document.GetSyntaxRootAsync();
+				var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+				var visitor = new MethodFinder(semanticModel);
+
+				visitor.Visit(root);
+				result = visitor.DeclaredMethods;
+			}
+
+			return result;
+		}
 	}
 }

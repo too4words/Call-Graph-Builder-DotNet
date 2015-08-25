@@ -362,6 +362,16 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.ReplaceDocumentAsync(documentPath, newDocumentPath);
 		}
+
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			return codeProvider.GetModificationsAsync(modifiedDocuments);
+		}
+
+		public Task ReloadAsync()
+		{
+			return codeProvider.ReloadAsync();
+		}
 	}
 
     /// <summary>
