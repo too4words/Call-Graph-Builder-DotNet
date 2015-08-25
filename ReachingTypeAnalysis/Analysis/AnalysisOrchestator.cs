@@ -59,22 +59,45 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessMessages()
 		{
+			var tasks = new List<Task>();
+
 			while (messageWorkList.Count > 0)
 			{
-				var message = messageWorkList.Dequeue();
+				while (messageWorkList.Count > 0)
+				{
+					var message = messageWorkList.Dequeue();
+					if (message is CallerMessage)
+					{
+						var callerMessage = (CallerMessage)message;
+						var callerMessageInfo = callerMessage.CallMessageInfo;
+						tasks.Add(this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind));
+					}
+					else if (message is CalleeMessage)
+					{
+						var calleeMessage = (CalleeMessage)message;
+						tasks.Add(this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind));
+					}
 
-				if (message is CallerMessage)
-				{
-					var callerMessage = (CallerMessage)message;
-					var callerMessageInfo = callerMessage.CallMessageInfo;
-					await this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
 				}
-				else if (message is CalleeMessage)
-				{
-					var calleeMessage = (CalleeMessage)message;
-					await this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
-				}
+				await Task.WhenAll(tasks);
 			}
+
+			//while (messageWorkList.Count > 0)
+			//{
+			//	var message = messageWorkList.Dequeue();
+
+			//	if (message is CallerMessage)
+			//	{
+			//		var callerMessage = (CallerMessage)message;
+			//		var callerMessageInfo = callerMessage.CallMessageInfo;
+			//		await this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
+			//	}
+			//	else if (message is CalleeMessage)
+			//	{
+			//		var calleeMessage = (CalleeMessage)message;
+			//		await this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
+			//	}
+			//}
 		}
 
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind)
