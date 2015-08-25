@@ -9,50 +9,39 @@ using System.Threading;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
+using Orleans;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
     public class AsyncProjectCodeProvider : BaseProjectCodeProvider
     {
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
-        
-        private AsyncProjectCodeProvider(Project project, Compilation compilation)
-			: base(project, compilation)
+		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
+
+		private AsyncProjectCodeProvider()
         {
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
 
-		public static async Task<IProjectCodeProvider> CreateFromProjectAsync(string projectPath)
+		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath)
 		{
-			var cancellationTokenSource = new CancellationTokenSource();
-			var project = await Utils.ReadProjectAsync(projectPath);
-
-			if (project != null)
-			{
-				var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
-				return new AsyncProjectCodeProvider(project, compilation);
-			}
-
-			Contract.Assert(false, "Can't read project at path = " + projectPath);
-			return null;
+			var provider = new AsyncProjectCodeProvider();
+			await provider.LoadProjectAsync(projectPath);
+			return provider;
 		}
 
-		public static async Task<IProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName)
+		public static async Task<AsyncProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName)
 		{
-			var cancellationTokenSource = new CancellationTokenSource();
-			var solution = Utils.CreateSolution(source);
+			var provider = new AsyncProjectCodeProvider();
+			await provider.LoadSourceAsync(source, assemblyName);
+			return provider;
+		}
 
-			foreach (var project in solution.Projects)
-			{
-				if (project.AssemblyName.Equals(assemblyName))
-				{
-					var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
-					return new AsyncProjectCodeProvider(project, compilation);
-				}
-			}
-
-			Contract.Assert(false, "Can't find project with assembly name = " + assemblyName);
-			return null;
+		public static async Task<AsyncProjectCodeProvider> CreateFromTestAsync(string testName, string assemblyName)
+		{
+			var provider = new AsyncProjectCodeProvider();
+			await provider.LoadTestAsync(testName, assemblyName);
+			return provider;
 		}
 
 		public override async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
@@ -81,5 +70,33 @@ namespace ReachingTypeAnalysis.Roslyn
 			this.methodEntities.Remove(methodDescriptor);
 			return propagationEffects;
 		}
-	}
+
+		public override async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			var modifications = await base.GetModificationsAsync(modifiedDocuments);
+			this.newMethodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>(methodEntities);
+
+			foreach (var modification in modifications)
+			{
+				if (modification.ModificationKind == ModificationKind.MethodRemoved ||
+					modification.ModificationKind == ModificationKind.MethodUpdated)
+				{
+					newMethodEntities.Remove(modification.MethodDescriptor);
+				}
+			}
+
+			return modifications;
+		}
+
+		public override Task ReloadAsync()
+		{
+			if (newMethodEntities != null)
+			{
+				this.methodEntities = newMethodEntities;
+				this.newMethodEntities = null;
+			}
+
+			return TaskDone.Done;
+		}
+    }
 }

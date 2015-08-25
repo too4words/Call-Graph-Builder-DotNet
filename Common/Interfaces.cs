@@ -74,7 +74,11 @@ namespace ReachingTypeAnalysis
 		Task ReplaceDocumentSourceAsync(string source, string documentPath);
 
 		Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null);
-    }
+
+		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
+
+		Task ReloadAsync();
+	}
 
     public interface ISolutionManager
     {

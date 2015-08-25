@@ -67,7 +67,6 @@ namespace ReachingTypeAnalysis
 			return analyzer;
 		}
 
-
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
 		/// We cannot use the SyncronousDistacther because it doesn't look for the 
@@ -124,6 +123,12 @@ namespace ReachingTypeAnalysis
             }
         }
 
+		public Task ApplyModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			return orchestator.ApplyModificationsAsync(modifiedDocuments);
+		}
+
 		internal Task RemoveMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
@@ -170,7 +175,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        internal async Task AnalyzeOnDemandAsync()
+        private async Task AnalyzeOnDemandAsync()
         {
             if (this.source != null)
             {

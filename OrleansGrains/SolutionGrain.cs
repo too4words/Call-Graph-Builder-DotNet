@@ -18,7 +18,6 @@ namespace ReachingTypeAnalysis.Analysis
     {
         string SolutionPath { get; set; }
         string Source { get; set; }
-
 		string TestName { get; set; }
 	}
 
@@ -34,8 +33,7 @@ namespace ReachingTypeAnalysis.Analysis
         public override  async Task OnActivateAsync()
         {
 			Logger.OrleansLogger = this.GetLogger();
-
-            Logger.LogVerbose(this.GetLogger(), "SolGrain", "OnActivate","");
+            Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
 
             if (!String.IsNullOrEmpty(this.State.SolutionPath))
             {
@@ -49,25 +47,26 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
 			}
-        }
+
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
+		}
 
         public async Task SetSolutionPathAsync(string solutionPath)
         {
-			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolution", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolution", "Enter");
 
             this.State.SolutionPath = solutionPath;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
-
 			this.State.Source = null;
             this.State.TestName = null;
 
             await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolution", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolution", "Exit");
 		}
 
         public async Task SetSolutionSourceAsync(string source)
         {
-            Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Enter");
+            Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Enter");
 
             this.State.Source = source;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
@@ -75,17 +74,20 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.TestName = null;
 
             await this.WriteStateAsync();
-            Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolSource", "Exit");
+            Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Exit");
         }
+
 		public async Task SetSolutionFromTestAsync(string testName)
 		{
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionTest", "Enter");
+
 			this.State.TestName = testName;
-			var source = BasicTestsSources.Test[testName];
 			this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, testName);
 			this.State.SolutionPath = null;
             this.State.Source = null;
+
 			await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "SolGrain", "SetSolTest", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionTest", "Exit");
 		}
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
@@ -115,13 +117,13 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
-			Logger.LogVerbose(this.GetLogger(), "SolGrain", "GetRoots", "Enter");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "GetRoots", "Enter");
 		
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
             var roots = await this.solutionManager.GetRootsAsync();
 
-			Logger.LogInfo(this.GetLogger(), "SolGrain", "GetRoots", "End Time elapsed {0}", sw.Elapsed);
+			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "GetRoots", "End Time elapsed {0}", sw.Elapsed);
 			
 			return roots; 
         }

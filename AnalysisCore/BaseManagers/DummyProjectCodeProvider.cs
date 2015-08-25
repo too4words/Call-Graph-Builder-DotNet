@@ -68,5 +68,16 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return TaskDone.Done;
 		}
-	}
+
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			var result = new List<MethodModification>();
+            return Task.FromResult(result.AsEnumerable());
+        }
+
+		public Task ReloadAsync()
+		{
+			return TaskDone.Done;
+		}
+    }
 }

@@ -352,5 +352,15 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			throw new NotImplementedException();
 		}
+
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task ReloadAsync()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

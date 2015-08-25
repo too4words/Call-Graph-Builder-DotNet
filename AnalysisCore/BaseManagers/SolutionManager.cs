@@ -14,26 +14,33 @@ namespace ReachingTypeAnalysis.Analysis
     {
 		//protected Solution solution;
 		protected string solutionPath;
-		protected IList<Project> projects;
-        protected ISet<TypeDescriptor> instantiatedTypes;
+		private IList<Project> projects;
+		private IList<Project> newProjects;
+		protected ISet<TypeDescriptor> instantiatedTypes;
+		protected bool useNewFieldsVersion;
 
 		protected SolutionManager()
 		{
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		protected Task LoadSolutionAsync(string solutionPath)
+		protected IList<Project> Projects
+		{
+			get { return useNewFieldsVersion ? newProjects : projects; }
+		}
+
+		protected async Task LoadSolutionAsync(string solutionPath)
 		{
 			var tasks = new List<Task>();
-			var solution = Utils.ReadSolution(solutionPath);
+			var solution = await Utils.ReadSolutionAsync(solutionPath);
 
 			this.solutionPath = solutionPath;
 			this.projects = Utils.FilterProjects(solution);
 
-			var projectsCount = this.projects.Count;
+			var projectsCount = this.Projects.Count;
 			var currentProjectNumber = 1;
 
-			foreach (var project in this.projects)
+			foreach (var project in this.Projects)
             {
 				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
 
@@ -42,7 +49,7 @@ namespace ReachingTypeAnalysis.Analysis
 				tasks.Add(task);
             }
 
-			return Task.WhenAll(tasks);
+			await Task.WhenAll(tasks);
 		}
 
 		protected Task LoadSourceAsync(string source)
@@ -71,7 +78,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<MethodDescriptor>();
 
-            foreach (var project in this.projects)
+            foreach (var project in this.Projects)
             {
 				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				var roots = await provider.GetRootsAsync();
@@ -90,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<IProjectCodeProvider>();
 
-			foreach (var project in this.projects)
+			foreach (var project in this.Projects)
 			{
 				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 				result.Add(provider);
@@ -133,45 +140,61 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(instantiatedTypes);
         }
 
-		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		public virtual async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
-			// TODO: Who returns the modifications for newly added documents?
-			// Think the case of new projects added: there are no providers
-			// for them but we need to return the newly added methods.
-			throw new NotImplementedException();
-		}
+			var tasks = new List<Task<IEnumerable<MethodModification>>>();
+			var existingProjectNames = this.Projects.Select(p => p.Name).ToList();
+			var solution = await Utils.ReadSolutionAsync(this.solutionPath);
 
-		public async Task ReloadAsync()
-		{
-			var tasks = new List<Task>();
-			var existingProjectNames = this.projects.Select(p => p.Name).ToList();
-			var solution = Utils.ReadSolution(this.solutionPath);
-			this.projects = Utils.FilterProjects(solution);
+			this.newProjects = Utils.FilterProjects(solution);
+			this.useNewFieldsVersion = true;
 
-			var projectsCount = this.projects.Count;
-			var currentProjectNumber = 1;
+			var newProjectsCount = newProjects.Count(p => !existingProjectNames.Contains(p.Name));
+			var currentProjectNumber = 1;			
 
-			foreach (var project in this.projects)
+			foreach (var project in newProjects)
 			{
-				Task task = null;
+				var isNewProject = !existingProjectNames.Contains(project.Name);
 
-				if (existingProjectNames.Contains(project.Name))
+				if (isNewProject)
 				{
-					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
-					//task = provider.ReloadAsync();
-				}
-				else
-				{
-					Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
+					Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, newProjectsCount);
 
-					task = this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
+					await this.CreateProjectCodeProviderAsync(project.FilePath, project.AssemblyName);
 				}
 
+				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+				var task = provider.GetModificationsAsync(modifiedDocuments);
 				//await task;
 				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
+			this.useNewFieldsVersion = false;
+
+			var result = tasks.SelectMany(t => t.Result).ToList();
+			return result;
 		}
+
+		public virtual async Task ReloadAsync()
+		{
+			if (newProjects != null)
+			{
+				var tasks = new List<Task>();
+
+				this.projects = newProjects;
+				this.newProjects = null;
+
+				foreach (var project in this.Projects)
+				{
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var task = provider.ReloadAsync();
+					//await task;
+					tasks.Add(task);
+				}
+
+				await Task.WhenAll(tasks);
+			}
+        }
 	}
 }

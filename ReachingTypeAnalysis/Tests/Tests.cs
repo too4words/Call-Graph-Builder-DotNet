@@ -120,9 +120,9 @@ namespace ReachingTypeAnalysis
 				},
 				(s) =>
 				{
-					//var modifications = s.GetModifications(solutionPath);
-
-					//s.ApplyModifications(modifications);
+					// TODO: fill with modified documents
+					var modifiedDocuments = new string[] { };
+					s.ApplyModificationsAsync(modifiedDocuments).Wait();
 				},
 				(s, callgraph) =>
 				{

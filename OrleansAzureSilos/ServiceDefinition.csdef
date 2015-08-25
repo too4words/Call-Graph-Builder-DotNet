@@ -66,7 +66,7 @@
 			<Task commandLine="scripts\ServerGC.cmd" executionContext="elevated" taskType="simple">
 				<Environment>
 					<Variable name="UseServerGC" value="True" />
-					<Variable name="UseBackgroundGC" value="True" />
+					<Variable name="UseBackgroundGC" value="False" />
 				</Environment>
 			</Task>
 

@@ -254,7 +254,6 @@ namespace ReachingTypeAnalysis
 		{
 			var projectId = ProjectId.CreateNewId();
 			var documentId = DocumentId.CreateNewId(projectId);
-			var tree = SyntaxFactory.ParseSyntaxTree(source);
 
 			var props = new Dictionary<string, string>();
 			props["CheckForSystemRuntimeDependency"] = "true";
@@ -275,15 +274,19 @@ namespace ReachingTypeAnalysis
 			return ws.OpenProjectAsync(path);
 		}
 
-		public static Solution ReadSolution(string path)
+		public static Task<Solution> ReadSolutionAsync(string path)
 		{
 			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
 
 			var props = new Dictionary<string, string>();
 			props["CheckForSystemRuntimeDependency"] = "true";
 			var ws = MSBuildWorkspace.Create(props);
-			var solution = ws.OpenSolutionAsync(path).Result;
+			return ws.OpenSolutionAsync(path);
+		}
 
+		public static Solution ReadSolution(string path)
+		{
+			var solution = Utils.ReadSolutionAsync(path).Result;
 			return solution;
 		}
 
