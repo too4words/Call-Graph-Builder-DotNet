@@ -272,8 +272,9 @@ namespace WebRole1
 
         protected async void Button7_Click(object sender, EventArgs e)
         {
-            var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
-			if (solutionManager != null)
+            //var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
+            var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+            if (solutionManager != null)
             {
                 if(solutionManager is ISolutionGrain)
                 {

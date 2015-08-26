@@ -156,7 +156,8 @@ namespace ReachingTypeAnalysis
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ClassLibrary1", "RemoteClass1", "ClassLibrary1"), "Bar", false), callgraph)); // ClassLibrary
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "LocalClass2", "ConsoleApplication1"), "Bar"), callgraph)); // ConsoleApplication1
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
-				},
+                    Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test3", "ConsoleApplication1"), "DoTest"), callgraph)); // ConsoleApplication1
+                },
 				(s) =>
 				{
 					var modifications = new List<string>();
@@ -177,8 +178,8 @@ namespace ReachingTypeAnalysis
 				},
 				(s, callgraph) =>
 				{
-					
-				},
+                    Assert.IsFalse(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test3", "ConsoleApplication1"), "DoTest"), callgraph)); // ConsoleApplication1
+                },
 				strategy);
 		}
 

@@ -100,10 +100,9 @@ namespace ReachingTypeAnalysis.Analysis
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-
-			this.instantiatedTypes = new HashSet<TypeDescriptor>();
-			this.projects = null;
-			this.solutionPath = null;
+			//this.instantiatedTypes = new HashSet<TypeDescriptor>();
+			//this.projects = null;
+			//this.solutionPath = null;
         }
 	}
 }
