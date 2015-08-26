@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
 EndProject
@@ -49,6 +49,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGraphModel", "CodeGraphModel\CodeGraphModel.csproj", "{55B3035F-2852-4B39-A235-7627D108373D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZOrleansAzure", "StandAloneOrlansAzure\ZOrleansAzure.csproj", "{FCB9990B-1879-4972-8E01-D44FB943DE00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncLegacyVersion", "SyncVersion\SyncLegacyVersion.csproj", "{586A7B2B-1497-4092-8FBA-1C24CC4718C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -176,6 +178,12 @@ Global
 		{FCB9990B-1879-4972-8E01-D44FB943DE00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCB9990B-1879-4972-8E01-D44FB943DE00}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FCB9990B-1879-4972-8E01-D44FB943DE00}.Release|x64.ActiveCfg = Release|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

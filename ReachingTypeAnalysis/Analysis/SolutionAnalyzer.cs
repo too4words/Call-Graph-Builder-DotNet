@@ -35,7 +35,6 @@ namespace ReachingTypeAnalysis
 		private string solutionPath;
 
 		private Solution solution;
-		private IDispatcher dispatcher;
 		private string testName;
 
 		public ISolutionManager SolutionManager { get; private set; }
@@ -73,7 +72,6 @@ namespace ReachingTypeAnalysis
 		/// methods when they are not available. This only works with the entire solution
 		/// analysis!!!!
 		/// </summary>
-		/// <param name="dispatcher"></param>
 		public CallGraph<MethodDescriptor, LocationDescriptor> Analyze(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)
@@ -83,20 +81,6 @@ namespace ReachingTypeAnalysis
 
             switch (strategyKind)
             {
-                case AnalysisStrategyKind.ONDEMAND_SYNC:
-                    {
-						this.solution = this.GetSolution();
-						this.dispatcher = new OnDemandSyncDispatcher();
-                        this.AnalyzeOnDemandSync();
-                        return this.GenerateCallGraph();
-                    }
-                case AnalysisStrategyKind.ENTIRE_SYNC:
-                    {
-						this.solution = this.GetSolution();
-						this.dispatcher = new SynchronousLocalDispatcher();
-                        this.AnalyzeEntireSolution();
-                        return this.GenerateCallGraph();
-                    }
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
 						this.AnalyzeOnDemandAsync().Wait();
@@ -108,13 +92,6 @@ namespace ReachingTypeAnalysis
 						this.AnalyzeOnDemandOrleans().Wait();
 						var callgraph = this.GenerateCallGraphAsync().Result;
 						return callgraph;
-					}
-                case AnalysisStrategyKind.ENTIRE_ASYNC:
-                    {
-						this.solution = this.GetSolution();
-						this.dispatcher = new AsyncDispatcher();
-                        this.AnalyzeEntireSolutionAsync();
-                        return this.GenerateCallGraph();
 					}
                 default:
                     {
@@ -344,104 +321,56 @@ namespace ReachingTypeAnalysis
 			}
         }
 
-        /// <summary>
-        /// Try to get the roslyn methods on the fly
-        /// Currently works with one project.
-        /// </summary>
-        private void AnalyzeOnDemandSync()
-        {
-			// TOOD: hack -- set the global solution
-			ProjectCodeProvider.Solution = this.solution;
-
-			var cancellationToken = new CancellationTokenSource();
-			var projectIDs = this.solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken.Token);
-
-			foreach (var projectId in projectIDs)
-			{
-				var project = this.solution.GetProject(projectId);
-				var compilation = project.GetCompilationAsync().Result;
-                var triple = ProjectCodeProvider.GetProviderContainingEntryPointAsync(project, cancellationToken.Token).Result;
-                var provider = triple.Item1;
-                var mainSymbol = triple.Item2;
-                var tree = triple.Item3;
-
-				if (provider != null)
-				{
-                    var model = provider.Compilation.GetSemanticModel(tree);
-					cancellationToken.Cancel(); // cancel out outstanding processing tasks
-                    var methodVisitor = new MethodParser(model, tree, mainSymbol);
-
-					var mainMethodEntity = methodVisitor.ParseMethod();
-                    this.dispatcher.RegisterEntity(mainMethodEntity.EntityDescriptor, mainMethodEntity);
-                    var mainEntityProcessor = new MethodEntityProcessor(mainMethodEntity, this.dispatcher);
-					mainEntityProcessor.DoAnalysis();
-					Logger.LogS("SolutionAnalyzer", "AnalyzeOnDemand", "--- Done with propagation ---");
-				}
-			}
-
-			if (this.dispatcher is QueueingDispatcher)
-            {
-                var qd = (QueueingDispatcher)this.dispatcher;
-
-                while (!qd.IsDoneProcessing)
-                {
-                    Logger.LogS("SolutionAnalyzer", "AnalyzeOnDemand", "Waiting for the queue to empty up...");
-                    Thread.Sleep(1000);
-                }
-            }
-        }
-
         internal void CompareWithRoslynFindReferences(string filename)
         {
-            var writer = File.CreateText(filename);
-            writer.WriteLine("Caller; Callee; CG; Roslyn; CG vs R; R vs CG");
-            var allEntities = new HashSet<IEntity>(this.dispatcher.GetAllEntites());
-            var max = 0;
-			var count = 0;
-			var sum = 0;
-            var countDiff = 0;
+			//var writer = File.CreateText(filename);
+			//writer.WriteLine("Caller; Callee; CG; Roslyn; CG vs R; R vs CG");
+			//var allEntities = new HashSet<IEntity>(this.dispatcher.GetAllEntites());
+			//var max = 0;
+			//var count = 0;
+			//var sum = 0;
+			//var countDiff = 0;
 
-            foreach (var e in allEntities)
-            {
-				var methodEntity = e as MethodEntity;
-                // Updates the callGraph
-                var method = methodEntity.MethodDescriptor;
-                //var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(this.Dispatcher);
-                var methodEntityProcessor = (MethodEntityProcessor)this.dispatcher.GetEntityWithProcessor(methodEntity.EntityDescriptor);
+			//foreach (var e in allEntities)
+			//{
+			//	var methodEntity = e as MethodEntity;
+			//	// Updates the callGraph
+			//	var method = methodEntity.MethodDescriptor;
+			//	//var methodEntityProcessor = (MethodEntityProcessor)methodEntity.GetEntityProcessor(this.Dispatcher);
+			//	var methodEntityProcessor = (MethodEntityProcessor)this.dispatcher.GetEntityWithProcessor(methodEntity.EntityDescriptor);
 
-                foreach (var callNode in methodEntity.PropGraph.CallNodes)
-                {
-                    var countCG = CallGraphQueryInterface.GetCalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
-                    var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
+			//	foreach (var callNode in methodEntity.PropGraph.CallNodes)
+			//	{
+			//		var countCG = CallGraphQueryInterface.GetCalleesAsync(methodEntity, callNode, methodEntityProcessor.codeProvider).Result.Count();
+			//		var invExp = methodEntity.PropGraph.GetInvocationInfo(callNode);
 
-                    if (invExp is MethodCallInfo)
-                    {
-						var callInfo = invExp as MethodCallInfo;
-                        var calleeRoslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, callInfo.Method);
-                        var calleeReferences = SymbolFinder.FindImplementationsAsync(calleeRoslynMethod, this.solution).Result;
-                        var roslynCount = calleeReferences.Count();
+			//		if (invExp is MethodCallInfo)
+			//		{
+			//			var callInfo = invExp as MethodCallInfo;
+			//			var calleeRoslynMethod = RoslynSymbolFactory.FindMethodSymbolInSolution(this.solution, callInfo.Method);
+			//			var calleeReferences = SymbolFinder.FindImplementationsAsync(calleeRoslynMethod, this.solution).Result;
+			//			var roslynCount = calleeReferences.Count();
 
-						writer.WriteLine("{0}; {1}; {2}; {3}; {4}; {5}", method.ToString(), callInfo.Method.ToString(), countCG,roslynCount ,roslynCount-countCG, countCG-roslynCount );
-                        max = Math.Max(max, roslynCount-countCG);
+			//			writer.WriteLine("{0}; {1}; {2}; {3}; {4}; {5}", method.ToString(), callInfo.Method.ToString(), countCG,roslynCount ,roslynCount-countCG, countCG-roslynCount );
+			//			max = Math.Max(max, roslynCount-countCG);
 
-						if (roslynCount - countCG > 5) countDiff++;
+			//			if (roslynCount - countCG > 5) countDiff++;
 
-                        sum += roslynCount- countCG;
-                        count++;
-                    }
+			//			sum += roslynCount- countCG;
+			//			count++;
+			//		}
 
-                    if (invExp is DelegateCallInfo)
-                    {
-						var delegateInfo = invExp as DelegateCallInfo;
-						// TODO???
-                    }
-                }
-            }
+			//		if (invExp is DelegateCallInfo)
+			//		{
+			//			var delegateInfo = invExp as DelegateCallInfo;
+			//			// TODO???
+			//		}
+			//	}
+			//}
 
-            writer.WriteLine(";;;;{0} ; {1}",  max, (float)sum/count);
-            writer.WriteLine("More than {1};;;;{0} ", countDiff,5);
-            writer.Close();
-            //callgraph.Save("cg.dot");
+			//writer.WriteLine(";;;;{0} ; {1}",  max, (float)sum/count);
+			//writer.WriteLine("More than {1};;;;{0} ", countDiff,5);
+			//writer.Close();
         }
 
 		/// <summary>
@@ -472,69 +401,5 @@ namespace ReachingTypeAnalysis
         {
             return callgraph.GetCallers(calleeDescriptor).Select(kp => kp.Value).Contains(callerDescriptor);
         }
-
-
-        #region Callgraph
-
-        private static void UpdateCallGraph(IEntityProcessor entityProcessor, CallGraph<MethodDescriptor, LocationDescriptor> callgraph, Solution solution)
-        {
-            Contract.Assert(entityProcessor != null);
-            var methodEntity = (MethodEntity)entityProcessor.Entity;
-            Contract.Assert(methodEntity.MethodDescriptor != null);
-            var callerMethod = methodEntity.MethodDescriptor;
-            var pair = ProjectCodeProvider.GetProjectProviderAndSyntaxAsync(callerMethod, solution).Result;
-
-			if (pair != null)
-			{
-				var codeProvider = pair.Item1;
-				// Hack
-				var methodEntityProcessor = new MethodEntityProcessor(methodEntity, ((MethodEntityProcessor)entityProcessor).dispatcher, codeProvider);
-				//(MethodEntityProcessor)entityProcessor;
-                var callSitesForMethod = CallGraphQueryInterface.GetCalleesInfo(methodEntity, codeProvider).Result;
-
-				foreach (var callSiteNode in callSitesForMethod.Keys)
-				{
-					foreach (var calleeAMethod in callSitesForMethod[callSiteNode])
-					{
-						//var callee = Utils.FindMethodSymbolDeclaration(this.Solution, ((AMethod)calleeAMethod).RoslynMethod);
-						var callee = calleeAMethod;
-						Logger.LogS("SolutionAnalyzer", "UpdateCallGraph", "\t-> {0}", callee);
-						callgraph.AddCallAtLocation(callSiteNode.LocationDescriptor, callerMethod, callee);
-					}
-				}
-			}
-        }
-
-        private CallGraph<MethodDescriptor, LocationDescriptor> GenerateCallGraph()
-        {
-            Contract.Assert(this.dispatcher != null);
-			//Contract.Assert(dispatcher.GetAllEntites() != null);
-
-			var roots = ProjectCodeProvider.GetMainMethods(this.solution);
-            var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-            callgraph.AddRootMethods(roots);
-            // var allEntities = new HashSet<IEntity>(this.Dispatcher.GetAllEntites());
-            var allEntityDescriptors = this.dispatcher.GetAllEntitiesDescriptors();
-
-			foreach (var entityDesc in allEntityDescriptors)
-            {
-                //  entity.GetEntityProcessor(this.Dispatcher);
-                //var entityProcessor = new MethodEntityProcessor((MethodEntity)entity, this.Dispatcher); 
-                var entityProcessor = this.dispatcher.GetEntityWithProcessor(entityDesc);
-                
-                // Updates the callGraph
-                UpdateCallGraph(entityProcessor, callgraph, this.solution);
-                var methodEntity = (MethodEntity) entityProcessor.Entity;
-                
-                methodEntity.Save(Path.Combine(Path.GetTempPath(), 
-                    methodEntity.MethodDescriptor.ClassName + "_" + methodEntity.MethodDescriptor.Name + ".dot"));
-            }
-
-            //callgraph.Save("cg.dot");
-            return callgraph;
-        }
-
-        #endregion
-
 	}
 }

@@ -219,97 +219,85 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="propKind"></param>
         private void DispatchCallMessage(MethodCallInfo callInfo, PropagationKind propKind)
         {
-            Task.Run( () =>  DispatchCallMessageAsync(callInfo, propKind)).Wait();
+			if (!callInfo.IsStatic && callInfo.Receiver != null)
+			{
+				// I need to computes all the calless
+				// In case of a deletion we can discar the deleted callee
+				//var types = GetTypes(callNode.Receiver, propKind); 
+				var types = GetTypes(callInfo.Receiver);
 
-            //if (!callInfo.IsStatic && callInfo.Receiver != null)
-            //{
-            //    // I need to computes all the calless
-            //    // In case of a deletion we can discar the deleted callee
-            //    //var types = GetTypes(callNode.Receiver, propKind); 
-            //    var types = GetTypes(callInfo.Receiver);
+				// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
+				if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)	//  && propKind==PropagationKind.ADD_TYPES) 
+				{
+					var instTypes = new HashSet<TypeDescriptor>();
+					foreach (var candidateTypeDescriptor in this.MethodEntity.InstantiatedTypes)
+					{
+						var isSubType = codeProvider.IsSubtypeAsync(candidateTypeDescriptor, callInfo.Receiver.Type).Result;
 
-            //    /// If types=={} it means that some info ins missing => we should be conservative and use the instantiated types (RTA) 
-            //    if (types.Count() == 0 && propKind != PropagationKind.REMOVE_TYPES)
-            //    {
-            //        var instantiatedTypes = new HashSet<TypeDescriptor>();
-            //        /// We get the instantiated type that are compatible with the receiver type
-            //        instantiatedTypes.UnionWith(
-            //            this.MethodEntity.InstantiatedTypes
-            //                .Where(type => codeProvider.IsSubtype(type, callInfo.Receiver.Type)));
-            //        // .Where(type => type.IsSubtype(callInfo.Receiver.Type)));
-            //        foreach (var type in instantiatedTypes)
-            //        {
-            //            types.Add(type);
-            //        }
-            //        // TO-DO: SHould I fix the node in the receiver to show that is not loaded? Ideally I should use the declared type. 
-            //        // Here I will use the already instantiated types
-            //        this.MethodEntity.PropGraph.Add(callInfo.Receiver, types);
-            //        //var declaredType = callInfo.Receiver.AType;
-            //        //this.PropGraph.Add(callInfo.Receiver, declaredType);
-            //    }
-            //    // Now we compute the potential callees we are going to send the messsages
-            //    // I need to propagate the change to all potential callees, in particular the change in arguments
-            //    if (types.Count() > 0)
-            //    {
-            //        foreach (var receiverType in types)
-            //        {
-            //            // Given a method m and T find the most accurate implementation wrt to T
-            //            // it can be T.m or the first super class implementing m
-            //            //var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
-            //            var realCallee = codeProvider.FindMethodImplementation(callInfo.Method, receiverType);
-            //            CreateAndSendCallMessage(
-            //                callInfo, realCallee, receiverType, propKind);
-            //        }
-            //    }
-            //    // This is not good: One reason is that loads like b = this.f are not working
-            //    // in a meth m a after  call r.m() because only the value of r is passed and not all its structure
-            //    else
-            //    {
-            //        CreateAndSendCallMessage(callInfo, callInfo.Method, callInfo.Method.ContainerType, propKind);
-            //    }
-            //}
-            //else
-            //{
-            //    CreateAndSendCallMessage(callInfo,
-            //        callInfo.Method,
-            //        callInfo.Method.ContainerType, propKind);
-            //}
+						if (isSubType)
+						{
+							instTypes.Add(candidateTypeDescriptor);
+						}
+					}
+					foreach (var t in instTypes)
+					{
+						types.Add(t);
+					}
+					// TO-DO: SHould I fix the node in the receiver to show that is not loaded. Ideally I should use the declared type. 
+					// Here I will use the already instantiated types
+					this.MethodEntity.PropGraph.Add(callInfo.Receiver, types);
+					//var declaredType = callInfo.Receiver.AType;
+					//this.PropGraph.Add(callInfo.Receiver, declaredType);
+				}
+				if (types.Count() > 0)
+				{
+					var continuations = new List<Task>();
+					// Hack
+					// Parallel.ForEach(types, async (receiverType) =>
+					foreach (var receiverType in types)
+					{
+						// Given a method m and T find the most accurate implementation wrt to T
+						// it can be T.m or the first super class implementing m
+						//var realCallee = callInfo.Callee.FindMethodImplementation(receiverType);
+						var realCallee = codeProvider.FindMethodImplementationAsync(callInfo.Method, receiverType).Result;
+						CreateAndSendCallMessage(callInfo, realCallee, receiverType, propKind);
+					};//);
+				}
+				// This is not good: One reason is that loads like b = this.f are not working
+				// in a meth m a after  call r.m() because only the value of r is passed and not all its structure
+				else
+				{
+					CreateAndSendCallMessage(callInfo, callInfo.Method, callInfo.Method.ContainerType, propKind);
+				}
+			}
+			else
+			{
+				CreateAndSendCallMessage(callInfo, callInfo.Method, callInfo.Method.ContainerType, propKind);
+			}
         }
-
-        private void CreateAndSendCallMessage(CallInfo callInfo, MethodDescriptor realCallee,
-                                            TypeDescriptor receiverType, PropagationKind propKind)
-        {
-            /// Here I have all the necessary info to update the callgraph
-            /// 
-            var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
-            var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
-            this.SendMessage(new MethodEntityDescriptor(realCallee), callerMessage);
-        }
-
         private IEnumerable<MethodDescriptor> GetDelegateCallees(DelegateVariableNode delegateVariableNode)
         {
-            return GetDelegateCalleesAsync(delegateVariableNode).Result;
-            //var callees = new HashSet<MethodDescriptor>();
-            //var types = GetTypes(delegateVariableNode);
-            //foreach (var delegateInstance in GetDelegates(delegateVariableNode))
-            //{
-            //    if (types.Count() > 0)
-            //    {
-            //        foreach (var t in types)
-            //        {
-            //            //var aMethod = delegateInstance.FindMethodImplementation(t);
-            //            // Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
-            //            var methodDescriptor = codeProvider.FindMethodImplementation(delegateInstance, t);
-            //            callees.Add(methodDescriptor);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        // if Count is 0, it is a delegate that do not came form an instance variable
-            //        callees.Add(delegateInstance);
-            //    }
-            //}
-            //return callees;
+			var callees = new HashSet<MethodDescriptor>();
+			var types = GetTypes(delegateVariableNode);
+			foreach (var delegateInstance in GetDelegates(delegateVariableNode))
+			{
+				if (types.Count() > 0)
+				{
+					foreach (var t in types)
+					{
+						//var aMethod = delegateInstance.FindMethodImplementation(t);
+						// Diego: SHould I use : codeProvider.FindImplementation(delegateInstance, t);
+						var methodDescriptor = codeProvider.FindMethodImplementationAsync(delegateInstance, t).Result;
+						callees.Add(methodDescriptor);
+					}
+				}
+				else
+				{
+					// if Count is 0, it is a delegate that do not came form an instance variable
+					callees.Add(delegateInstance);
+				}
+			}
+			return callees;
         }
 
         private void DispatchCallMessageForDelegate(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
@@ -325,36 +313,46 @@ namespace ReachingTypeAnalysis.Analysis
                                                             TypeDescriptor computedReceiverType,
                                                             PropagationKind propKind)
         {
-            return CreateCallMessageAsync(callInfo, actuallCallee, computedReceiverType, propKind).Result;
+            var calleType = computedReceiverType;
+            ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
 
-            //// var calleType = (TypeDescriptor)actuallCallee.ContainerType;
-            //var calleType = computedReceiverType;
-            //ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
+            if (callInfo.Receiver != null)
+            {
+                // BUG!!!! I should use simply computedReceiverType
+                // Instead of copying all types with use the type we use to compute the callee
+                foreach (var type in GetTypes(callInfo.Receiver, propKind))
+                {
+                    var isSubType = codeProvider.IsSubtypeAsync(type, calleType).Result;
 
-            //if (callInfo.Receiver != null)
-            //{
-            //    // BUG!!!! I should use simply computedReceiverType
-            //    // Instead of copying all types with use the type we use to compute the callee
+                    if(isSubType)
+                    {
+                        potentialReceivers.Add(type);
+                    }
+                }
+            }
 
-            //    potentialReceivers.UnionWith(
-            //            GetTypes(callInfo.Receiver, propKind)
-            //            .Where(t => codeProvider.IsSubtype(t, calleType)));
-            //    //.Where(t => t.IsSubtype(calleType)));
+            var argumentValues = callInfo.Arguments
+                .Select(a => a != null ?
+                GetTypes(a, propKind) :
+                new HashSet<TypeDescriptor>());
 
-            //    // potentialReceivers.Add((AnalysisType)calleType);
-            //}
+            Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
 
-            //var argumentValues = callInfo.Arguments
-            //    .Select(a => a != null ?
-            //    GetTypes(a, propKind) :
-            //    new HashSet<TypeDescriptor>());
-
-            //Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
-
-            //return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
-            //    new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
-            //    callInfo.CallNode, callInfo.LHS, propKind);
+            return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
+				new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
+				callInfo.CallNode, callInfo.LHS, propKind);
         }
+
+		private void CreateAndSendCallMessage(CallInfo callInfo, 
+                            MethodDescriptor realCallee, TypeDescriptor receiverType, PropagationKind propKind)
+		{
+			var callMessage = CreateCallMessage(callInfo, realCallee, receiverType, propKind);
+			var callerMessage = new CallerMessage(this.EntityDescriptor, callMessage);
+            var destination = new MethodEntityDescriptor(realCallee);
+
+			this.SendMessage(destination, callerMessage);
+		}
+
 
         /// <summary>
         /// When the method returns I should inform the computed return value to all its caller
@@ -378,46 +376,47 @@ namespace ReachingTypeAnalysis.Analysis
         /// <param name="context"></param>
         /// <param name="returnVariable"></param>
         /// <param name="propKind"></param>
-        internal void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
-        {
-            Task.Run( () => DispachReturnMessageAsync(context, returnVariable, propKind)).Wait();
+		internal void DispachReturnMessage(CallContext context, VariableNode returnVariable, PropagationKind propKind)
+		{
+			var caller = context.Caller;
+			var lhs = context.LHS;
+			var types = returnVariable != null ?
+				GetTypes(returnVariable, propKind) :
+				new HashSet<TypeDescriptor>();
 
-            //var caller = context.Caller;
-            //var lhs = context.LHS;
-            //var types = returnVariable != null ?
-            //    GetTypes(returnVariable, propKind) :
-            //    new HashSet<TypeDescriptor>();
+			// Diego TO-DO, different treatment for adding and removal
+			if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
+			{
+				var instTypes = new HashSet<TypeDescriptor>();
 
-            //// Diego TO-DO, different treatment for adding and removal
-            //if (propKind == PropagationKind.ADD_TYPES && types.Count() == 0 && returnVariable != null)
-            //{
-            //    var instTypes = new HashSet<TypeDescriptor>();
-            //    instTypes.UnionWith(this.MethodEntity.InstantiatedTypes
-            //              .Where(type => codeProvider.IsSubtype(type, returnVariable.Type)));
-            //    //.Where(type => type.IsSubtype(returnVariable.Type)));
-            //    foreach (var type in instTypes)
-            //    {
-            //        types.Add(type);
-            //    }
-            //}
+				foreach (var iType in this.MethodEntity.InstantiatedTypes)
+				{
+					var isSubtype = codeProvider.IsSubtypeAsync(iType, returnVariable.Type).Result;
 
-            //// Jump to caller
-            //var destination = new MethodEntityDescriptor(caller);
-            //var retMessageInfo = new ReturnMessageInfo(
-            //    context.Caller,
-            //    this.MethodEntity.MethodDescriptor,
-            //    types,
-            //    this.MethodEntity.InstantiatedTypes,
-            //    context.CallNode,
-            //    lhs,
-            //    propKind);
-            //var returnMessage = new CalleeMessage(
-            //    this.MethodEntity.EntityDescriptor, retMessageInfo);
-            //if (lhs != null)
-            //{
-            //    this.SendMessage(destination, returnMessage);
-            //}
-        }
+					if (isSubtype)
+					{
+						instTypes.Add(iType);
+					}
+				}
+
+				foreach (var t in instTypes)
+				{
+					types.Add(t);
+				}
+			}
+
+			// Jump to caller
+			var destination = new MethodEntityDescriptor(caller);
+			var retMessageInfo = new ReturnMessageInfo(
+				context.Caller,
+				this.MethodEntity.MethodDescriptor,
+				types,
+				this.MethodEntity.InstantiatedTypes,
+				context.CallNode, lhs,
+				propKind);
+			var returnMessage = new CalleeMessage(this.MethodEntity.EntityDescriptor, retMessageInfo);
+			this.SendMessage(destination, returnMessage);
+		}
 
         /// <summary>
         /// This method is executed when a method finishes its analysis

@@ -21,7 +21,6 @@ namespace WebRole1
         public int Machines { get; set; }
         public string Subject { get; set; }
         public int Methods { get; set; }
-        //public DateTime TimeStamp { get; set; }
         public int Messages { get; set; }
         public long ElapsedTime { get; set; }
         public string Observations { get; set; }   
@@ -31,7 +30,6 @@ namespace WebRole1
         public DateTime Time { get; set; }
         public int Machines { get; set; }
         public string Subject { get; set; }
-        //public DateTime TimeStamp { get; set; }
         public long AvgTime { get; set; }
         public long MinTime { get; set; }
         public long MaxTime { get; set; }

@@ -11,10 +11,7 @@ namespace ReachingTypeAnalysis.Communication
         IEntity Entity { get; }
         void SendMessage(IEntityDescriptor destination, IMessage message);
         void ReceiveMessage(IEntityDescriptor source, IMessage message);
-        Task SendMessageAsync(IEntityDescriptor destination, IMessage message);
-        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
         void DoAnalysis();
-        Task DoAnalysisAsync();
     }
 
 
@@ -45,21 +42,9 @@ namespace ReachingTypeAnalysis.Communication
             ProcessMessage(source, message);
         }
 
-        public Task SendMessageAsync(IEntityDescriptor destination, IMessage message)
-        {
-            return dispatcher.DeliverMessageAsync(destination, message);
-        }
-
-        public Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message)
-        {
-            return ProcessMessageAsync(source, message);
-        }
-
         public abstract void ProcessMessage(IEntityDescriptor source, IMessage message);
-        public abstract Task ProcessMessageAsync(IEntityDescriptor source, IMessage message);
-
+        
         public abstract void DoAnalysis();
 
-        public abstract Task  DoAnalysisAsync();
     }
 }

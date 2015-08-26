@@ -210,26 +210,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return Task.FromResult(this.methodEntity != null);
         }
-
-        //public Task<IEntityDescriptor> GetDescriptor()
-        //{
-        //    return Task.FromResult<IEntityDescriptor>(this.orleansEntityDescriptor);
-        //}
-
-        //public Task<MethodDescriptor> GetMethodDescriptor()
-        //{
-        //    return Task.FromResult<MethodDescriptor>(this.orleansEntityDescriptor.MethodDescriptor);
-        //}
-
-        //public Task SetDescriptor(IEntityDescriptor descriptor)
-        //{
-        //    var orleansEntityDescriptor = (MethodEntityDescriptor)descriptor;
-
-        //    Contract.Assert(this.State != null);
-        //    this.State.MethodDescriptor = orleansEntityDescriptor.MethodDescriptor;
-        //    return State.WriteStateAsync();
-        //}
-
+           
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
            return this.methodEntityPropagator.GetInstantiatedTypesAsync();
