@@ -102,7 +102,6 @@ namespace ReachingTypeAnalysis
 			TestSolutionIncremental1(strategy, solutionPath);
 		}
 
-
         public static void TestSolution1Share(AnalysisStrategyKind strategy)
         {
             string currentSolutionPath = @"\\t-digarb-z440\share\solutions";

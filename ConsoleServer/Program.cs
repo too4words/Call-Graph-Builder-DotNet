@@ -11,6 +11,7 @@ using ConsoleServer.Controllers;
 using System.IO;
 using Orleans;
 using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace ConsoleServer
 {
@@ -18,8 +19,8 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
-		//const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-		const string SolutionToTest = @"Coby\Coby.sln";
+		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+		//const string SolutionToTest = @"Coby\Coby.sln";
 
 		const string WelcomeMessage = @"Console Server started
 -----------------
@@ -38,16 +39,12 @@ Listening on Port {0} ...
 		private AnalysisStrategyKind strategyKind;
 		private AppDomain hostDomain;
 		private static OrleansHostWrapper hostWrapper;
+		private SolutionAnalyzer analyzer;
+		private string solutionPath;
 
 		public Program(AnalysisStrategyKind strategyKind)
 		{
 			this.strategyKind = strategyKind;
-		}
-
-		public void Start(string baseAddress, uint port, string solutionPath)
-		{
-			InitializeAnalysis(solutionPath);
-			InitializeServer(baseAddress, port);
 		}
 
 		static void Main(string[] args)
@@ -58,9 +55,15 @@ Listening on Port {0} ...
 			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, SolutionToTest);
 
 			var program = new Program(AnalysisStrategyKind.ONDEMAND_ASYNC);
-			program.Start(baseAddress, port, solutionPath);
+			program.Start(solutionPath, baseAddress, port);
 
 			Console.WriteLine("Done");
+		}
+
+		public void Start(string solutionPath, string baseAddress, uint port)
+		{
+            InitializeAnalysis(solutionPath);
+			InitializeServer(baseAddress, port);
 		}
 
 		private void InitializeAnalysis(string solutionPath)
@@ -68,7 +71,8 @@ Listening on Port {0} ...
 			Console.WriteLine("Analyzing solution...");
 
 			this.Initialize();
-			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
+			this.solutionPath = solutionPath;
+			this.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			//analyzer.Analyze(AnalysisStrategyKind.ONDEMAND_ASYNC);
 			analyzer.Analyze(strategyKind);
 			OrleansController.SolutionManager = analyzer.SolutionManager;
@@ -84,7 +88,7 @@ Listening on Port {0} ...
 			using (WebApp.Start<Startup>(url: baseAddress))
 			{
 				Console.WriteLine(WelcomeMessage, port);
-				CheckForExit();
+				this.CheckForExit();
 			}
 
 			this.Cleanup();
@@ -103,16 +107,80 @@ Listening on Port {0} ...
             return numericPort;
         }
 
-        private static void CheckForExit()
+        private void CheckForExit()
         {
             string command;
 
 			do
 			{
 				command = Console.ReadLine();
+
+				if (command.Equals("update", StringComparison.InvariantCultureIgnoreCase))
+				{
+					this.CheckForUpdatesAsync().Wait();
+				}
 			}
-			while (!command.Equals("Exit", StringComparison.InvariantCultureIgnoreCase));
+			while (!command.Equals("exit", StringComparison.InvariantCultureIgnoreCase));
         }
+
+		private async Task CheckForUpdatesAsync()
+		{
+			Console.WriteLine("Checking for updates...");
+			var programFilesDirectory = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%");
+			var workingDirectory = Path.GetDirectoryName(solutionPath);
+			//var outputTempFilePath = Path.GetTempFileName();
+
+			var process = new Process()
+			{
+				StartInfo = new ProcessStartInfo()
+				{
+					//FileName = "git.exe",
+					//Arguments = "diff --name-only",
+					//FileName = "cmd",
+					FileName = Path.Combine(programFilesDirectory, @"Git\bin\git.exe"),
+					Arguments = "diff --name-only",
+					WorkingDirectory = workingDirectory,
+					UseShellExecute = false,
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					CreateNoWindow = true
+				}
+			};
+
+			process.Start();
+			process.StandardInput.WriteLine();
+
+			var output = process.StandardOutput.ReadToEnd();
+			process.WaitForExit();
+
+			//var output = File.ReadAllText(outputTempFilePath);
+
+			var modifiedDocuments = output.Split('\n')
+				.Where(docPath => !string.IsNullOrEmpty(docPath))
+				.Select(docPath => docPath.Replace("/", @"\"))
+				.Select(docPath => Path.Combine(workingDirectory, docPath));
+
+			if (modifiedDocuments.Any())
+			{
+				Console.WriteLine("Modified documents found:");
+				Console.Write(output);
+
+				await this.UpdateAnalysisAsync(modifiedDocuments);
+			}
+			else
+			{
+				Console.WriteLine("There are no modified documents:");
+			}
+        }
+
+		private async Task UpdateAnalysisAsync(IEnumerable<string> modifiedDocuments)
+		{
+			Console.WriteLine("Starting incremental analysis...");
+
+			await analyzer.ApplyModificationsAsync(modifiedDocuments);
+
+			Console.WriteLine("Incremental analysis finish");
+		}
 
 		private void Initialize()
 		{
