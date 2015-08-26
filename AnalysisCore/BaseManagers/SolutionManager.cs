@@ -14,8 +14,8 @@ namespace ReachingTypeAnalysis.Analysis
     {
 		//protected Solution solution;
 		protected string solutionPath;
-		private IList<Project> projects;
-		private IList<Project> newProjects;
+		protected IList<Project> projects;
+		protected IList<Project> newProjects;
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
 

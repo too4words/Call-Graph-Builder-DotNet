@@ -266,22 +266,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysis\AnalysisMessages.cs" />
     <Compile Include="Analysis\AnalysisOrchestator.cs" />
     <Compile Include="Analysis\CallGraphQueryInterface.cs" />
-    <Compile Include="Analysis\SyncVersion\MethodEntityProcessorAsync.cs" />
-    <Compile Include="Analysis\SyncVersion\MethodEntityProcessor.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
     <Compile Include="CallGraph\DGMLGraphDataAdapter.cs" />
     <Compile Include="CallGraph\GraphVizGraphDataAdapter .cs" />
-    <Compile Include="Communication\IEntity.cs" />
-    <Compile Include="Communication\IEntityProcessor.cs" />
-    <Compile Include="Communication\AsyncDispatcher.cs" />
-    <Compile Include="Communication\QueueingDispatcher.cs" />
-    <Compile Include="Communication\Serialization.cs" />
-    <Compile Include="Communication\SynchronousLocalDispatcher.cs" />
-    <Compile Include="Communication\OnDemandSolutionDispacher.cs" />
-    <Compile Include="Communication\IDispatcher.cs" />
     <Compile Include="Orleans\Driver\Program.cs" />
     <Compile Include="Orleans\OrleansHostWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -298,8 +287,6 @@
     <Compile Include="Tests\SoundnessEntireAsync.cs" />
     <Compile Include="Tests\SoundnessOnDemandOrleans.cs" />
     <Compile Include="Tests\SoundnessOnDemandAsync.cs" />
-    <Compile Include="Tests\SoundnessEntireSync.cs" />
-    <Compile Include="Tests\SoundnessOnDemandSync.cs" />
     <Compile Include="Tests\Tests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis.Communication
                             // GetEntity(dest) + GetEntityProcesor(entity) 
                             //IEntity entity = GetEntity(temp.Destination);
                             // I choose the first option but can be easily changed
-                            var entityProcessor = GetEntityWithProcessorAsync(temp.Destination).Result;
+                            var entityProcessor = GetEntityWithProcessor(temp.Destination);
                             if (entityProcessor != null)
                             {
                                 entityProcessor.ReceiveMessage(temp.Message.Source, temp.Message);

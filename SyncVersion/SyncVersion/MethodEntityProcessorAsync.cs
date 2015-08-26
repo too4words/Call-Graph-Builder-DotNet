@@ -21,6 +21,8 @@ namespace ReachingTypeAnalysis.Analysis
     /// <typeparam name="E"></typeparam>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="M"></typeparam>
+	/// 
+	/*
     internal partial class MethodEntityProcessor : EntityProcessor
 	{
 		/// <summary>
@@ -563,4 +565,5 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
         }
 	}
+	 */ 
 }

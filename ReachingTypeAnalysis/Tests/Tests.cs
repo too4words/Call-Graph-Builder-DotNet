@@ -218,67 +218,6 @@ namespace ReachingTypeAnalysis
 				s.CompareWithRoslynFindReferences(solutionPath + ".txt");
             });
         }
-
-        private static void CompareExample(string source)
-        {
-            var analyzerLocal = SolutionAnalyzer.CreateFromSource(source);
-            var callgraphLocal = analyzerLocal.Analyze(AnalysisStrategyKind.ONDEMAND_SYNC);
-
-            var analyzerParallel = SolutionAnalyzer.CreateFromSource(source);
-            var queueingDispatcher = new QueueingDispatcher();
-            var callgraphQueuing = analyzerParallel.Analyze(AnalysisStrategyKind.ENTIRE_ASYNC);
-
-            var localReachable = callgraphLocal.GetReachableMethods().Count;
-            var queuingReachable = callgraphQueuing.GetReachableMethods().Count;
-
-            Assert.IsTrue(localReachable == queuingReachable);
-            Assert.IsTrue(callgraphLocal.GetEdges().Count() == callgraphQueuing.GetEdges().Count());
-        }
-
-        //[TestMethod]
-        public void CompareRemoveAlloc()
-        {
-			#region source code
-			var source = @"
-public class D
-{
-    public D(){}
-    public C f;
-    public void m2(C b)
-    {
-        f = b;
-    }
-}
-
-public class C 
-{
-    public C(){}
-    public C f;
-    public C m1(C a)
-    {
-         f = a;
-         return a;
-    }
-    public virtual void m2(C b)
-    {
-    }
-}
-class Program
-{
-
-    public static void Main()
-    {
-        D d = new D();
-        C c = new C();
-        d.f  = c.m1(c);
-        c.f   = c; 
-        d.m2(c);
-
-    }
-}";
-			#endregion
-
-			CompareExample(source);
-        }
+        
     }
 }

@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
 [assembly: InternalsVisibleTo("OrleansGrains")]
+[assembly: InternalsVisibleTo("SyncVersion")]
 namespace ReachingTypeAnalysis.Analysis
 {
 	/// <summary>

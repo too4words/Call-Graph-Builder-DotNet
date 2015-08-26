@@ -10,13 +10,10 @@ namespace ReachingTypeAnalysis
     {
         ImmutableHashSet<IEntity> GetAllEntites();
         ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors();
-
         void DeliverMessage(IEntityDescriptor destination, IMessage message);
-        Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
         //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
         //IEntity GetEntity(IEntityDescriptor entityDesc);
         void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
-        Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
         IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);
     }
 
@@ -35,30 +32,11 @@ namespace ReachingTypeAnalysis
         {
             entityMapping[entityDesc] = entity;
         }
-              
-        public virtual Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc)
-        {
-            IEntity entity;
-            entityMapping.TryGetValue(entityDesc, out entity);
-
-			return Task.FromResult(entity);
-        }
         public virtual IEntity GetEntity(IEntityDescriptor entityDesc)
         {
             IEntity entity;
             entityMapping.TryGetValue(entityDesc, out entity);
             return entity;
-        }
-
-        public async virtual Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc)
-        {
-            var entity = (Analysis.MethodEntity)await GetEntityAsync(entityDesc);
-            if (entity != null)
-            {
-                return new ReachingTypeAnalysis.Analysis.MethodEntityProcessor(entity, this);
-                //return entity.GetEntityProcessor(this);
-            }
-            return null;
         }
 
         public  virtual IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc)
@@ -83,7 +61,5 @@ namespace ReachingTypeAnalysis
         }
 
         public abstract void DeliverMessage(IEntityDescriptor destination, IMessage message);
-
-        public abstract Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
     }
 }
