@@ -54,7 +54,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			result.declarationAnnotation = new List<DeclarationAnnotation>();
 			result.referenceAnnotation = new List<ReferenceAnnotation>();
 
-			foreach (var methodDescriptor in documentInfo.Methods.Keys)
+			foreach (var methodDescriptor in documentInfo.DeclaredMethods.Keys)
 			{
 				var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
 				var annotations = await methodEntity.GetAnnotationsAsync();

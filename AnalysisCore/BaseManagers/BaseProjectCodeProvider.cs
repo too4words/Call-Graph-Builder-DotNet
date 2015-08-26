@@ -23,12 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public SemanticModel SemanticModel { get; private set; }		
 		public SyntaxTree SyntaxTree { get; private set; }
 		public SyntaxNode SyntaxTreeRoot { get; private set; }
-		public IDictionary<MethodDescriptor,MethodParserInfo> Methods { get;  set; }
-
-		private DocumentInfo()
-		{
-			this.Methods = new Dictionary<MethodDescriptor, MethodParserInfo>();
-        }
+		public IDictionary<MethodDescriptor, MethodParserInfo> DeclaredMethods { get; private set; }
 
 		public static async Task<DocumentInfo> CreateAsync(Document document, Compilation compilation)
 		{
@@ -46,7 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
 				SyntaxTree = syntaxTree,
 				SyntaxTreeRoot = syntaxTreeRoot,
                 SemanticModel = semanticModel,
-				Methods = visitor.DeclaredMethods
+				DeclaredMethods = visitor.DeclaredMethods
 			};
 
 			return result;
@@ -108,8 +103,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-			// TODO: We need to visit each document AST only once, maybe on demand the first time this method is called
-            var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor);
+            var methodParserInfo = await this.FindMethodInProjectAsync(methodDescriptor);
 			MethodEntity methodEntity = null;
 
 			if (methodParserInfo != null)
@@ -143,14 +137,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return documentInfo;
         }
-
-		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor methodDescriptor)
+		
+		private async Task<MethodParserInfo> FindMethodInProjectAsync(MethodDescriptor methodDescriptor)
 		{
 			MethodParserInfo result = null;
 
 			foreach (var document in this.Project.Documents)
 			{
-				var methodParserInfo = await this.FindMethodDeclarationAsync(methodDescriptor, document.FilePath);
+				var methodParserInfo = await this.FindMethodInDocumentAsync(methodDescriptor, document.FilePath);
 
 				if (methodParserInfo != null)
 				{
@@ -162,28 +156,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-		private async Task<MethodParserInfo> FindMethodDeclarationAsync(MethodDescriptor methodDescriptor, string documentPath)
+		private async Task<MethodParserInfo> FindMethodInDocumentAsync(MethodDescriptor methodDescriptor, string documentPath)
 		{
 			MethodParserInfo result = null;
 			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
-			var document = documentInfo.Document;
-            var tree = documentInfo.SyntaxTree;			
-			var root = documentInfo.SyntaxTreeRoot;
-			var model = documentInfo.SemanticModel;
 
-			if (!documentInfo.Methods.TryGetValue(methodDescriptor, out result))
-			{
-				return null;
-				//var visitor = new MethodFinder(methodDescriptor, model);
-				//visitor.Visit(root);
-
-				//if (visitor.Result != null)
-				//{
-				//	result = visitor.Result;
-				//	documentInfo.Methods = visitor.DeclaredMethods;
-				//}
-			}
-
+			documentInfo.DeclaredMethods.TryGetValue(methodDescriptor, out result);
 			return result;
 		}
 
@@ -199,29 +177,21 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
 		{
-			IMethodSymbol roslynMethod = null;
-			foreach(var document in this.Project.Documents)
-			{
-				var docInfo = await this.GetDocumentInfoAsync(document.FilePath);
-				MethodParserInfo result = null;
-				if(docInfo.Methods.TryGetValue(methodDescriptor, out result))
-				{
-					roslynMethod = result.MethodSymbol;
-					break; 
-				}
-			}
-
 			//var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+			var methodParserInfo = await this.FindMethodInProjectAsync(methodDescriptor);
 
-			if (roslynMethod != null)
+			//if (roslynMethod != null)
+			if (methodParserInfo != null)
 			{
+				var roslynMethod = methodParserInfo.MethodSymbol;
 				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
 				var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
 				Contract.Assert(implementedMethod != null);
 				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
 			}
 
-			// If we cannot resolve the method, we return the same method.
+			// TODO: If we cannot resolve the method, we return the same method.
+			// Maybe we should consider to return null instead?
 			return methodDescriptor;
 		}
 
@@ -289,7 +259,7 @@ namespace ReachingTypeAnalysis.Analysis
             var result = new HashSet<MethodDescriptor>();
             foreach(var documentInfo in this.DocumentsInfo.Values)
             {
-                result.UnionWith(documentInfo.Methods.Keys);
+                result.UnionWith(documentInfo.DeclaredMethods.Keys);
             }
             return Task.FromResult(result.AsEnumerable());
         }
@@ -353,7 +323,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			foreach (var documentInfo in this.DocumentsInfo.Values)
 			{
-				var methodFound = documentInfo.Methods.Remove(methodDescriptor);
+				var methodFound = documentInfo.DeclaredMethods.Remove(methodDescriptor);
 				if (methodFound) break;
 			}
 		}
