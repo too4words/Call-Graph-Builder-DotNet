@@ -123,11 +123,9 @@ Listening on Port {0} ...
 			while (!command.Equals("exit", StringComparison.InvariantCultureIgnoreCase));
         }
 
-		private async Task CheckForUpdatesAsync()
+		private static string RunGitCommand(string workingDirectory, string command)
 		{
-			Console.WriteLine("Checking for updates...");
 			var programFilesDirectory = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%");
-			var workingDirectory = Path.GetDirectoryName(solutionPath);
 			//var outputTempFilePath = Path.GetTempFileName();
 
 			var process = new Process()
@@ -138,7 +136,7 @@ Listening on Port {0} ...
 					//Arguments = "diff --name-only",
 					//FileName = "cmd",
 					FileName = Path.Combine(programFilesDirectory, @"Git\bin\git.exe"),
-					Arguments = "diff --name-only",
+					Arguments = command,
 					WorkingDirectory = workingDirectory,
 					UseShellExecute = false,
 					RedirectStandardInput = true,
@@ -154,22 +152,39 @@ Listening on Port {0} ...
 			process.WaitForExit();
 
 			//var output = File.ReadAllText(outputTempFilePath);
+			return output;
+		}
 
+		private async Task CheckForUpdatesAsync()
+		{
+			Console.WriteLine("Checking for updates...");
+
+			var solutionFolder = Path.GetDirectoryName(solutionPath);
+			RunGitCommand(solutionFolder, "fetch");
+
+			var output = RunGitCommand(solutionFolder, "diff --name-only origin/master");
 			var modifiedDocuments = output.Split('\n')
 				.Where(docPath => !string.IsNullOrEmpty(docPath))
 				.Select(docPath => docPath.Replace("/", @"\"))
-				.Select(docPath => Path.Combine(workingDirectory, docPath));
+				.Select(docPath => Path.Combine(solutionFolder, docPath));
 
 			if (modifiedDocuments.Any())
 			{
 				Console.WriteLine("Modified documents found:");
-				Console.Write(output);
+				Console.WriteLine(output);
+				Console.WriteLine("Pull changes (y/n)?");
 
-				await this.UpdateAnalysisAsync(modifiedDocuments);
+				var command = Console.ReadLine();
+
+				if (command.StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
+				{
+					RunGitCommand(solutionFolder, "pull");
+					await this.UpdateAnalysisAsync(modifiedDocuments);
+				}
 			}
 			else
 			{
-				Console.WriteLine("There are no modified documents:");
+				Console.WriteLine("There are no modified documents.");
 			}
         }
 
