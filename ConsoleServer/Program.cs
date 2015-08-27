@@ -12,6 +12,7 @@ using System.IO;
 using Orleans;
 using System.Diagnostics.Contracts;
 using System.Diagnostics;
+using System.Threading;
 
 namespace ConsoleServer
 {
@@ -41,6 +42,8 @@ Listening on Port {0} ...
 		private static OrleansHostWrapper hostWrapper;
 		private SolutionAnalyzer analyzer;
 		private string solutionPath;
+		private bool isIncrementalAnalysisRunning;
+		private Timer checkForUpdatesTimer;
 
 		public Program(AnalysisStrategyKind strategyKind)
 		{
@@ -86,13 +89,19 @@ Listening on Port {0} ...
 
 			// Start OWIN host 
 			using (WebApp.Start<Startup>(url: baseAddress))
+			using (checkForUpdatesTimer = new Timer(OnCheckForUpdates, null, 10 * 1000, 10 * 1000))
 			{
 				Console.WriteLine(WelcomeMessage, port);
-				this.CheckForExit();
+				this.CheckForCommands();
 			}
 
 			this.Cleanup();
 			Console.WriteLine("Shutting down Local Server...");
+		}
+
+		private void OnCheckForUpdates(object state)
+		{
+            this.CheckForUpdatesAsync(false).Wait();
 		}
 
 		private static uint GetValidPort(string port)
@@ -107,7 +116,7 @@ Listening on Port {0} ...
             return numericPort;
         }
 
-        private void CheckForExit()
+        private void CheckForCommands()
         {
             string command;
 
@@ -117,13 +126,25 @@ Listening on Port {0} ...
 
 				if (command.Equals("update", StringComparison.InvariantCultureIgnoreCase))
 				{
-					this.CheckForUpdatesAsync().Wait();
+					this.CheckForUpdatesAsync(true).Wait();
 				}
 			}
 			while (!command.Equals("exit", StringComparison.InvariantCultureIgnoreCase));
         }
 
-		private static string RunGitCommand(string workingDirectory, string command)
+		private class CommandResult
+		{
+			public string Error { get; private set; }
+			public string Output { get; private set; }
+
+			public CommandResult(string output, string error)
+			{
+				this.Output = output;
+				this.Error = error;
+			}
+		}
+
+		private static CommandResult RunGitCommand(string workingDirectory, string command)
 		{
 			var programFilesDirectory = Environment.ExpandEnvironmentVariables("%ProgramFiles(x86)%");
 			//var outputTempFilePath = Path.GetTempFileName();
@@ -141,6 +162,7 @@ Listening on Port {0} ...
 					UseShellExecute = false,
 					RedirectStandardInput = true,
 					RedirectStandardOutput = true,
+					RedirectStandardError = true,
 					CreateNoWindow = true
 				}
 			};
@@ -149,44 +171,67 @@ Listening on Port {0} ...
 			process.StandardInput.WriteLine();
 
 			var output = process.StandardOutput.ReadToEnd();
+			var error = process.StandardError.ReadToEnd();
 			process.WaitForExit();
 
 			//var output = File.ReadAllText(outputTempFilePath);
-			return output;
+			return new CommandResult(output, error);
 		}
 
-		private async Task CheckForUpdatesAsync()
+		private async Task CheckForUpdatesAsync(bool forceUpdate)
 		{
+			if (isIncrementalAnalysisRunning) return;
+			this.isIncrementalAnalysisRunning = true;
 			Console.WriteLine("Checking for updates...");
 
 			var solutionFolder = Path.GetDirectoryName(solutionPath);
-			RunGitCommand(solutionFolder, "fetch");
+			var result = RunGitCommand(solutionFolder, "fetch");
+			var isUpToDate = string.IsNullOrEmpty(result.Error);
 
-			var output = RunGitCommand(solutionFolder, "diff --name-only origin/master");
-			var modifiedDocuments = output.Split('\n')
-				.Where(docPath => !string.IsNullOrEmpty(docPath))
-				.Select(docPath => docPath.Replace("/", @"\"))
-				.Select(docPath => Path.Combine(solutionFolder, docPath));
-
-			if (modifiedDocuments.Any())
+			if (!isUpToDate || forceUpdate)
 			{
-				Console.WriteLine("Modified documents found:");
-				Console.WriteLine(output);
-				Console.WriteLine("Pull changes (y/n)?");
+				result = RunGitCommand(solutionFolder, "diff --name-only origin/master");
 
-				var command = Console.ReadLine();
+				var modifiedDocuments = result.Output.Split('\n')
+					.Where(docPath => !string.IsNullOrEmpty(docPath))
+					.Select(docPath => docPath.Replace("/", @"\"))
+					.Select(docPath => Path.Combine(solutionFolder, docPath));
 
-				if (command.StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
+				if (modifiedDocuments.Any())
 				{
-					RunGitCommand(solutionFolder, "pull");
-					await this.UpdateAnalysisAsync(modifiedDocuments);
+					Console.WriteLine("Modified documents found:");
+					Console.Write(result.Output);
+					Console.WriteLine("Pull changes (y/n)?");
+
+					var command = Console.ReadLine();
+
+					if (forceUpdate)
+					{
+						command = Console.ReadLine();
+					}
+
+					if (command.StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
+					{
+						RunGitCommand(solutionFolder, "pull");
+						await this.UpdateAnalysisAsync(modifiedDocuments);
+					}
+					else
+					{
+						Console.WriteLine("Keeping local version.");
+					}
+				}
+				else
+				{
+					Console.WriteLine("There are no modified documents.");
 				}
 			}
 			else
 			{
 				Console.WriteLine("There are no modified documents.");
 			}
-        }
+
+			this.isIncrementalAnalysisRunning = false;
+		}
 
 		private async Task UpdateAnalysisAsync(IEnumerable<string> modifiedDocuments)
 		{
