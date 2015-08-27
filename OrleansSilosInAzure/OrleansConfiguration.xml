@@ -19,6 +19,9 @@
 			  <Deactivation AgeLimit="24hr"/>
 		  </Defaults>
 	  </Application>
+    <Messaging ResponseTimeout="600s"/>
+    <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s"
+                WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Verbose"/>
   </Globals>
   <Defaults>
     <!--
@@ -28,7 +31,7 @@
       message lifecycle. This may be useful debugging performance issues.
       -->
     <!--   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" > -->
-       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+       <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
 
         <!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".
@@ -37,7 +40,4 @@
       <TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
     </Tracing>
   </Defaults>
-  <Messaging ResponseTimeout="600s"/>
-  <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" 
-              WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Verbose"/>
 </OrleansConfiguration>
