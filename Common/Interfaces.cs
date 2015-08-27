@@ -48,7 +48,6 @@ namespace ReachingTypeAnalysis
 		Task<PropagationEffects> RemoveMethodAsync();
 
 		Task UnregisterCallerAsync(CallContext callContext);
-
 		//Task UnregisterCalleeAsync(CallContext callContext);
 
 	}

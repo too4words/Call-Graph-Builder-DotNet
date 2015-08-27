@@ -13,7 +13,7 @@
     <!--  <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />  -->
 	<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
     </StorageProviders>
-	  <Messaging ResponseTimeout="600s"/>
+	  
 	  <Application>
 		  <Defaults>
 			  <Deactivation AgeLimit="24hr"/>
@@ -37,4 +37,7 @@
       <TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
     </Tracing>
   </Defaults>
+  <Messaging ResponseTimeout="600s"/>
+  <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" 
+              WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Verbose"/>
 </OrleansConfiguration>

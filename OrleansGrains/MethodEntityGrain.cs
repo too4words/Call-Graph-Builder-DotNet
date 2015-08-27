@@ -95,7 +95,9 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
-			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
+            sw.Stop();
+
+            Logger.LogInfo(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {
@@ -181,8 +183,8 @@ namespace ReachingTypeAnalysis.Analysis
             sw.Start();
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(propKind);
             sw.Stop();
+
             Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "PropagateAsync", "End Propagation for {0}. Time elapsed {1} ", this.methodEntity.MethodDescriptor,sw.Elapsed);
-            //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
             return propagationEffects;
         }
 

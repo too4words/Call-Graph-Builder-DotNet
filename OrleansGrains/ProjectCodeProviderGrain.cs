@@ -127,14 +127,14 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			Contract.Assert(this.projectCodeProvider != null);
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
-			Stopwatch timer = new Stopwatch();
+
+            Stopwatch timer = new Stopwatch();
 			timer.Start();
 			
 			var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 			
 			timer.Stop();
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit. Took: {0}", timer.ElapsedMilliseconds);
+			Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntityAsync", "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds,timer.ElapsedTicks);
 			return result;
 		}
 

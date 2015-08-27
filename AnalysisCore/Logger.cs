@@ -57,12 +57,24 @@ namespace ReachingTypeAnalysis
 			}
         }
 
-		public static void LogInfo(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
+        public static void LogWarning(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
+        {
+            var message = string.Format(format, arguments);
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+
+            message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
+            Trace.TraceInformation(message);
+            // Debug.WriteLine(message);
+            //Console.WriteLine(message);
+            orleansLog.Warn(0, message);
+        }
+
+        public static void LogInfo(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
 			var threadId = Thread.CurrentThread.ManagedThreadId;
 
-			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
+			message = string.Format("[{0}]{1}::{2}: {3}", threadId, type, method, message);
 
 			Trace.TraceInformation(message);
 			// Debug.WriteLine(message);
