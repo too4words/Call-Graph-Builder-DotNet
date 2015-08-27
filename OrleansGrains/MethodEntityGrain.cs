@@ -361,62 +361,93 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.ReloadAsync();
 		}
-	}
+    }
 
     /// <summary>
-    /// This wrapper was used when the IMethodEntity grain couldn't implement another interface
-    /// This was solved with Orleans version 1.0.9, so this wrapper is no longer needed 
+    /// We are going to use this wrapper as a brigde between the client and the grains
+    /// This allow to modify the return type of the grain (e.g, to return more things, like cpu time, memory, etc)
+    /// without changing the original interface
     /// </summary>
-    //public class MethodEntityGrainWrapper : IMethodEntityWithPropagator
-    //{
-    //    IMethodEntityGrain grainRef;
-    //    public MethodEntityGrainWrapper(IMethodEntityGrain grainRef)
-    //    {
-    //        this.grainRef = grainRef;
-    //    }
-    //    public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
-    //    {
-    //        return this.grainRef.PropagateAsync(propKind);
-    //    }
+    public class MethodEntityGrainWrapper : IMethodEntityWithPropagator
+    {
+        IMethodEntityGrain grainRef;
+        public MethodEntityGrainWrapper(IMethodEntityGrain grainRef)
+        {
+            this.grainRef = grainRef;
+        }
+        public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+        {
+            return this.grainRef.PropagateAsync(propKind);
+        }
 
-    //    public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
-    //    {
-    //        return this.grainRef.PropagateAsync(callMessageInfo);
-    //    }
+        public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+        {
+            return this.grainRef.PropagateAsync(callMessageInfo);
+        }
 
-    //    public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
-    //    {
-    //        return this.grainRef.PropagateAsync(returnMessageInfo);
-    //    }
+        public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
+        {
+            return this.grainRef.PropagateAsync(returnMessageInfo);
+        }
 
-    //    public Task<bool> IsInitializedAsync()
-    //    {
-    //        return this.grainRef.IsInitializedAsync();
-    //    }
+        public Task<bool> IsInitializedAsync()
+        {
+            return this.grainRef.IsInitializedAsync();
+        }
 
-    //    public Task<IEntity> GetMethodEntityAsync()
-    //    {
-    //        return this.grainRef.GetMethodEntityAsync();
-    //    }
+        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
+        {
+            return this.grainRef.GetCalleesAsync();
+        }
 
-    //    public Task<ISet<MethodDescriptor>> GetCalleesAsync()
-    //    {
-    //        return this.grainRef.GetCalleesAsync();
-    //    }
+        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+        {
+            return this.grainRef.GetCalleesInfoAsync();
+        }
 
-    //    public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
-    //    {
-    //        return this.grainRef.GetCalleesInfoAsync();
-    //    }
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+        {
+            return await this.grainRef.GetCalleesAsync(invocationPosition);
+        }
 
-    //    public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
-    //    {
-    //        return await this.grainRef.GetCalleesAsync(invocationPosition);
-    //    }
+        public Task<int> GetInvocationCountAsync()
+        {
+            return this.grainRef.GetInvocationCountAsync();
+        }
 
-    //    public Task<int> GetInvocationCountAsync()
-    //    {
-    //        return this.grainRef.GetInvocationCountAsync();
-    //    }
-    //}
+        public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+        {
+            return this.grainRef.PropagateAsync(propKind, reWorkSet);
+        }
+
+        public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+        {
+            return this.grainRef.GetInstantiatedTypesAsync();
+        }
+
+        public Task<SymbolReference> GetDeclarationInfoAsync()
+        {
+            return this.grainRef.GetDeclarationInfoAsync();
+        }
+
+        public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+        {
+            return this.grainRef.GetCallersDeclarationInfoAsync();
+        }
+
+        public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
+        {
+            return this.grainRef.GetAnnotationsAsync();
+        }
+
+        public Task<PropagationEffects> RemoveMethodAsync()
+        {
+            return this.grainRef.RemoveMethodAsync();
+        }
+
+        public Task UnregisterCallerAsync(CallContext callContext)
+        {
+            return this.grainRef.UnregisterCallerAsync(callContext);
+        }
+    }
 }

@@ -22,15 +22,15 @@ namespace ReachingTypeAnalysis.Analysis
     public interface IProjectState : IGrainState
     {
         string ProjectPath { get; set; }
-        string AssemblyName { get; set; } 
+        string AssemblyName { get; set; }
         string Source { get; set; }
-		string TestName { get; set; }
-	}
+        string TestName { get; set; }
+    }
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
-	[StorageProvider(ProviderName = "AzureStore")]
-	[Reentrant]
+    [StorageProvider(ProviderName = "AzureStore")]
+    [Reentrant]
     public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
@@ -38,72 +38,72 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
-			Logger.OrleansLogger = this.GetLogger();
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
+            Logger.OrleansLogger = this.GetLogger();
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
-			this.State.AssemblyName = this.GetPrimaryKeyString();
+            this.State.AssemblyName = this.GetPrimaryKeyString();
 
-			if (!String.IsNullOrEmpty(this.State.ProjectPath))
-			{
-				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
-			}
-			else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+            if (!String.IsNullOrEmpty(this.State.ProjectPath))
             {
-                    this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);                    
-                }
-			else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
-				{
-				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
-					}
-			else if (this.State.AssemblyName.Equals("DUMMY"))
-					{
-							this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
-						}
+                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+            }
+            else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+            {
+                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+            }
+            else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
+            {
+                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+            }
+            else if (this.State.AssemblyName.Equals("DUMMY"))
+            {
+                this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+            }
 
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");            
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
 
         public async Task SetProjectPath(string fullPath)
         {
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
 
             this.State.ProjectPath = fullPath;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
-			this.State.AssemblyName = null;
-			this.State.Source = null;
-			this.State.TestName = null;
+            this.State.AssemblyName = null;
+            this.State.Source = null;
+            this.State.TestName = null;
 
-			await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
+            await this.WriteStateAsync();
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
         public async Task SetProjectSourceCode(string source)
         {
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Enter");
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Enter");
 
             this.State.Source = source;
             this.State.AssemblyName = TestConstants.ProjectAssemblyName;
             this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
-			this.State.ProjectPath = null;
-			this.State.TestName = null;
+            this.State.ProjectPath = null;
+            this.State.TestName = null;
 
-			await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
+            await this.WriteStateAsync();
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
         }
 
-		public async Task SetProjectTest(string testName)
-		{
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Enter");
+        public async Task SetProjectTest(string testName)
+        {
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Enter");
 
-			this.State.TestName = testName;
-			this.State.AssemblyName = TestConstants.ProjectAssemblyName;
-			this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
-			this.State.ProjectPath = null;
-			this.State.Source = null;
+            this.State.TestName = testName;
+            this.State.AssemblyName = TestConstants.ProjectAssemblyName;
+            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+            this.State.ProjectPath = null;
+            this.State.Source = null;
 
-			await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Exit");
-		}
+            await this.WriteStateAsync();
+            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectTest", "Exit");
+        }
 
         public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
@@ -113,7 +113,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
-			Contract.Assert(this.projectCodeProvider != null);
+            Contract.Assert(this.projectCodeProvider != null);
             //var methodImplementationDescriptor = this.projectCodeProvider.FindMethodImplementation(methodDescriptor, typeDescriptor);
             //return Task.FromResult<MethodDescriptor>(methodImplementationDescriptor);
             return this.projectCodeProvider.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
@@ -124,62 +124,62 @@ namespace ReachingTypeAnalysis.Analysis
             return this.projectCodeProvider.GetRootsAsync();
         }
 
-		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
-		{
-			Contract.Assert(this.projectCodeProvider != null);
+        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+        {
+            Contract.Assert(this.projectCodeProvider != null);
 
             Stopwatch timer = new Stopwatch();
-			timer.Start();
-			
-			var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
-			
-			timer.Stop();
-			Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntityAsync", "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds,timer.ElapsedTicks);
-			return result;
-		}
+            timer.Start();
 
-		public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
-		{
-			return this.projectCodeProvider.GetDocumentsAsync();
-		}
+            var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 
-		public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath)
-		{
-			return this.projectCodeProvider.GetDocumentEntitiesAsync(documentPath);
-		}
+            timer.Stop();
+            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntityAsync", "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds, timer.ElapsedTicks);
+            return result;
+        }
 
-		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
-		{
-			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
-		}
+        public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
+        {
+            return this.projectCodeProvider.GetDocumentsAsync();
+        }
 
-		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
-		{
-			return this.projectCodeProvider.RemoveMethodAsync(methodToUpdate);
-		}
+        public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+        {
+            return this.projectCodeProvider.GetDocumentEntitiesAsync(documentPath);
+        }
 
-		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
-		{
-			this.State.Source = source;
-			await this.WriteStateAsync();
+        public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+        {
+            return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
+        }
 
-			await this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
-		}
+        public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
+        {
+            return this.projectCodeProvider.RemoveMethodAsync(methodToUpdate);
+        }
 
-		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
-		{
-			return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
-		}
+        public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
+        {
+            this.State.Source = source;
+            await this.WriteStateAsync();
 
-		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
-		{
-			return this.projectCodeProvider.GetModificationsAsync(modifiedDocuments);
-		}
+            await this.projectCodeProvider.ReplaceDocumentSourceAsync(source, documentPath);
+        }
 
-		public Task ReloadAsync()
-		{
-			return this.projectCodeProvider.ReloadAsync();
-		}
+        public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
+        {
+            return this.projectCodeProvider.ReplaceDocumentAsync(documentPath);
+        }
+
+        public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+        {
+            return this.projectCodeProvider.GetModificationsAsync(modifiedDocuments);
+        }
+
+        public Task ReloadAsync()
+        {
+            return this.projectCodeProvider.ReloadAsync();
+        }
 
         /// <summary>
         /// Deactivates the grain and all method entity grains it has created
@@ -195,16 +195,104 @@ namespace ReachingTypeAnalysis.Analysis
                 await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
             }
 
-			await this.ClearStateAsync();
+            await this.ClearStateAsync();
 
             //this.State.Etag = null;
             this.State.ProjectPath = null;
             this.State.Source = null;
-			this.State.TestName = null;
-			this.State.AssemblyName = null;
+            this.State.TestName = null;
+            this.State.AssemblyName = null;
             await this.WriteStateAsync();
-            
+
             this.DeactivateOnIdle();
         }
-	}   
+
+    }
+
+    /// <summary>
+    /// We are going to use this wrapper as a brigde between the client and the grains
+    /// This allow to modify the return type of the grain (e.g, to return more things, like cpu time, memory, etc)
+    /// without changing the original interface
+    /// </summary>
+
+    public class ProjectCodeProviderWrapper : IProjectCodeProvider
+    {
+        private ProjectCodeProviderGrain grainRef;
+
+        public ProjectCodeProviderWrapper(ProjectCodeProviderGrain grainRef)
+        {
+            this.grainRef = grainRef;
+        }
+        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+        {
+            var result = this.grainRef.CreateMethodEntityAsync(methodDescriptor);
+            return result;
+        }
+
+        public Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        {
+            var result = this.grainRef.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
+            return result;
+        }
+
+        public Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+        {
+            var result = this.grainRef.GetDocumentEntitiesAsync(documentPath);
+            return result;
+        }
+
+        public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
+        {
+            var result = this.grainRef.GetDocumentsAsync();
+            return result;
+        }
+
+        public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+        {
+            var result = this.grainRef.GetMethodEntityAsync(methodDescriptor);
+            return result;
+        }
+
+        public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+        {
+            var result = this.grainRef.GetModificationsAsync(modifiedDocuments);
+            return result;
+        }
+
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        {
+            var result = this.grainRef.GetRootsAsync();
+            return result;
+        }
+
+        public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        {
+            var result = this.grainRef.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+            return result;
+        }
+
+        public Task ReloadAsync()
+        {
+            var result = this.grainRef.ReloadAsync();
+            return result;
+        }
+
+        public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
+        {
+            var result = this.grainRef.RemoveMethodAsync(methodToUpdate);
+            return result;
+        }
+
+        public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
+        {
+            var result = this.grainRef.ReplaceDocumentAsync(documentPath, newDocumentPath);
+            return result;
+        }
+
+        public Task ReplaceDocumentSourceAsync(string source, string documentPath)
+        {
+            var result = this.grainRef.ReplaceDocumentSourceAsync(source, documentPath);
+            return result;
+        }
+    }
 }
