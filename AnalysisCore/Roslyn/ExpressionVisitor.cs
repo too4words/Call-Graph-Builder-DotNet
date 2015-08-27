@@ -1053,7 +1053,20 @@ namespace ReachingTypeAnalysis.Roslyn
 
         public override AnalysisExpression VisitAwaitExpression(AwaitExpressionSyntax node)
         {
-            return Visit(node.Expression);
+            var exp = Visit(node.Expression);
+            if(exp.Type is INamedTypeSymbol)
+            {
+                var type = (INamedTypeSymbol)exp.Type;
+                if(type.IsGenericType)
+                {
+                    exp.Type = type.TypeArguments.Single();
+                }
+                else
+                {
+                    exp.Type = this.model.Compilation.GetSpecialType(SpecialType.System_Void);
+                }
+            }
+            return exp;
         }
 
         private ITypeSymbol GetTypeSymbol(SyntaxNode node)

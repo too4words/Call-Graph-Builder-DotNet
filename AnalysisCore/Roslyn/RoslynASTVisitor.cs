@@ -659,8 +659,14 @@ namespace ReachingTypeAnalysis
         }
         public override object VisitUsingStatement(UsingStatementSyntax node)
         {
-            AnalyzeDeclaration(node.Declaration);
-            var analysisExpression = expressionsVisitor.Visit(node.Expression);
+            if (node.Declaration != null)
+            {
+                AnalyzeDeclaration(node.Declaration);
+            }
+            if (node.Expression!=null)
+            {
+                var analysisExpression = expressionsVisitor.Visit(node.Expression);
+            }
             Visit(node.Statement);
             return null;
         }
