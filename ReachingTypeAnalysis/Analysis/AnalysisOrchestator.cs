@@ -59,6 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessMessages()
 		{
+            // TODO: This version is much faster, works well wiht orleans but there are some data races for the async case
 			var tasks = new List<Task>();
 
 			while (messageWorkList.Count > 0)

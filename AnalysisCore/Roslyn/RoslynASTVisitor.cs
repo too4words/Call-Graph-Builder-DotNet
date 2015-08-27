@@ -618,7 +618,14 @@ namespace ReachingTypeAnalysis
 				analysisExpression.ProcessAssignment(this.RetVar, this);
 			}
 		}
-
+        public override object VisitAccessorDeclaration(AccessorDeclarationSyntax node)
+        {
+            if (node.Body != null)
+            {
+                VisitBlock(node.Body);
+            }
+            return null;
+        }
         #endregion
 
         public override object VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
@@ -633,15 +640,7 @@ namespace ReachingTypeAnalysis
             return null;
         }
 
-        public override object VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-        {
-            if (node.Body != null)
-            {
-                VisitBlock(node.Body);
-            }
-            return null;
-        }
-
+       
         public override object VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
             VisitBlock(node.Body);
@@ -651,6 +650,24 @@ namespace ReachingTypeAnalysis
         public override object VisitOperatorDeclaration(OperatorDeclarationSyntax node)
         {
             VisitBlock(node.Body);
+            return null;
+        }
+        public override object VisitThrowStatement(ThrowStatementSyntax node)
+        {
+            var analysisExpression = expressionsVisitor.Visit(node.Expression);
+            return null;
+        }
+        public override object VisitUsingStatement(UsingStatementSyntax node)
+        {
+            if (node.Declaration != null)
+            {
+                AnalyzeDeclaration(node.Declaration);
+            }
+            if (node.Expression!=null)
+            {
+                var analysisExpression = expressionsVisitor.Visit(node.Expression);
+            }
+            Visit(node.Statement);
             return null;
         }
 

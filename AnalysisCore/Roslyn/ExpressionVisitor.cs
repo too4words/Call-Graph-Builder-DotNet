@@ -1051,6 +1051,24 @@ namespace ReachingTypeAnalysis.Roslyn
             return new Identifier(node, symbol.ContainingType, symbol);
         }
 
+        public override AnalysisExpression VisitAwaitExpression(AwaitExpressionSyntax node)
+        {
+            var exp = Visit(node.Expression);
+            if(exp.Type is INamedTypeSymbol)
+            {
+                var type = (INamedTypeSymbol)exp.Type;
+                if(type.IsGenericType)
+                {
+                    exp.Type = type.TypeArguments.Single();
+                }
+                else
+                {
+                    exp.Type = this.model.Compilation.GetSpecialType(SpecialType.System_Void);
+                }
+            }
+            return exp;
+        }
+
         private ITypeSymbol GetTypeSymbol(SyntaxNode node)
         {
             var typeInfo = this.model.GetTypeInfo(node);
