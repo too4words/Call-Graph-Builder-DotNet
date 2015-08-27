@@ -190,7 +190,7 @@ namespace ReachingTypeAnalysis
 
 		internal static int GetStatementNumber(SyntaxNodeOrToken expression)
 		{
-			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MethodDeclarationSyntax>().First();
+			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<BaseMethodDeclarationSyntax>().First();
 			//var syntaxTree = methodDeclarationSyntax.SyntaxTree;
 			var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
 			int count = 0;
