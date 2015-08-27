@@ -123,7 +123,27 @@ namespace ReachingTypeAnalysis
             }, strategy);
         }
 
+		private static IEnumerable<string> CopyFiles(string sourceFolder, string destinationFolder)
+		{
+			var copiedFiles = new List<string>();
+			var sourceFiles = Directory.EnumerateFiles(sourceFolder, "*", SearchOption.AllDirectories);
 
+			foreach (var fileName in sourceFiles)
+			{
+				var targetFileName = fileName.Replace(sourceFolder, destinationFolder);
+				var targetFolder = Path.GetDirectoryName(targetFileName);
+
+				if (!Directory.Exists(targetFolder))
+				{
+					Directory.CreateDirectory(targetFolder);
+				}
+
+				File.Copy(fileName, targetFileName, true);
+				copiedFiles.Add(targetFileName);
+            }
+
+			return copiedFiles;
+		}
 
 		private static void TestSolutionIncremental1(AnalysisStrategyKind strategy, string solutionPath)
 		{
@@ -134,17 +154,7 @@ namespace ReachingTypeAnalysis
 
 			solutionPath = solutionPath.Replace(baseFolder, currentFolder);
 
-			foreach (var fileName in Directory.EnumerateFiles(baseFolder, "*", SearchOption.AllDirectories))
-			{
-				var newPathForFile = fileName.Replace(baseFolder,currentFolder);
-				var targetPath = Path.GetDirectoryName(newPathForFile);
-				if (!System.IO.Directory.Exists(targetPath))
-				{
-					System.IO.Directory.CreateDirectory(targetPath);
-				}
-
-				File.Copy(fileName, newPathForFile, true);
-			}
+			CopyFiles(baseFolder, currentFolder);
 
 			AnalizeSolution(solutionPath,
 				(s, callgraph) =>
@@ -159,19 +169,7 @@ namespace ReachingTypeAnalysis
                 },
 				(s) =>
 				{
-					var modifications = new List<string>();
-					foreach (var fileName in Directory.EnumerateFiles(changesFolder, "*.cs", SearchOption.AllDirectories))
-					{
-						var newPathForFile = fileName.Replace(changesFolder, currentFolder);
-						var targetPath = Path.GetDirectoryName(newPathForFile);
-						if (!System.IO.Directory.Exists(targetPath))
-						{
-							System.IO.Directory.CreateDirectory(targetPath);
-						}
-
-						modifications.Add(newPathForFile);
-						File.Copy(fileName, newPathForFile, true);
-					}
+					var modifications = CopyFiles(changesFolder, currentFolder);
 
 					s.ApplyModificationsAsync(modifications).Wait();
 				},
