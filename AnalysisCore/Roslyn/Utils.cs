@@ -122,7 +122,8 @@ namespace ReachingTypeAnalysis
 					{
 						if (candidate.Kind == SymbolKind.Property)
 						{
-							result = ((IPropertySymbol)candidate).GetMethod;
+							var property = (IPropertySymbol)candidate;
+							result = method.MethodKind == MethodKind.PropertyGet ? property.GetMethod : property.SetMethod;
 						}
 						else
 						{
@@ -190,7 +191,8 @@ namespace ReachingTypeAnalysis
 
 		internal static int GetStatementNumber(SyntaxNodeOrToken expression)
 		{
-			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<BaseMethodDeclarationSyntax>().First();
+			//var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<BaseMethodDeclarationSyntax>().First();
+			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MemberDeclarationSyntax>().First();
 			//var syntaxTree = methodDeclarationSyntax.SyntaxTree;
 			var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
 			int count = 0;

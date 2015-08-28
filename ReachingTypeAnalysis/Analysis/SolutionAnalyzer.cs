@@ -163,7 +163,7 @@ namespace ReachingTypeAnalysis
                 this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
             }
 
-            var mainMethods = await this.SolutionManager.GetRootsAsync();
+            var mainMethods = await this.SolutionManager.GetPublicMethodsAsync();
             var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
         }
@@ -279,47 +279,30 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-        private void AnalyzeEntireSolution()
-        {
-			foreach (var project in this.solution.Projects)
-			{
-				var compilation = project.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics();
-				var theAssembly = compilation.Assembly;
+		//private void AnalyzeEntireSolutionAsync()
+		//{
+		//	// TOOD: hack -- set the global solution
+		//	ProjectCodeProvider.Solution = this.solution;
 
-				foreach (var tree in compilation.SyntaxTrees)
-				{
-                    var model = compilation.GetSemanticModel(tree);
-					var allMethodsVisitor = new AllMethodsVisitor(model, tree);
-					allMethodsVisitor.Visit(tree.GetRoot());
-				}
-			}
-        }
+		//	foreach (var project in this.solution.Projects)
+		//	{
+		//		var compilation = project.GetCompilationAsync().Result;
+		//		var diag = compilation.GetDiagnostics();
+		//		var theAssembly = compilation.Assembly;
+		//		var continuations = new List<Task>();
 
-        private void AnalyzeEntireSolutionAsync()
-        {
-			// TOOD: hack -- set the global solution
-			ProjectCodeProvider.Solution = this.solution;
+		//		foreach (var tree in compilation.SyntaxTrees)
+		//		{
+		//			var provider = new ProjectCodeProvider(project, compilation);
+		//			var model = compilation.GetSemanticModel(tree);
+		//			var allMethodsVisitor = new AllMethodsVisitor(model, tree);
 
-			foreach (var project in this.solution.Projects)
-			{
-				var compilation = project.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics();
-				var theAssembly = compilation.Assembly;
-				var continuations = new List<Task>();
+		//			continuations.Add(allMethodsVisitor.Run(tree));
+		//		}
 
-				foreach (var tree in compilation.SyntaxTrees)
-				{
-					var provider = new ProjectCodeProvider(project, compilation);
-                    var model = compilation.GetSemanticModel(tree);
-                    var allMethodsVisitor = new AllMethodsVisitor(model, tree);
-
-					continuations.Add(allMethodsVisitor.Run(tree));
-				}
-
-				Task.WhenAll(continuations);
-			}
-        }
+		//		Task.WhenAll(continuations);
+		//	}
+		//}
 
         internal void CompareWithRoslynFindReferences(string filename)
         {

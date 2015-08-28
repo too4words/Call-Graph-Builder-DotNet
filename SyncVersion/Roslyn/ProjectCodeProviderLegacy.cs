@@ -38,7 +38,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				var PProvider = (ProjectCodeProvider)pair.Item1;
 				var tree = pair.Item2;
 				var model = PProvider.Compilation.GetSemanticModel(tree);
-				syntaxProcessor = new MethodParser(model, PProvider, tree, methodDescriptor);
+				syntaxProcessor = new MethodParser(model, tree, methodDescriptor);
 			}
 			else
 			{

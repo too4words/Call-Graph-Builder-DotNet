@@ -231,9 +231,27 @@ namespace ReachingTypeAnalysis.Analysis
                 var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
                 result.Add(methodDescriptor);
             }
-
             return Task.FromResult(result.AsEnumerable());
         }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			var result = new HashSet<MethodDescriptor>();
+			Func<string, bool> pred = (s) => true;
+			var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type).OfType<INamedTypeSymbol>();
+			foreach (var type in symbols.Where(s => s.DeclaredAccessibility == Accessibility.Public))
+			{
+				foreach (var methodSymbol in type.GetMembers().OfType<IMethodSymbol>())
+				{
+					if (methodSymbol.DeclaredAccessibility == Accessibility.Public)
+					{
+						var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+						result.Add(methodDescriptor);
+					}
+				}
+			}
+			return Task.FromResult(result.AsEnumerable());
+		}
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
 		{

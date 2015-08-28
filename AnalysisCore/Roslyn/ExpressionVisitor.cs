@@ -223,17 +223,17 @@ namespace ReachingTypeAnalysis.Roslyn
     {
         public IMethodSymbol RoslynMethod { get; private set; }
         public bool IsDelegate { get; private set; }
-        internal Property(SyntaxNodeOrToken expression, ITypeSymbol typeSymbol, ISymbol symbol)
+        internal Property(SyntaxNodeOrToken expression, ITypeSymbol typeSymbol, ISymbol symbol, bool isSetter)
             : base(expression, typeSymbol, symbol)
         {
             IsDelegate = false;
             var properySymbol = symbol as IPropertySymbol;
-            RoslynMethod = properySymbol.GetMethod;
+            RoslynMethod = isSetter? properySymbol.SetMethod: properySymbol.GetMethod;
         }
 
         public override AnalysisExpression ProcessArgument(ArgumentSyntax argNode, ExpressionVisitor visitor)
         {
-            return visitor.AnalyzeProperty(argNode.Expression, visitor.ThisRef , null, this);
+            return visitor.AnalyzePropertyGetter(argNode.Expression, visitor.ThisRef , null, this);
         }
     }
 
@@ -261,11 +261,12 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			if (this.Field.Kind == SymbolKind.Property)
 			{
+				var property = this.NameExpresion as Property;
                 var order = Utils.GetStatementNumber(this.Expression);
                 var analysisCallNode = new AnalysisCallNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type),
                     Utils.CreateLocationDescriptor(order, this.Expression),
-					Utils.CreateAnalysisCallNodeAdditionalInfo(this.Field));
+					Utils.CreateAnalysisCallNodeAdditionalInfo(property.RoslynMethod));
                 return new PropertyVariableNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type), analysisCallNode);
 			}
@@ -296,7 +297,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             if (this.NameExpresion is Property)
             {
-                return visitor.AnalyzeProperty(argNode.Expression, null,  this.ReferenceExpresion, this.NameExpresion as Property);
+                return visitor.AnalyzePropertyGetter(argNode.Expression, null,  this.ReferenceExpresion, this.NameExpresion as Property);
             }
             // To-do Support delegates like s.Delegate here!
             if(this.NameExpresion is Method)
@@ -388,6 +389,7 @@ namespace ReachingTypeAnalysis.Roslyn
         private MethodSyntaxVisitor roslynMethodVisitor;
         // This mapping is used for the temporary variables used in nested calls 
         private IDictionary<ExpressionSyntax, PropGraphNodeDescriptor> tempLH = new Dictionary<ExpressionSyntax, PropGraphNodeDescriptor>();
+        private bool leftHandSide;
 
         internal PropGraphNodeDescriptor ThisRef
         {
@@ -441,8 +443,10 @@ namespace ReachingTypeAnalysis.Roslyn
 			//var rhsExp = Visit(node.Right);
 			if (Utils.IsTypeForAnalysis(this.model, node.Left) && Utils.IsTypeForAnalysis(this.model, node.Right))
 			{
+                this.leftHandSide = true;
 				var lhs = Visit(node.Left);
-				var rhs = Visit(node.Right);
+                this.leftHandSide = false;
+                var rhs = Visit(node.Right);
 
 				if (lhs == null || rhs == null)
 				{
@@ -455,6 +459,20 @@ namespace ReachingTypeAnalysis.Roslyn
 				//                                          lhs.GetRoslynSymbol());
 
                 Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
+
+				if (lhs is MemberAccess)
+				{
+					var memberAccess = lhs as MemberAccess;
+					if (memberAccess.NameExpresion is Property)
+					{
+						var property = memberAccess.NameExpresion as Property;
+						if (property.RoslynMethod.MethodKind == MethodKind.PropertySet)
+						{
+							/// TODO : Process Property Setter
+							AnalyzePropertySetter(node, memberAccess.ReferenceExpresion.GetAnalysisNode(), memberAccess.ReferenceExpresion, property, rhs.GetAnalysisNode());
+						}
+					}
+				}
 				rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
 
 				//if (rhs is Allocation)
@@ -489,7 +507,13 @@ namespace ReachingTypeAnalysis.Roslyn
 				case SymbolKind.Method:
 					return new Method(node, type, (IMethodSymbol)symbol);
 				case SymbolKind.Property:
-					return new Property(node, type, symbol);
+					// For the special case of propery setter, e.g. this.a.b.c = value, a and b are getters but c is setter
+					var isSetter = this.leftHandSide && 
+						( (node.Parent is AssignmentExpressionSyntax) || 
+						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+					if (!isSetter && this.leftHandSide)
+					{ }
+					return new Property(node, type, symbol, isSetter);
 				case SymbolKind.Local:
 					return new Identifier(node, type, symbol);
 				case SymbolKind.Parameter:
@@ -725,7 +749,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				// This is a Property and then a call (e.g, Prop.Method())
 				else if (analysisExpression is Property)
 				{
-					call = AnalyzeProperty(simpleAccessMemberExpression, this.ThisRef, null,
+					call = AnalyzePropertyGetter(simpleAccessMemberExpression, this.ThisRef, null,
 												analysisExpression as Property);
 					if (call != null)
 					{
@@ -809,10 +833,10 @@ namespace ReachingTypeAnalysis.Roslyn
                         // Diego: Check types!
 						var receiver = TryToGetReceiver(node, methodInvokedSymbol);
 
-						if (receiver != null)
+						if (receiver != null && receiver is VariableNode)
 						{
 							
-							Contract.Assert(receiver is VariableNode);
+							// Contract.Assert(receiver is VariableNode);
 
 							// Try to get receiver, when this is not given by the previous nested call
 							receiverArg = tempReceiver == null ? (VariableNode)receiver : tempReceiver;
@@ -990,7 +1014,12 @@ namespace ReachingTypeAnalysis.Roslyn
             {                
                 if (nameExpresssion is Property)
                 {
-                    res =  AnalyzeProperty(node, receiverArg, referenceExpression, (Property)nameExpresssion);
+					// The property getter is analyzed here, but the setters are analyzed in the assigments (and converted to call set(value))
+					var property = (Property)nameExpresssion;
+					if (property.RoslynMethod.MethodKind == MethodKind.PropertyGet)
+					{
+						res = AnalyzePropertyGetter(node, receiverArg, referenceExpression, property);
+					}
                 }
                 //else if (nameExpresssion is Method)
                 //{
@@ -1014,7 +1043,7 @@ namespace ReachingTypeAnalysis.Roslyn
         /// <param name="referenceAnalysisExpression"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        internal Call AnalyzeProperty(ExpressionSyntax node,
+        internal Call AnalyzePropertyGetter(ExpressionSyntax node,
 					 PropGraphNodeDescriptor receiverArg, 
 					 AnalysisExpression referenceAnalysisExpression, 
 					 Property property)
@@ -1042,6 +1071,37 @@ namespace ReachingTypeAnalysis.Roslyn
 
             return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs);
         }
+
+		internal Call AnalyzePropertySetter(ExpressionSyntax node,
+					PropGraphNodeDescriptor receiverArg,
+					 AnalysisExpression referenceAnalysisExpression, 
+					 Property property, PropGraphNodeDescriptor rhsNode)
+		{
+			var roslynMethod = property.RoslynMethod;
+			// we treat this as an invocation
+			var callNode = new AnalysisCallNode(roslynMethod.Name,
+				Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
+				Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
+				Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod));
+
+			var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
+
+
+			if (receiverArg == null)
+			{
+				if (referenceAnalysisExpression != null)
+				{
+					receiverArg = referenceAnalysisExpression.GetAnalysisNode();
+				}
+			}
+
+			var lhs = CreateAndRegisterTemporaryLHVar(node, roslynMethod);
+			var args = new List<PropGraphNodeDescriptor>();
+			args.Add(rhsNode);
+			statementProcessor.RegisterPropertyCall(methodDescriptor, receiverArg, args, lhs, callNode);
+
+			return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs);
+		}
         
         public override AnalysisExpression VisitBaseExpression(BaseExpressionSyntax node)
         {

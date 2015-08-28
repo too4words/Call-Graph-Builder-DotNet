@@ -18,6 +18,7 @@ namespace ReachingTypeAnalysis.Analysis
 		protected IList<Project> newProjects;
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
+		protected IEnumerable<MethodDescriptor> roots;
 
 		protected SolutionManager()
 		{
@@ -75,22 +76,48 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
-			var cancellationTokenSource = new CancellationTokenSource();
-			var result = new List<MethodDescriptor>();
+			if (this.roots == null)
+			{
+				var cancellationTokenSource = new CancellationTokenSource();
+				var result = new List<MethodDescriptor>();
 
-            foreach (var project in this.Projects)
-            {
-				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
-				var roots = await provider.GetRootsAsync();
-
-				foreach (var root in roots)
+				foreach (var project in this.Projects)
 				{
-					result.Add(root);
-				}
-			}
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var roots = await provider.GetRootsAsync();
 
-			return result;
+					foreach (var root in roots)
+					{
+						result.Add(root);
+					}
+				}
+				this.roots = result;
+			}
+			return this.roots;
         }
+
+		public async Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			if (this.roots == null)
+			{
+				var cancellationTokenSource = new CancellationTokenSource();
+				var result = new List<MethodDescriptor>();
+
+				foreach (var project in this.Projects)
+				{
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var roots = await provider.GetPublicMethodsAsync();
+
+					foreach (var root in roots)
+					{
+						result.Add(root);
+					}
+				}
+				this.roots = result;
+			}
+			return this.roots;
+		}
+
 
 		public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{

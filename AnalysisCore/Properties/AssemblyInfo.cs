@@ -37,3 +37,5 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
 [assembly: InternalsVisibleTo("OrleansGrains")]
+[assembly: InternalsVisibleTo("ReachingTypeAnalysis")]
+[assembly: InternalsVisibleTo("SyncVersion")]
