@@ -380,7 +380,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var calleesInfo = new List<CallInfo>();
 			var callersInfo = new List<ReturnInfo>();
-			var modifications = await this.solutionManager.GetModificationsAsync(modifiedDocuments);
+			var modifications = await this.solutionManager.GetModificationsAsync(modifiedDocuments.ToList());
 
 			var methodsRemoved = from m in modifications
 								 where m.ModificationKind == ModificationKind.MethodRemoved ||

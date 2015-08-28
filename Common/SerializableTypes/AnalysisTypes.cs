@@ -17,11 +17,13 @@ namespace ReachingTypeAnalysis
 		public const string DocumentPath = @"C:\MyFile.cs";
 	}
 
+	[Serializable]
 	public enum ModificationKind
 	{
 		MethodAdded, MethodRemoved, MethodUpdated
 	}
 
+	[Serializable]
 	public class MethodModification
 	{
 		public ModificationKind ModificationKind { get; private set; }

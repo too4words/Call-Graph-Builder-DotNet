@@ -20,8 +20,8 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
-		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-		//const string SolutionToTest = @"Coby\Coby.sln";
+		//const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+		const string SolutionToTest = @"Coby\Coby.sln";
 
 		const string WelcomeMessage = @"Console Server started
 -----------------
