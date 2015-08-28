@@ -12,7 +12,7 @@ using ReachingTypeAnalysis.Analysis;
 
 namespace ReachingTypeAnalysis.Roslyn
 {
-	class CodeGraphHelper
+	internal class CodeGraphHelper
 	{
 		public static Task<IEnumerable<FileResponse>> GetDocumentsAsync(Project project)
 		{
@@ -175,6 +175,12 @@ namespace ReachingTypeAnalysis.Roslyn
 					var methodDeclarationNode = node as MethodDeclarationSyntax;
 					span = methodDeclarationNode.Identifier.Span;
 				}
+				else if (node is AccessorDeclarationSyntax)
+				{
+					var accessprDecl = node as AccessorDeclarationSyntax;
+					span = accessprDecl.Keyword.Span;
+				}
+
 				else if (node is ObjectCreationExpressionSyntax)
 				{
 					var objectCreationExpression = node as ObjectCreationExpressionSyntax;

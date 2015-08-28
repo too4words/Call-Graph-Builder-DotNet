@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
+using Orleans.Runtime;
 
 namespace WebRole1
 {

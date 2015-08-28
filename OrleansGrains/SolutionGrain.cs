@@ -143,6 +143,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.solutionManager.ReloadAsync();
         }
 
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return this.solutionManager.GetPublicMethodsAsync();
+		}
+
 		public async Task ForceDeactivation()
         {
             await this.solutionManager.ForceDeactivationOfProjects();
@@ -164,5 +169,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
 			return Task.FromResult(drivers.AsEnumerable());
 		}
+
+
 	}    
 }

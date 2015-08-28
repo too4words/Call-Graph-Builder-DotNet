@@ -59,7 +59,10 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath);
-			this.ProjectsCache.Add(assemblyName, provider);
+            lock(this.ProjectsCache)
+            {
+                this.ProjectsCache.Add(assemblyName, provider);
+            }
 		}
 
 		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)

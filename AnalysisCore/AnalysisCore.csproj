@@ -197,9 +197,7 @@
     <Compile Include="Roslyn\ExpressionVisitor.cs" />
     <Compile Include="Roslyn\LibraryMethodProcessor.cs" />
     <Compile Include="Roslyn\MethodSimpifier.cs" />
-    <Compile Include="Roslyn\ProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\ProjectCodeProviderIncremental.cs" />
-    <Compile Include="Roslyn\ProjectCodeProviderLegacy.cs" />
     <Compile Include="Roslyn\RoslynASTVisitor.cs" />
     <Compile Include="Roslyn\RoslynSymbolFactory.cs" />
     <Compile Include="Roslyn\Utils.cs" />

@@ -63,6 +63,7 @@ namespace ReachingTypeAnalysis
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
 
@@ -82,6 +83,7 @@ namespace ReachingTypeAnalysis
     public interface ISolutionManager
     {
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
 

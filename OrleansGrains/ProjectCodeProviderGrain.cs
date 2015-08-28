@@ -207,7 +207,11 @@ namespace ReachingTypeAnalysis.Analysis
             this.DeactivateOnIdle();
         }
 
-    }
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
+		}
+	}
 
     /// <summary>
     /// We are going to use this wrapper as a brigde between the client and the grains
@@ -294,5 +298,11 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.grainRef.ReplaceDocumentSourceAsync(source, documentPath);
             return result;
         }
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			var result = this.grainRef.GetPublicMethodsAsync();
+			return result;
+		}
+	}
 }

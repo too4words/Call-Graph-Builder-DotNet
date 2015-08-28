@@ -11,6 +11,7 @@ using ReachingTypeAnalysis.Communication;
 using System.Diagnostics;
 using CodeGraphModel;
 using Orleans.Placement;
+using Orleans.Runtime;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -361,7 +362,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.ReloadAsync();
 		}
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return codeProvider.GetPublicMethodsAsync();
+		}
+	}
 
     /// <summary>
     /// We are going to use this wrapper as a brigde between the client and the grains

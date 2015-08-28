@@ -79,5 +79,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return TaskDone.Done;
 		}
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
+		}
+	}
 }
