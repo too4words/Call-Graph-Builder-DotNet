@@ -602,6 +602,30 @@ namespace ReachingTypeAnalysis
             return null;
         }
 
+		public override object VisitTryStatement(TryStatementSyntax node)
+		{
+			Visit(node.Block);
+			foreach(var catchSyntax in node.Catches)
+			{
+				Visit(catchSyntax);
+			}
+			if (node.Finally != null)
+			{
+				Visit(node.Finally);
+			}
+			return null;
+		}
+		public override object VisitCatchClause(CatchClauseSyntax node)
+		{
+			/// TODO: Process exception assigment
+			Visit(node.Block);
+			return null;
+		}
+		public override object VisitFinallyClause(FinallyClauseSyntax node)
+		{
+			Visit(node.Block);
+			return null;
+		}
         public override object VisitReturnStatement(ReturnStatementSyntax node)
         {
 			var analysisExpression = expressionsVisitor.Visit(node.Expression);
