@@ -353,20 +353,33 @@ namespace ReachingTypeAnalysis.Analysis
 			var documentDiff = new DocumentDiff();
 
 			this.newProject = await Utils.ReadProjectAsync(projectPath);
-			this.newCompilation = await Utils.CompileProjectAsync(newProject, cancellationTokenSource.Token);
-			this.newDocumentsInfo = new Dictionary<DocumentPath, DocumentInfo>(this.DocumentsInfo);
 
-			foreach (var documentPath in modifiedDocuments)
+			var oldProjectDocuments = from doc in project.Documents
+									  select doc.FilePath;
+
+			var newProjectDocuments = from doc in newProject.Documents
+									  select doc.FilePath;
+
+			var allProjectDocuments = oldProjectDocuments.Union(newProjectDocuments, StringComparer.InvariantCultureIgnoreCase);
+			var modifiedProjectDocuments = modifiedDocuments.Intersect(allProjectDocuments, StringComparer.InvariantCultureIgnoreCase);
+
+			if (modifiedProjectDocuments.Any())
 			{
-				var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
-				this.useNewFieldsVersion = true;
+				this.newCompilation = await Utils.CompileProjectAsync(newProject, cancellationTokenSource.Token);
+				this.newDocumentsInfo = new Dictionary<DocumentPath, DocumentInfo>(this.DocumentsInfo);
 
-				this.RemoveDocumentInfo(documentPath);
-				var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
-				this.useNewFieldsVersion = false;
+				foreach (var documentPath in modifiedProjectDocuments)
+				{
+					var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+					this.useNewFieldsVersion = true;
 
-				var modifications = documentDiff.GetDifferences(oldDocumentInfo, newDocumentInfo);
-				result.AddRange(modifications);
+					this.RemoveDocumentInfo(documentPath);
+					var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+					this.useNewFieldsVersion = false;
+
+					var modifications = documentDiff.GetDifferences(oldDocumentInfo, newDocumentInfo);
+					result.AddRange(modifications);
+				}
 			}
 
 			return result;
