@@ -42,8 +42,9 @@ Listening on Port {0} ...
 		private static OrleansHostWrapper hostWrapper;
 		private SolutionAnalyzer analyzer;
 		private string solutionPath;
-		private bool isIncrementalAnalysisRunning;
+		private bool isCheckingForUpdates;
 		private Timer checkForUpdatesTimer;
+		private string gitDiffOutput;
 
 		public Program(AnalysisStrategyKind strategyKind)
 		{
@@ -101,7 +102,7 @@ Listening on Port {0} ...
 
 		private void OnCheckForUpdates(object state)
 		{
-            this.CheckForUpdatesAsync(false).Wait();
+            this.CheckForUpdates(false);
 		}
 
 		private static uint GetValidPort(string port)
@@ -124,9 +125,25 @@ Listening on Port {0} ...
 			{
 				command = Console.ReadLine();
 
-				if (command.Equals("update", StringComparison.InvariantCultureIgnoreCase))
+				if (!string.IsNullOrWhiteSpace(gitDiffOutput))
 				{
-					this.CheckForUpdatesAsync(true).Wait();
+					if (command.StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
+					{
+						var solutionFolder = Path.GetDirectoryName(solutionPath);
+						RunGitCommand(solutionFolder, "pull");
+
+						this.UpdateAnalysis();
+					}
+					else
+					{
+						Console.WriteLine("Keeping local version.");
+					}
+
+					this.gitDiffOutput = null;
+				}
+				else if (command.Equals("update", StringComparison.InvariantCultureIgnoreCase))
+				{
+					this.CheckForUpdates(true);
 				}
 			}
 			while (!command.Equals("exit", StringComparison.InvariantCultureIgnoreCase));
@@ -178,66 +195,52 @@ Listening on Port {0} ...
 			return new CommandResult(output, error);
 		}
 
-		private async Task CheckForUpdatesAsync(bool forceUpdate)
+		private void CheckForUpdates(bool updateRequestedByUser)
 		{
-			if (isIncrementalAnalysisRunning) return;
-			this.isIncrementalAnalysisRunning = true;
-			Console.WriteLine("Checking for updates...");
+			if (isCheckingForUpdates) return;
+			this.isCheckingForUpdates = true;
 
 			var solutionFolder = Path.GetDirectoryName(solutionPath);
 			var result = RunGitCommand(solutionFolder, "fetch");
 			var isUpToDate = string.IsNullOrEmpty(result.Error);
 
-			if (!isUpToDate || forceUpdate)
+			if (!isUpToDate || updateRequestedByUser)
 			{
 				result = RunGitCommand(solutionFolder, "diff --name-only origin/master");
 
-				var modifiedDocuments = result.Output.Split('\n')
-					.Where(docPath => !string.IsNullOrEmpty(docPath))
-					.Select(docPath => docPath.Replace("/", @"\"))
-					.Select(docPath => Path.Combine(solutionFolder, docPath));
-
-				if (modifiedDocuments.Any())
+				if (!string.IsNullOrWhiteSpace(result.Output))
 				{
-					Console.WriteLine("Modified documents found:");
+					Console.WriteLine("Incoming commits detected:");
 					Console.Write(result.Output);
-					Console.WriteLine("Pull changes (y/n)?");
+					Console.WriteLine("Do you want to pull the changes (y/n)?");
 
-					var command = Console.ReadLine();
-
-					if (forceUpdate)
-					{
-						command = Console.ReadLine();
-					}
-
-					if (command.StartsWith("y", StringComparison.InvariantCultureIgnoreCase))
-					{
-						RunGitCommand(solutionFolder, "pull");
-						await this.UpdateAnalysisAsync(modifiedDocuments);
-					}
-					else
-					{
-						Console.WriteLine("Keeping local version.");
-					}
+					this.gitDiffOutput = result.Output;
 				}
-				else
+				else if (updateRequestedByUser)
 				{
-					Console.WriteLine("There are no modified documents.");
+					Console.WriteLine("There are no incoming commits.");
 				}
 			}
-			else
+			else if (updateRequestedByUser)
 			{
-				Console.WriteLine("There are no modified documents.");
+				Console.WriteLine("There are no incoming commits.");
 			}
 
-			this.isIncrementalAnalysisRunning = false;
+			this.isCheckingForUpdates = false;
 		}
 
-		private async Task UpdateAnalysisAsync(IEnumerable<string> modifiedDocuments)
+		private void UpdateAnalysis()
 		{
 			Console.WriteLine("Starting incremental analysis...");
 
-			await analyzer.ApplyModificationsAsync(modifiedDocuments);
+			var solutionFolder = Path.GetDirectoryName(solutionPath);
+			var modifiedDocuments = gitDiffOutput.Split('\n')
+												 .Where(docPath => !string.IsNullOrEmpty(docPath))
+												 .Select(docPath => docPath.Replace("/", @"\"))
+												 .Select(docPath => Path.Combine(solutionFolder, docPath))
+												 .ToList();
+
+			analyzer.ApplyModificationsAsync(modifiedDocuments).Wait();
 
 			Console.WriteLine("Incremental analysis finish");
 		}
