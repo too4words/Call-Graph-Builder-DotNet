@@ -152,7 +152,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private async Task AnalyzeOnDemandAsync()
+        private async Task AnalyzeOnDemandAsync(bool allPublic = true)
         {
             if (this.source != null)
             {
@@ -163,7 +163,7 @@ namespace ReachingTypeAnalysis
                 this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
             }
 
-            var mainMethods = await this.SolutionManager.GetPublicMethodsAsync();
+            var mainMethods = allPublic ? (await this.SolutionManager.GetPublicMethodsAsync()) : (await this.SolutionManager.GetRootsAsync());
             var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
         }

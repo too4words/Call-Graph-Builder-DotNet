@@ -19,6 +19,7 @@ namespace ReachingTypeAnalysis.Analysis
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
 		protected IEnumerable<MethodDescriptor> roots;
+		protected IEnumerable<MethodDescriptor> publicMethods;
 
 		protected SolutionManager()
 		{
@@ -98,24 +99,25 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
 		{
-			if (this.roots == null)
+			if (this.publicMethods == null)
 			{
 				var cancellationTokenSource = new CancellationTokenSource();
-				var result = new List<MethodDescriptor>();
+				var result = new HashSet<MethodDescriptor>();
 
 				foreach (var project in this.Projects)
 				{
 					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
 					var roots = await provider.GetPublicMethodsAsync();
-
+					
 					foreach (var root in roots)
 					{
 						result.Add(root);
 					}
+					result.UnionWith(await provider.GetRootsAsync());
 				}
-				this.roots = result;
+				this.publicMethods= result;
 			}
-			return this.roots;
+			return this.publicMethods;
 		}
 
 
@@ -207,6 +209,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (newProjects != null)
 			{
+				this.roots = null;
+				this.publicMethods = null;
+
 				var tasks = new List<Task>();
 
 				this.projects = newProjects;
