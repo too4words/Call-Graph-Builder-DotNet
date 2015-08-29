@@ -59,6 +59,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(new PropagationEffects(new HashSet<CallInfo>(), false));
 		}
 
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return Task.FromResult(new PropagationEffects(new HashSet<ReturnInfo>()));
+		}
+
 		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
 			return TaskDone.Done;
@@ -84,5 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
 		}
+
+
 	}
 }

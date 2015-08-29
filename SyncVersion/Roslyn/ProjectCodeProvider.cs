@@ -365,5 +365,11 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			throw new NotImplementedException(); 
 		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

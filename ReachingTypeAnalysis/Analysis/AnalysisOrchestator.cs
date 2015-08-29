@@ -44,7 +44,8 @@ namespace ReachingTypeAnalysis.Analysis
 			await ProcessMessages();
 		}
 
-        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null)
+        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, 
+										PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			Logger.LogS("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 			if (reworkSet == null)
@@ -52,8 +53,8 @@ namespace ReachingTypeAnalysis.Analysis
 				reworkSet = new HashSet<PropGraphNodeDescriptor>();
 			}
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
-			var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES, reworkSet);
-			await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+			var propagationEffects = await methodEntityProc.PropagateAsync(propKind, reworkSet);
+			await PropagateEffectsAsync(propagationEffects, propKind);
 			await ProcessMessages();
 		}
 
@@ -333,7 +334,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 
-		private async Task PropagateFromCallersAsync(IEnumerable<ReturnInfo> callersInfo)
+		private async Task PropagateFromCallersAsync(IEnumerable<ReturnInfo> callersInfo, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			var tasks = new List<Task>();
 
@@ -342,7 +343,7 @@ namespace ReachingTypeAnalysis.Analysis
 				var reworkSet = new HashSet<PropGraphNodeDescriptor>();
 				var callContext = callerInfo.CallerContext;
 				reworkSet.Add(callContext.CallNode);
-				var task = this.AnalyzeAsync(callContext.Caller, reworkSet);
+				var task = this.AnalyzeAsync(callContext.Caller, reworkSet, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -382,17 +383,21 @@ namespace ReachingTypeAnalysis.Analysis
 			var callersInfo = new List<ReturnInfo>();
 			var modifications = await this.solutionManager.GetModificationsAsync(modifiedDocuments.ToList());
 
-			var methodsRemoved = from m in modifications
+			var methodsRemovedOrUpdated = from m in modifications
 								 where m.ModificationKind == ModificationKind.MethodRemoved ||
 									   m.ModificationKind == ModificationKind.MethodUpdated
 								 select m.MethodDescriptor;
 
-			var methodsAdded = from m in modifications
+			var methodsAddedOrUpdated = from m in modifications
 							   where m.ModificationKind == ModificationKind.MethodAdded ||
 									 m.ModificationKind == ModificationKind.MethodUpdated
 							   select m.MethodDescriptor;
 
-			foreach (var method in methodsRemoved)
+			var methodsAdded = from m in modifications
+										where m.ModificationKind == ModificationKind.MethodAdded 
+										select m.MethodDescriptor;
+
+			foreach (var method in methodsRemovedOrUpdated)
 			{
 				var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 				var propagationEffects = await projectProvider.RemoveMethodAsync(method);
@@ -406,23 +411,56 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(calleesInfo);
 			await this.solutionManager.ReloadAsync();
+			
+			await this.PropagateFromCallersAsync(callersInfo);
 
 			// TODO: if there is no caller (e.g., main in the future public method) you should call yourself
-			if (callersInfo.Count > 0)
+			var roots = await this.solutionManager.GetRootsAsync();
+			foreach (var method in methodsAddedOrUpdated)
 			{
-				await this.PropagateFromCallersAsync(callersInfo);
-			}
-			else
-			{
-				// TODO: Hack! we don't want to recompute the roots.
-				var roots = await this.solutionManager.GetRootsAsync();
-                await AnalyzeAsync(roots);
+				if (roots.Contains(method))
+				{
+					await AnalyzeAsync(roots);
+				}
 			}
 
+			// This is only for overrides
 			foreach (var method in methodsAdded)
 			{
 				// TODO: is the method is an overrride reanalyze callers of *base* method
 				// For the case of overload we need to detect the callers of all possible overloads for all "compatible" types
+				var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+
+				// This call actually computes the callers of an overriden method, for other cases there is no effect
+				var propagationEffects = await codeProvider.AddMethodAsync(method);
+
+				if (propagationEffects.CallersInfo.Count > 0)
+				{
+					// For each caller we need to do the following
+					// 0: Propagate forward the deletion of the previous calle (now overriden)
+					// TODO: Maybe this needs to be done before reloading the project [but we need another way of discovering the override]
+					// ANOTHER OPTION: Get in the list of modifications the overriden methods with a qualifier [OVERRIDEN]
+					// in this way we can move this to the previous 
+					await this.PropagateFromCallersAsync(propagationEffects.CallersInfo, PropagationKind.REMOVE_TYPES);
+
+					// 1: Propagate the information from the callers of the overriden method to the *new* method
+					await this.PropagateFromCallersAsync(propagationEffects.CallersInfo, PropagationKind.ADD_TYPES);
+
+					// 2: In the overriden method we need to remove the callers that do not call this method any longer 
+					// [they are the caller that have the type of the subclass as possible type as receiver of the invocation]
+
+					var methodEntityWP = await codeProvider.GetMethodEntityAsync(method);
+					var callersOfMethod = await methodEntityWP.GetCallersAsync();
+
+					var overridenMethodDescriptor = propagationEffects.CallersInfo.Select(callerInfo => callerInfo.Callee).First();
+
+					var overridenCalleeEntity = await codeProvider.GetMethodEntityAsync(overridenMethodDescriptor);
+
+					foreach (var callContext in callersOfMethod)
+					{
+						await overridenCalleeEntity.UnregisterCallerAsync(callContext);
+					}
+				}
 			}
 		}
 

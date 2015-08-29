@@ -248,6 +248,12 @@ namespace ReachingTypeAnalysis.Analysis
 		//{
 		//	return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
 		//}
+
+
+		public Task<IEnumerable<CallContext>> GetCallersAsync()
+		{
+			return this.methodEntityPropagator.GetCallersAsync();
+		}
 	}
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
@@ -367,6 +373,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.GetPublicMethodsAsync();
 		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return codeProvider.AddMethodAsync(methodToAdd);
+		}
 	}
 
     /// <summary>
@@ -455,5 +467,10 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.grainRef.UnregisterCallerAsync(callContext);
         }
-    }
+
+		public Task<IEnumerable<CallContext>> GetCallersAsync()
+		{
+			return grainRef.GetCallersAsync();
+		}
+	}
 }

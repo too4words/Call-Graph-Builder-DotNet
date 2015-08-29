@@ -211,6 +211,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
 		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return this.projectCodeProvider.AddMethodAsync(methodToAdd);
+		}
 	}
 
     /// <summary>
@@ -303,6 +309,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var result = this.grainRef.GetPublicMethodsAsync();
 			return result;
+		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return this.grainRef.AddMethodAsync(methodToAdd);
 		}
 	}
 }

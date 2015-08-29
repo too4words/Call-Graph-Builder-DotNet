@@ -291,6 +291,28 @@ namespace ReachingTypeAnalysis.Analysis
             return propagationEffects;
 		}
 
+		public async Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			var methodParserInfo = await this.FindMethodInProjectAsync(methodToAdd);
+			var roslynMethod = methodParserInfo.MethodSymbol;
+
+			var propagationForCallers = new HashSet<ReturnInfo>();
+			if (roslynMethod.IsOverride)
+			{
+				var overridenMethodDescriptor = Utils.CreateMethodDescriptor(roslynMethod.OverriddenMethod);
+				var methodEntityWP = await this.GetMethodEntityAsync(overridenMethodDescriptor);
+				var callersWithContext = await methodEntityWP.GetCallersAsync();
+				foreach(var callerContext in callersWithContext)
+				{
+					var returnInfo = new ReturnInfo(overridenMethodDescriptor,callerContext);
+					propagationForCallers.Add(returnInfo);
+				}
+				
+			}
+			return new PropagationEffects(propagationForCallers);
+		}
+
+
 		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
 			//var tree = SyntaxFactory.ParseSyntaxTree(sourceCode);

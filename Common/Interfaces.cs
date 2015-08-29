@@ -37,6 +37,7 @@ namespace ReachingTypeAnalysis
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
 
         Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync();
+		Task<IEnumerable<CallContext>> GetCallersAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
@@ -70,6 +71,8 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
 
 		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
+		
+		Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd);
 
 		Task ReplaceDocumentSourceAsync(string source, string documentPath);
 
