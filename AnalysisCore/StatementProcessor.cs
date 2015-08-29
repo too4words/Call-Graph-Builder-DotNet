@@ -116,7 +116,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(arguments != null);
 			//var argumentValues = arguments.Select(a => a!=null?worker.GetTypes(a):new HashSet<Type>());
 
-			var callExp = new MethodCallInfo(this.Method, callNode, callee, arguments, lhs, true);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, lhs ,arguments, lhs, true);
 
 			PropagationGraph.AddCall(callExp, callNode);
 			PropagationGraph.AddToWorkList(callNode);

@@ -236,7 +236,7 @@ namespace ReachingTypeAnalysis.Analysis
             // TODO: This is not good: one reason is that loads like b = this.f are not working
             // in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
 
-            if (methodCallInfo.Method.IsStatic)
+            if (/*methodCallInfo.IsConstructor || */ methodCallInfo.Method.IsStatic)
             {
                 // Static method call
                 possibleCallees.Add(methodCallInfo.Method);

@@ -563,17 +563,17 @@ namespace ReachingTypeAnalysis.Roslyn
             var type = this.model.GetTypeInfo(node);
             var symbol = this.model.GetSymbolInfo(node).Symbol;
 			// Create an allocation expression
-			var lhs = CreateAndRegisterTemporaryLHVar(node, type.Type);
-			var allocAnalysisExpression = new Allocation(node, type.Type, lhs);
+			var tempLHS = CreateAndRegisterTemporaryLHVar(node, type.Type);
+			var allocAnalysisExpression = new Allocation(node, type.Type, tempLHS);
 
-            this.statementProcessor.RegisterNewExpressionAssignment(lhs, allocAnalysisExpression.GetAnalysisType());
+            this.statementProcessor.RegisterNewExpressionAssignment(tempLHS, allocAnalysisExpression.GetAnalysisType());
             // Process the constructor as a call
             if (symbol != null)
             {
                 IMethodSymbol roslynMethod = (IMethodSymbol)symbol;
                 // Process parameters
                 var callNode = new AnalysisCallNode(roslynMethod.Name,
-                    Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
+					Utils.CreateTypeDescriptor(type.Type), /*roslynMethod.ReturnType*/
                     Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
 					Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod)); //node.GetLocation()
 
@@ -581,7 +581,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 Contract.Assert(!roslynMethod.IsStatic);
                 Contract.Assert(roslynMethod.MethodKind == MethodKind.Constructor);
                 var args = ProcessArguments(argumentListSyntax, roslynMethod.Parameters);
-                statementProcessor.RegisterConstructorCall(methodDescriptor, args, null, callNode);
+                statementProcessor.RegisterConstructorCall(methodDescriptor, args, tempLHS, callNode);
             }
             return allocAnalysisExpression;
         }

@@ -152,7 +152,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private async Task AnalyzeOnDemandAsync(bool allPublic = true)
+        private async Task AnalyzeOnDemandAsync(bool allPublic = false)
         {
             if (this.source != null)
             {
