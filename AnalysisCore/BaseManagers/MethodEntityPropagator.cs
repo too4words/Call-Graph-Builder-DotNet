@@ -61,10 +61,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
 			Contract.Requires(reWorkSet != null);
-			if(reWorkSet.Count()>0)
-			{
-
-			}
 			foreach(var node in reWorkSet) 
 			{
 				methodEntity.PropGraph.AddToWorkList(node);
@@ -74,9 +70,10 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+			//Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+			Logger.Log("Propagating {0} to {1}", this.methodEntity.MethodDescriptor, propKind);
 
-            // var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
+			// var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
 			PropagationEffects propagationEffects = null;
 
 			switch (propKind)

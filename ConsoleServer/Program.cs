@@ -20,6 +20,8 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
+		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
+
 		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
 		//const string SolutionToTest = @"Coby\Coby.sln";
 
@@ -58,7 +60,7 @@ Listening on Port {0} ...
             var baseAddress = string.Format("http://localhost:{0}/", port);
 			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, SolutionToTest);
 
-			var program = new Program(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			var program = new Program(StrategyKind);
 			program.Start(solutionPath, baseAddress, port);
 
 			Console.WriteLine("Done");

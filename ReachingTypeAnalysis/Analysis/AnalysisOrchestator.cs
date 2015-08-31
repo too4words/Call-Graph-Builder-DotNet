@@ -383,19 +383,25 @@ namespace ReachingTypeAnalysis.Analysis
 			var callersInfo = new List<ReturnInfo>();
 			var modifications = await this.solutionManager.GetModificationsAsync(modifiedDocuments.ToList());
 
-			var methodsRemovedOrUpdated = from m in modifications
-								 where m.ModificationKind == ModificationKind.MethodRemoved ||
-									   m.ModificationKind == ModificationKind.MethodUpdated
+			var methodsRemoved = from m in modifications
+								 where m.ModificationKind == ModificationKind.MethodRemoved
 								 select m.MethodDescriptor;
 
-			var methodsAddedOrUpdated = from m in modifications
-							   where m.ModificationKind == ModificationKind.MethodAdded ||
-									 m.ModificationKind == ModificationKind.MethodUpdated
-							   select m.MethodDescriptor;
+			var methodsUpdated = from m in modifications
+								 where m.ModificationKind == ModificationKind.MethodUpdated
+								 select m.MethodDescriptor;
 
 			var methodsAdded = from m in modifications
-										where m.ModificationKind == ModificationKind.MethodAdded 
-										select m.MethodDescriptor;
+							   where m.ModificationKind == ModificationKind.MethodAdded
+							   select m.MethodDescriptor;
+
+			// TODO: log modified methods
+			Logger.Log("Removed methods:\n{0}", string.Join("\n", methodsRemoved));
+			Logger.Log("Modified methods:\n{0}", string.Join("\n", methodsUpdated));
+			Logger.Log("Added methods:\n{0}", string.Join("\n", methodsAdded));
+
+			var methodsRemovedOrUpdated = methodsRemoved.Union(methodsUpdated);
+			var methodsAddedOrUpdated = methodsAdded.Union(methodsUpdated);
 
 			foreach (var method in methodsRemovedOrUpdated)
 			{
@@ -411,18 +417,16 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(calleesInfo);
 			await this.solutionManager.ReloadAsync();
-			
+
+			// Don't propagate from modified callers since their call nodes may no longer exist
+			callersInfo.RemoveAll(callerInfo => methodsUpdated.Contains(callerInfo.CallerContext.Caller));			
 			await this.PropagateFromCallersAsync(callersInfo);
 
-			// TODO: if there is no caller (e.g., main in the future public method) you should call yourself
+			// If there is no caller (e.g., main or in the future public methods) you should call yourself
 			var roots = await this.solutionManager.GetRootsAsync();
-			foreach (var method in methodsAddedOrUpdated)
-			{
-				if (roots.Contains(method))
-				{
-					await AnalyzeAsync(roots);
-				}
-			}
+			var modifiedRoots = roots.Intersect(methodsAddedOrUpdated);
+
+			await AnalyzeAsync(modifiedRoots);
 
 			// This is only for overrides
 			foreach (var method in methodsAdded)
@@ -451,9 +455,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 					var methodEntityWP = await codeProvider.GetMethodEntityAsync(method);
 					var callersOfMethod = await methodEntityWP.GetCallersAsync();
-
+					// Here all callees should be the same overriden method
 					var overridenMethodDescriptor = propagationEffects.CallersInfo.Select(callerInfo => callerInfo.Callee).First();
-
 					var overridenCalleeEntity = await codeProvider.GetMethodEntityAsync(overridenMethodDescriptor);
 
 					foreach (var callContext in callersOfMethod)
