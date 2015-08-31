@@ -45,6 +45,7 @@ namespace WebRole1
         int machines;
         int methods;
         string subject;
+
         public AnalysisClient(int machines, int methods, string subject)
         {
             Contract.Assert(subject != null);
@@ -52,16 +53,20 @@ namespace WebRole1
             this.methods = methods;
             this.subject = subject;
         }
+
         public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSolutionAsync(string solutionFileName)
         {
             var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
-            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			var callgraph = await analyzer.GenerateCallGraphAsync();
             return callgraph;
         }
+
         public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSourceCodeAsync(string source)
         {
             var analyzer = SolutionAnalyzer.CreateFromSource(source);
-            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+            await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			var callgraph = await analyzer.GenerateCallGraphAsync();
             return callgraph;
         }
 

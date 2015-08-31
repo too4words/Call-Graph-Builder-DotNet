@@ -20,10 +20,12 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
-		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
+		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
 		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
 		//const string SolutionToTest = @"Coby\Coby.sln";
+
+		const string CallGraphPath = @"C:\Temp\callgraph.dgml";
 
 		const string WelcomeMessage = @"Console Server started
 -----------------
@@ -79,7 +81,8 @@ Listening on Port {0} ...
 			this.Initialize();
 			this.solutionPath = solutionPath;
 			this.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-			analyzer.Analyze(strategyKind);
+			analyzer.AnalyzeAsync(strategyKind).Wait();
+
 			OrleansController.SolutionManager = analyzer.SolutionManager;
 
 			Console.WriteLine("Done");
@@ -138,18 +141,34 @@ Listening on Port {0} ...
 					else
 					{
 						Console.WriteLine("Keeping local version.");
+						command = string.Empty;
 					}
 
 					this.gitDiffOutput = null;
+				}
+				else if (command.Equals("callgraph", StringComparison.InvariantCultureIgnoreCase))
+				{
+					this.GenerateCallGraph();
 				}
 				else if (command.Equals("update", StringComparison.InvariantCultureIgnoreCase))
 				{
 					this.CheckForUpdates(true);
 				}
+
 			}
 			while (!command.Equals("exit", StringComparison.InvariantCultureIgnoreCase));
         }
 
+		private void GenerateCallGraph()
+		{
+			Console.WriteLine("Generating call graph...");
+
+			var callgraph =  analyzer.GenerateCallGraphAsync().Result;
+			callgraph.Save(CallGraphPath);
+
+			Console.WriteLine("Call graph generated successfully.");
+		}
+		
 		private class CommandResult
 		{
 			public string Error { get; private set; }
@@ -232,8 +251,6 @@ Listening on Port {0} ...
 
 		private void UpdateAnalysis()
 		{
-			Console.WriteLine("Starting incremental analysis...");
-
 			var solutionFolder = Path.GetDirectoryName(solutionPath);
 			var modifiedDocuments = gitDiffOutput.Split('\n')
 												 .Where(docPath => !string.IsNullOrEmpty(docPath))
@@ -241,9 +258,14 @@ Listening on Port {0} ...
 												 .Select(docPath => Path.Combine(solutionFolder, docPath))
 												 .ToList();
 
+			Console.WriteLine("Starting incremental analysis...");
+
 			analyzer.ApplyModificationsAsync(modifiedDocuments).Wait();
 
 			Console.WriteLine("Incremental analysis finish");
+
+			//var callGraph = analyzer.GenerateCallGraphAsync().Result;
+			//callGraph.Save(CallGraphPath);
 		}
 
 		private void Initialize()
