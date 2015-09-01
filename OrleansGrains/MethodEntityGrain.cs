@@ -374,10 +374,19 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.GetPublicMethodsAsync();
 		}
 
-
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
 		{
 			return codeProvider.AddMethodAsync(methodToAdd);
+		}
+
+		public Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return codeProvider.GetDeclarationInfoAsync(methodDescriptor);
+		}
+
+		public Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return codeProvider.GetInvocationInfoAsync(callContext);
 		}
 	}
 

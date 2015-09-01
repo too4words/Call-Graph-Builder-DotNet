@@ -81,6 +81,10 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 
 		Task ReloadAsync();
+
+		Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor);
+
+		Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext);
 	}
 
     public interface ISolutionManager

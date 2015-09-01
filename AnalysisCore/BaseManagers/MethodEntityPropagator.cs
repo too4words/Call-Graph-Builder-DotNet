@@ -447,14 +447,13 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
 		{
 			// TODO: BUG! The declaration info should be of the caller.
-			var references = from caller in this.methodEntity.Callers
-							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode, this.methodEntity.DeclarationInfo);
+			//var references = from caller in this.methodEntity.Callers
+			//				 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode, this.methodEntity.DeclarationInfo);
 
-			var result = references.ToList().AsEnumerable();
-			return Task.FromResult(result);
+			//var result = references.ToList().AsEnumerable();
+			//return Task.FromResult(result);
+			throw new NotImplementedException();
 		}
-
-		
 
 		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
@@ -469,24 +468,21 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
 		{
 			var result = new List<CodeGraphModel.Annotation>();
-			result.Add(this.methodEntity.DeclarationInfo);
+			//result.Add(this.methodEntity.DeclarationInfo);
 
 			foreach (var callNode in this.methodEntity.PropGraph.CallNodes)
 			{
 				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.methodEntity.MethodDescriptor, callNode);
-				invocationInfo.range.startLineNumber += this.methodEntity.DeclarationInfo.range.startLineNumber;
-				invocationInfo.range.endLineNumber+= this.methodEntity.DeclarationInfo.range.endLineNumber;
-
 				result.Add(invocationInfo);
 			}
 
 			return Task.FromResult(result.AsEnumerable());
 		}
-				
+		
 		public async Task<PropagationEffects> RemoveMethodAsync()
 		{
 			var calleesInfo = from callNode in this.methodEntity.PropGraph.CallNodes
-						   select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
+							  select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
 
 			var propagagationEffecs = new PropagationEffects(calleesInfo, true);
 			await this.PopulatePropagationEffectsInfo(propagagationEffecs, PropagationKind.REMOVE_TYPES);

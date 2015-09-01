@@ -51,6 +51,16 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(result.AsEnumerable());
 		}
 
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return Task.FromResult<CodeGraphModel.SymbolReference>(null);
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return Task.FromResult<CodeGraphModel.SymbolReference>(null);
+		}
+
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 
@@ -89,7 +99,5 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
 		}
-
-
 	}
 }

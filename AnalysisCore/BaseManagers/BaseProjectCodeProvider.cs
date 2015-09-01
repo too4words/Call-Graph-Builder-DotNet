@@ -193,10 +193,12 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				// If it is interface/abstract or code that we did not parse  (library)
 				var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+
 				if (roslynMethod != null)
 				{
 					var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
 					var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+
 					if (implementedMethod != null)
 					{
 						methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
@@ -209,7 +211,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodDescriptor;
 		}
 
-        public Task<MethodDescriptor> FindMethodImplementationAsyncUsingRoslyn(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        public Task<MethodDescriptor> FindMethodImplementationUsingRoslynAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
 			var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
 
@@ -273,29 +275,57 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
 		// Old version using DocumentVisitor
-		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
-		{
-			var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
-			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
-		}
+		//public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		//{
+		//	var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
+		//	return CodeGraphHelper.GetDocumentEntitiesAsync(document);
+		//}
 
 		// This version get the info from the PropagationGraphs in the method entities
 		// The problem is when you update a file the relative positions of the methods in the file changes
 		// and we need to update all the ranges in all the entities
-		//public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
-		//{
-		//	var documentInfo = await this.GetDocumentInfoAsync(documentPath);
-		//	var result = await CodeGraphHelper.GetDocumentEntitiesAsync(this, documentInfo);
-		//	return result;
-		//}
+		public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		{
+			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
+			var result = await CodeGraphHelper.GetDocumentEntitiesAsync(this, documentInfo);
+			return result;
+		}
+
+		public async Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			CodeGraphModel.SymbolReference result = null;
+			var methodInfo = await this.FindMethodInProjectAsync(methodDescriptor);
+
+			if (methodInfo != null)
+			{
+				result = CodeGraphHelper.GetMethodReferenceInfo(methodInfo.DeclarationSyntaxNode);
+			}
+
+			return result;
+		}
+
+		public async Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			CodeGraphModel.SymbolReference result = null;
+			var methodInfo = await this.FindMethodInProjectAsync(callContext.Caller);
+
+			if (methodInfo != null)
+			{
+				result = CodeGraphHelper.GetMethodReferenceInfo(callContext.CallNode, methodInfo.DeclarationSyntaxNode);
+			}
+
+			return result;
+		}
 
         internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
         {
             var result = new HashSet<MethodDescriptor>();
+
             foreach(var documentInfo in this.DocumentsInfo.Values)
             {
                 result.UnionWith(documentInfo.DeclaredMethods.Keys);
             }
+
             return Task.FromResult(result.AsEnumerable());
         }
 

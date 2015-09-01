@@ -326,6 +326,7 @@ namespace ReachingTypeAnalysis
         {
             Contract.Assert(this.methodNode != null || this.propertyAccessorNode!=null);
 			SyntaxNode node = null;
+
 			if (this.methodNode != null)
 			{
 				node = this.methodNode;
@@ -335,13 +336,12 @@ namespace ReachingTypeAnalysis
 				node = this.propertyAccessorNode;
 			}
 
-			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, node);
-			
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, node);			
 			propGraphGenerator.Visit(node);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
 			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(node, this.RoslynMethod);
-			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod, declarationInfo);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(node);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,
@@ -376,7 +376,7 @@ namespace ReachingTypeAnalysis
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
 			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(this.lambdaExpression, this.RoslynMethod);
-			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod, declarationInfo);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.declarationNode);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,

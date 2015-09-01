@@ -519,7 +519,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					var isSetter = this.leftHandSide && 
 						( (node.Parent is AssignmentExpressionSyntax) || 
 						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
-					return new Property(node, type, symbol, isSetter);
+					return new Property(node, type, symbol, isSetter, this.roslynMethodVisitor.DeclarationNode);
 				case SymbolKind.Local:
 					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 				case SymbolKind.Parameter:

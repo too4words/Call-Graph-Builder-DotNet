@@ -148,6 +148,16 @@ namespace ReachingTypeAnalysis.Analysis
             return this.projectCodeProvider.GetDocumentEntitiesAsync(documentPath);
         }
 
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return this.projectCodeProvider.GetDeclarationInfoAsync(methodDescriptor);
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return this.projectCodeProvider.GetInvocationInfoAsync(callContext);
+		}
+
         public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
@@ -227,9 +237,9 @@ namespace ReachingTypeAnalysis.Analysis
 
     public class ProjectCodeProviderWrapper : IProjectCodeProvider
     {
-        private ProjectCodeProviderGrain grainRef;
+        private IProjectCodeProviderGrain grainRef;
 
-        public ProjectCodeProviderWrapper(ProjectCodeProviderGrain grainRef)
+        public ProjectCodeProviderWrapper(IProjectCodeProviderGrain grainRef)
         {
             this.grainRef = grainRef;
         }
@@ -250,6 +260,18 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.grainRef.GetDocumentEntitiesAsync(documentPath);
             return result;
         }
+
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			var result = this.grainRef.GetDeclarationInfoAsync(methodDescriptor);
+			return result;
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			var result = this.grainRef.GetInvocationInfoAsync(callContext);
+			return result;
+		}
 
         public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
         {
@@ -311,10 +333,10 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
 		{
-			return this.grainRef.AddMethodAsync(methodToAdd);
+			var result = this.grainRef.AddMethodAsync(methodToAdd);
+			return result;
 		}
 	}
 }

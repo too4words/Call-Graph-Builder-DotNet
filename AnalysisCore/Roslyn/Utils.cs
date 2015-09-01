@@ -210,11 +210,8 @@ namespace ReachingTypeAnalysis
 			var range = CodeGraphHelper.GetRange(span);
 			var rangeDecRange = CodeGraphHelper.GetRange(CodeGraphHelper.GetSpan(declaratioNode));
 
-			range.endLineNumber -= rangeDecRange.endLineNumber;
-			range.startLineNumber -= rangeDecRange.startLineNumber;
-
 			var filePath = span.Path;
-			return new LocationDescriptor(invocationPosition, range, filePath);
+			return new LocationDescriptor(invocationPosition, CodeGraphHelper.GetRelativeRange(range,rangeDecRange), filePath);
 		}
 
 		public static AnalysisCallNodeAdditionalInfo CreateAnalysisCallNodeAdditionalInfo(ISymbol symbol)

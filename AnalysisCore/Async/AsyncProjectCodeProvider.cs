@@ -48,19 +48,23 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			IMethodEntityWithPropagator result;
 
-			if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
-			{
-				var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
-
-				if (methodDescriptor.IsAnonymousDescriptor)
+			
+				if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
 				{
-					methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+					var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
+
+					if (methodDescriptor.IsAnonymousDescriptor)
+					{
+						methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+					}
+
+					result = new MethodEntityWithPropagator(methodEntity, this);
+					lock (this.methodEntities)
+					{
+						this.methodEntities.Add(methodDescriptor, result);
+					}
 				}
-
-				result = new MethodEntityWithPropagator(methodEntity, this);
-				this.methodEntities.Add(methodDescriptor, result);
-			}
-
+			
 			return result;
         }
 

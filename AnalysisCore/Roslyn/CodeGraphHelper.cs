@@ -54,12 +54,31 @@ namespace ReachingTypeAnalysis.Roslyn
 			result.declarationAnnotation = new List<DeclarationAnnotation>();
 			result.referenceAnnotation = new List<ReferenceAnnotation>();
 
-			foreach (var methodDescriptor in documentInfo.DeclaredMethods.Keys)
+			foreach (var entry in documentInfo.DeclaredMethods)
 			{
+				var methodDescriptor = entry.Key;
+				var methodInfo = entry.Value;
 				var methodEntity = await projectProvider.GetMethodEntityAsync(methodDescriptor);
 				var annotations = await methodEntity.GetAnnotationsAsync();
+
+				// Add method declaration 
+				var methodDeclaration = GetMethodDeclarationInfo(methodInfo.DeclarationSyntaxNode, methodInfo.MethodSymbol);
+				result.declarationAnnotation.Add(methodDeclaration);
+
+				//var span = GetSpan(methodInfo.DeclarationSyntaxNode);
+				//var baseRange = GetRange(span);
+				// Annotations are relative to method declaration. Here we make it absolute
+				var baseRange = methodDeclaration.range;
+				foreach(var anotation in annotations)
+				{
+					anotation.range = GetAbsoluteRange(anotation.range, baseRange);
+				}
+
 				var declarations = annotations.OfType<DeclarationAnnotation>();
+
 				var references = annotations.OfType<ReferenceAnnotation>();
+
+				
 
 				result.declarationAnnotation.AddRange(declarations);
 				result.referenceAnnotation.AddRange(references);
@@ -120,40 +139,54 @@ namespace ReachingTypeAnalysis.Roslyn
 			return result;
 		}
 
-		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode, DeclarationAnnotation declarationInfo)
+		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode, SyntaxNode declarationNode)
 		{
+			var span = CodeGraphHelper.GetSpan(declarationNode);
+			var declarationNodeRange = CodeGraphHelper.GetRange(span);
 			var range = callNode.LocationDescriptor.Range;
 
 			var result = new SymbolReference()
 			{
 				refType = "ref",
 				preview = callNode.LocationDescriptor.FilePath,
-				trange = MakeAbsolute(range, declarationInfo.range)
+				trange = CodeGraphHelper.GetAbsoluteRange(range, declarationNodeRange)
 			};
 
 			return result;
 		}
 
-		
-
-
-		public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol, DeclarationAnnotation declarationInfo)
+		public static SymbolReference GetMethodReferenceInfo(SyntaxNode declarationNode)
 		{
-			var span = symbol.Locations.First().GetMappedLineSpan();
-
-			var range = GetRange(span);
+			var span = CodeGraphHelper.GetSpan(declarationNode);
+			var range = CodeGraphHelper.GetRange(span);
 
 			var result = new SymbolReference()
 			{
 				refType = "ref",
-				preview = span.Path,				
-				trange = MakeRelative(range, declarationInfo.range)
+				preview = span.Path,
+				trange = range
 			};
 
 			return result;
 		}
 
-		static Range MakeRelative(Range range, Range baseRange)
+	
+		//public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol)
+		//{
+		//	var span = symbol.Locations.First().GetMappedLineSpan();
+		//	var range = CodeGraphHelper.GetRange(span);
+
+		//	var result = new SymbolReference()
+		//	{
+		//		refType = "ref",
+		//		preview = span.Path,
+		//		trange = range
+		//	};
+
+		//	return result;
+		//}
+
+		public static Range GetRelativeRange(Range range, Range baseRange)
 		{
 			var res = new Range()
 			{
@@ -162,10 +195,11 @@ namespace ReachingTypeAnalysis.Roslyn
 				startColumn = range.startColumn,
 				endColumn = range.endColumn
 			};
+
 			return res;
 		}
 
-		static Range MakeAbsolute(Range range, Range baseRange)
+		public static Range GetAbsoluteRange(Range range, Range baseRange)
 		{
 			var res = new Range()
 			{
@@ -174,6 +208,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				startColumn = range.startColumn,
 				endColumn = range.endColumn
 			};
+
 			return res;
 		}
 
@@ -232,8 +267,14 @@ namespace ReachingTypeAnalysis.Roslyn
 						var memberAccess = invocationExpression.Expression as MemberAccessExpressionSyntax;
 						span = memberAccess.Name.Span;
 					}
+					else
+					{ }
 				}
+				else
+				{ }
 			}
+			else
+			{ }
 
 			var result = nodeOrToken.SyntaxTree.GetLineSpan(span);
 			return result;
@@ -342,15 +383,17 @@ namespace ReachingTypeAnalysis.Roslyn
 		public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
 		{
 			var symbolInfo = this.model.GetSymbolInfo(node);
-
 			var symbol = symbolInfo.Symbol as IPropertySymbol;
+
 			if (symbol != null)
 			{
 				IMethodSymbol methodSymbol = null;
 				var methodName = node.Name;
 
-				var isSetter = this.leftHandSide &&   ( (node.Parent is AssignmentExpressionSyntax) || 
-						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+				var isSetter = this.leftHandSide &&
+							((node.Parent is AssignmentExpressionSyntax) ||
+							 (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+
 				if (isSetter)
 				{ 
 					methodSymbol = symbol.SetMethod;
