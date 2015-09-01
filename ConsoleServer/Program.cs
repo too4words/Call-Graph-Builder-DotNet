@@ -22,8 +22,8 @@ namespace ConsoleServer
 
 		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
 
-		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-		//const string SolutionToTest = @"Coby\Coby.sln";
+		//const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+		const string SolutionToTest = @"Coby\Coby.sln";
 
 		const string CallGraphPath = @"C:\Temp\callgraph.dgml";
 

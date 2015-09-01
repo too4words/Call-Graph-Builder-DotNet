@@ -203,7 +203,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
     internal class Lambda : Method
     {
-        public Lambda(SimpleLambdaExpressionSyntax expression, ITypeSymbol type, IMethodSymbol symbol, AnonymousMethodDescriptor methodDescriptor, SyntaxNode declarationNode)
+        public Lambda(SyntaxNode expression, ITypeSymbol type, IMethodSymbol symbol, AnonymousMethodDescriptor methodDescriptor, SyntaxNode declarationNode)
             : base(expression, type, symbol, methodDescriptor, declarationNode)
         {
             this.IsDelegate = true;
@@ -643,13 +643,26 @@ namespace ReachingTypeAnalysis.Roslyn
             var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
             var baseMethodDescriptor = this.statementProcessor.Method;
             var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
-            var lambdaMethodParser =  new LambdaMethodParser(model, node, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+            var lambdaMethodParser =  new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
             var methodEntity = lambdaMethodParser.ParseMethod();
 
             statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
-
 			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
         }
+		public override AnalysisExpression VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+		{
+
+			var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+			var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
+			var baseMethodDescriptor = this.statementProcessor.Method;
+			var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
+			var lambdaMethodParser = new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+			var methodEntity = lambdaMethodParser.ParseMethod();
+
+			statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
+
+			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+		}
 
         public override AnalysisExpression VisitExpressionStatement(ExpressionStatementSyntax node)
         {
@@ -1090,7 +1103,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			// we treat this as an invocation
 			var callNode = new AnalysisCallNode(roslynMethod.Name,
 				Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
-				this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
+				this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, property.Expression),
 				Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod));
 
 			var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);

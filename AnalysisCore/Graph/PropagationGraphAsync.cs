@@ -109,6 +109,7 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateAsync(IProjectCodeProvider codeProvider)
         {
+			Logger.Log("Add Working Set size {0}", this.workList.Count);
             this.codeProvider = codeProvider;
 
             var calls = new HashSet<CallInfo>();
@@ -150,6 +151,8 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateDeletionOfNodesAsync(IProjectCodeProvider codeProvider)
         {
+			Logger.Log("Delete Working Set size {0}", this.workList.Count);
+
 			this.codeProvider = codeProvider;
 
             var calls = new HashSet<CallInfo>();

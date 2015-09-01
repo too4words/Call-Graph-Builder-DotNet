@@ -72,7 +72,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			//Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 			Logger.Log("Propagating {0} to {1}", this.methodEntity.MethodDescriptor, propKind);
-
+			
 			// var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
 			PropagationEffects propagationEffects = null;
 
@@ -156,13 +156,13 @@ namespace ReachingTypeAnalysis.Analysis
 				var calleesInfo = new HashSet<CallInfo>();
                 return new PropagationEffects(calleesInfo, false);
 			}
-
+			
             if (this.methodEntity.ThisRef != null)
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ReceiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
             }
 
-            for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
+		            for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
             {
                 var parameterNode = this.methodEntity.ParameterNodes[i];
 
@@ -189,9 +189,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes, returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
             }
-
             /// We need to recompute possible calless 
-
             var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
 
@@ -474,6 +472,15 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.methodEntity.MethodDescriptor, callNode);
 				result.Add(invocationInfo);
+			}
+			foreach(var anonymousEntity in this.methodEntity.GetAnonymousMethodEntities())
+			{
+				foreach (var callNode in anonymousEntity.PropGraph.CallNodes)
+				{
+					var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(anonymousEntity.MethodDescriptor, callNode);
+					invocationInfo.range = CodeGraphHelper.GetAbsoluteRange(invocationInfo.range, anonymousEntity.DeclarationInfo.range);
+					result.Add(invocationInfo);
+				}
 			}
 
 			return Task.FromResult(result.AsEnumerable());

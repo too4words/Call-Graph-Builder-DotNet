@@ -355,15 +355,15 @@ namespace ReachingTypeAnalysis
 
     internal class LambdaMethodParser : GeneralRoslynMethodParser
     {
-        private SimpleLambdaExpressionSyntax lambdaExpression;
+        private SyntaxNode lambdaExpression;
         private SemanticModel model;
 		private SyntaxNode declarationNode;
 
-        public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method, MethodDescriptor methodDescriptor, SyntaxNode declarationNode)
+        public LambdaMethodParser(SemanticModel model, SyntaxNode body, IMethodSymbol method, MethodDescriptor methodDescriptor, SyntaxNode declarationNode)
             : base(method, methodDescriptor)
         {
             this.model = model;
-            this.lambdaExpression = node;
+            this.lambdaExpression = body;
             this.MethodDescriptor = methodDescriptor;
 			this.declarationNode = declarationNode;
         }
@@ -376,6 +376,9 @@ namespace ReachingTypeAnalysis
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
 			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(this.lambdaExpression, this.RoslynMethod);
+			// TODO: Hack
+			declarationInfo.range = CodeGraphHelper.GetRelativeRange(declarationInfo.range, CodeGraphHelper.GetRange(CodeGraphHelper.GetSpan(declarationNode)));
+
 			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.declarationNode);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
