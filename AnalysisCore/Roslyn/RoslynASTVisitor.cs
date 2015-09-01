@@ -243,6 +243,13 @@ namespace ReachingTypeAnalysis
 		public SemanticModel SemanticModel { get; set; }
 		public BaseMethodDeclarationSyntax DeclarationNode { get; set; }
 		public AccessorDeclarationSyntax ProperyAccessorNode { get; set; }
+
+		public SyntaxNode DeclarationSyntaxNode
+		{
+			get { return this.DeclarationNode != null ? this.DeclarationNode as SyntaxNode 
+													  : this.ProperyAccessorNode as SyntaxNode; }
+		}
+	
 		public IMethodSymbol MethodSymbol { get; set; }
 
 		public MethodParserInfo(MethodDescriptor methodDescriptor)

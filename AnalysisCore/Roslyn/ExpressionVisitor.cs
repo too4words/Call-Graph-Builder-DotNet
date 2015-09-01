@@ -511,8 +511,6 @@ namespace ReachingTypeAnalysis.Roslyn
 					var isSetter = this.leftHandSide && 
 						( (node.Parent is AssignmentExpressionSyntax) || 
 						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
-					if (!isSetter && this.leftHandSide)
-					{ }
 					return new Property(node, type, symbol, isSetter);
 				case SymbolKind.Local:
 					return new Identifier(node, type, symbol);
@@ -1048,6 +1046,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					 AnalysisExpression referenceAnalysisExpression, 
 					 Property property)
         {
+			this.roslynMethodVisitor.InvocationPosition++;
             var roslynMethod = property.RoslynMethod;
             // we treat this as an invocation
             var callNode = new AnalysisCallNode(roslynMethod.Name,
@@ -1077,6 +1076,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					 AnalysisExpression referenceAnalysisExpression, 
 					 Property property, PropGraphNodeDescriptor rhsNode)
 		{
+			this.roslynMethodVisitor.InvocationPosition++;
 			var roslynMethod = property.RoslynMethod;
 			// we treat this as an invocation
 			var callNode = new AnalysisCallNode(roslynMethod.Name,

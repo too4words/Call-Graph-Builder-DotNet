@@ -273,18 +273,21 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
 		// Old version using DocumentVisitor
-		//public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
-		//{
-		//	var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
-		//	return CodeGraphHelper.GetDocumentEntitiesAsync(document);
-		//}
-
-		public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		{
-			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
-			var result = await CodeGraphHelper.GetDocumentEntitiesAsync(this, documentInfo);
-			return result;
+			var document = this.project.Documents.Single(doc => doc.FilePath.EndsWith(documentPath, StringComparison.InvariantCultureIgnoreCase));
+			return CodeGraphHelper.GetDocumentEntitiesAsync(document);
 		}
+
+		// This version get the info from the PropagationGraphs in the method entities
+		// The problem is when you update a file the relative positions of the methods in the file changes
+		// and we need to update all the ranges in all the entities
+		//public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
+		//{
+		//	var documentInfo = await this.GetDocumentInfoAsync(documentPath);
+		//	var result = await CodeGraphHelper.GetDocumentEntitiesAsync(this, documentInfo);
+		//	return result;
+		//}
 
         internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
         {

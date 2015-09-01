@@ -17,10 +17,10 @@ namespace ReachingTypeAnalysis.Roslyn
 		private class MethodUpdateInfo
 		{
 			public MethodDescriptor MethodDescriptor { get; private set; }
-			public BaseMethodDeclarationSyntax NewDeclarationNode { get; private set; }
-			public BaseMethodDeclarationSyntax OldDeclarationNode { get; private set; }
+			public SyntaxNode NewDeclarationNode { get; private set; }
+			public SyntaxNode OldDeclarationNode { get; private set; }
 
-			public MethodUpdateInfo(MethodDescriptor methodDescriptor, BaseMethodDeclarationSyntax oldDeclarationNode, BaseMethodDeclarationSyntax newDeclarationNode)
+			public MethodUpdateInfo(MethodDescriptor methodDescriptor, SyntaxNode oldDeclarationNode, SyntaxNode newDeclarationNode)
 			{
 				this.MethodDescriptor = methodDescriptor;
 				this.OldDeclarationNode = oldDeclarationNode;
@@ -72,8 +72,8 @@ namespace ReachingTypeAnalysis.Roslyn
 								 from newMethod in newDeclaredMethods
 								 where oldMethod.Equals(newMethod)
 								 select new MethodUpdateInfo(newMethod.MethodDescriptor,
-															 oldMethod.DeclarationNode,
-															 newMethod.DeclarationNode);
+															 oldMethod.DeclarationSyntaxNode,
+															 newMethod.DeclarationSyntaxNode);
 
 			foreach (var methodInfo in methodsAdded)
 			{
