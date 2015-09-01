@@ -419,7 +419,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.solutionManager.ReloadAsync();
 
 			// Don't propagate from modified callers since their call nodes may no longer exist
-			callersInfo.RemoveAll(callerInfo => methodsUpdated.Contains(callerInfo.CallerContext.Caller));			
+			callersInfo.RemoveAll(callerInfo => methodsRemovedOrUpdated.Contains(callerInfo.CallerContext.Caller));			
 			await this.PropagateFromCallersAsync(callersInfo);
 
 			// If there is no caller (e.g., main or in the future public methods) you should call yourself
