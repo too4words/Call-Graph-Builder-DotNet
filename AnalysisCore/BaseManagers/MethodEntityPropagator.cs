@@ -208,7 +208,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
         {
-            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            var invocationNode = this.GetCallSiteByOrdinal(invocationPosition);
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
             var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)invocationNode);
@@ -220,6 +220,19 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
             // return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
         }
+
+		internal AnalysisCallNode GetCallSiteByOrdinal(int invocationPosition)
+		{
+			foreach (var callNode in this.methodEntity.PropGraph.CallNodes)
+			{
+				if (callNode.InMethodPosition == invocationPosition)
+				{
+					return callNode;
+				}
+			}
+			throw new ArgumentException();
+			//return null;
+		}
 
         public Task<int> GetInvocationCountAsync()
         {
@@ -433,13 +446,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
 		{
+			// TODO: BUG! The declaration info should be of the caller.
 			var references = from caller in this.methodEntity.Callers
-							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode);
+							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode, this.methodEntity.DeclarationInfo);
 
 			var result = references.ToList().AsEnumerable();
 			return Task.FromResult(result);
 		}
 
+		
 
 		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
@@ -453,10 +468,21 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
 		{
-			var result = this.methodEntity.GetAnnotations();
-			return Task.FromResult(result);
-		}
+			var result = new List<CodeGraphModel.Annotation>();
+			result.Add(this.methodEntity.DeclarationInfo);
 
+			foreach (var callNode in this.methodEntity.PropGraph.CallNodes)
+			{
+				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.methodEntity.MethodDescriptor, callNode);
+				invocationInfo.range.startLineNumber += this.methodEntity.DeclarationInfo.range.startLineNumber;
+				invocationInfo.range.endLineNumber+= this.methodEntity.DeclarationInfo.range.endLineNumber;
+
+				result.Add(invocationInfo);
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+				
 		public async Task<PropagationEffects> RemoveMethodAsync()
 		{
 			var calleesInfo = from callNode in this.methodEntity.PropGraph.CallNodes

@@ -318,21 +318,23 @@ namespace ReachingTypeAnalysis
         public override MethodEntity ParseMethod()
         {
             Contract.Assert(this.methodNode != null || this.propertyAccessorNode!=null);
-            var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this);
 			SyntaxNode node = null;
 			if (this.methodNode != null)
 			{
 				node = this.methodNode;
 			}
-			else if (this.propertyAccessorNode!= null)
+			else if (this.propertyAccessorNode != null)
 			{
 				node = this.propertyAccessorNode;
 			}
+
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, node);
+			
 			propGraphGenerator.Visit(node);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
 			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(node, this.RoslynMethod);
-			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod, declarationInfo);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,
@@ -348,24 +350,26 @@ namespace ReachingTypeAnalysis
     {
         private SimpleLambdaExpressionSyntax lambdaExpression;
         private SemanticModel model;
+		private SyntaxNode declarationNode;
 
-        public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method, MethodDescriptor methodDescriptor)
+        public LambdaMethodParser(SemanticModel model, SimpleLambdaExpressionSyntax node, IMethodSymbol method, MethodDescriptor methodDescriptor, SyntaxNode declarationNode)
             : base(method, methodDescriptor)
         {
             this.model = model;
             this.lambdaExpression = node;
             this.MethodDescriptor = methodDescriptor;
+			this.declarationNode = declarationNode;
         }
 
         public override MethodEntity ParseMethod()
         {
 			Contract.Assert(this.lambdaExpression != null);
-			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this);
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, this.lambdaExpression);
             propGraphGenerator.Visit(this.lambdaExpression);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
 			var declarationInfo = CodeGraphHelper.GetMethodDeclarationInfo(this.lambdaExpression, this.RoslynMethod);
-			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod);
+			var referenceInfo = CodeGraphHelper.GetMethodReferenceInfo(this.RoslynMethod, declarationInfo);
 
 			var methodEntity = new MethodEntity(propGraphGenerator.MethodDescriptor,
                                                 propGraphGenerator.MethodInterfaceData,
@@ -424,7 +428,8 @@ namespace ReachingTypeAnalysis
 
         public MethodSyntaxVisitor(SemanticModel model,
                                     IMethodSymbol roslynMethod,
-                                    GeneralRoslynMethodParser roslynMethodProcessor)
+                                    GeneralRoslynMethodParser roslynMethodProcessor,
+									SyntaxNode declarationNode)
         {
             //this.methodNode = methodSyntaxNode;
             this.model = model;
@@ -437,7 +442,9 @@ namespace ReachingTypeAnalysis
 
             this.expressionsVisitor = new ExpressionVisitor(this.model, this.StatementProcessor, this);
             this.InvocationPosition = 0;
+			this.DeclarationNode = declarationNode;
         }
+
 
 		public override object VisitCompilationUnit(CompilationUnitSyntax node)
         {
@@ -498,7 +505,7 @@ namespace ReachingTypeAnalysis
 			var type = symbol.Type;
 
 			// This is the declaration of the iterarion variable
-			var lhs = new Identifier(node.Identifier, type, symbol);
+			var lhs = new Identifier(node.Identifier, type, symbol, this.DeclarationNode);
 			var rhs = expressionsVisitor.Visit(node.Expression);
 			this.RegisterAssignment(lhs, rhs);
 
@@ -775,7 +782,9 @@ namespace ReachingTypeAnalysis
         internal IDictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor> expressionNodeCache = new Dictionary<SyntaxNodeOrToken, PropGraphNodeDescriptor>();
      
         #endregion
-    }
+
+		public SyntaxNode DeclarationNode { get; set; }
+	}
 
 	#region All Method Visitor and EntireSync and Async are discontinued
 	/// <summary>

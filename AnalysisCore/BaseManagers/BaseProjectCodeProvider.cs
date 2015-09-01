@@ -189,6 +189,20 @@ namespace ReachingTypeAnalysis.Analysis
 				Contract.Assert(implementedMethod != null);
 				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
 			}
+			else
+			{
+				// If it is interface/abstract or code that we did not parse  (library)
+				var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+				if (roslynMethod != null)
+				{
+					var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
+					var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+					if (implementedMethod != null)
+					{
+						methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+					}
+				}
+			}
 
 			// TODO: If we cannot resolve the method, we return the same method.
 			// Maybe we should consider to return null instead?

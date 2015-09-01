@@ -120,30 +120,61 @@ namespace ReachingTypeAnalysis.Roslyn
 			return result;
 		}
 
-		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode)
+		public static SymbolReference GetMethodReferenceInfo(AnalysisCallNode callNode, DeclarationAnnotation declarationInfo)
 		{
+			var range = callNode.LocationDescriptor.Range;
+
 			var result = new SymbolReference()
 			{
 				refType = "ref",
 				preview = callNode.LocationDescriptor.FilePath,
-				trange = callNode.LocationDescriptor.Range
+				trange = MakeAbsolute(range, declarationInfo.range)
 			};
 
 			return result;
 		}
 
-		public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol)
+		
+
+
+		public static SymbolReference GetMethodReferenceInfo(IMethodSymbol symbol, DeclarationAnnotation declarationInfo)
 		{
 			var span = symbol.Locations.First().GetMappedLineSpan();
+
+			var range = GetRange(span);
 
 			var result = new SymbolReference()
 			{
 				refType = "ref",
 				preview = span.Path,				
-				trange = GetRange(span)
+				trange = MakeRelative(range, declarationInfo.range)
 			};
 
 			return result;
+		}
+
+		static Range MakeRelative(Range range, Range baseRange)
+		{
+			var res = new Range()
+			{
+				startLineNumber = range.startLineNumber - baseRange.startLineNumber,
+				endLineNumber = range.endLineNumber - baseRange.endLineNumber,
+				startColumn = range.startColumn,
+				endColumn = range.endColumn
+			};
+			return res;
+		}
+
+		static Range MakeAbsolute(Range range, Range baseRange)
+		{
+			var res = new Range()
+			{
+				startLineNumber = range.startLineNumber + baseRange.startLineNumber,
+				endLineNumber = range.endLineNumber + baseRange.endLineNumber,
+				startColumn = range.startColumn,
+				endColumn = range.endColumn
+			};
+			return res;
 		}
 
 		public static Range GetRange(FileLinePositionSpan span)

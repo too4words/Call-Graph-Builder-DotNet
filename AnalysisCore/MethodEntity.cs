@@ -288,33 +288,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.MethodDescriptor.ToString();
 		}
-
-        internal AnalysisCallNode GetCallSiteByOrdinal(int invocationPosition)
-        {
-            foreach(var callNode in this.PropGraph.CallNodes)
-            {
-                if(callNode.InMethodPosition==invocationPosition)
-                {
-                    return callNode;
-                }
-            }
-            throw new ArgumentException();
-            //return null;
-        }
-
-		internal IEnumerable<CodeGraphModel.Annotation> GetAnnotations()
-		{
-			var result = new List<CodeGraphModel.Annotation>();
-			result.Add(this.DeclarationInfo);
-
-			foreach (var callNode in this.propGraph.CallNodes)
-			{
-				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.MethodDescriptor, callNode);
-				result.Add(invocationInfo);
-            }				
-
-			return result;
-		}
 	}
 
     [Serializable]
