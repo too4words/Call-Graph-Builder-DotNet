@@ -16,7 +16,7 @@ namespace ConsoleServer.Controllers
 	// http://localhost:14054/index.html?graph=ConsoleApplication1&mode=orleans
 	public class OrleansController : ApiController
     {
-		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\"; // @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
 		private static IDictionary<string, string> documentsAssemblyName;
 

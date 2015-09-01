@@ -270,6 +270,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		private SemanticModel model;
 		private IMethodSymbol currentMethodSymbol;
 		private int invocationIndex;
+		private bool leftHandSide;
 
 		public FileResponse DocumentInfo { get; private set; }
 
@@ -338,6 +339,41 @@ namespace ReachingTypeAnalysis.Roslyn
 			base.VisitInvocationExpression(node);
 		}
 
+		public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+		{
+			var symbolInfo = this.model.GetSymbolInfo(node);
+
+			var symbol = symbolInfo.Symbol as IPropertySymbol;
+			if (symbol != null)
+			{
+				IMethodSymbol methodSymbol = null;
+				var methodName = node.Name;
+
+				var isSetter = this.leftHandSide &&   ( (node.Parent is AssignmentExpressionSyntax) || 
+						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+				if (isSetter)
+				{ 
+					methodSymbol = symbol.SetMethod;
+				}
+				else
+				{
+					methodSymbol = symbol.GetMethod;
+				}
+
+				this.VisitBaseMethodInvocationExpression(methodName, methodSymbol);
+			}
+
+			base.VisitMemberAccessExpression(node);
+		}
+		public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
+		{
+			this.leftHandSide = true;
+			Visit(node.Left);
+			this.leftHandSide = false;
+			Visit(node.Right);
+			// base.VisitAssignmentExpression(node);
+		}
+
 		public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
 		{
 			if (node.Type is SimpleNameSyntax)
@@ -350,6 +386,22 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 
 			base.VisitObjectCreationExpression(node);
+		}
+		/// <summary>
+		/// This is for properties
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public override void VisitAccessorDeclaration(AccessorDeclarationSyntax node)
+		{
+			var symbol = this.model.GetDeclaredSymbol(node);
+			var declaration = CodeGraphHelper.GetMethodDeclarationInfo(node, symbol);
+
+			this.DocumentInfo.declarationAnnotation.Add(declaration);
+			this.currentMethodSymbol = symbol;
+			this.invocationIndex = 0;
+
+			base.VisitAccessorDeclaration(node);
 		}
 	}
 }
