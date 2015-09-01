@@ -20,29 +20,33 @@ namespace ReachingTypeAnalysis.Analysis
 		private IGrainFactory grainFactory;
 		private ISet<MethodDescriptor> methodsToRemove;
 
-		private OrleansProjectCodeProvider(IGrainFactory grainFactory)
-        {
+		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager)
+			: base(solutionManager)
+		{
 			this.grainFactory = grainFactory;
 			this.methodsToRemove = new HashSet<MethodDescriptor>();
         }
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromProjectAsync(IGrainFactory grainFactory, string projectPath)
 		{
-			var provider = new OrleansProjectCodeProvider(grainFactory);
+			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadProjectAsync(projectPath);
 			return provider;
 		}
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromSourceAsync(IGrainFactory grainFactory, string source, string assemblyName)
 		{
-			var provider = new OrleansProjectCodeProvider(grainFactory);
+			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadSourceAsync(source, assemblyName);
 			return provider;
 		}
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromTestAsync(IGrainFactory grainFactory, string testName, string assemblyName)
 		{
-			var provider = new OrleansProjectCodeProvider(grainFactory);
+			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadTestAsync(testName, assemblyName);
 			return provider;
 		}

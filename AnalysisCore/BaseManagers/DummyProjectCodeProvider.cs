@@ -99,5 +99,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
 		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = new HashSet<TypeDescriptor>();
+			result.Add(type);
+			return Task.FromResult(result.AsEnumerable());
+		}
 	}
 }

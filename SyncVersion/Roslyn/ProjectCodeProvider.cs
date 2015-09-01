@@ -382,5 +382,10 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			throw new NotImplementedException();
 		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

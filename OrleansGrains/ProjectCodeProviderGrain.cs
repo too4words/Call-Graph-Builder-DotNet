@@ -227,6 +227,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return this.projectCodeProvider.AddMethodAsync(methodToAdd);
 		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			return this.projectCodeProvider.GetCompatibleInstantiatedTypesAsync(type);
+		}
 	}
 
     /// <summary>
@@ -336,6 +341,12 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
 		{
 			var result = this.grainRef.AddMethodAsync(methodToAdd);
+			return result;
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = this.grainRef.GetCompatibleInstantiatedTypesAsync(type);
 			return result;
 		}
 	}

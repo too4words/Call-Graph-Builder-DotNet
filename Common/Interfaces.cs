@@ -85,6 +85,7 @@ namespace ReachingTypeAnalysis
 		Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor);
 
 		Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext);
+		Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type);
 	}
 
     public interface ISolutionManager

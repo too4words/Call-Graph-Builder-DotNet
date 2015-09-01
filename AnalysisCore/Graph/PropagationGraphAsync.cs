@@ -212,13 +212,16 @@ namespace ReachingTypeAnalysis
 
             if (types.Count() == 0)
             {
-                foreach(var potentialType in callInfo.InstantiatedTypes)
-                {
-                    if(await codeProvider.IsSubtypeAsync(potentialType, callInfo.Receiver.Type))
-                    {
-                        types.Add(potentialType);
-                    }
-                }
+				var instantiatedTypes = await codeProvider.GetCompatibleInstantiatedTypesAsync(callInfo.Receiver.Type);
+				types.UnionWith(instantiatedTypes);
+
+                //foreach(var potentialType in callInfo.InstantiatedTypes)
+                //{
+                //    if(await codeProvider.IsSubtypeAsync(potentialType, callInfo.Receiver.Type))
+                //    {
+                //        types.Add(potentialType);
+                //    }
+                //}
             }
             if (types.Count() == 0)
             {

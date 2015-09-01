@@ -105,11 +105,11 @@ namespace ReachingTypeAnalysis.Analysis
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
             }
 
-			// this is for RTA analysis
-            await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
+			//// this is for RTA analysis
+			//await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
-            // This take cares of doing the progation of types
-            this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
+			// This take cares of doing the progation of types
+			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
 			this.State.Messages = this.messages;
 
@@ -388,6 +388,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.GetInvocationInfoAsync(callContext);
 		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			return codeProvider.GetCompatibleInstantiatedTypesAsync(type);
+		}
 	}
 
     /// <summary>
@@ -479,7 +484,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<CallContext>> GetCallersAsync()
 		{
-			return grainRef.GetCallersAsync();
+			return this.grainRef.GetCallersAsync();
 		}
 	}
 }

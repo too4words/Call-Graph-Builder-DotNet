@@ -58,10 +58,12 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDictionary<DocumentPath, DocumentInfo> documentsInfo;
 		private IDictionary<DocumentPath, DocumentInfo> newDocumentsInfo;
 		protected bool useNewFieldsVersion;
+		protected ISolutionManager solutionManager;
 
-		protected BaseProjectCodeProvider()
+		protected BaseProjectCodeProvider(ISolutionManager solutionManager)
         {
-			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();
+			this.solutionManager = solutionManager;
+			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();			
         }
 
 		protected Project Project
@@ -117,7 +119,9 @@ namespace ReachingTypeAnalysis.Analysis
                 methodEntity = methodEntityGenerator.ParseMethod();
             }
 
-            return methodEntity;
+			// this is for RTA analysis
+			await this.solutionManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
+			return methodEntity;
         }
 
 		private async Task<DocumentInfo> GetDocumentInfoAsync(string documentPath)
@@ -235,7 +239,25 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(methodDescriptor);
 		}
 
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public async Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = new HashSet<TypeDescriptor>();
+			var instantiatedTypes = await this.solutionManager.GetInstantiatedTypesAsync();
+
+            foreach (var potentialType in instantiatedTypes)
+			{
+				var isSubtype = await this.IsSubtypeAsync(potentialType, type);
+
+				if (isSubtype)
+				{
+					result.Add(potentialType);
+				}
+			}
+
+			return result;
+		}
+
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
             var result = new HashSet<MethodDescriptor>();
             var cancellationTokenSource = new CancellationTokenSource();
