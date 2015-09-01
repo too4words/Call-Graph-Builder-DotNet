@@ -162,7 +162,7 @@ namespace ReachingTypeAnalysis.Analysis
                 await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ReceiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
             }
 
-		            for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
+		    for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
             {
                 var parameterNode = this.methodEntity.ParameterNodes[i];
 

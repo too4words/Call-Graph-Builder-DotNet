@@ -23,9 +23,11 @@ namespace ReachingTypeAnalysis
 			Contract.Assert(method != null);
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
-			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
+			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
 				Utils.CreateTypeDescriptor(method.ReturnType));
+
+			return result;
 		}
 
 		public static IList<Project> FilterProjects(Solution solution)

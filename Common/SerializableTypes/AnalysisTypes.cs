@@ -288,10 +288,11 @@ namespace ReachingTypeAnalysis
             var methodName = tokens[1];
             var isStatic = Convert.ToBoolean(tokens[2]);
             var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic);
+			methodDescriptor.Parameters = new List<TypeDescriptor>();
 
-            if (tokens.Length > 3 && tokens[3].Length > 0)
+			if (tokens.Length > 3 && tokens[3].Length > 0)
             {
-                methodDescriptor.Parameters = new List<TypeDescriptor>();
+                //methodDescriptor.Parameters = new List<TypeDescriptor>();
 
                 for (var i = 3; i < tokens.Length; ++i)
                 {
