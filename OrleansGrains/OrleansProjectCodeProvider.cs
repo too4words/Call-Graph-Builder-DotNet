@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromProjectAsync(IGrainFactory grainFactory, string projectPath)
 		{
-			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var solutionManager = OrleansSolutionManager.GetSolutionGrain(grainFactory);
 			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadProjectAsync(projectPath);
 			return provider;
@@ -37,7 +37,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromSourceAsync(IGrainFactory grainFactory, string source, string assemblyName)
 		{
-			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var solutionManager = OrleansSolutionManager.GetSolutionGrain(grainFactory);
 			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadSourceAsync(source, assemblyName);
 			return provider;
@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromTestAsync(IGrainFactory grainFactory, string testName, string assemblyName)
 		{
-			var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var solutionManager = OrleansSolutionManager.GetSolutionGrain(grainFactory);
 			var provider = new OrleansProjectCodeProvider(grainFactory, solutionManager);
 			await provider.LoadTestAsync(testName, assemblyName);
 			return provider;
