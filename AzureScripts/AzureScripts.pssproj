@@ -26,8 +26,11 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <ItemGroup />
   <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ChangeNumberOfInstances.ps1" />
     <Compile Include="Stop-Start-CloudService.ps1" />
     <Compile Include="Update-CloudServiceScale.psm1" />
   </ItemGroup>

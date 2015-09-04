@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Diagnostics.Contracts;
+using System.IO;
 
 namespace ReachingTypeAnalysis
 {
@@ -521,6 +522,21 @@ namespace ReachingTypeAnalysis
             var code = syntax.ToFullString();
             Console.WriteLine(code);
         }
+
+
+		[TestMethod]
+		[TestCategory("Generation")]
+		public void GenerateLong5Test()
+		{
+			var callgraph = GenerateCallGraph(100000);
+			var syntax = GenerateCode(callgraph);
+			// var code = syntax.ToFullString();
+			using (var writer = File.CreateText("LongTest5.cs"))
+			{
+				syntax.SerializeTo(writer.BaseStream);
+			}
+			//Console.WriteLine(code);
+		}
 
         [TestMethod]
         [TestCategory("Generation")]
