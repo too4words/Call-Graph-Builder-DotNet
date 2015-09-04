@@ -3,8 +3,8 @@
   <WorkerRole name="OrleansSilosInAzure" vmsize="ExtraLarge">
     <Imports>
       <Import moduleName="RemoteAccess" />
-      <Import moduleName="RemoteForwarder" /> 
-<!--      <Import moduleName="Diagnostics" />  -->
+      <Import moduleName="RemoteForwarder" />
+      <!--      <Import moduleName="Diagnostics" />  -->
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
@@ -13,7 +13,7 @@
       <Setting name="Startup.VsInstallDir" />
       <Setting name="Startup.NetSourceDir" />
     </ConfigurationSettings>
-   <Endpoints>
+    <Endpoints>
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
       <InternalEndpoint name="OrleansProxyEndpoint" protocol="tcp" port="30000" />
     </Endpoints>
@@ -62,19 +62,18 @@
           </Variable>
 		  -->
         </Environment>
-	  </Task>
-			<Task commandLine="scripts\ServerGC.cmd" executionContext="elevated" taskType="simple">
-				<Environment>
-					<Variable name="UseServerGC" value="True" />
-					<Variable name="UseBackgroundGC" value="False" />
-				</Environment>
-			</Task>
-
-	</Startup>
+      </Task>
+      <Task commandLine="scripts\ServerGC.cmd" executionContext="elevated" taskType="simple">
+        <Environment>
+          <Variable name="UseServerGC" value="True" />
+          <Variable name="UseBackgroundGC" value="False" />
+        </Environment>
+      </Task>
+    </Startup>
   </WorkerRole>
   <WebRole name="WebRole1" vmsize="Large">
     <Imports>
-		<!--      <Import moduleName="Diagnostics" />  -->
+      <!--      <Import moduleName="Diagnostics" />  -->
       <Import moduleName="RemoteAccess" />
     </Imports>
     <ConfigurationSettings>
@@ -89,6 +88,26 @@
     </Sites>
     <Endpoints>
       <InputEndpoint name="Endpoint1" protocol="http" port="80" />
+    </Endpoints>
+  </WebRole>
+  <WebRole name="WebAPI" vmsize="Large">
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Imports>
+      <!--      <Import moduleName="Diagnostics" />  -->
+      <Import moduleName="RemoteAccess" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="DataConnectionString" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+    </ConfigurationSettings>
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="8080" />
     </Endpoints>
   </WebRole>
 </ServiceDefinition>

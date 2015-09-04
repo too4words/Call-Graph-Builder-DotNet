@@ -20,10 +20,10 @@ namespace ConsoleServer
     {
         const uint DefaultPort = 7413;
 
-		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
+		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
-		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-		//const string SolutionToTest = @"Coby\Coby.sln";
+		//const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+		const string SolutionToTest = @"Coby\Coby.sln";
 
 		const string CallGraphPath = @"C:\Temp\callgraph.dgml";
 
