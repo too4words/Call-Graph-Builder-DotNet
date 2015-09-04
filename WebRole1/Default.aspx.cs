@@ -285,6 +285,12 @@ namespace WebRole1
             }
 		
         }
+
+		protected async void Button8_Click(object sender, EventArgs e)
+		{
+			var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
+			this.TextBox1.Text = res;
+		}
 	
     }
 

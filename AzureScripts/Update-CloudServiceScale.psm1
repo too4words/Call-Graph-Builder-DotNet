@@ -64,8 +64,9 @@ workflow Update-CloudServiceScale
        {
            $Roles = Get-AzureRole -ServiceName $using:ServiceName -Slot $using:Slot
 
-           foreach ($Role in $Roles)
-           {
+#           foreach ($Role in $Roles)
+#           {
+				$Role = "OrleansSilosInAzure"
                 $RoleDetails = Get-AzureRole -ServiceName $using:ServiceName -Slot $using:Slot -RoleName $Role.RoleName
                 Write-Output (" {0} current " -f $Role.RoleName)
                 $RoleDetails
@@ -78,7 +79,7 @@ workflow Update-CloudServiceScale
                     Set-AzureRole -ServiceName $using:ServiceName -Slot $using:Slot -RoleName $Role.RoleName -Count $using:InstanceCount 
                     Write-Output ("Role {0} changed instance count from {1} to {2}." -f $Role.RoleName, $RoleDetails.InstanceCount, $using:InstanceCount)
                 }
-           }
+#           }
         }
     }
     
