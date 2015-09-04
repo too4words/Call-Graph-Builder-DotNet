@@ -42,7 +42,7 @@ namespace WebAPI.Models
 }
 
 #region Helpers
-namespace WebRole1
+namespace WebAPI
 {
     public static class IdentityHelper
     {

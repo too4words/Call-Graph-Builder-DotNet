@@ -6,10 +6,12 @@ using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using System.Diagnostics;
 
+
 namespace WebAPI
 {
     public class WebRole : RoleEntryPoint
     {
+		private IDisposable _app = null;
         public override bool OnStart()
         {
             Trace.WriteLine("WebAPI-OnStart");
@@ -20,9 +22,9 @@ namespace WebAPI
 
 			var ok = base.OnStart();
 
-            Trace.WriteLine("WebAPI-OnStart completed with OK=" + ok);
+			Trace.WriteLine("WebAPI-OnStart completed with OK=" + ok);
 
-            return ok;
+			return ok;
         }
 
         public override void OnStop()

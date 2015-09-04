@@ -15,7 +15,7 @@ using System.Web.SessionState;
 
 namespace WebAPI
 {
-    public class Global : HttpApplication
+	public class WebApiApplication : HttpApplication
     {
         void Application_Start(object sender, EventArgs e)
         {

@@ -21,6 +21,11 @@ namespace WebAPI
 	public class OrleansController : ApiController
     {
 		[HttpGet]
+		public string Get()
+		{
+			return "hola";
+		}
+		[HttpGet]
 		public async Task<string> RunTest(string testName, int machines, int numberOfMethods)
 		{
 			var result = string.Empty;

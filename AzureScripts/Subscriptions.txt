@@ -1,0 +1,21 @@
+SubscriptionId            : fea3a3c9-c4a3-4743-9835-1502a54705e9
+SubscriptionName          : Internal Consumption
+Environment               : AzureCloud
+SupportedModes            : AzureServiceManagement,AzureResourceManager
+DefaultAccount            : t-digarb@microsoft.com
+Accounts                  : {t-digarb@microsoft.com}
+IsDefault                 : True
+IsCurrent                 : True
+CurrentStorageAccountName :
+TenantId                  : 72f988bf-86f1-41af-91ab-2d7cd011db47
+
+SubscriptionId            : 6412f21b-b221-49c4-8728-96719adc2306
+SubscriptionName          : Ben Livshits
+Environment               : AzureCloud
+SupportedModes            : AzureServiceManagement,AzureResourceManager
+DefaultAccount            : t-digarb@microsoft.com
+Accounts                  : {t-digarb@microsoft.com}
+IsDefault                 : False
+IsCurrent                 : False
+CurrentStorageAccountName :
+TenantId                  : 72f988bf-86f1-41af-91ab-2d7cd011db47
