@@ -13,6 +13,9 @@ namespace WebAPI
 	using System;
 	using CodeGraphModel;
 	using System.Threading.Tasks;
+	using ReachingTypeAnalysis.Statistics;
+	using ReachingTypeAnalysis;
+	using Orleans;
 
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
@@ -28,10 +31,12 @@ namespace WebAPI
 
 			try
 			{
-                var analysisClient = new AnalysisClient(machines, numberOfMethods, testName);
+				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
+
+				var analysisClient = new AnalysisClient(analyzer, machines);
 
 				//var stopWatch = Stopwatch.StartNew();
-				var results = await analysisClient.AnalyzeTestAsync();
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
 
 				//stopWatch.Stop();
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);

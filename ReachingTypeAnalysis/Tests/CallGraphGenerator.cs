@@ -23,23 +23,33 @@ namespace ReachingTypeAnalysis
     {
         public static CallGraph<string, int> GenerateCallGraph(int n)
         {
+			Trace.TraceInformation("Adding Nodes");
             var result = new CallGraph<string, int>();
             for (var i = 0; i < n; i++)
             {
                 result.Add(string.Format("N{0}", i));
             }
 
-            // now generate the edges
+
+			Trace.TraceInformation("Adding edges");
+			// now generate the edges
             var rand = new Random();
             for (var i = 0; i < 5 * n; i++)
             {
                 var source = rand.Next(n - 1);
                 var dest = rand.Next(n - 1);
 
+				if(i % 500 == 0)
+				{
+					Trace.TraceInformation("Adding edge {0}", i);
+				}
+
                 result.AddCall(string.Format("N{0}", source), string.Format("N{0}", dest));
             }
             result.Add("Main");
             result.AddRootMethod("Main");
+			
+			Trace.TraceInformation("Adding calls from main");
             foreach (var method in result.GetNodes())
             {
                 result.AddCall("Main", method);
@@ -48,11 +58,68 @@ namespace ReachingTypeAnalysis
             return result;
         }
 
+		public static SyntaxNode GenerateCode(int nodes, int maxCalls)
+		{
+			Trace.TraceInformation("Adding Methods");
+			List<MethodDeclarationSyntax> methods = new List<MethodDeclarationSyntax>();
+
+			var mainCallees = new List<string>();
+			
+            for (var i = 0; i < nodes; i++)
+            {
+				if (i % 500 == 0)
+				{
+					Trace.TraceInformation("Adding method {0}", i);
+				}
+				var method = string.Format("N{0}", i);
+				methods.Add(GetMethod(method, generateCalles(nodes,maxCalls)));
+				mainCallees.Add(method);
+            }
+		
+			methods.Add(GetMethod("Main", mainCallees));
+
+			Trace.TraceInformation("Generating AST");
+			return
+				SyntaxFactory.CompilationUnit()
+				.WithMembers(
+					SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+						SyntaxFactory.ClassDeclaration(
+							@"C")
+						.WithMembers(
+							SyntaxFactory.List<MemberDeclarationSyntax>(methods)
+						)))
+				.NormalizeWhitespace();
+		}
+
+		private static IEnumerable<string> generateCalles(int nodes, int p)
+		{
+			var rand = new Random();
+
+			var calles = new List<string>();
+
+			var nCalless = rand.Next(1,p);
+
+			for (var i = 0; i < nCalless; i++)
+			{
+				var dest = rand.Next(nodes - 1);
+
+				calles.Add(string.Format("N{0}", dest));
+			}
+			return calles;
+		}
+
         public static SyntaxNode GenerateCode(CallGraph<string,int> callgraph)
         {
+			Trace.TraceInformation("Adding Methods");
             List<MethodDeclarationSyntax> methods = new List<MethodDeclarationSyntax>();
+			int i = 0;
             foreach (var vertex in callgraph.GetNodes())
             {
+				i++;
+				if (i % 500 == 0)
+				{
+					Trace.TraceInformation("Adding method {0}", i);
+				}
                 methods.Add(GetMethod(vertex, callgraph.GetCallees(vertex)));
             }
             //methods.Add(GetMain(callgraph.GetNodes()));
@@ -93,7 +160,7 @@ namespace ReachingTypeAnalysis
                 var callees = callgraph.GetCallees(vertex);
                 // query: GetCallees(random(1..callees.Count))
                 // project: "MyProject"
-                var ordinal = r.Next(callees.Count) + 1;
+                var ordinal = r.Next(callees.Count()) + 1;
                 if (r.NextDouble() < prob)
                 {
                     var invocation = GetQueryCall(vertex, ordinal);
@@ -517,8 +584,8 @@ namespace ReachingTypeAnalysis
         [TestCategory("Generation")]
         public void GenerateSimpleCallGraph()
         {
-            var callgraph = GenerateCallGraph(10);
-            var syntax = GenerateCode(callgraph);
+			var callgraph = GenerateCallGraph(10);
+			var syntax = GenerateCode(callgraph);
             var code = syntax.ToFullString();
             Console.WriteLine(code);
         }
@@ -528,14 +595,28 @@ namespace ReachingTypeAnalysis
 		[TestCategory("Generation")]
 		public void GenerateLong5Test()
 		{
-			var callgraph = GenerateCallGraph(100000);
-			var syntax = GenerateCode(callgraph);
+			Trace.TraceInformation("Generating code");
+			var syntax = GenerateCode(50000, 10);
 			// var code = syntax.ToFullString();
+			Trace.TraceInformation("Saving code to file");
 			using (var writer = File.CreateText("LongTest5.cs"))
 			{
-				syntax.SerializeTo(writer.BaseStream);
+				syntax.WriteTo(writer);
 			}
-			//Console.WriteLine(code);
+		}
+
+		[TestMethod]
+		[TestCategory("Generation")]
+		public void GenerateLong6Test()
+		{
+			Trace.TraceInformation("Generating code");
+			var syntax = GenerateCode(100000, 10);
+			// var code = syntax.ToFullString();
+			Trace.TraceInformation("Saving code to file");
+			using (var writer = File.CreateText("LongTest6.cs"))
+			{
+				syntax.WriteTo(writer);
+			}
 		}
 
         [TestMethod]
@@ -590,7 +671,7 @@ namespace ReachingTypeAnalysis
                 //var callees = callgraph.GetCallees(node.Name);
                 var callees = callgraph.GetCallees(node.MethodName);
                 var resolvedCallees = resolved.GetCallees(node);
-                Assert.IsTrue(callees.Count == resolvedCallees.Count, "Mismatched callee counts for " + node);
+                Assert.IsTrue(callees.Count() == resolvedCallees.Count(), "Mismatched callee counts for " + node);
             }
 
             Assert.IsTrue(resolved.GetEdges().Count() == callgraph.GetEdges().Count());

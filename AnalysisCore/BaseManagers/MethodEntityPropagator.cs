@@ -402,11 +402,6 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
 			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
-			if(this.methodEntity.MethodDescriptor.MethodName.Equals("Main"))
-			{
-				methodEntity.Save(@"c:\Temp\p1.dot");
-			}
-
 			foreach (var calleeNode in this.methodEntity.PropGraph.CallNodes)
 			{
 				calleesPerEntity[calleeNode] = await GetCalleesAsync(calleeNode);

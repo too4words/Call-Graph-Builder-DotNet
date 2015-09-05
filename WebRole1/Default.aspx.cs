@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using ReachingTypeAnalysis.Statistics;
 
 
 namespace WebRole1
@@ -61,9 +62,16 @@ namespace WebRole1
                     var repetitions = int.Parse(tokens[3]);
                     var machines = int.Parse(tokens[4]);
 
-					var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
-					string methods = String.Join("\n", reachableMethods);
-					this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
+					string solutionFileName = Path.Combine(pathPrefix, solutionPath);
+					var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
+
+					var analysisClient = new AnalysisClient(analyzer, machines);
+					await analysisClient.Analyze();
+
+					//var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
+					//string methods = String.Join("\n", reachableMethods);
+					//this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count, methods);
+					this.TextBox1.Text = "Done";
 				}
 				catch(Exception exc)
 				{
@@ -85,9 +93,12 @@ namespace WebRole1
 			string currentSolutionPath = pathPrefix;
 			
             string solutionFileName = Path.Combine(currentSolutionPath, solutionRelativePath);
-            
-            var program = new AnalysisClient(0,0,solutionFileName);
-            var callgraph = await program.AnalyzeSolutionAsync(solutionFileName);
+
+			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
+
+			var analysisClient = new AnalysisClient(analyzer, machines);
+			var callgraph =  await analysisClient.Analyze();
+
             var reachableMethods = callgraph.GetReachableMethods();
             return await Task.FromResult(reachableMethods);
         }
@@ -95,8 +106,11 @@ namespace WebRole1
 		private static async Task<ISet<MethodDescriptor>> RunAnalysisFromSourceAsync(int machines, string source)
 		{
 
-			var program = new AnalysisClient(machines, 0, "Source");
-			var callgraph = await program.AnalyzeSourceCodeAsync(source);
+			var analyzer = SolutionAnalyzer.CreateFromSource(source);
+
+			var analysisClient = new AnalysisClient(analyzer, machines);
+			var callgraph = await analysisClient.Analyze();
+
 			var reachableMethods = callgraph.GetReachableMethods();
 			return await Task.FromResult(reachableMethods);
 		}
@@ -142,19 +156,20 @@ namespace WebRole1
                 var repetitions = int.Parse(tokens[3]);
                 var machines = int.Parse(tokens[4]);
 
-                var analysisClient = new AnalysisClient(machines,numberOfMethods,testName);
+				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
+				var analysisClient = new AnalysisClient(analyzer, machines);
 
 				//var stopWatch = Stopwatch.StartNew();
-				var results = await analysisClient.AnalyzeTestAsync();
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
 
 				//stopWatch.Stop();
-				Application["SolutionManager"] = analysisClient.SolutionManager;
+				Application["AnalysisClient"] = analysisClient;
 
 				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 
 				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, results.ElapsedTime);
 
-                var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, repetitions);
+                var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, numberOfMethods, repetitions);
 
 
                 //program.RetriveInfoFromAnalysis();
@@ -178,9 +193,9 @@ namespace WebRole1
 		{
 			try
             {
-				var solutionManager = (ISolutionManager)Application.Get("SolutionManager"); 
+				var analysisClient = (AnalysisClient)Application.Get("AnalysisClient"); 
 
-				if (solutionManager != null)
+				if (analysisClient != null)
 				{
 					string[] tokens = TextBoxPathPrefix.Text.Split(';');
 
@@ -196,11 +211,11 @@ namespace WebRole1
 					var stopWatch = Stopwatch.StartNew();
 					if (invocation > 0)
 					{
-						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
+						result = await CallGraphQueryInterface.GetCalleesAsync(analysisClient.SolutionManager, methodDescriptor, invocation, "");
 					}
 					else
 					{
-						result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
+						result = await CallGraphQueryInterface.GetCalleesAsync(analysisClient.SolutionManager, methodDescriptor);
 					}
 					
 					stopWatch.Stop();
@@ -236,8 +251,8 @@ namespace WebRole1
 
 		protected async void Button6_Click(object sender, EventArgs e)
 		{
-			var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
-			if (solutionManager != null)
+			var analysisClient= (AnalysisClient)Application.Get("AnalysisClient");
+			if (analysisClient != null)
 			{
 				string[] tokens = TextRandomQueryInput.Text.Split(';');
 
@@ -249,10 +264,7 @@ namespace WebRole1
                 try
                 {
                     var testName = TextBoxPath.Text;
-
-                    var analysisClient = new AnalysisClient(machines, numberOfMethods, testName);
-                    analysisClient.SolutionManager = solutionManager;
-                    var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, repetitions);
+                    var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, numberOfMethods, repetitions);
                     var avgTime = result.Item1;
                     var minTime = result.Item2;
                     var maxTime = result.Item3;
@@ -288,8 +300,13 @@ namespace WebRole1
 
 		protected async void Button8_Click(object sender, EventArgs e)
 		{
-			var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
-			this.TextBox1.Text = res;
+			var analysisClient= (AnalysisClient)Application.Get("AnalysisClient");
+			if (analysisClient != null)
+			{
+				// var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
+				await analysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
+				this.TextBox1.Text = "Done";
+			}
 		}
 	
     }
