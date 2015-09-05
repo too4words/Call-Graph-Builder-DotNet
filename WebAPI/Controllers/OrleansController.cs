@@ -18,13 +18,9 @@ namespace WebAPI
 	/// Controller to handle all REST calls against graph entities
 	/// </summary>
 	/// 
+	// http://localhost:49176/api/Orleans?testName=Hola&machines=1&numberOfMethods=2
 	public class OrleansController : ApiController
     {
-		[HttpGet]
-		public string Get()
-		{
-			return "hola";
-		}
 		[HttpGet]
 		public async Task<string> RunTest(string testName, int machines, int numberOfMethods)
 		{
