@@ -235,6 +235,7 @@ namespace ReachingTypeAnalysis.Statistics
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
+                ExpID = this.ExpID,
 				Address = siloAddr.ToString(), 
 				CPU = siloMetric.CpuUsage,
 				MemoryUsage = siloMetric.MemoryUsage,
