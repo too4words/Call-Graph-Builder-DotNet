@@ -50,7 +50,7 @@ namespace ReachingTypeAnalysis
 				var threadId = Thread.CurrentThread.ManagedThreadId;
 
 				message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
-				Trace.TraceInformation(message);
+				//Trace.TraceInformation(message);
 				// Debug.WriteLine(message);
 				//Console.WriteLine(message);
 				orleansLog.Verbose(0, message);
@@ -63,7 +63,7 @@ namespace ReachingTypeAnalysis
             var threadId = Thread.CurrentThread.ManagedThreadId;
 
             message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
-            Trace.TraceInformation(message);
+            //Trace.TraceInformation(message);
             // Debug.WriteLine(message);
             //Console.WriteLine(message);
             orleansLog.Warn(0, message);
@@ -76,7 +76,7 @@ namespace ReachingTypeAnalysis
 
 			message = string.Format("[{0}]{1}::{2}: {3}", threadId, type, method, message);
 
-			Trace.TraceInformation(message);
+			//Trace.TraceInformation(message);
 			// Debug.WriteLine(message);
 			//Console.WriteLine(message);
 			orleansLog.Info(0, message);
@@ -84,25 +84,33 @@ namespace ReachingTypeAnalysis
 
         public static void LogS(string type, string method, string format, params object[] arguments)
         {
-			if(OrleansLogger!=null)
+			if (OrleansLogger != null)
 			{
-				LogVerbose(OrleansLogger,type, method, format, arguments);
+				LogVerbose(OrleansLogger, type, method, format, arguments);
 			}
 			else 
 			{
 				Instance.Log(type, method, format, arguments);
 			}
         }
-        
-		public void Log(string type, string method, string format, params object[] arguments)
+
+		public static void Log(string format, params object[] arguments)
 		{
-            
+			var message = string.Format(format, arguments);
+
+			//Trace.TraceInformation(message);
+			Debug.WriteLine(message);
+			//Console.WriteLine(message);
+		}
+
+		public void Log(string type, string method, string format, params object[] arguments)
+		{            
 			var message = string.Format(format, arguments);
 			var threadId = Thread.CurrentThread.ManagedThreadId;
 
 			message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
 
-			Debug.WriteLine(message);
+			//Debug.WriteLine(message);
 			//Console.WriteLine(message);
             /*
 			lock (syncObject)

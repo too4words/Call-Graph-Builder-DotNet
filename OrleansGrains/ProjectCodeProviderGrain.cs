@@ -148,6 +148,16 @@ namespace ReachingTypeAnalysis.Analysis
             return this.projectCodeProvider.GetDocumentEntitiesAsync(documentPath);
         }
 
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return this.projectCodeProvider.GetDeclarationInfoAsync(methodDescriptor);
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return this.projectCodeProvider.GetInvocationInfoAsync(callContext);
+		}
+
         public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
@@ -207,7 +217,22 @@ namespace ReachingTypeAnalysis.Analysis
             this.DeactivateOnIdle();
         }
 
-    }
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
+		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return this.projectCodeProvider.AddMethodAsync(methodToAdd);
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			return this.projectCodeProvider.GetCompatibleInstantiatedTypesAsync(type);
+		}
+	}
 
     /// <summary>
     /// We are going to use this wrapper as a brigde between the client and the grains
@@ -217,9 +242,9 @@ namespace ReachingTypeAnalysis.Analysis
 
     public class ProjectCodeProviderWrapper : IProjectCodeProvider
     {
-        private ProjectCodeProviderGrain grainRef;
+        private IProjectCodeProviderGrain grainRef;
 
-        public ProjectCodeProviderWrapper(ProjectCodeProviderGrain grainRef)
+        public ProjectCodeProviderWrapper(IProjectCodeProviderGrain grainRef)
         {
             this.grainRef = grainRef;
         }
@@ -240,6 +265,18 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.grainRef.GetDocumentEntitiesAsync(documentPath);
             return result;
         }
+
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			var result = this.grainRef.GetDeclarationInfoAsync(methodDescriptor);
+			return result;
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			var result = this.grainRef.GetInvocationInfoAsync(callContext);
+			return result;
+		}
 
         public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
         {
@@ -294,5 +331,23 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.grainRef.ReplaceDocumentSourceAsync(source, documentPath);
             return result;
         }
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			var result = this.grainRef.GetPublicMethodsAsync();
+			return result;
+		}
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			var result = this.grainRef.AddMethodAsync(methodToAdd);
+			return result;
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = this.grainRef.GetCompatibleInstantiatedTypesAsync(type);
+			return result;
+		}
+	}
 }

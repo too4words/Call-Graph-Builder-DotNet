@@ -13,6 +13,7 @@
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>OrleansAzureSilos</Name>
     <PackageEnableRemoteDebugger>False</PackageEnableRemoteDebugger>
+    <UseWebProjectPorts>True</UseWebProjectPorts>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,6 +47,14 @@
       <RoleName>OrleansSilosInAzure</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
+    <ProjectReference Include="..\WebAPI\WebAPI.csproj">
+      <Name>WebAPI</Name>
+      <Project>{1e551217-6d01-4141-bc9f-b861c8154632}</Project>
+      <Private>True</Private>
+      <RoleType>Web</RoleType>
+      <RoleName>WebAPI</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
     <ProjectReference Include="..\WebRole1\WebRole1.csproj">
       <Name>WebRole1</Name>
       <Project>{304dd841-07b0-4753-8457-ca22965ea5ba}</Project>
@@ -58,10 +67,12 @@
   <ItemGroup>
     <Folder Include="OrleansSilosInAzureContent\" />
     <Folder Include="Profiles" />
+    <Folder Include="WebAPIContent\" />
     <Folder Include="WebRole1Content\" />
   </ItemGroup>
   <ItemGroup>
     <DiagnosticsConfiguration Include="OrleansSilosInAzureContent\diagnostics.wadcfgx" />
+    <DiagnosticsConfiguration Include="WebAPIContent\diagnostics.wadcfgx" />
     <DiagnosticsConfiguration Include="WebRole1Content\diagnostics.wadcfgx" />
   </ItemGroup>
   <ItemGroup>

@@ -61,10 +61,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
 			Contract.Requires(reWorkSet != null);
-			if(reWorkSet.Count()>0)
-			{
-
-			}
 			foreach(var node in reWorkSet) 
 			{
 				methodEntity.PropGraph.AddToWorkList(node);
@@ -74,9 +70,10 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-            Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
-
-            // var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
+			//Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
+			Logger.Log("Propagating {0} to {1}", this.methodEntity.MethodDescriptor, propKind);
+			
+			// var codeProvider = await ProjectGrainWrapper.CreateProjectGrainWrapperAsync(this.methodEntity.MethodDescriptor);
 			PropagationEffects propagationEffects = null;
 
 			switch (propKind)
@@ -159,13 +156,13 @@ namespace ReachingTypeAnalysis.Analysis
 				var calleesInfo = new HashSet<CallInfo>();
                 return new PropagationEffects(calleesInfo, false);
 			}
-
+			
             if (this.methodEntity.ThisRef != null)
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ReceiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
             }
 
-            for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
+		    for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
             {
                 var parameterNode = this.methodEntity.ParameterNodes[i];
 
@@ -192,9 +189,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes, returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
             }
-
             /// We need to recompute possible calless 
-
             var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
 
@@ -211,7 +206,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
         {
-            var invocationNode = methodEntity.GetCallSiteByOrdinal(invocationPosition);
+            var invocationNode = this.GetCallSiteByOrdinal(invocationPosition);
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
             var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)invocationNode);
@@ -223,6 +218,19 @@ namespace ReachingTypeAnalysis.Analysis
             return result;
             // return await CallGraphQueryInterface.GetCalleesAsync(methodEntity, invocationNode, this.codeProvider);
         }
+
+		internal AnalysisCallNode GetCallSiteByOrdinal(int invocationPosition)
+		{
+			foreach (var callNode in this.methodEntity.PropGraph.CallNodes)
+			{
+				if (callNode.InMethodPosition == invocationPosition)
+				{
+					return callNode;
+				}
+			}
+			throw new ArgumentException();
+			//return null;
+		}
 
         public Task<int> GetInvocationCountAsync()
         {
@@ -236,7 +244,7 @@ namespace ReachingTypeAnalysis.Analysis
             // TODO: This is not good: one reason is that loads like b = this.f are not working
             // in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
 
-            if (methodCallInfo.Method.IsStatic)
+            if (/*methodCallInfo.IsConstructor || */ methodCallInfo.Method.IsStatic)
             {
                 // Static method call
                 possibleCallees.Add(methodCallInfo.Method);
@@ -394,11 +402,6 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
 			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
-			if(this.methodEntity.MethodDescriptor.MethodName.Equals("Main"))
-			{
-				methodEntity.Save(@"c:\Temp\p1.dot");
-			}
-
 			foreach (var calleeNode in this.methodEntity.PropGraph.CallNodes)
 			{
 				calleesPerEntity[calleeNode] = await GetCalleesAsync(calleeNode);
@@ -436,13 +439,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
 		{
-			var references = from caller in this.methodEntity.Callers
-							 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode);
+			// TODO: BUG! The declaration info should be of the caller.
+			//var references = from caller in this.methodEntity.Callers
+			//				 select CodeGraphHelper.GetMethodReferenceInfo(caller.CallNode, this.methodEntity.DeclarationInfo);
 
-			var result = references.ToList().AsEnumerable();
-			return Task.FromResult(result);
+			//var result = references.ToList().AsEnumerable();
+			//return Task.FromResult(result);
+			throw new NotImplementedException();
 		}
-
 
 		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
@@ -456,14 +460,31 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
 		{
-			var result = this.methodEntity.GetAnnotations();
-			return Task.FromResult(result);
-		}
+			var result = new List<CodeGraphModel.Annotation>();
+			//result.Add(this.methodEntity.DeclarationInfo);
 
+			foreach (var callNode in this.methodEntity.PropGraph.CallNodes)
+			{
+				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.methodEntity.MethodDescriptor, callNode);
+				result.Add(invocationInfo);
+			}
+			foreach(var anonymousEntity in this.methodEntity.GetAnonymousMethodEntities())
+			{
+				foreach (var callNode in anonymousEntity.PropGraph.CallNodes)
+				{
+					var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(anonymousEntity.MethodDescriptor, callNode);
+					invocationInfo.range = CodeGraphHelper.GetAbsoluteRange(invocationInfo.range, anonymousEntity.DeclarationInfo.range);
+					result.Add(invocationInfo);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+		
 		public async Task<PropagationEffects> RemoveMethodAsync()
 		{
 			var calleesInfo = from callNode in this.methodEntity.PropGraph.CallNodes
-						   select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
+							  select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
 
 			var propagagationEffecs = new PropagationEffects(calleesInfo, true);
 			await this.PopulatePropagationEffectsInfo(propagagationEffecs, PropagationKind.REMOVE_TYPES);

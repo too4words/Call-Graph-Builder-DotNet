@@ -8,6 +8,7 @@ using Orleans.Runtime.Host;
 using System.Diagnostics;
 using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Analysis;
+using Orleans.Runtime;
 
 namespace ReachingTypeAnalysis
 {
@@ -44,6 +45,7 @@ namespace ReachingTypeAnalysis
 
             var result = await entityWithPropagator.GetCalleesAsync(invocationPosition);
             Meausure("entProp.GetCalleesAsync", stopWatch);
+            stopWatch.Stop();
 
             Meausure("Total GetCalleesAsync", totalStopWatch);
             return result;

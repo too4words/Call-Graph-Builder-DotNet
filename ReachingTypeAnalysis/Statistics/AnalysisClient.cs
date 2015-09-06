@@ -12,88 +12,118 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
+using Orleans.Runtime;
+using Orleans;
 
-namespace WebRole1
+namespace ReachingTypeAnalysis.Statistics
 {
-    public class SubjectExperimentResults : TableEntity
-    {
-        public DateTime Time { get; set; }
-        public int Machines { get; set; }
-        public string Subject { get; set; }
-        public int Methods { get; set; }
-        public int Messages { get; set; }
-        public long ElapsedTime { get; set; }
-        public string Observations { get; set; }   
-    }
-    public class QueriesPerSubject : TableEntity
-    {
-        public DateTime Time { get; set; }
-        public int Machines { get; set; }
-        public string Subject { get; set; }
-        public long AvgTime { get; set; }
-        public long MinTime { get; set; }
-        public long MaxTime { get; set; }
-		public long Median { get; set; }
-        public int Repeticions { get; set; }
-        public string Observations { get; set; }
-    }
     public class AnalysisClient
     {
-        CloudTable analysisTimes;
-        CloudTable querytimes;
+		private const long SYSTEM_MANAGEMENT_ID = 1;
+		private IManagementGrain systemManagement;
+		private CloudTable analysisTimes;
+		private CloudTable querytimes;
+		private CloudTable siloMetrics;
+
         int machines;
-        int methods;
+        //int methods;
         string subject;
-        public AnalysisClient(int machines, int methods, string subject)
-        {
-            Contract.Assert(subject != null);
-            this.machines = machines;
-            this.methods = methods;
-            this.subject = subject;
-        }
-        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSolutionAsync(string solutionFileName)
-        {
-            var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
-            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-            return callgraph;
-        }
-        public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeSourceCodeAsync(string source)
-        {
-            var analyzer = SolutionAnalyzer.CreateFromSource(source);
-            var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-            return callgraph;
-        }
+
+		private Stopwatch stopWatch;
+
+		private SolutionAnalyzer analyzer;
+		public string ExpID { get; private set; }
+
+
+		public AnalysisClient(SolutionAnalyzer analyzer, int machines)
+		{
+			this.analyzer = analyzer;
+			this.machines = machines;
+		}
 
 		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
-		public async Task<SubjectExperimentResults> AnalyzeTestAsync()
+		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "Edgar")
         {
+			this.ExpID = expId;
+
             string testFullName = this.subject;
 
-            var stopWatch = Stopwatch.StartNew();
-            //var source = BasicTestsSources.Test[testFullName];
-			var analyzer = SolutionAnalyzer.CreateFromTest(testFullName);
-			/// var callgraph = await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-			await analyzer.AnalyzeOnDemandOrleans();
-            stopWatch.Stop();
-            var time = DateTime.Now;
+			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			var hosts = await systemManagement.GetHosts();
+			var silos = hosts.Keys.ToArray();
+			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+
+            this.stopWatch = Stopwatch.StartNew();
+
+			await this.analyzer.AnalyzeOnDemandOrleans();
+    
+			this.stopWatch.Stop();
+
+			//this.methods = -1;
+
+			await systemManagement.ForceGarbageCollection(silos);
+			var stats = await systemManagement.GetRuntimeStatistics(silos);
+
+			var totalAct = 0;
+
+			for (int i = 0; i < silos.Length; i++)
+			{
+				totalAct += stats[i].ActivationCount;
+				AddSiloMetric(silos[i], stats[i]);
+			}
+
+            
+			var time = DateTime.Now;
             var results = new SubjectExperimentResults()
             {
+				ExpID = expId,
                 Time = time,
                 Subject = testFullName,
                 Machines = machines,
-                Methods = methods,
+                Methods = -1,
                 Messages = SolutionAnalyzer.MessageCounter,
                 ElapsedTime = stopWatch.ElapsedMilliseconds,
+				Activations = totalAct,
                 Observations = "From web",
-                PartitionKey = testFullName,
+				PartitionKey = expId +" "+ testFullName,
                 RowKey = time.ToFileTime().ToString()
             };
-            this.AddSubjetResults(results);
+            
+		
+			this.AddSubjetResults(results);
+
+
+
             this.SolutionManager = analyzer.SolutionManager;
+
 			return results;
         }
 
-        internal async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int repetitions)
+		public async Task PrintGrainStatistics(IGrainFactory grainFactory)
+		{
+			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			var hosts = await systemManagement.GetHosts();
+			var silos = hosts.Keys.ToArray();
+
+
+			// var stats = await systemManagement.GetSimpleGrainStatistics(silos);
+			await systemManagement.ForceGarbageCollection(silos);
+
+
+			var stats = await systemManagement.GetRuntimeStatistics(silos);
+
+			foreach (var s in stats)
+				Console.WriteLine("Act;{0};  Mem;{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / 1024, s.CpuUsage,
+					s.ReceiveQueueLength, s.SendQueueLength);
+		}
+		
+		private static SiloAddress ParseSilo(string s)
+		{
+			return SiloAddress.FromParsableString(s);
+		}
+
+
+        public async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int numberOfMethods, int repetitions)
         {
             var solutionManager = this.SolutionManager; 
             Random random = new Random();
@@ -104,7 +134,7 @@ namespace WebRole1
 
             for (int i = 0; i < repetitions; i++)
             {
-                int methodNumber = random.Next(this.methods) + 1;
+                int methodNumber = random.Next(numberOfMethods) + 1;
                 var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
                 var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
 
@@ -139,6 +169,7 @@ namespace WebRole1
                 var time = DateTime.Now;
                 var results = new QueriesPerSubject()
                 {
+					ExpID = this.ExpID,
                     Time = time,
                     Subject = this.subject,
                     Machines = machines,
@@ -148,7 +179,7 @@ namespace WebRole1
                     MaxTime = maxTime,
 					Median = times[repetitions / 2],
                     Observations = "From web",
-                    PartitionKey = this.subject,
+                    PartitionKey = this.ExpID,
                     RowKey = time.ToFileTime().ToString()
                 };
                 this.AddQueryResults(results);
@@ -170,9 +201,26 @@ namespace WebRole1
 			// Create the table if it doesn't exist.
 			CloudTable table = tableClient.GetTableReference(name);
 			table.CreateIfNotExists();
+			
 			return table;
 		}
-        
+
+		private static CloudTable EmptyTable(string name)
+		{
+			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+
+			// Create the table client.
+			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+			// Create the table if it doesn't exist.
+			CloudTable table = tableClient.GetTableReference(name);
+			table.DeleteIfExists();
+			table.CreateIfNotExists();
+			return table;
+		}
+
+
+		
         internal void AddSubjetResults(SubjectExperimentResults results)
         {
             if(this.analysisTimes==null)
@@ -183,6 +231,32 @@ namespace WebRole1
             // Execute the insert operation.
             this.analysisTimes.Execute(insertOperation);
         }
+		internal void AddSiloMetric(SiloAddress siloAddr,  SiloRuntimeStatistics siloMetric)
+		{
+			var siloStat = new SiloRuntimeStats()
+			{
+                ExpID = this.ExpID,
+				Address = siloAddr.ToString(), 
+				CPU = siloMetric.CpuUsage,
+				MemoryUsage = siloMetric.MemoryUsage,
+				Activations = siloMetric.ActivationCount,
+				RecentlyUsedActivations = siloMetric.RecentlyUsedActivationCount,
+				SentMessages = 0, // siloMetric.SentMessages,
+				ReceivedMessages = 0, // siloMetric.ReceivedMessages,
+				PartitionKey = this.ExpID,
+                RowKey = siloAddr.ToString()
+
+			};
+
+			if (this.siloMetrics == null)
+			{
+				this.siloMetrics = CreateTable("SiloMetrics");
+			}
+			TableOperation insertOperation = TableOperation.Insert(siloStat);
+			// Execute the insert operation.
+			this.siloMetrics.Execute(insertOperation);
+		}
+
         internal void AddQueryResults(QueriesPerSubject results)
         {
             if (this.querytimes == null)
@@ -210,5 +284,14 @@ namespace WebRole1
 
 
         public ISolutionManager SolutionManager { get; set; }
+
+		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> Analyze()
+		{
+			//var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
+			await analyzer.AnalyzeAsync(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			var callgraph = await analyzer.GenerateCallGraphAsync();
+			return callgraph;
+		}
+
     }
 }

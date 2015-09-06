@@ -17,6 +17,13 @@ namespace ReachingTypeAnalysis.Analysis
             this.grainFactory = grainFactory;
         }
 
+		public static ISolutionManager GetSolutionGrain(IGrainFactory grainFactory)
+		{
+			var grain = grainFactory.GetGrain<ISolutionGrain>("Solution");
+			return grain;
+		}
+
+		
         public static async Task<OrleansSolutionManager> CreateFromSolutionAsync(IGrainFactory grainFactory, string solutionPath)
         {
             var manager = new OrleansSolutionManager(grainFactory);

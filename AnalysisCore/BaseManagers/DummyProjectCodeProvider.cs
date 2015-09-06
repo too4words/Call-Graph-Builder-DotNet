@@ -51,12 +51,27 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(result.AsEnumerable());
 		}
 
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return Task.FromResult<CodeGraphModel.SymbolReference>(null);
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return Task.FromResult<CodeGraphModel.SymbolReference>(null);
+		}
+
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 
 		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
 			return Task.FromResult(new PropagationEffects(new HashSet<CallInfo>(), false));
+		}
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return Task.FromResult(new PropagationEffects(new HashSet<ReturnInfo>()));
 		}
 
 		public Task ReplaceDocumentSourceAsync(string source, string documentPath)
@@ -79,5 +94,17 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return TaskDone.Done;
 		}
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = new HashSet<TypeDescriptor>();
+			result.Add(type);
+			return Task.FromResult(result.AsEnumerable());
+		}
+	}
 }

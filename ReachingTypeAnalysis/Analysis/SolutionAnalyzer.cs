@@ -124,7 +124,7 @@ namespace ReachingTypeAnalysis
 			return orchestator.UpdateMethodAsync(methodDescriptor, newSource);
 		}
 
-		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
+		public async Task AnalyzeAsync(AnalysisStrategyKind strategyKind = AnalysisStrategyKind.NONE)
         {
             if (strategyKind == AnalysisStrategyKind.NONE)
             {
@@ -136,14 +136,12 @@ namespace ReachingTypeAnalysis
                 case AnalysisStrategyKind.ONDEMAND_ASYNC:
                     {
 						await this.AnalyzeOnDemandAsync();
-						var callgraph = await this.GenerateCallGraphAsync();
-                        return callgraph;
+						break;
                     }
                 case AnalysisStrategyKind.ONDEMAND_ORLEANS:
                     {
 						await this.AnalyzeOnDemandOrleans();
-						var callgraph = await this.GenerateCallGraphAsync();
-						return callgraph;
+						break;
                     }
                 default:
                     {
@@ -152,7 +150,7 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private async Task AnalyzeOnDemandAsync()
+        private async Task AnalyzeOnDemandAsync(bool allPublic = true)
         {
             if (this.source != null)
             {
@@ -163,7 +161,7 @@ namespace ReachingTypeAnalysis
                 this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
             }
 
-            var mainMethods = await this.SolutionManager.GetRootsAsync();
+            var mainMethods = allPublic ? (await this.SolutionManager.GetPublicMethodsAsync()) : (await this.SolutionManager.GetRootsAsync());
             var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(mainMethods);
         }
@@ -204,9 +202,9 @@ namespace ReachingTypeAnalysis
 			//return callGraph;
         }
 
-		internal async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
+		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
 		{
-			Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Start building CG");
+			Logger.LogS("SolutionAnalyzer", "GenerateCallGraphAsync", "Start building CG");
 			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();		
 			var roots = await SolutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
@@ -218,7 +216,7 @@ namespace ReachingTypeAnalysis
 			{
 				var currentMethodDescriptor = worklist.Dequeue();
 				visited.Add(currentMethodDescriptor);
-				Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Proccesing  {0}", currentMethodDescriptor);
+				Logger.LogS("SolutionAnalyzer", "GenerateCallGraphAsync", "Proccesing  {0}", currentMethodDescriptor);
 
 				var methodEntity = await this.SolutionManager.GetMethodEntityAsync(currentMethodDescriptor);
 				var calleesInfoForMethod = await methodEntity.GetCalleesInfoAsync();
@@ -230,7 +228,7 @@ namespace ReachingTypeAnalysis
 
 					foreach (var calleeDescriptor in callees)
 					{
-						Logger.LogS("AnalysisOrchestator", "GenerateCallGraph", "Adding {0}-{1} to CG", currentMethodDescriptor, calleeDescriptor);
+						Logger.LogS("SolutionAnalyzer", "GenerateCallGraphAsync", "Adding {0}-{1} to CG", currentMethodDescriptor, calleeDescriptor);
 						callgraph.AddCallAtLocation(analysisNode.LocationDescriptor, currentMethodDescriptor, calleeDescriptor);
 
 						if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
@@ -279,47 +277,30 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-        private void AnalyzeEntireSolution()
-        {
-			foreach (var project in this.solution.Projects)
-			{
-				var compilation = project.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics();
-				var theAssembly = compilation.Assembly;
+		//private void AnalyzeEntireSolutionAsync()
+		//{
+		//	// TOOD: hack -- set the global solution
+		//	ProjectCodeProvider.Solution = this.solution;
 
-				foreach (var tree in compilation.SyntaxTrees)
-				{
-                    var model = compilation.GetSemanticModel(tree);
-					var allMethodsVisitor = new AllMethodsVisitor(model, tree);
-					allMethodsVisitor.Visit(tree.GetRoot());
-				}
-			}
-        }
+		//	foreach (var project in this.solution.Projects)
+		//	{
+		//		var compilation = project.GetCompilationAsync().Result;
+		//		var diag = compilation.GetDiagnostics();
+		//		var theAssembly = compilation.Assembly;
+		//		var continuations = new List<Task>();
 
-        private void AnalyzeEntireSolutionAsync()
-        {
-			// TOOD: hack -- set the global solution
-			ProjectCodeProvider.Solution = this.solution;
+		//		foreach (var tree in compilation.SyntaxTrees)
+		//		{
+		//			var provider = new ProjectCodeProvider(project, compilation);
+		//			var model = compilation.GetSemanticModel(tree);
+		//			var allMethodsVisitor = new AllMethodsVisitor(model, tree);
 
-			foreach (var project in this.solution.Projects)
-			{
-				var compilation = project.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics();
-				var theAssembly = compilation.Assembly;
-				var continuations = new List<Task>();
+		//			continuations.Add(allMethodsVisitor.Run(tree));
+		//		}
 
-				foreach (var tree in compilation.SyntaxTrees)
-				{
-					var provider = new ProjectCodeProvider(project, compilation);
-                    var model = compilation.GetSemanticModel(tree);
-                    var allMethodsVisitor = new AllMethodsVisitor(model, tree);
-
-					continuations.Add(allMethodsVisitor.Run(tree));
-				}
-
-				Task.WhenAll(continuations);
-			}
-        }
+		//		Task.WhenAll(continuations);
+		//	}
+		//}
 
         internal void CompareWithRoslynFindReferences(string filename)
         {

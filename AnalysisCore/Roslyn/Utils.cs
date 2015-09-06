@@ -23,9 +23,11 @@ namespace ReachingTypeAnalysis
 			Contract.Assert(method != null);
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
-			return new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
+			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
 				Utils.CreateTypeDescriptor(method.ReturnType));
+
+			return result;
 		}
 
 		public static IList<Project> FilterProjects(Solution solution)
@@ -122,7 +124,8 @@ namespace ReachingTypeAnalysis
 					{
 						if (candidate.Kind == SymbolKind.Property)
 						{
-							result = ((IPropertySymbol)candidate).GetMethod;
+							var property = (IPropertySymbol)candidate;
+							result = method.MethodKind == MethodKind.PropertyGet ? property.GetMethod : property.SetMethod;
 						}
 						else
 						{
@@ -190,7 +193,8 @@ namespace ReachingTypeAnalysis
 
 		internal static int GetStatementNumber(SyntaxNodeOrToken expression)
 		{
-			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<BaseMethodDeclarationSyntax>().First();
+			//var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<BaseMethodDeclarationSyntax>().First();
+			var methodDeclarationSyntax = expression.AsNode().Ancestors().OfType<MemberDeclarationSyntax>().First();
 			//var syntaxTree = methodDeclarationSyntax.SyntaxTree;
 			var invocations = methodDeclarationSyntax.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().ToArray();
 			int count = 0;
@@ -202,12 +206,14 @@ namespace ReachingTypeAnalysis
 			return count;
 		}
 
-		public static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
+		public static LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode, SyntaxNode declaratioNode)
 		{
-			var span = CodeGraphHelper.GetSpan(syntaxNode);			
+			var span = CodeGraphHelper.GetSpan(syntaxNode);
 			var range = CodeGraphHelper.GetRange(span);
+			var rangeDecRange = CodeGraphHelper.GetRange(CodeGraphHelper.GetSpan(declaratioNode));
+
 			var filePath = span.Path;
-			return new LocationDescriptor(invocationPosition, range, filePath);
+			return new LocationDescriptor(invocationPosition, CodeGraphHelper.GetRelativeRange(range,rangeDecRange), filePath);
 		}
 
 		public static AnalysisCallNodeAdditionalInfo CreateAnalysisCallNodeAdditionalInfo(ISymbol symbol)

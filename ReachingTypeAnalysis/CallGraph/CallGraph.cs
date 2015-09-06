@@ -80,7 +80,7 @@ namespace SolutionTraversal.CallGraph
 			}
 		}
 
-		public ISet<M> GetCallees(M m)
+		public IEnumerable<M> GetCallees(M m)
 		{
 			var result = new HashSet<M>();
 			int index = this.vertexIndex[m];
@@ -90,10 +90,11 @@ namespace SolutionTraversal.CallGraph
 
 			foreach (Vertex v2 in this.graph.EnumerateAdjacentVertices(v))
 			{
-				result.Add((M)v2["M"]);
+				// result.Add((M)v2["M"]);
+				yield return (M)v2["M"];
 			}
 
-			return result;
+			// return result;
 		}
 
 		public ISet<M> GetCallees(M m, L location)

@@ -17,7 +17,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDictionary<AssemblyName, IProjectCodeProvider> projectsCache;
 		private IDictionary<AssemblyName, IProjectCodeProvider> newProjectsCache;
 
-		private AsyncSolutionManager()
+		private AsyncSolutionManager() : base()
 		{
 			this.projectsCache = new Dictionary<AssemblyName, IProjectCodeProvider>();
 		}
@@ -58,8 +58,12 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath);
-			this.ProjectsCache.Add(assemblyName, provider);
+			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath, this);
+
+            lock(this.ProjectsCache)
+            {
+                this.ProjectsCache.Add(assemblyName, provider);
+            }
 		}
 
 		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
@@ -72,7 +76,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName);
+			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName, this);
 			this.ProjectsCache.Add(assemblyName, provider);
 		}
 
@@ -86,7 +90,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName);
+			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName, this);
 			this.ProjectsCache.Add(assemblyName, provider);
 		}
 

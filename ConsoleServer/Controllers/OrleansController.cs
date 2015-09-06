@@ -16,7 +16,8 @@ namespace ConsoleServer.Controllers
 	// http://localhost:14054/index.html?graph=ConsoleApplication1&mode=orleans
 	public class OrleansController : ApiController
     {
-		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
+		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
 		private static IDictionary<string, string> documentsAssemblyName;
 
@@ -169,10 +170,12 @@ namespace ConsoleServer.Controllers
 					var methodEntity = await SolutionManager.GetMethodEntityAsync(methodDescriptor);
 					var callees = await methodEntity.GetCalleesAsync(invocationIndex);
 
-					foreach (var calleeDescriptor in callees)
+					foreach (var callee in callees)
 					{
-						var calleeEntity = await SolutionManager.GetMethodEntityAsync(calleeDescriptor);
-						var reference = await calleeEntity.GetDeclarationInfoAsync();
+						var provider = await SolutionManager.GetProjectCodeProviderAsync(callee);
+						var reference = await provider.GetDeclarationInfoAsync(callee);
+						//var calleeEntity = await SolutionManager.GetMethodEntityAsync(calleeDescriptor);
+						//var reference = await calleeEntity.GetDeclarationInfoAsync();
 
 						if (reference != null)
 						{
@@ -187,13 +190,27 @@ namespace ConsoleServer.Controllers
 					var methodId = uid;
 					var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
 					var methodEntity = await SolutionManager.GetMethodEntityAsync(methodDescriptor);
-					var callers = await methodEntity.GetCallersDeclarationInfoAsync();
+					var callers = await methodEntity.GetCallersAsync();
 
-					foreach (var reference in callers)
+					foreach (var caller in callers)
 					{
-						ProcessSymbolReference(reference);
-						result.Add(reference);
+						var provider = await SolutionManager.GetProjectCodeProviderAsync(caller.Caller);
+						var reference = await provider.GetInvocationInfoAsync(caller);
+
+						if (reference != null)
+						{
+							ProcessSymbolReference(reference);
+							result.Add(reference);
+						}
 					}
+
+					//var callers = await methodEntity.GetCallersDeclarationInfoAsync();
+
+					//foreach (var reference in callers)
+					//{
+					//	ProcessSymbolReference(reference);
+					//	result.Add(reference);
+					//}
 				}
 
 				return result;

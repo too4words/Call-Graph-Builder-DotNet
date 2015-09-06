@@ -164,6 +164,11 @@ namespace ReachingTypeAnalysis.Analysis
             return null;
         }
 
+		public IEnumerable<MethodEntity> GetAnonymousMethodEntities()
+		{
+			return anonymousMethods.Values;
+		}
+
 		/// <summary>
 		/// Copy the information regarding parameters and callers from one entity and other
 		/// The PropGraph of the old entity is used but copied
@@ -287,33 +292,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public override string ToString()
 		{
 			return this.MethodDescriptor.ToString();
-		}
-
-        internal AnalysisCallNode GetCallSiteByOrdinal(int invocationPosition)
-        {
-            foreach(var callNode in this.PropGraph.CallNodes)
-            {
-                if(callNode.InMethodPosition==invocationPosition)
-                {
-                    return callNode;
-                }
-            }
-            throw new ArgumentException();
-            //return null;
-        }
-
-		internal IEnumerable<CodeGraphModel.Annotation> GetAnnotations()
-		{
-			var result = new List<CodeGraphModel.Annotation>();
-			result.Add(this.DeclarationInfo);
-
-			foreach (var callNode in this.propGraph.CallNodes)
-			{
-				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.MethodDescriptor, callNode);
-				result.Add(invocationInfo);
-            }				
-
-			return result;
 		}
 	}
 

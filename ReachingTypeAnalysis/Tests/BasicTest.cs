@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ReachingTypeAnalysis.Analysis;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ReachingTypeAnalysis
 {   
@@ -178,10 +179,14 @@ class Program
 				},
 				(s) =>
 				{
-					var type = new TypeDescriptor("", "D");
-					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+					var modifiedDocuments = new string[] { TestConstants.DocumentPath };
 
-                    s.RemoveMethodAsync(new MethodDescriptor(type, "m2", false, parameters), newSource).Wait();
+					s.ApplyModificationsAsync(modifiedDocuments);
+
+					//var type = new TypeDescriptor("", "D");
+					//var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+
+					//s.RemoveMethodAsync(new MethodDescriptor(type, "m2", false, parameters), newSource).Wait();
 				},
 				(s, callgraph) =>
 				{
@@ -232,8 +237,12 @@ class Program
 				},
 				(s) =>
 				{
-					s.AddMethodAsync(new MethodDescriptor("Program", "NewMethod", true), newSource).Wait();
-					s.UpdateMethodAsync(new MethodDescriptor("Program", "Main", true), newSource).Wait();
+					var modifiedDocuments = new string[] { TestConstants.DocumentPath };
+
+					s.ApplyModificationsAsync(modifiedDocuments);
+
+					//s.AddMethodAsync(new MethodDescriptor("Program", "NewMethod", true), newSource).Wait();
+					//s.UpdateMethodAsync(new MethodDescriptor("Program", "Main", true), newSource).Wait();
 				},
 				(s, callgraph) =>
 				{
@@ -348,10 +357,14 @@ class Program
 				},
 				(s) =>
 				{
-					var type = new TypeDescriptor("", "D");
-					var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+					var modifiedDocuments = new string[] { TestConstants.DocumentPath };
 
-                    s.UpdateMethodAsync(new MethodDescriptor(type, "Middle", false, parameters), newSource).Wait();
+					s.ApplyModificationsAsync(modifiedDocuments);
+
+					//var type = new TypeDescriptor("", "D");
+					//var parameters = new TypeDescriptor[] { new TypeDescriptor("", "C") };
+
+					//s.UpdateMethodAsync(new MethodDescriptor(type, "Middle", false, parameters), newSource).Wait();
 				},
 				(s, callgraph) =>
 				{

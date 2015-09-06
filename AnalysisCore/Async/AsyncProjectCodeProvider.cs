@@ -18,28 +18,29 @@ namespace ReachingTypeAnalysis.Roslyn
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
 
-		private AsyncProjectCodeProvider()
+		private AsyncProjectCodeProvider(ISolutionManager solutionManager)
+			: base(solutionManager)
         {
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath)
+		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath, ISolutionManager solutionManager)
 		{
-			var provider = new AsyncProjectCodeProvider();
+			var provider = new AsyncProjectCodeProvider(solutionManager);
 			await provider.LoadProjectAsync(projectPath);
 			return provider;
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName)
+		public static async Task<AsyncProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName, ISolutionManager solutionManager)
 		{
-			var provider = new AsyncProjectCodeProvider();
+			var provider = new AsyncProjectCodeProvider(solutionManager);
 			await provider.LoadSourceAsync(source, assemblyName);
 			return provider;
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromTestAsync(string testName, string assemblyName)
+		public static async Task<AsyncProjectCodeProvider> CreateFromTestAsync(string testName, string assemblyName, ISolutionManager solutionManager)
 		{
-			var provider = new AsyncProjectCodeProvider();
+			var provider = new AsyncProjectCodeProvider(solutionManager);
 			await provider.LoadTestAsync(testName, assemblyName);
 			return provider;
 		}
@@ -48,26 +49,30 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			IMethodEntityWithPropagator result;
 
-			if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
-			{
-				var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
-
-				if (methodDescriptor.IsAnonymousDescriptor)
+			
+				if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
 				{
-					methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+					var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
+
+					if (methodDescriptor.IsAnonymousDescriptor)
+					{
+						methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+					}
+
+					result = new MethodEntityWithPropagator(methodEntity, this);
+					lock (this.methodEntities)
+					{
+						this.methodEntities.Add(methodDescriptor, result);
+					}
 				}
-
-				result = new MethodEntityWithPropagator(methodEntity, this);
-				this.methodEntities.Add(methodDescriptor, result);
-			}
-
+			
 			return result;
         }
 
 		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
-			this.methodEntities.Remove(methodDescriptor);
+			//this.methodEntities.Remove(methodDescriptor);
 			return propagationEffects;
 		}
 
@@ -88,15 +93,15 @@ namespace ReachingTypeAnalysis.Roslyn
 			return modifications;
 		}
 
-		public override async Task ReloadAsync()
+		public override Task ReloadAsync()
 		{
-			
 			if (newMethodEntities != null)
 			{
 				this.methodEntities = newMethodEntities;
 				this.newMethodEntities = null;
 			}
-			await base.ReloadAsync();
+
+			return base.ReloadAsync();
 		}
     }
 }

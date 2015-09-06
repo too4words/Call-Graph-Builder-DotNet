@@ -37,6 +37,7 @@ namespace ReachingTypeAnalysis
         //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
 
         Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync();
+		Task<IEnumerable<CallContext>> GetCallersAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
@@ -63,12 +64,15 @@ namespace ReachingTypeAnalysis
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
 
 		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
+		
+		Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd);
 
 		Task ReplaceDocumentSourceAsync(string source, string documentPath);
 
@@ -77,11 +81,17 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 
 		Task ReloadAsync();
+
+		Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor);
+
+		Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext);
+		Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type);
 	}
 
     public interface ISolutionManager
     {
         Task<IEnumerable<MethodDescriptor>> GetRootsAsync();
+		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
 

@@ -15,6 +15,7 @@ using Microsoft.WindowsAzure;
 using System.IO;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace OrleansSilosInAzure
 {
@@ -45,6 +46,26 @@ namespace OrleansSilosInAzure
 				{
 					config.LoadFromFile(@"OrleansConfiguration.xml");
 				}
+
+				// TODO: Delete Orleans Tables
+				// To avoid double delete, check for existence
+				CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+				//table = tableClient.GetTableReference("OrleansGrainState");
+				//table.DeleteIfExists();
+				// Create the table client.
+				CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+
+				CloudTable table = tableClient.GetTableReference("OrleansSiloStatistics");
+				table.DeleteIfExists();
+
+				
+
+
+				table = tableClient.GetTableReference("OrleansClientStatistics");
+				table.DeleteIfExists();
+
+
 
 				// It is IMPORTANT to start the silo not in OnStart but in Run.
 				// Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.

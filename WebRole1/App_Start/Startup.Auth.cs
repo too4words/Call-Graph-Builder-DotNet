@@ -11,7 +11,8 @@ using WebRole1.Models;
 
 namespace WebRole1
 {
-    public partial class Startup {
+    public partial class WebRole1Startup
+	{
 
         // For more information on configuring authentication, please visit http://go.microsoft.com/fwlink/?LinkId=301883
         public void ConfigureAuth(IAppBuilder app)

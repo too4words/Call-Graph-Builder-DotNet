@@ -18,6 +18,8 @@ namespace ReachingTypeAnalysis.Analysis
 		protected IList<Project> newProjects;
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
+		protected IEnumerable<MethodDescriptor> rootMethods;
+		protected IEnumerable<MethodDescriptor> publicMethods;
 
 		protected SolutionManager()
 		{
@@ -75,22 +77,47 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
-			var cancellationTokenSource = new CancellationTokenSource();
-			var result = new List<MethodDescriptor>();
+			if (this.rootMethods == null)
+			{
+				var cancellationTokenSource = new CancellationTokenSource();
+				var result = new List<MethodDescriptor>();
 
-            foreach (var project in this.Projects)
-            {
-				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
-				var roots = await provider.GetRootsAsync();
-
-				foreach (var root in roots)
+				foreach (var project in this.Projects)
 				{
-					result.Add(root);
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var rootMethods = await provider.GetRootsAsync();
+
+					result.AddRange(rootMethods);
 				}
+
+				this.rootMethods = result;
 			}
 
-			return result;
+			return this.rootMethods;
         }
+
+		public async Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			if (this.publicMethods == null)
+			{
+				var cancellationTokenSource = new CancellationTokenSource();
+				var result = new HashSet<MethodDescriptor>();
+
+				foreach (var project in this.Projects)
+				{
+					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var publicMethods = await provider.GetPublicMethodsAsync();
+					var rootMethods = await provider.GetRootsAsync();
+
+					result.UnionWith(rootMethods);
+					result.UnionWith(publicMethods);
+				}
+				
+				this.publicMethods = result;
+			}
+
+			return this.publicMethods;
+		}
 
 		public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
@@ -180,6 +207,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			if (newProjects != null)
 			{
+				this.rootMethods = null;
+				this.publicMethods = null;
+
 				var tasks = new List<Task>();
 
 				this.projects = newProjects;

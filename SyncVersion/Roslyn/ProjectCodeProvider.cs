@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Linq;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Threading;
@@ -77,7 +76,7 @@ namespace ReachingTypeAnalysis.Roslyn
             if (tree != null)
             {
                 var model = this.Compilation.GetSemanticModel(tree);
-                var methodEntityGenerator = new MethodParser(model, this, tree, methodDescriptor);
+                var methodEntityGenerator = new MethodParser(model, tree, methodDescriptor);
                 methodEntity = methodEntityGenerator.ParseMethod();
             }
             else
@@ -245,7 +244,7 @@ namespace ReachingTypeAnalysis.Roslyn
         /// <param name="tree"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        internal Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAndSymbolAsync(SyntaxTree tree, MethodDescriptor method)
+		internal Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAndSymbolAsync(SyntaxTree tree, MethodDescriptor method)
         {
             var model = this.Compilation.GetSemanticModel(tree);
             return ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, method);
@@ -258,7 +257,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		/// <param name="tree"></param>
 		/// <param name="method"></param>
 		/// <returns></returns>
-        public static async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(SemanticModel model, SyntaxTree tree, MethodDescriptor method)
+		public static async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(SemanticModel model, SyntaxTree tree, MethodDescriptor method)
         {
             var root = await tree.GetRootAsync();
             var visitor = new MethodFinder(method, model);
@@ -266,7 +265,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
             if (visitor.Result != null)
             {
-                return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result.DeclarationNode, visitor.Result.MethodSymbol);
+				return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result.DeclarationNode, visitor.Result.MethodSymbol);
             }
             else
             {
@@ -359,6 +358,32 @@ namespace ReachingTypeAnalysis.Roslyn
 		}
 
 		public Task ReloadAsync()
+		{
+			throw new NotImplementedException();
+		}
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			throw new NotImplementedException(); 
+		}
+
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			throw new NotImplementedException();
+		}
+
+
+		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
 		{
 			throw new NotImplementedException();
 		}

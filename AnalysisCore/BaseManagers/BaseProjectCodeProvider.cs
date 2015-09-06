@@ -58,10 +58,12 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDictionary<DocumentPath, DocumentInfo> documentsInfo;
 		private IDictionary<DocumentPath, DocumentInfo> newDocumentsInfo;
 		protected bool useNewFieldsVersion;
+		protected ISolutionManager solutionManager;
 
-		protected BaseProjectCodeProvider()
+		protected BaseProjectCodeProvider(ISolutionManager solutionManager)
         {
-			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();
+			this.solutionManager = solutionManager;
+			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();			
         }
 
 		protected Project Project
@@ -117,7 +119,9 @@ namespace ReachingTypeAnalysis.Analysis
                 methodEntity = methodEntityGenerator.ParseMethod();
             }
 
-            return methodEntity;
+			// this is for RTA analysis
+			await this.solutionManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
+			return methodEntity;
         }
 
 		private async Task<DocumentInfo> GetDocumentInfoAsync(string documentPath)
@@ -189,13 +193,29 @@ namespace ReachingTypeAnalysis.Analysis
 				Contract.Assert(implementedMethod != null);
 				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
 			}
+			else
+			{
+				// If it is interface/abstract or code that we did not parse  (library)
+				var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
+
+				if (roslynMethod != null)
+				{
+					var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
+					var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
+
+					if (implementedMethod != null)
+					{
+						methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+					}
+				}
+			}
 
 			// TODO: If we cannot resolve the method, we return the same method.
 			// Maybe we should consider to return null instead?
 			return methodDescriptor;
 		}
 
-        public Task<MethodDescriptor> FindMethodImplementationAsyncUsingRoslyn(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
+        public Task<MethodDescriptor> FindMethodImplementationUsingRoslynAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
         {
 			var roslynMethod = RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
 
@@ -219,7 +239,25 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(methodDescriptor);
 		}
 
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public async Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			var result = new HashSet<TypeDescriptor>();
+			var instantiatedTypes = await this.solutionManager.GetInstantiatedTypesAsync();
+
+            foreach (var potentialType in instantiatedTypes)
+			{
+				var isSubtype = await this.IsSubtypeAsync(potentialType, type);
+
+				if (isSubtype)
+				{
+					result.Add(potentialType);
+				}
+			}
+
+			return result;
+		}
+
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
             var result = new HashSet<MethodDescriptor>();
             var cancellationTokenSource = new CancellationTokenSource();
@@ -231,9 +269,27 @@ namespace ReachingTypeAnalysis.Analysis
                 var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
                 result.Add(methodDescriptor);
             }
-
             return Task.FromResult(result.AsEnumerable());
         }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			var result = new HashSet<MethodDescriptor>();
+			Func<string, bool> pred = (s) => true;
+			var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type).OfType<INamedTypeSymbol>();
+			foreach (var type in symbols.Where(s => s.DeclaredAccessibility == Accessibility.Public))
+			{
+				foreach (var methodSymbol in type.GetMembers().OfType<IMethodSymbol>())
+				{
+					if (methodSymbol.DeclaredAccessibility == Accessibility.Public)
+					{
+						var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+						result.Add(methodDescriptor);
+					}
+				}
+			}
+			return Task.FromResult(result.AsEnumerable());
+		}
 
 		public Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentsAsync()
 		{
@@ -247,6 +303,9 @@ namespace ReachingTypeAnalysis.Analysis
 		//	return CodeGraphHelper.GetDocumentEntitiesAsync(document);
 		//}
 
+		// This version get the info from the PropagationGraphs in the method entities
+		// The problem is when you update a file the relative positions of the methods in the file changes
+		// and we need to update all the ranges in all the entities
 		public async Task<IEnumerable<CodeGraphModel.FileResponse>> GetDocumentEntitiesAsync(string documentPath)
 		{
 			var documentInfo = await this.GetDocumentInfoAsync(documentPath);
@@ -254,13 +313,41 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
+		public async Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			CodeGraphModel.SymbolReference result = null;
+			var methodInfo = await this.FindMethodInProjectAsync(methodDescriptor);
+
+			if (methodInfo != null)
+			{
+				result = CodeGraphHelper.GetMethodReferenceInfo(methodInfo.DeclarationSyntaxNode);
+			}
+
+			return result;
+		}
+
+		public async Task<CodeGraphModel.SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			CodeGraphModel.SymbolReference result = null;
+			var methodInfo = await this.FindMethodInProjectAsync(callContext.Caller);
+
+			if (methodInfo != null)
+			{
+				result = CodeGraphHelper.GetMethodReferenceInfo(callContext.CallNode, methodInfo.DeclarationSyntaxNode);
+			}
+
+			return result;
+		}
+
         internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
         {
             var result = new HashSet<MethodDescriptor>();
+
             foreach(var documentInfo in this.DocumentsInfo.Values)
             {
                 result.UnionWith(documentInfo.DeclaredMethods.Keys);
             }
+
             return Task.FromResult(result.AsEnumerable());
         }
 
@@ -272,6 +359,28 @@ namespace ReachingTypeAnalysis.Analysis
 			this.RemoveMethodFromDocumentInfo(methodDescriptor);
             return propagationEffects;
 		}
+
+		public async Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			var methodParserInfo = await this.FindMethodInProjectAsync(methodToAdd);
+			var roslynMethod = methodParserInfo.MethodSymbol;
+
+			var propagationForCallers = new HashSet<ReturnInfo>();
+			if (roslynMethod.IsOverride)
+			{
+				var overridenMethodDescriptor = Utils.CreateMethodDescriptor(roslynMethod.OverriddenMethod);
+				var methodEntityWP = await this.GetMethodEntityAsync(overridenMethodDescriptor);
+				var callersWithContext = await methodEntityWP.GetCallersAsync();
+				foreach(var callerContext in callersWithContext)
+				{
+					var returnInfo = new ReturnInfo(overridenMethodDescriptor,callerContext);
+					propagationForCallers.Add(returnInfo);
+				}
+				
+			}
+			return new PropagationEffects(propagationForCallers);
+		}
+
 
 		public async Task ReplaceDocumentSourceAsync(string source, string documentPath)
 		{
@@ -335,20 +444,33 @@ namespace ReachingTypeAnalysis.Analysis
 			var documentDiff = new DocumentDiff();
 
 			this.newProject = await Utils.ReadProjectAsync(projectPath);
-			this.newCompilation = await Utils.CompileProjectAsync(newProject, cancellationTokenSource.Token);
-			this.newDocumentsInfo = new Dictionary<DocumentPath, DocumentInfo>(this.DocumentsInfo);
 
-			foreach (var documentPath in modifiedDocuments)
+			var oldProjectDocuments = from doc in project.Documents
+									  select doc.FilePath;
+
+			var newProjectDocuments = from doc in newProject.Documents
+									  select doc.FilePath;
+
+			var allProjectDocuments = oldProjectDocuments.Union(newProjectDocuments, StringComparer.InvariantCultureIgnoreCase);
+			var modifiedProjectDocuments = modifiedDocuments.Intersect(allProjectDocuments, StringComparer.InvariantCultureIgnoreCase);
+
+			if (modifiedProjectDocuments.Any())
 			{
-				var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
-				this.useNewFieldsVersion = true;
+				this.newCompilation = await Utils.CompileProjectAsync(newProject, cancellationTokenSource.Token);
+				this.newDocumentsInfo = new Dictionary<DocumentPath, DocumentInfo>(this.DocumentsInfo);
 
-				this.RemoveDocumentInfo(documentPath);
-				var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
-				this.useNewFieldsVersion = false;
+				foreach (var documentPath in modifiedProjectDocuments)
+				{
+					var oldDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+					this.useNewFieldsVersion = true;
 
-				var modifications = documentDiff.GetDifferences(oldDocumentInfo, newDocumentInfo);
-				result.AddRange(modifications);
+					this.RemoveDocumentInfo(documentPath);
+					var newDocumentInfo = await this.GetDocumentInfoAsync(documentPath);
+					this.useNewFieldsVersion = false;
+
+					var modifications = documentDiff.GetDifferences(oldDocumentInfo, newDocumentInfo);
+					result.AddRange(modifications);
+				}
 			}
 
 			return result;

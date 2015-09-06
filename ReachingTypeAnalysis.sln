@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
 EndProject
@@ -51,6 +51,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZOrleansAzure", "StandAloneOrlansAzure\ZOrleansAzure.csproj", "{FCB9990B-1879-4972-8E01-D44FB943DE00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncLegacyVersion", "SyncVersion\SyncLegacyVersion.csproj", "{586A7B2B-1497-4092-8FBA-1C24CC4718C2}"
+EndProject
+Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "AzureScripts", "AzureScripts\AzureScripts.pssproj", "{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "WebAPI\WebAPI.csproj", "{1E551217-6D01-4141-BC9F-B861C8154632}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -184,6 +188,20 @@ Global
 		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{586A7B2B-1497-4092-8FBA-1C24CC4718C2}.Release|x64.ActiveCfg = Release|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|x64.ActiveCfg = Release|Any CPU
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Debug|x64.ActiveCfg = Debug|x64
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Debug|x64.Build.0 = Debug|x64
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Release|x64.ActiveCfg = Release|x64
+		{1E551217-6D01-4141-BC9F-B861C8154632}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -195,6 +213,8 @@ Global
 		{B7136119-9AB2-4FE9-B0F5-F6DE9FB8064A} = {82A22377-C716-4F90-BB85-132B5AF1C486}
 		{C66DE883-FFB6-40A9-9BB8-82E1452751EA} = {87FB941E-DB5F-49FB-8AFA-0974E3D6BA07}
 		{55B3035F-2852-4B39-A235-7627D108373D} = {87FB941E-DB5F-49FB-8AFA-0974E3D6BA07}
+		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51} = {82A22377-C716-4F90-BB85-132B5AF1C486}
+		{1E551217-6D01-4141-BC9F-B861C8154632} = {82A22377-C716-4F90-BB85-132B5AF1C486}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8;packages\EnterpriseLibrary.TransientFaultHandling.Data.6.0.1304.1\lib\NET45

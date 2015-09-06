@@ -11,6 +11,7 @@ using ReachingTypeAnalysis.Communication;
 using System.Diagnostics;
 using CodeGraphModel;
 using Orleans.Placement;
+using Orleans.Runtime;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -104,11 +105,11 @@ namespace ReachingTypeAnalysis.Analysis
                 this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
             }
 
-			// this is for RTA analysis
-            await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
+			//// this is for RTA analysis
+			//await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
-            // This take cares of doing the progation of types
-            this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
+			// This take cares of doing the progation of types
+			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
 			this.State.Messages = this.messages;
 
@@ -247,6 +248,12 @@ namespace ReachingTypeAnalysis.Analysis
 		//{
 		//	return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
 		//}
+
+
+		public Task<IEnumerable<CallContext>> GetCallersAsync()
+		{
+			return this.methodEntityPropagator.GetCallersAsync();
+		}
 	}
 
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
@@ -361,7 +368,32 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.ReloadAsync();
 		}
-    }
+
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			return codeProvider.GetPublicMethodsAsync();
+		}
+
+		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
+		{
+			return codeProvider.AddMethodAsync(methodToAdd);
+		}
+
+		public Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
+		{
+			return codeProvider.GetDeclarationInfoAsync(methodDescriptor);
+		}
+
+		public Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext)
+		{
+			return codeProvider.GetInvocationInfoAsync(callContext);
+		}
+
+		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
+		{
+			return codeProvider.GetCompatibleInstantiatedTypesAsync(type);
+		}
+	}
 
     /// <summary>
     /// We are going to use this wrapper as a brigde between the client and the grains
@@ -449,5 +481,10 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.grainRef.UnregisterCallerAsync(callContext);
         }
-    }
+
+		public Task<IEnumerable<CallContext>> GetCallersAsync()
+		{
+			return this.grainRef.GetCallersAsync();
+		}
+	}
 }

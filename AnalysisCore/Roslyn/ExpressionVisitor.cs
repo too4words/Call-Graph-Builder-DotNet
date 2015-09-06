@@ -26,10 +26,11 @@ namespace ReachingTypeAnalysis.Roslyn
         internal SyntaxNodeOrToken Expression {get; private set;}
         internal ITypeSymbol Type { get; set; }
 
-		public AnalysisExpression(SyntaxNodeOrToken expression, ITypeSymbol type)
+		public AnalysisExpression(SyntaxNodeOrToken expression, ITypeSymbol type, SyntaxNode declarationNode)
         {
             this.Type = type;
             this.Expression = expression;
+			this.DeclarationNode = declarationNode;
         }
 
 		public virtual PropGraphNodeDescriptor GetAnalysisNode()
@@ -71,6 +72,8 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return this;
         }
+
+		public SyntaxNode DeclarationNode { get; set; }
     }
 
     /// <summary>
@@ -78,8 +81,8 @@ namespace ReachingTypeAnalysis.Roslyn
     /// </summary>
     internal class Constant : AnalysisExpression
     {
-        internal Constant(SyntaxNodeOrToken expression, ITypeSymbol type)
-            : base(expression, type)
+		internal Constant(SyntaxNodeOrToken expression, ITypeSymbol type, SyntaxNode declarationNode)
+            : base(expression, type, declarationNode)
         { }
 
         public override PropGraphNodeDescriptor GetAnalysisNode()
@@ -98,8 +101,8 @@ namespace ReachingTypeAnalysis.Roslyn
 		/// </summary>
 		public VariableNode ReturnedVariableNode { get; private set; }
 
-		internal Allocation(SyntaxNodeOrToken expression, ITypeSymbol type, VariableNode returnedVariableNode)
-			: base(expression, type)
+		internal Allocation(SyntaxNodeOrToken expression, ITypeSymbol type, VariableNode returnedVariableNode, SyntaxNode declarationNode)
+			: base(expression, type, declarationNode)
 		{
 			this.ReturnedVariableNode = returnedVariableNode;
 		}
@@ -124,8 +127,8 @@ namespace ReachingTypeAnalysis.Roslyn
     {
 		internal ISymbol Symbol { get; set; }
 
-		internal Identifier(SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol)
-			: base(expression, type)
+		internal Identifier(SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol, SyntaxNode declarationNode)
+			: base(expression, type, declarationNode)
 		{
 			this.Symbol = symbol;
 		}
@@ -140,8 +143,8 @@ namespace ReachingTypeAnalysis.Roslyn
     {
         private int position;
 
-		internal Parameter(int position, SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol)
-			: base(expression, type, symbol)
+		internal Parameter(int position, SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol, SyntaxNode declarationNode)
+			: base(expression, type, symbol, declarationNode)
 		{
 			this.position = position;
 		}
@@ -160,8 +163,8 @@ namespace ReachingTypeAnalysis.Roslyn
 		private string className;
 		private string field;
 
-		internal Field(SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol)
-			: base(expression, type, symbol)
+		internal Field(SyntaxNodeOrToken expression, ITypeSymbol type, ISymbol symbol, SyntaxNode declarationNode)
+			: base(expression, type, symbol, declarationNode)
 		{
 			this.className = symbol.ContainingType.Name;
 			this.field = symbol.Name;
@@ -178,15 +181,15 @@ namespace ReachingTypeAnalysis.Roslyn
         public bool IsDelegate { get; protected set; }
         public MethodDescriptor MethodDescriptor { get; protected set; }
 
-		internal Method(SyntaxNodeOrToken expression, ITypeSymbol type, IMethodSymbol symbol)
-			: base(expression, symbol.ReturnType, symbol)
+		internal Method(SyntaxNodeOrToken expression, ITypeSymbol type, IMethodSymbol symbol, SyntaxNode declarationNode)
+			: base(expression, symbol.ReturnType, symbol, declarationNode)
 		{
 			this.IsDelegate = false;
 			this.MethodDescriptor = Utils.CreateMethodDescriptor(symbol);
 		}
 
-		protected Method(SyntaxNodeOrToken expression, ITypeSymbol type, IMethodSymbol symbol, MethodDescriptor methodDescriptor)
-			: base(expression, symbol.ReturnType, symbol)
+		protected Method(SyntaxNodeOrToken expression, ITypeSymbol type, IMethodSymbol symbol, MethodDescriptor methodDescriptor, SyntaxNode declarationNode)
+			: base(expression, symbol.ReturnType, symbol, declarationNode)
 		{
 			this.IsDelegate = false;
 			this.MethodDescriptor = methodDescriptor;
@@ -200,8 +203,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
     internal class Lambda : Method
     {
-        public Lambda(SimpleLambdaExpressionSyntax expression, ITypeSymbol type, IMethodSymbol symbol, AnonymousMethodDescriptor methodDescriptor) 
-            : base(expression, type, symbol, methodDescriptor)
+        public Lambda(SyntaxNode expression, ITypeSymbol type, IMethodSymbol symbol, AnonymousMethodDescriptor methodDescriptor, SyntaxNode declarationNode)
+            : base(expression, type, symbol, methodDescriptor, declarationNode)
         {
             this.IsDelegate = true;
         }
@@ -223,17 +226,17 @@ namespace ReachingTypeAnalysis.Roslyn
     {
         public IMethodSymbol RoslynMethod { get; private set; }
         public bool IsDelegate { get; private set; }
-        internal Property(SyntaxNodeOrToken expression, ITypeSymbol typeSymbol, ISymbol symbol)
-            : base(expression, typeSymbol, symbol)
+		internal Property(SyntaxNodeOrToken expression, ITypeSymbol typeSymbol, ISymbol symbol, bool isSetter, SyntaxNode declarationNode)
+            : base(expression, typeSymbol, symbol, declarationNode)
         {
             IsDelegate = false;
             var properySymbol = symbol as IPropertySymbol;
-            RoslynMethod = properySymbol.GetMethod;
+            RoslynMethod = isSetter? properySymbol.SetMethod: properySymbol.GetMethod;
         }
 
         public override AnalysisExpression ProcessArgument(ArgumentSyntax argNode, ExpressionVisitor visitor)
         {
-            return visitor.AnalyzeProperty(argNode.Expression, visitor.ThisRef , null, this);
+            return visitor.AnalyzePropertyGetter(argNode.Expression, visitor.ThisRef , null, this);
         }
     }
 
@@ -248,8 +251,8 @@ namespace ReachingTypeAnalysis.Roslyn
 		internal SyntaxNodeOrToken FieldSyntax { get; private set; }
 
         internal MemberAccess(MemberAccessExpressionSyntax ex, AnalysisExpression r, ExpressionSyntax rSyntax,
-            Identifier field, SyntaxNodeOrToken fSyntax, ITypeSymbol type)
-            : base(ex.Name, type)
+			Identifier field, SyntaxNodeOrToken fSyntax, ITypeSymbol type, SyntaxNode declarationNode)
+            : base(ex.Name, type, declarationNode)
         { 
             this.Field = field.Symbol;
             this.FieldSyntax = fSyntax;
@@ -261,11 +264,12 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			if (this.Field.Kind == SymbolKind.Property)
 			{
+				var property = this.NameExpresion as Property;
                 var order = Utils.GetStatementNumber(this.Expression);
                 var analysisCallNode = new AnalysisCallNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type),
-                    Utils.CreateLocationDescriptor(order, this.Expression),
-					Utils.CreateAnalysisCallNodeAdditionalInfo(this.Field));
+                    Utils.CreateLocationDescriptor(order, this.Expression,this.DeclarationNode),
+					Utils.CreateAnalysisCallNodeAdditionalInfo(property.RoslynMethod));
                 return new PropertyVariableNode(this.Field.ContainingType.Name + "." + this.Field.Name,
                     Utils.CreateTypeDescriptor(this.Type), analysisCallNode);
 			}
@@ -296,7 +300,7 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             if (this.NameExpresion is Property)
             {
-                return visitor.AnalyzeProperty(argNode.Expression, null,  this.ReferenceExpresion, this.NameExpresion as Property);
+                return visitor.AnalyzePropertyGetter(argNode.Expression, null,  this.ReferenceExpresion, this.NameExpresion as Property);
             }
             // To-do Support delegates like s.Delegate here!
             if(this.NameExpresion is Method)
@@ -313,7 +317,7 @@ namespace ReachingTypeAnalysis.Roslyn
 	{
 		//SyntaxNodeOrToken expression;
 		internal UnsupportedExpression(SyntaxNodeOrToken ex, ITypeSymbol type, ISymbol s)
-			: base(ex, type)
+			: base(ex, type, null)
 		{
 			var descriptor = Utils.CreateTypeDescriptor(type);
 			this.aNode = new UnsupportedNode(descriptor);
@@ -343,8 +347,8 @@ namespace ReachingTypeAnalysis.Roslyn
         public MethodDescriptor Method { get; private set; }
 
         internal Call(ExpressionSyntax node, ITypeSymbol type, IMethodSymbol method, 
-                    AnalysisCallNode callNode, VariableNode returnedVariableNode)
-            : base(node, type)
+					AnalysisCallNode callNode, VariableNode returnedVariableNode, SyntaxNode declarationNode)
+            : base(node, type, declarationNode)
         {
             this.RoslynMethod = method;
             this.Method = Utils.CreateMethodDescriptor(method);
@@ -370,8 +374,8 @@ namespace ReachingTypeAnalysis.Roslyn
     internal class DelegateCall : Call
     {
         internal DelegateCall(ExpressionSyntax node, ITypeSymbol type, 
-                             IMethodSymbol method, AnalysisCallNode analysisCallNode, VariableNode returnedVariableNode) : 
-			base(node, type, method, analysisCallNode,returnedVariableNode)
+							 IMethodSymbol method, AnalysisCallNode analysisCallNode, VariableNode returnedVariableNode, SyntaxNode declarationNode) : 
+			base(node, type, method, analysisCallNode,returnedVariableNode, declarationNode)
         {
             //this.cn = cn;
         }
@@ -388,6 +392,7 @@ namespace ReachingTypeAnalysis.Roslyn
         private MethodSyntaxVisitor roslynMethodVisitor;
         // This mapping is used for the temporary variables used in nested calls 
         private IDictionary<ExpressionSyntax, PropGraphNodeDescriptor> tempLH = new Dictionary<ExpressionSyntax, PropGraphNodeDescriptor>();
+        private bool leftHandSide;
 
         internal PropGraphNodeDescriptor ThisRef
         {
@@ -404,6 +409,11 @@ namespace ReachingTypeAnalysis.Roslyn
             this.statementProcessor = stProcessor;
             this.roslynMethodVisitor = roslynMethodVisitor;
         }
+
+		internal LocationDescriptor CreateLocationDescriptor(int invocationPosition, SyntaxNodeOrToken syntaxNode)
+		{
+			return Utils.CreateLocationDescriptor(invocationPosition, syntaxNode, this.roslynMethodVisitor.DeclarationNode);
+		}
 
         public override AnalysisExpression DefaultVisit(SyntaxNode node)
         {
@@ -422,7 +432,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			var type = this.model.GetTypeInfo(node).Type;
 			if (type != null && Utils.IsTypeForAnalysis(type))
 			{
-				return new Constant(node, type);
+				return new Constant(node, type, this.roslynMethodVisitor.DeclarationNode);
 			}
 			else
 			{
@@ -441,8 +451,10 @@ namespace ReachingTypeAnalysis.Roslyn
 			//var rhsExp = Visit(node.Right);
 			if (Utils.IsTypeForAnalysis(this.model, node.Left) && Utils.IsTypeForAnalysis(this.model, node.Right))
 			{
+                this.leftHandSide = true;
 				var lhs = Visit(node.Left);
-				var rhs = Visit(node.Right);
+                this.leftHandSide = false;
+                var rhs = Visit(node.Right);
 
 				if (lhs == null || rhs == null)
 				{
@@ -455,6 +467,20 @@ namespace ReachingTypeAnalysis.Roslyn
 				//                                          lhs.GetRoslynSymbol());
 
                 Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
+
+				if (lhs is MemberAccess)
+				{
+					var memberAccess = lhs as MemberAccess;
+					if (memberAccess.NameExpresion is Property)
+					{
+						var property = memberAccess.NameExpresion as Property;
+						if (property.RoslynMethod.MethodKind == MethodKind.PropertySet)
+						{
+							/// TODO : Process Property Setter
+							AnalyzePropertySetter(node, memberAccess.ReferenceExpresion.GetAnalysisNode(), memberAccess.ReferenceExpresion, property, rhs.GetAnalysisNode());
+						}
+					}
+				}
 				rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
 
 				//if (rhs is Allocation)
@@ -483,15 +509,19 @@ namespace ReachingTypeAnalysis.Roslyn
 			switch (symbol.Kind)
 			{
 				case SymbolKind.Field:
-					return new Field(node, type, symbol);
+					return new Field(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 					// Do you need to add a thisRef? 
 					// In the current version no because a node is C.f
 				case SymbolKind.Method:
-					return new Method(node, type, (IMethodSymbol)symbol);
+					return new Method(node, type, (IMethodSymbol)symbol, this.roslynMethodVisitor.DeclarationNode);
 				case SymbolKind.Property:
-					return new Property(node, type, symbol);
+					// For the special case of propery setter, e.g. this.a.b.c = value, a and b are getters but c is setter
+					var isSetter = this.leftHandSide && 
+						( (node.Parent is AssignmentExpressionSyntax) || 
+						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+					return new Property(node, type, symbol, isSetter, this.roslynMethodVisitor.DeclarationNode);
 				case SymbolKind.Local:
-					return new Identifier(node, type, symbol);
+					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 				case SymbolKind.Parameter:
 					// I need to return the already created parameter node
 					var i = 0;
@@ -500,7 +530,7 @@ namespace ReachingTypeAnalysis.Roslyn
 						Contract.Assert(parameterNode != null);
 						if (parameterNode.Name.Equals(symbol.Name))
 						{
-							return new Parameter(i, node, type, symbol);
+							return new Parameter(i, node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 						}
 						i++;
 					}
@@ -508,11 +538,11 @@ namespace ReachingTypeAnalysis.Roslyn
 					return null;
 				case SymbolKind.NamedType:
 					// Todo create a NamedType type?
-					return new Identifier(node, type, symbol);
+					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 				//case SymbolKind.Namespace:
 				//	break;
 				default:
-					return new Identifier(node, type, symbol);
+					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 			}
 			throw new System.ArgumentException();
 		}
@@ -539,25 +569,25 @@ namespace ReachingTypeAnalysis.Roslyn
             var type = this.model.GetTypeInfo(node);
             var symbol = this.model.GetSymbolInfo(node).Symbol;
 			// Create an allocation expression
-			var lhs = CreateAndRegisterTemporaryLHVar(node, type.Type);
-			var allocAnalysisExpression = new Allocation(node, type.Type, lhs);
+			var tempLHS = CreateAndRegisterTemporaryLHVar(node, type.Type);
+			var allocAnalysisExpression = new Allocation(node, type.Type, tempLHS, this.roslynMethodVisitor.DeclarationNode);
 
-            this.statementProcessor.RegisterNewExpressionAssignment(lhs, allocAnalysisExpression.GetAnalysisType());
+            this.statementProcessor.RegisterNewExpressionAssignment(tempLHS, allocAnalysisExpression.GetAnalysisType());
             // Process the constructor as a call
             if (symbol != null)
             {
                 IMethodSymbol roslynMethod = (IMethodSymbol)symbol;
                 // Process parameters
                 var callNode = new AnalysisCallNode(roslynMethod.Name,
-                    Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
-                    Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
+					Utils.CreateTypeDescriptor(type.Type), /*roslynMethod.ReturnType*/
+                    this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
 					Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod)); //node.GetLocation()
 
                 var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
                 Contract.Assert(!roslynMethod.IsStatic);
                 Contract.Assert(roslynMethod.MethodKind == MethodKind.Constructor);
                 var args = ProcessArguments(argumentListSyntax, roslynMethod.Parameters);
-                statementProcessor.RegisterConstructorCall(methodDescriptor, args, null, callNode);
+                statementProcessor.RegisterConstructorCall(methodDescriptor, args, tempLHS, callNode);
             }
             return allocAnalysisExpression;
         }
@@ -613,13 +643,26 @@ namespace ReachingTypeAnalysis.Roslyn
             var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
             var baseMethodDescriptor = this.statementProcessor.Method;
             var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
-            var lambdaMethodParser =  new LambdaMethodParser(model, node, lambdaSymbol, methodDescriptor);
+            var lambdaMethodParser =  new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
             var methodEntity = lambdaMethodParser.ParseMethod();
 
             statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
-
-            return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor);
+			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
         }
+		public override AnalysisExpression VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+		{
+
+			var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
+			var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
+			var baseMethodDescriptor = this.statementProcessor.Method;
+			var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
+			var lambdaMethodParser = new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+			var methodEntity = lambdaMethodParser.ParseMethod();
+
+			statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
+
+			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+		}
 
         public override AnalysisExpression VisitExpressionStatement(ExpressionStatementSyntax node)
         {
@@ -725,7 +768,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				// This is a Property and then a call (e.g, Prop.Method())
 				else if (analysisExpression is Property)
 				{
-					call = AnalyzeProperty(simpleAccessMemberExpression, this.ThisRef, null,
+					call = AnalyzePropertyGetter(simpleAccessMemberExpression, this.ThisRef, null,
 												analysisExpression as Property);
 					if (call != null)
 					{
@@ -788,18 +831,18 @@ namespace ReachingTypeAnalysis.Roslyn
  
 					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
                         Utils.CreateTypeDescriptor(methodInvokedSymbol.ReturnType),
-                        Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression),
+                        this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression),
 						Utils.CreateAnalysisCallNodeAdditionalInfo(methodInvokedSymbol)); //node.GetLocation()
 
                     statementProcessor.RegisterStaticDelegateCall(methodDescriptor, args, lh, (DelegateVariableNode)delegateVarNode, callNode);
-                    result = new DelegateCall(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
+					result = new DelegateCall(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh, this.roslynMethodVisitor.DeclarationNode);
 				}
 				// Normal invocation    
 				else
 				{
 					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
 						Utils.CreateTypeDescriptor(methodInvokedSymbol.ReturnType),
-                        Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression),
+                        this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression),
 						Utils.CreateAnalysisCallNodeAdditionalInfo(methodInvokedSymbol)); //node.GetLocation()
 
 					VariableNode receiverArg = null;
@@ -809,10 +852,10 @@ namespace ReachingTypeAnalysis.Roslyn
                         // Diego: Check types!
 						var receiver = TryToGetReceiver(node, methodInvokedSymbol);
 
-						if (receiver != null)
+						if (receiver != null && receiver is VariableNode)
 						{
 							
-							Contract.Assert(receiver is VariableNode);
+							// Contract.Assert(receiver is VariableNode);
 
 							// Try to get receiver, when this is not given by the previous nested call
 							receiverArg = tempReceiver == null ? (VariableNode)receiver : tempReceiver;
@@ -833,7 +876,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
 									args.Insert(0, receiverArg);
 									statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
-									result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
+									result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh,			
+														this.roslynMethodVisitor.DeclarationNode);
 									// We adapt the method as it is an extension
 								}
 								else
@@ -847,13 +891,13 @@ namespace ReachingTypeAnalysis.Roslyn
 								statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
 							}
 
-							result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
+							result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh, this.roslynMethodVisitor.DeclarationNode);
 						}
 					}
 					else
 					{
 						statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
-						result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh);
+						result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh, this.roslynMethodVisitor.DeclarationNode);
 					}
 				}
 			}
@@ -895,7 +939,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				var type = GetTypeSymbol(node);
                 // If we find I real "this" we replace with the fake one
                 // I did this to keep the same node 
-                return new Identifier(node, type, symbol);
+				return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
             }
             else {
                 return null;
@@ -990,7 +1034,12 @@ namespace ReachingTypeAnalysis.Roslyn
             {                
                 if (nameExpresssion is Property)
                 {
-                    res =  AnalyzeProperty(node, receiverArg, referenceExpression, (Property)nameExpresssion);
+					// The property getter is analyzed here, but the setters are analyzed in the assigments (and converted to call set(value))
+					var property = (Property)nameExpresssion;
+					if (property.RoslynMethod.MethodKind == MethodKind.PropertyGet)
+					{
+						res = AnalyzePropertyGetter(node, receiverArg, referenceExpression, property);
+					}
                 }
                 //else if (nameExpresssion is Method)
                 //{
@@ -1001,7 +1050,7 @@ namespace ReachingTypeAnalysis.Roslyn
                 //}
                 return new MemberAccess(node, referenceExpression, node.Expression,
                                         (Identifier)nameExpresssion, node.Name, 
-                                        nameExpresssion.Type);
+										nameExpresssion.Type, this.roslynMethodVisitor.DeclarationNode);
             }
             return CreateUnsupportedExpression(node);
         }
@@ -1014,16 +1063,17 @@ namespace ReachingTypeAnalysis.Roslyn
         /// <param name="referenceAnalysisExpression"></param>
         /// <param name="property"></param>
         /// <returns></returns>
-        internal Call AnalyzeProperty(ExpressionSyntax node,
+        internal Call AnalyzePropertyGetter(ExpressionSyntax node,
 					 PropGraphNodeDescriptor receiverArg, 
 					 AnalysisExpression referenceAnalysisExpression, 
 					 Property property)
         {
+			this.roslynMethodVisitor.InvocationPosition++;
             var roslynMethod = property.RoslynMethod;
             // we treat this as an invocation
             var callNode = new AnalysisCallNode(roslynMethod.Name,
                 Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
-                Utils.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
+                this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node),
 				Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod));
 
             var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
@@ -1040,15 +1090,47 @@ namespace ReachingTypeAnalysis.Roslyn
             var args = new List<PropGraphNodeDescriptor>();
             statementProcessor.RegisterPropertyCall(methodDescriptor, receiverArg, args, lhs, callNode);
 
-            return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs);
+			return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs, this.roslynMethodVisitor.DeclarationNode);
         }
+
+		internal Call AnalyzePropertySetter(ExpressionSyntax node,
+					PropGraphNodeDescriptor receiverArg,
+					 AnalysisExpression referenceAnalysisExpression, 
+					 Property property, PropGraphNodeDescriptor rhsNode)
+		{
+			this.roslynMethodVisitor.InvocationPosition++;
+			var roslynMethod = property.RoslynMethod;
+			// we treat this as an invocation
+			var callNode = new AnalysisCallNode(roslynMethod.Name,
+				Utils.CreateTypeDescriptor(roslynMethod.ReturnType),
+				this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, property.Expression),
+				Utils.CreateAnalysisCallNodeAdditionalInfo(roslynMethod));
+
+			var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
+
+
+			if (receiverArg == null)
+			{
+				if (referenceAnalysisExpression != null)
+				{
+					receiverArg = referenceAnalysisExpression.GetAnalysisNode();
+				}
+			}
+
+			var lhs = CreateAndRegisterTemporaryLHVar(node, roslynMethod);
+			var args = new List<PropGraphNodeDescriptor>();
+			args.Add(rhsNode);
+			statementProcessor.RegisterPropertyCall(methodDescriptor, receiverArg, args, lhs, callNode);
+
+			return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs, this.roslynMethodVisitor.DeclarationNode);
+		}
         
         public override AnalysisExpression VisitBaseExpression(BaseExpressionSyntax node)
         {
             // I treat this like a this reference...
             var symbol = this.model.GetSymbolInfo(node).Symbol;
             //return new Identifier(node, this.ThisRef.DeclaredType, symbol);
-            return new Identifier(node, symbol.ContainingType, symbol);
+			return new Identifier(node, symbol.ContainingType, symbol, this.roslynMethodVisitor.DeclarationNode);
         }
 
         public override AnalysisExpression VisitAwaitExpression(AwaitExpressionSyntax node)

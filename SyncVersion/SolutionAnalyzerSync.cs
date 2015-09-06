@@ -80,13 +80,13 @@ namespace ReachingTypeAnalysis
                         this.AnalyzeOnDemandSync();
                         return this.GenerateCallGraph();
                     }
-                case AnalysisStrategyKind.ENTIRE_SYNC:
-                    {
-						this.solution = this.GetSolution();
-						this.dispatcher = new SynchronousLocalDispatcher();
-                        this.AnalyzeEntireSolution();
-                        return this.GenerateCallGraph();
-                    }
+				//case AnalysisStrategyKind.ENTIRE_SYNC:
+				//	{
+				//		this.solution = this.GetSolution();
+				//		this.dispatcher = new SynchronousLocalDispatcher();
+				//		this.AnalyzeEntireSolution();
+				//		return this.GenerateCallGraph();
+				//	}
                 default:
                     {
                         throw new ArgumentException("Unknown value for Solver " + ConfigurationManager.AppSettings["Solver"]);
@@ -121,22 +121,22 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
-        private void AnalyzeEntireSolution()
-        {
-			foreach (var project in this.solution.Projects)
-			{
-				var compilation = project.GetCompilationAsync().Result;
-				var diag = compilation.GetDiagnostics();
-				var theAssembly = compilation.Assembly;
+		//private void AnalyzeEntireSolution()
+		//{
+		//	foreach (var project in this.solution.Projects)
+		//	{
+		//		var compilation = project.GetCompilationAsync().Result;
+		//		var diag = compilation.GetDiagnostics();
+		//		var theAssembly = compilation.Assembly;
 
-				foreach (var tree in compilation.SyntaxTrees)
-				{
-                    var model = compilation.GetSemanticModel(tree);
-					var allMethodsVisitor = new AllMethodsVisitor(model, tree);
-					allMethodsVisitor.Visit(tree.GetRoot());
-				}
-			}
-        }
+		//		foreach (var tree in compilation.SyntaxTrees)
+		//		{
+		//			var model = compilation.GetSemanticModel(tree);
+		//			var allMethodsVisitor = new AllMethodsVisitor(model, tree);
+		//			allMethodsVisitor.Visit(tree.GetRoot());
+		//		}
+		//	}
+		//}
 
         /// <summary>
         /// Try to get the roslyn methods on the fly
