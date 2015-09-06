@@ -5,6 +5,8 @@
 
 # This is the subscription when orleans service is deployed
 Select-AzureSubscription  "Internal Consumption"
+##Select-AzureSubscription  "Ben Livshits"
+
 
 Stop-AzureService "orleansservice"
 Start-AzureService "orleansservice"
