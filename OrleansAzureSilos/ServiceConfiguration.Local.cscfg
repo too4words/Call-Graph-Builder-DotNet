@@ -8,7 +8,7 @@
 	  <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
     </ConfigurationSettings>
     -->
-    <Instances count="4" />
+    <Instances count="2" />
     <ConfigurationSettings>
       <Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />

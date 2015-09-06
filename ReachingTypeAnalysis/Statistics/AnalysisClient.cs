@@ -14,6 +14,7 @@ using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
 using Orleans.Runtime;
 using Orleans;
+using Orleans.Statistics;
 
 namespace ReachingTypeAnalysis.Statistics
 {
@@ -60,6 +61,8 @@ namespace ReachingTypeAnalysis.Statistics
 			this.stopWatch.Stop();
 
 			//this.methods = -1;
+            var messageMetric = new MessageMetrics();
+
 
 			await systemManagement.ForceGarbageCollection(silos);
 			var stats = await systemManagement.GetRuntimeStatistics(silos);
@@ -241,8 +244,8 @@ namespace ReachingTypeAnalysis.Statistics
 				MemoryUsage = siloMetric.MemoryUsage,
 				Activations = siloMetric.ActivationCount,
 				RecentlyUsedActivations = siloMetric.RecentlyUsedActivationCount,
-				SentMessages = 0, // siloMetric.SentMessages,
-				ReceivedMessages = 0, // siloMetric.ReceivedMessages,
+				SentMessages =  siloMetric.SentMessages,
+				ReceivedMessages =  siloMetric.ReceivedMessages,
 				PartitionKey = this.ExpID,
                 RowKey = siloAddr.ToString()
 

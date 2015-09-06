@@ -29,8 +29,9 @@ namespace WebAPI
 
 		private void InitOrleansClient()
 		{
-			if (!RoleEnvironment.IsEmulated)
-			{
+            // No longer needed. The emulator handles the same configuration
+            //if (!RoleEnvironment.IsEmulated || true)
+            //{
 				if (!AzureClient.IsInitialized)
 				{
 					FileInfo clientConfigFile = AzureConfigUtils.ClientConfigFileLocation;
@@ -40,11 +41,11 @@ namespace WebAPI
 					}
 					AzureClient.Initialize(clientConfigFile);
 				}
-			}
-			else
-			{
-				GrainClient.Initialize(Server.MapPath(@"~/LocalConfiguration.xml"));
-			}
+            //}
+            //else
+            //{
+            //    GrainClient.Initialize(Server.MapPath(@"~/LocalConfiguration.xml"));
+            //}
 		}
     }
 }

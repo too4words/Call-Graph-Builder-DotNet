@@ -7,29 +7,37 @@
 -->
 <OrleansConfiguration xmlns="urn:orleans">
   <Globals>
-    <Liveness LivenessType="AzureTable" />
+      <!-- <SeedNode Address="localhost" Port="11111" /> -->    
+    
+    <Liveness LivenessType="AzureTable" /> 
+    
     <StorageProviders>
       <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
-      <!-- <Provider Type="Orleans.Storage.MemoryStorage" Name="AzureStore"  /> -->
  	  <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />
-
+      <!-- <Provider Type="Orleans.Storage.MemoryStorage" Name="AzureStore"  /> -->
     </StorageProviders>
+    
 	  <Messaging ResponseTimeout="600s"/>
-	  <Application>
+
+    <Application>
 		  <Defaults>
 			  <Deactivation AgeLimit="30m"/>
 		  </Defaults>
 	  </Application>
+    
   </Globals>
-  <Defaults>
+    <Defaults>
+    <!--
+      <Networking Address="localhost" Port="11111" />
+      <ProxyingGateway Address="localhost" Port="30000" />
+     -->
     <!--
 	  To turn tracing off, set DefaultTraceLevel="Off" and have no overrides. To see a minimum of messages, set DefaultTraceLevel="Error".
       For the trace log file name, {0} is the silo name and {1} is the current time. 
       Setting WriteTraces to true will cause detailed performance information to be collected and logged about the individual steps in the
       message lifecycle. This may be useful debugging performance issues.
       -->
-    <!--   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" > -->
-       <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
         <!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".
 	    Depending on the log levels you have used in your code, this will cause additional messages to be written to the log.
