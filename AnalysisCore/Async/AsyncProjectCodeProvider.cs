@@ -15,13 +15,15 @@ namespace ReachingTypeAnalysis.Roslyn
 {
     public class AsyncProjectCodeProvider : BaseProjectCodeProvider
     {
-		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
-		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
+		private ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
+		private ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
+		//private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
+		//private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
 
 		private AsyncProjectCodeProvider(ISolutionManager solutionManager)
 			: base(solutionManager)
         {
-			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
+			this.methodEntities = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
 
 		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath, ISolutionManager solutionManager)
@@ -60,9 +62,9 @@ namespace ReachingTypeAnalysis.Roslyn
 					}
 
 					result = new MethodEntityWithPropagator(methodEntity, this);
-					lock (this.methodEntities)
+					//lock (this.methodEntities)
 					{
-						this.methodEntities.Add(methodDescriptor, result);
+						this.methodEntities.TryAdd(methodDescriptor, result);
 					}
 				}
 			
@@ -79,14 +81,15 @@ namespace ReachingTypeAnalysis.Roslyn
 		public override async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
 			var modifications = await base.GetModificationsAsync(modifiedDocuments);
-			this.newMethodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>(methodEntities);
+			this.newMethodEntities = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>(methodEntities);
 
 			foreach (var modification in modifications)
 			{
 				if (modification.ModificationKind == ModificationKind.MethodRemoved ||
 					modification.ModificationKind == ModificationKind.MethodUpdated)
 				{
-					newMethodEntities.Remove(modification.MethodDescriptor);
+					IMethodEntityWithPropagator previousValue = null;
+					newMethodEntities.TryRemove(modification.MethodDescriptor, out previousValue);
 				}
 			}
 
