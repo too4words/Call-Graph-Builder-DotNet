@@ -14,10 +14,17 @@ using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
 using Orleans.Runtime;
 using Orleans;
-using Orleans.Statistics;
+// using Orleans.Statistics;
 
 namespace ReachingTypeAnalysis.Statistics
 {
+	class SiloNetworkStats
+	{
+		public long TotalRecvNetworkSilo { get; set; }
+		public long TotalSentLocalSilo { get; set; }
+		public long TotalSentNetworkSilo { get; set; }
+		public long TotalRecvLocalSilo  { get; set; }
+	}
     public class AnalysisClient
     {
 		private const long SYSTEM_MANAGEMENT_ID = 1;
@@ -60,8 +67,10 @@ namespace ReachingTypeAnalysis.Statistics
     
 			this.stopWatch.Stop();
 
-			//this.methods = -1;
-            var messageMetric = new MessageMetrics();
+			var totalRecvNetwork = 0L;
+			var totalSentLocal = 0L;
+			var totalSentNetwork = 0L;
+			var totalRecvLocal = 0L;
 
 
 			await systemManagement.ForceGarbageCollection(silos);
@@ -69,14 +78,79 @@ namespace ReachingTypeAnalysis.Statistics
 
 			var totalAct = 0;
 
+			//this.methods = -1;
+			
+            var messageMetric = new MessageMetrics();
+			
+			var time = DateTime.Now;
+			
+
+			var siloNetworkStats = new SiloNetworkStats[silos.Length];
+
 			for (int i = 0; i < silos.Length; i++)
 			{
-				totalAct += stats[i].ActivationCount;
-				AddSiloMetric(silos[i], stats[i]);
-			}
+				var silo = silos[i];
+				siloNetworkStats[i] = new SiloNetworkStats();
 
-            
-			var time = DateTime.Now;
+				//foreach(var item in messageMetric.PerSiloReceiveCounters)
+				//{
+				//	var recCounterAddr = GetAddressFromStat(item.Key, "Messaging.Received.Messages.From.S");
+				//	if (recCounterAddr.Equals(silo.Endpoint.Address.ToString()))
+				//	{
+				//		siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
+				//	}
+				//	else
+				//	{
+				//		siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
+				//	}
+				//}
+				//foreach(var item in messageMetric.PerSiloSendCounters)
+				//{
+				//	var sentCounterAddr = GetAddressFromStat(item.Key, "Messaging.Sent.Messages.To.S");
+				//	if (sentCounterAddr.Equals(silo.Endpoint.Address.ToString()))
+				//	{
+				//		siloNetworkStats[i].TotalSentLocalSilo += item.Value;
+				//	}
+				//	else
+				//	{
+				//		siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
+				//	}
+				//}
+				foreach (var item in messageMetric.PerSiloSendToCounters)
+				{
+					var addresses = GetAddressesFromStat(item.Key, "Messaging.Sent.Messages.To.S");
+					var addrTo = addresses.Item1;
+					var addrFrom = addresses.Item2;
+
+					if (addrFrom.Equals(silo.Endpoint.Address.ToString()))
+					{
+						if (addrFrom.Equals(addrTo))
+						{
+						
+							siloNetworkStats[i].TotalSentLocalSilo += item.Value;
+							siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
+						}
+						else
+						{
+							siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
+						}
+					}
+					else if (addrTo.Equals(silo.Endpoint.Address.ToString()))
+					{
+							siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
+					}
+				}
+
+				totalAct += stats[i].ActivationCount;
+				AddSiloMetric(silos[i], stats[i], siloNetworkStats[i], time);
+
+				totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
+				totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
+				totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo;
+				totalRecvLocal += siloNetworkStats[i].TotalRecvLocalSilo;
+			}
+          
+			
             var results = new SubjectExperimentResults()
             {
 				ExpID = expId,
@@ -89,18 +163,33 @@ namespace ReachingTypeAnalysis.Statistics
 				Activations = totalAct,
                 Observations = "From web",
 				PartitionKey = expId +" "+ testFullName,
-                RowKey = time.ToFileTime().ToString()
+                RowKey = time.ToFileTime().ToString(),
+				TotalRecvNetwork = totalRecvNetwork,
+				TotalSentLocal   = totalSentLocal,
+				TotalSentNetwork = totalSentNetwork,
+				TotalRecvLocal   = totalRecvLocal 
             };
             
 		
 			this.AddSubjetResults(results);
-
-
-
             this.SolutionManager = analyzer.SolutionManager;
 
 			return results;
-        }
+		}
+
+		private static string GetAddressFromStat(string statValue, string statPrefix)
+		{
+			var result = statValue.Substring(statPrefix.Length,statValue.IndexOf(':')-statPrefix.Length);
+			return result;
+		}
+		private static Tuple<string,string> GetAddressesFromStat(string statValue, string statPrefix)
+		{
+			var addrTo= statValue.Substring(statPrefix.Length, statValue.IndexOf(':') - statPrefix.Length);
+			var pos = statValue.IndexOf(".From.")+7;
+			var addrFrom = statValue.Substring(pos, statValue.IndexOf(':',pos) - pos);
+			return new Tuple<string,string>(addrTo,addrFrom);
+		}
+
 
 		public async Task PrintGrainStatistics(IGrainFactory grainFactory)
 		{
@@ -234,21 +323,25 @@ namespace ReachingTypeAnalysis.Statistics
             // Execute the insert operation.
             this.analysisTimes.Execute(insertOperation);
         }
-		internal void AddSiloMetric(SiloAddress siloAddr,  SiloRuntimeStatistics siloMetric)
+		internal void AddSiloMetric(SiloAddress siloAddr,  SiloRuntimeStatistics siloMetric, SiloNetworkStats siloNetworkStat, DateTime time)
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
                 ExpID = this.ExpID,
+				Time = time,
 				Address = siloAddr.ToString(), 
 				CPU = siloMetric.CpuUsage,
 				MemoryUsage = siloMetric.MemoryUsage,
 				Activations = siloMetric.ActivationCount,
 				RecentlyUsedActivations = siloMetric.RecentlyUsedActivationCount,
-				SentMessages =  siloMetric.SentMessages,
-				ReceivedMessages =  siloMetric.ReceivedMessages,
+				SentMessages = siloMetric.SentMessages,
+				ReceivedMessages = siloMetric.ReceivedMessages,
 				PartitionKey = this.ExpID,
-                RowKey = siloAddr.ToString()
-
+                RowKey = siloAddr.ToString(),
+				TotalRecvNetworkSilo = siloNetworkStat.TotalRecvNetworkSilo,
+				TotalSentLocalSilo   = siloNetworkStat.TotalSentLocalSilo,
+				TotalSentNetworkSilo = siloNetworkStat.TotalSentNetworkSilo,
+				TotalRecvLocalSilo   = siloNetworkStat.TotalRecvLocalSilo 
 			};
 
 			if (this.siloMetrics == null)

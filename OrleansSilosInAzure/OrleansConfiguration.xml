@@ -11,7 +11,6 @@
     <StorageProviders>
       <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
     	<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-      <!--  <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />  -->
     </StorageProviders>
 	  
 	  <Application>
@@ -21,7 +20,7 @@
 	  </Application>
     <Messaging ResponseTimeout="600s"/>
     <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s"
-                WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Verbose"/>
+                WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
   </Globals>
   <Defaults>
     <!--
@@ -31,7 +30,7 @@
       message lifecycle. This may be useful debugging performance issues.
       -->
     <!--   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" > -->
-       <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
 
         <!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".

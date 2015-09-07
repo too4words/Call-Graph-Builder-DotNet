@@ -19,6 +19,10 @@ namespace ReachingTypeAnalysis.Statistics
 		public long Activations { get; set; }
 		public long Deactivations { get; set; }
 		public string Observations { get; set; }
+		public long TotalRecvNetwork { get; set; }
+		public long TotalSentLocal { get; set; }
+		public long TotalSentNetwork { get; set; }
+		public long TotalRecvLocal { get; set; }
 	}
 	public class QueriesPerSubject : TableEntity
 	{
@@ -38,6 +42,7 @@ namespace ReachingTypeAnalysis.Statistics
 	{
 		public string ExpID { get; set; }
 		//public string DeploymentId { get; set; }
+		public DateTime Time { get; set; }
 		public string Address { get; set; }
 		//public string SiloName { get; set; }
 		//public string GatewayAddress { get; set; }
@@ -54,5 +59,9 @@ namespace ReachingTypeAnalysis.Statistics
 		public long ReceivedMessages { get; set; }
 		//public bool LoadShedding { get; set; }
 		//public long ClientCount { get; set; }
+		public long TotalRecvNetworkSilo { get; set; }
+		public long TotalSentNetworkSilo { get; set; }
+		public long TotalRecvLocalSilo { get; set; }
+		public long TotalSentLocalSilo { get; set; }
 	}
 }
