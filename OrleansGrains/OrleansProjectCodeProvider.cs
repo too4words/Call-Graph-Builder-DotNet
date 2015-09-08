@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿#define COMPUTESTATS
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Linq;
@@ -21,7 +23,11 @@ namespace ReachingTypeAnalysis.Analysis
 		private ISet<MethodDescriptor> methodsToRemove;
 
 		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager)
-			: base(solutionManager)
+#if (COMPUTESTATS)
+			: base(new SolutionGrainCallerWrapper(grainFactory))
+#else
+			: base(solutionManager))
+#endif
 		{
 			this.grainFactory = grainFactory;
 			this.methodsToRemove = new HashSet<MethodDescriptor>();

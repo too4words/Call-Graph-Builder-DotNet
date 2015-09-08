@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Orleans;
+using Orleans.Runtime;
 using System.Threading;
 using OrleansInterfaces;
 
@@ -17,7 +18,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.grainFactory = grainFactory;
         }
 
-		public static ISolutionManager GetSolutionGrain(IGrainFactory grainFactory)
+		public static ISolutionGrain GetSolutionGrain(IGrainFactory grainFactory)
 		{
 			var grain = grainFactory.GetGrain<ISolutionGrain>("Solution");
 			return grain;
@@ -112,4 +113,97 @@ namespace ReachingTypeAnalysis.Analysis
 			//this.solutionPath = null;
         }
 	}
+    internal class SolutionGrainCallerWrapper : ISolutionGrain
+    {
+        private IGrainFactory grainFactory;
+        internal SolutionGrainCallerWrapper(IGrainFactory grainFactory)
+        {
+            this.grainFactory = grainFactory;
+        }
+		
+		private ISolutionGrain GetSolutionGrain()
+		{
+			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(grainFactory);
+			RequestContext.Set("Stat", StatsHelper.GetMyIPAddr());
+			return solutionGrain;
+		}
+
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetRootsAsync();
+		}
+		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetPublicMethodsAsync();
+		}
+		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetProjectCodeProvidersAsync();
+		}
+		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetProjectCodeProviderAsync(assemblyName);
+		}
+		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
+		}
+		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetMethodEntityAsync(methodDescriptor);
+		}
+		public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.AddInstantiatedTypesAsync(types);
+		}
+        public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetInstantiatedTypesAsync();
+		}
+		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetModificationsAsync(modifiedDocuments);
+		}
+		public Task ReloadAsync()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.ReloadAsync();
+		}
+
+		public Task SetSolutionPathAsync(string solutionPath)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.SetSolutionPathAsync(solutionPath);
+		}
+		public Task SetSolutionSourceAsync(string solutionSource)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.SetSolutionSourceAsync(solutionSource);
+		}
+		public Task SetSolutionFromTestAsync(string testName)
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.SetSolutionFromTestAsync(testName);
+		}
+		public Task ForceDeactivation()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.ForceDeactivation();
+		}
+		public Task<IEnumerable<string>> GetDrives()
+		{
+			var solutionGrain = GetSolutionGrain();
+			return solutionGrain.GetDrives();
+		}
+    }
+
 }

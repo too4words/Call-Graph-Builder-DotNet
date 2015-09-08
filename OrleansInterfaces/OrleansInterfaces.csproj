@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IProjectCodeProviderGrain.cs" />
+    <Compile Include="IStatsGrains.cs" />
     <Compile Include="ISolutionGrain.cs" />
     <Compile Include="IMethodEntityGrain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -24,11 +24,11 @@ workflow Update-CloudServiceScale
                 [parameter(Mandatory=$true)]
                 [String]$SubscriptionName,
 	
-	            [parameter(Mandatory=$true)]
-                [String]$PfxFilePath, 
+##	            [parameter(Mandatory=$true)]
+##                [String]$PfxFilePath, 
 
-                [parameter(Mandatory=$true)]
-                [String]$PfxPassword,    
+##                [parameter(Mandatory=$true)]
+##                [String]$PfxPassword,    
             
                 # cloud service name for scale up/down
                 [Parameter(Mandatory = $true)] 
@@ -50,13 +50,15 @@ workflow Update-CloudServiceScale
     $Start = [System.DateTime]::Now
     "Starting: " + $Start.ToString("HH:mm:ss.ffffzzz")
 
+	<# Add this if you have a certificate
     $SecurePwd = ConvertTo-SecureString -String "$PfxPassword" -Force -AsPlainText
     $importedCert = Import-PfxCertificate -FilePath $PfxFilePath  -CertStoreLocation Cert:\CurrentUser\My  -Exportable  -Password $SecurePwd 
     $MyCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList($PfxFilePath, $SecurePwd, "Exportable")
+	#>
 
     inlinescript
     {
-       Set-AzureSubscription -SubscriptionName "$using:SubscriptionName" -SubscriptionId $using:SubscriptionId -Certificate $using:MyCert
+       Set-AzureSubscription -SubscriptionName "$using:SubscriptionName" -SubscriptionId $using:SubscriptionId  <# add this if you have a certificate -Certificate $using:MyCert #>
        Select-Azuresubscription -SubscriptionName "$using:SubscriptionName" 
 
        $Deployment = Get-AzureDeployment -Slot $using:Slot -ServiceName $using:ServiceName
