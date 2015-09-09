@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var grain = grainFactory.GetGrain<ISolutionGrain>("Solution");
 
 #if COMPUTE_STATS
-			grain = new SolutionGrainCallerWrapper(grainFactory, grain);
+			grain = new SolutionGrainCallerWrapper(grain);
 #endif
 			return grain;
 		}
@@ -95,7 +95,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
 

@@ -231,7 +231,7 @@ namespace ReachingTypeAnalysis.Analysis
         /// <returns></returns>
         public async Task ForceDeactivationAsync()
         {
-			await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
+			//await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
 			/// TODO: Change interface by OrleansCodeProvider but we need to fix the Dummy provider
 
 			if (this.projectCodeProvider is OrleansProjectCodeProvider)

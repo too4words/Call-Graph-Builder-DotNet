@@ -177,7 +177,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task ForceDeactivation()
         {
-			await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
+			//await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
 
             await this.solutionManager.ForceDeactivationOfProjects();
 

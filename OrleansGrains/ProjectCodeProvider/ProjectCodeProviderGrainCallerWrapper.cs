@@ -15,7 +15,7 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		private IProjectCodeProviderGrain providerGrain;
 
-		internal ProjectCodeProviderGrainCallerWrapper(IGrainFactory grainFactory, IProjectCodeProviderGrain providerGrain)
+		internal ProjectCodeProviderGrainCallerWrapper(IProjectCodeProviderGrain providerGrain)
 		{
 			this.providerGrain = providerGrain;
 		}

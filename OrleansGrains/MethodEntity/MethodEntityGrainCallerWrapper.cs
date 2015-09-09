@@ -15,91 +15,120 @@ using Orleans.Runtime;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	//internal class MethodEntityGrainCallerWrapper : IMethodEntityGrain
-	//{
-	//	public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
-	//	{
+	internal class MethodEntityGrainCallerWrapper : IMethodEntityGrain
+	{
+		private IMethodEntityGrain methodEntityGrain;
 
-	//	}
+		internal MethodEntityGrainCallerWrapper(IMethodEntityGrain methodEntityGrain)
+		{
+			this.methodEntityGrain = methodEntityGrain;
+		}
 
-	//	public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
-	//	{
+		private void SetRequestContext()
+		{
+			RequestContext.Set(StatsHelper.CALLER_ADDR_CONTEXT, StatsHelper.GetMyIPAddr());
+		}
 
-	//	}
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.PropagateAsync(propKind);
+		}
 
-	//	public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
-	//	{
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.PropagateAsync(propKind, reWorkSet);
+		}
 
-	//	}
+		public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.PropagateAsync(callMessageInfo);
+		}
 
-	//	public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
-	//	{
+		public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.PropagateAsync(returnMessageInfo);
+		}
 
-	//	}
+		public Task<bool> IsInitializedAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.IsInitializedAsync();
+		}
 
-	//	public Task<bool> IsInitializedAsync()
-	//	{
+		public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetInstantiatedTypesAsync();
+		}
 
-	//	}
+		public Task<IEnumerable<CallContext>> GetCallersAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetCallersAsync();
+		}
 
-	//	public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
-	//	{
+		public Task<ISet<MethodDescriptor>> GetCalleesAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetCalleesAsync();
+		}
 
-	//	}
+		public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetCalleesInfoAsync();
+		}
 
-	//	public Task<IEnumerable<CallContext>> GetCallersAsync()
-	//	{
+		public Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetCalleesAsync(invocationPosition);
+		}
 
-	//	}
+		public Task<int> GetInvocationCountAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetInvocationCountAsync();
+		}
 
-	//	public Task<ISet<MethodDescriptor>> GetCalleesAsync()
-	//	{
+		public Task<SymbolReference> GetDeclarationInfoAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetDeclarationInfoAsync();
+		}
 
-	//	}
+		public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetCallersDeclarationInfoAsync();
+		}
 
-	//	public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
-	//	{
+		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.GetAnnotationsAsync();
+		}
 
-	//	}
+		public Task<PropagationEffects> RemoveMethodAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.RemoveMethodAsync();
+		}
 
-	//	public Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
-	//	{
+		public Task UnregisterCallerAsync(CallContext callContext)
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.UnregisterCallerAsync(callContext);
+		}
 
-	//	}
-
-	//	public Task<int> GetInvocationCountAsync()
-	//	{
-
-	//	}
-
-	//	public Task<SymbolReference> GetDeclarationInfoAsync()
-	//	{
-
-	//	}
-
-	//	public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
-	//	{
-
-	//	}
-
-	//	public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
-	//	{
-
-	//	}
-
-	//	public Task<PropagationEffects> RemoveMethodAsync()
-	//	{
-
-	//	}
-
-	//	public Task UnregisterCallerAsync(CallContext callContext)
-	//	{
-
-	//	}
-
-	//	public Task ForceDeactivationAsync()
-	//	{
-
-	//	}
-	//}
+		public Task ForceDeactivationAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.ForceDeactivationAsync();
+		}
+	}
 }

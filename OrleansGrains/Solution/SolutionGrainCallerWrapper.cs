@@ -11,12 +11,10 @@ namespace ReachingTypeAnalysis.Analysis
 {
 	internal class SolutionGrainCallerWrapper : ISolutionGrain
 	{
-		private IGrainFactory grainFactory;
 		private ISolutionGrain solutionGrain;
 
-		internal SolutionGrainCallerWrapper(IGrainFactory grainFactory, ISolutionGrain solutionGrain)
+		internal SolutionGrainCallerWrapper(ISolutionGrain solutionGrain)
 		{
-			this.grainFactory = grainFactory;
 			this.solutionGrain = solutionGrain;
 		}
 

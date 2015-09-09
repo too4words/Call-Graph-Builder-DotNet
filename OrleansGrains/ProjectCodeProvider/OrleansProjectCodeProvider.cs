@@ -32,7 +32,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var grain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
 
 #if COMPUTE_STATS
-			grain = new ProjectCodeProviderGrainCallerWrapper(grainFactory, grain);
+			grain = new ProjectCodeProviderGrainCallerWrapper(grain);
 #endif
 			return grain;
 		}
@@ -63,14 +63,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
 
 		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
-			//var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+			//var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			//await methodEntityGrain.ForceDeactivationAsync();
 			return propagationEffects;
 		}
@@ -97,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var methodDescriptor in methodsToRemove)
 			{
-				var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+				var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 				var task = methodEntityGrain.ForceDeactivationAsync();
 				//await task;
 				tasks.Add(task);
@@ -116,7 +116,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var methodDescriptor in allMethodDescriptors)
             {
-                var methodEntityGrain = grainFactory.GetGrain<IMethodEntityGrain>(methodDescriptor.Marshall());
+                var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 				var task = methodEntityGrain.ForceDeactivationAsync();
 				//await task;
                 tasks.Add(task);

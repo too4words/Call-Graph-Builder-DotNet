@@ -128,17 +128,20 @@ namespace ReachingTypeAnalysis.Analysis
 			var total = siloStat.Sum(item => item.Value);
 			return total;
 		}
-	}    
+	}
 
 	public static class StatsHelper
 	{
-		public const string STATGRAIN = "Stats";
+		public const string STATS_GRAIN = "Stats";
 		public const string CALLER_ADDR_CONTEXT = "CallerAddr";
+		public const string SILO_ADDR = "MyIPAddr";
+
 		public static IStatsGrain GetStatGrain(IGrainFactory grainFactory)
 		{
-			var statGrain = grainFactory.GetGrain<IStatsGrain>(STATGRAIN);
+			var statGrain = grainFactory.GetGrain<IStatsGrain>(STATS_GRAIN);
 			return statGrain;
 		}
+
 		public static Task RegisterMsg(string msg, IGrainFactory grainFactory)
 		{
 #if COMPUTE_STATS
@@ -167,7 +170,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["YourInternalEndpoint"].IPEndpoint.Address;
 
-			var myIP = Environment.GetEnvironmentVariable("MyIPAddr");
+			var myIP = Environment.GetEnvironmentVariable(SILO_ADDR);
 			return myIP;
 
 			//if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())

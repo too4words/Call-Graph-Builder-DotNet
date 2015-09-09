@@ -186,10 +186,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MethodEntity\MethodEntityGrainCallerWrapper.cs" />
+    <Compile Include="MethodEntity\OrleansMethodEntity.cs" />
     <Compile Include="ProjectCodeProvider\OrleansDummyProjectCodeProvider.cs" />
     <Compile Include="ProjectCodeProvider\OrleansProjectCodeProvider.cs" />
     <Compile Include="MethodEntity\MethodEntityGrain.cs" />
     <Compile Include="ProjectCodeProvider\ProjectCodeProviderGrainCallerWrapper.cs" />
+    <Compile Include="ProjectCodeProvider\ProjectCodeProviderWithCache.cs" />
     <Compile Include="Solution\SolutionGrainCallerWrapper.cs" />
     <Compile Include="StatsGrain.cs" />
     <Compile Include="Solution\SolutionGrain.cs" />

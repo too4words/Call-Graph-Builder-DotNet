@@ -30,7 +30,6 @@ namespace OrleansSilosInAzure
         //private AppDomain hostDomain;
         //private static OrleansHostWrapper hostWrapper;
 
-
         public override void Run()
         {
 			try
