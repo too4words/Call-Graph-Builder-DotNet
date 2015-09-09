@@ -15,6 +15,7 @@ using Orleans.Runtime;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+	[Serializable]
 	internal class MethodEntityGrainCallerWrapper : IMethodEntityGrain
 	{
 		private IMethodEntityGrain methodEntityGrain;

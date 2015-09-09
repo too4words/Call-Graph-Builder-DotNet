@@ -15,7 +15,8 @@ using System.Diagnostics.Contracts;
 using Orleans.Runtime;
 using Orleans;
 using ReachingTypeAnalysis.Analysis;
-// using Orleans.Statistics;
+using System.Data;
+using System.IO;
 
 namespace ReachingTypeAnalysis.Statistics
 {
@@ -67,6 +68,9 @@ namespace ReachingTypeAnalysis.Statistics
 			var silos = hosts.Keys.ToArray();
 			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
 
+			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+			await myStatsGrain.ResetStats();
+
             this.stopWatch = Stopwatch.StartNew();
 
 			await this.analyzer.AnalyzeOnDemandOrleans();
@@ -81,9 +85,6 @@ namespace ReachingTypeAnalysis.Statistics
 
 			await systemManagement.ForceGarbageCollection(silos);
 			var stats = await systemManagement.GetRuntimeStatistics(silos);
-
-			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
-
 
 			var totalAct = 0;
 			var time = DateTime.Now;
@@ -136,6 +137,7 @@ namespace ReachingTypeAnalysis.Statistics
             
 		
 			this.AddSubjetResults(results);
+			SaveTable<SubjectExperimentResults>("AnalysisResults");
 
 			return results;
 		}
@@ -259,6 +261,33 @@ namespace ReachingTypeAnalysis.Statistics
 			
 			return table;
 		}
+
+		private static void SaveTable<T>(string name, string path="")  where T: TableEntityCSV, new()
+		{
+			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+
+			TableQuery<T> query = new TableQuery<T>()
+			{
+			};
+			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+			// Create the table if it doesn't exist.
+			CloudTable table = tableClient.GetTableReference(name);
+
+			var entities = table.ExecuteQuery<T>(query).ToList();
+			var outputFile = Path.Combine(path,name)+".csv";
+			using (var output = new StreamWriter(outputFile))
+			{
+				if (entities.Count > 0)
+				{
+					output.Write(entities.First().GetHeaders()+"\n");
+					foreach (var entity in entities)
+					{
+						output.Write(entity.ToDelimited() + "\n");
+					}
+				}
+			}
+		}
+
 
 		private static CloudTable EmptyTable(string name)
 		{
