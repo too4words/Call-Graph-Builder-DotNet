@@ -14,6 +14,7 @@ using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
 using Orleans.Runtime;
 using Orleans;
+using ReachingTypeAnalysis.Analysis;
 // using Orleans.Statistics;
 
 namespace ReachingTypeAnalysis.Statistics
@@ -49,22 +50,21 @@ namespace ReachingTypeAnalysis.Statistics
 			this.machines = machines;
 		}
 
-		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
 		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "Edgar")
-        {
+		{
 			this.ExpID = expId;
 
-            string testFullName = this.subject;
+			string testFullName = this.subject;
 
 			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
 			var hosts = await systemManagement.GetHosts();
 			var silos = hosts.Keys.ToArray();
 			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
 
-            this.stopWatch = Stopwatch.StartNew();
+			this.stopWatch = Stopwatch.StartNew();
 
 			await this.analyzer.AnalyzeOnDemandOrleans();
-    
+
 			this.stopWatch.Stop();
 
 			var totalRecvNetwork = 0L;
@@ -76,106 +76,67 @@ namespace ReachingTypeAnalysis.Statistics
 			await systemManagement.ForceGarbageCollection(silos);
 			var stats = await systemManagement.GetRuntimeStatistics(silos);
 
+			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+
+
 			var totalAct = 0;
 
 			//this.methods = -1;
-			
-            var messageMetric = new MessageMetrics();
-			
+
+			var messageMetric = new MessageMetrics();
+
 			var time = DateTime.Now;
-			
+
 
 			var siloNetworkStats = new SiloNetworkStats[silos.Length];
 
 			for (int i = 0; i < silos.Length; i++)
 			{
 				var silo = silos[i];
+				var addrString = silo.Endpoint.Address.ToString();
 				siloNetworkStats[i] = new SiloNetworkStats();
 
-				//foreach(var item in messageMetric.PerSiloReceiveCounters)
-				//{
-				//	var recCounterAddr = GetAddressFromStat(item.Key, "Messaging.Received.Messages.From.S");
-				//	if (recCounterAddr.Equals(silo.Endpoint.Address.ToString()))
-				//	{
-				//		siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
-				//	}
-				//	else
-				//	{
-				//		siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
-				//	}
-				//}
-				//foreach(var item in messageMetric.PerSiloSendCounters)
-				//{
-				//	var sentCounterAddr = GetAddressFromStat(item.Key, "Messaging.Sent.Messages.To.S");
-				//	if (sentCounterAddr.Equals(silo.Endpoint.Address.ToString()))
-				//	{
-				//		siloNetworkStats[i].TotalSentLocalSilo += item.Value;
-				//	}
-				//	else
-				//	{
-				//		siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
-				//	}
-				//}
-				foreach (var item in messageMetric.PerSiloSendToCounters)
-				{
-					var addresses = GetAddressesFromStat(item.Key, "Messaging.Sent.Messages.To.S");
-					var addrTo = addresses.Item1;
-					var addrFrom = addresses.Item2;
-
-					if (addrFrom.Equals(silo.Endpoint.Address.ToString()))
-					{
-						if (addrFrom.Equals(addrTo))
-						{
-						
-							siloNetworkStats[i].TotalSentLocalSilo += item.Value;
-							siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
-						}
-						else
-						{
-							siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
-						}
-					}
-					else if (addrTo.Equals(silo.Endpoint.Address.ToString()))
-					{
-							siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
-					}
-				}
+				siloNetworkStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
+				siloNetworkStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
+				siloNetworkStats[i].TotalRecvNetworkSilo += await myStatsGrain.GetSiloNetworkReceivedMsgs(addrString);
 
 				totalAct += stats[i].ActivationCount;
 				AddSiloMetric(silos[i], stats[i], siloNetworkStats[i], time);
 
-				totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
-				totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
-				totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo;
-				totalRecvLocal += siloNetworkStats[i].TotalRecvLocalSilo;
-			}
-          
-			
-            var results = new SubjectExperimentResults()
-            {
-				ExpID = expId,
-                Time = time,
-                Subject = testFullName,
-                Machines = machines,
-                Methods = -1,
-                Messages = SolutionAnalyzer.MessageCounter,
-                ElapsedTime = stopWatch.ElapsedMilliseconds,
-				Activations = totalAct,
-                Observations = "From web",
-				PartitionKey = expId +" "+ testFullName,
-                RowKey = time.ToFileTime().ToString(),
-				TotalRecvNetwork = totalRecvNetwork,
-				TotalSentLocal   = totalSentLocal,
-				TotalSentNetwork = totalSentNetwork,
-				TotalRecvLocal   = totalRecvLocal 
-            };
-            
-		
-			this.AddSubjetResults(results);
-            this.SolutionManager = analyzer.SolutionManager;
 
+				totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo; 
+				totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
+
+				totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
+				totalRecvLocal += siloNetworkStats[i].TotalSentLocalSilo;
+
+				
+			}
+
+
+			var results = new SubjectExperimentResults()
+			{
+				ExpID = expId,
+				Time = time,
+				Subject = testFullName,
+				Machines = machines,
+				Methods = -1,
+				Messages = SolutionAnalyzer.MessageCounter,
+				ElapsedTime = stopWatch.ElapsedMilliseconds,
+				Activations = totalAct,
+				Observations = "From web",
+				PartitionKey = expId + " " + testFullName,
+				RowKey = time.ToFileTime().ToString(),
+				TotalRecvNetwork = totalRecvNetwork,
+				TotalSentLocal = totalSentLocal,
+				TotalSentNetwork = totalSentNetwork,
+				TotalRecvLocal = totalRecvLocal
+			};
+			this.AddSubjetResults(results);
+			this.SolutionManager = analyzer.SolutionManager;
 			return results;
 		}
+
 
 		private static string GetAddressFromStat(string statValue, string statPrefix)
 		{
@@ -388,6 +349,112 @@ namespace ReachingTypeAnalysis.Statistics
 			var callgraph = await analyzer.GenerateCallGraphAsync();
 			return callgraph;
 		}
+
+		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
+		public async Task<SubjectExperimentResults> RunExperimentOld(IGrainFactory grainFactory, string expId = "Edgar")
+        {
+			this.ExpID = expId;
+
+            string testFullName = this.subject;
+
+			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			var hosts = await systemManagement.GetHosts();
+			var silos = hosts.Keys.ToArray();
+			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+
+            this.stopWatch = Stopwatch.StartNew();
+
+			await this.analyzer.AnalyzeOnDemandOrleans();
+    
+			this.stopWatch.Stop();
+
+			await systemManagement.ForceGarbageCollection(silos);
+			var stats = await systemManagement.GetRuntimeStatistics(silos);
+
+			var totalRecvNetwork = 0L;
+			var totalSentLocal = 0L;
+			var totalSentNetwork = 0L;
+			var totalRecvLocal = 0L;
+
+
+			var totalAct = 0;
+
+			//this.methods = -1;
+			
+            var messageMetric = new MessageMetrics();
+			
+			var time = DateTime.Now;
+			
+
+			var siloNetworkStats = new SiloNetworkStats[silos.Length];
+
+			for (int i = 0; i < silos.Length; i++)
+			{
+				var silo = silos[i];
+				var addrString = silo.Endpoint.Address.ToString();
+				siloNetworkStats[i] = new SiloNetworkStats();
+
+				foreach (var item in messageMetric.PerSiloReceiveCounters)
+				{
+					var recCounterAddr = GetAddressFromStat(item.Key, "Messaging.Received.Messages.From.S");
+					if (recCounterAddr.Equals(silo.Endpoint.Address.ToString()))
+					{
+						siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
+					}
+					else
+					{
+						siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
+					}
+				}
+				foreach (var item in messageMetric.PerSiloSendCounters)
+				{
+					var sentCounterAddr = GetAddressFromStat(item.Key, "Messaging.Sent.Messages.To.S");
+					if (sentCounterAddr.Equals(silo.Endpoint.Address.ToString()))
+					{
+						siloNetworkStats[i].TotalSentLocalSilo += item.Value;
+					}
+					else
+					{
+						siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
+					}
+				}
+
+				totalAct += stats[i].ActivationCount;
+				AddSiloMetric(silos[i], stats[i], siloNetworkStats[i], time);
+
+				totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
+				totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
+				totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo;
+				totalRecvLocal += siloNetworkStats[i].TotalRecvLocalSilo;
+			}
+          
+			
+            var results = new SubjectExperimentResults()
+            {
+				ExpID = expId,
+                Time = time,
+                Subject = testFullName,
+                Machines = machines,
+                Methods = -1,
+                Messages = SolutionAnalyzer.MessageCounter,
+                ElapsedTime = stopWatch.ElapsedMilliseconds,
+				Activations = totalAct,
+                Observations = "From web",
+				PartitionKey = expId +" "+ testFullName,
+                RowKey = time.ToFileTime().ToString(),
+				TotalRecvNetwork = totalRecvNetwork,
+				TotalSentLocal   = totalSentLocal,
+				TotalSentNetwork = totalSentNetwork,
+				TotalRecvLocal   = totalRecvLocal 
+            };
+            
+		
+			this.AddSubjetResults(results);
+            this.SolutionManager = analyzer.SolutionManager;
+
+			return results;
+		}
+
 
     }
 }

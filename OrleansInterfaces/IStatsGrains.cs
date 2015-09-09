@@ -12,11 +12,12 @@ namespace OrleansInterfaces
     {
         Task RegisterMessage(string message, string senderAddr, string receiverAddr);
 		Task ResetStats();
-		Task<Dictionary<string,long>> SiloSentMsgs(string siloAddr);
-		Task<Dictionary<string,long>> SiloRcvMsgs(string siloAddr);
-		Task<long>  SiloLocalMsgs(string siloAddr);
-		Task<long>  SiloNetworklMsgs(string siloAddr);
-		Task<long>  TotalSentMsgs(string siloAddr);
-		Task<long>  TotalRcvMsgs(string siloAddr);
+		Task<Dictionary<string,long>> GetSiloSentMsgs(string siloAddr);
+		Task<Dictionary<string,long>> GetSiloReceivedMsgs(string siloAddr);
+		Task<long>  GetSiloLocalMsgs(string siloAddr);
+		Task<long>  GetSiloNetworkSentMsgs(string siloAddr);
+		Task<long> GetSiloNetworkReceivedMsgs(string siloAddr);
+		Task<long>  GetTotalSentMsgs(string siloAddr);
+		Task<long>  GetTotalReceivedMsgs(string siloAddr);
 	}
 }

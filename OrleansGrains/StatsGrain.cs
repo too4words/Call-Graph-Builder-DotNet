@@ -19,6 +19,13 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		Dictionary<string,Dictionary<string, long>> SiloSentMsgs { get; set; }
 		Dictionary<string,Dictionary<string, long>> SiloRecvMsgs { get; set; }
+		
+		//Dictionary<string, long> SiloLocalSentMsgs { get; set; }
+		//Dictionary<string, long> SiloLocalRecvMsgs { get; set; }
+
+		//Dictionary<string, long> SiloNetworkSentMsgs { get; set; }
+		//Dictionary<string, long> SiloLocalRecvMsgs { get; set; }
+
 	}
 
 	[StorageProvider(ProviderName = "AzureStore")]
@@ -38,15 +45,29 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task RegisterMessage(string message, string senderAddr, string receiverAddr)
 		{
+			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
+			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
 			return TaskDone.Done;
 		}
+
+		private void AddToMap(Dictionary<string, Dictionary<string, long>> silosStatMap, string fromAddr, string toAddr)
+		{
+			Dictionary<string, long> siloStat = null;
+			if(!silosStatMap.TryGetValue(fromAddr,out siloStat))
+			{
+				siloStat = new Dictionary<string, long>();
+			}
+			siloStat[toAddr]++;
+		}
+		
 		public Task ResetStats()
 		{
 			this.State.SiloSentMsgs.Clear();
 			this.State.SiloRecvMsgs.Clear();
 			return TaskDone.Done;
 		}
-		public Task<Dictionary<string, long>> SiloSentMsgs(string siloAddr)
+
+		public Task<Dictionary<string, long>> GetSiloSentMsgs(string siloAddr)
 		{
 			Dictionary<string, long> result;
 			if(!this.State.SiloSentMsgs.TryGetValue(siloAddr, out result))
@@ -55,7 +76,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			return Task.FromResult(result);
 		}
-		public Task<Dictionary<string, long>> SiloRcvMsgs(string siloAddr)
+		public Task<Dictionary<string, long>> GetSiloReceivedMsgs(string siloAddr)
 		{
 			Dictionary<string, long> result;
 			if (!this.State.SiloRecvMsgs.TryGetValue(siloAddr, out result))
@@ -64,33 +85,52 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			return Task.FromResult(result);
 		}
-		public Task<long> SiloLocalMsgs(string siloAddr)
+		public async Task<long> GetSiloLocalMsgs(string siloAddr)
 		{
-			return Task.FromResult(0L);
+			var siloSent = await GetSiloSentMsgs(siloAddr);
+			var total = siloSent.Where(item => item.Key.Equals(siloSent)).Sum(item => item.Value);
+			return total;
 		}
-		public Task<long> SiloNetworklMsgs(string siloAddr)
+		public async Task<long> GetSiloNetworkSentMsgs(string siloAddr)
 		{
-			return Task.FromResult(0L);
+			var siloSent = await GetSiloSentMsgs(siloAddr);
+			var total = siloSent.Where(item => !item.Key.Equals(siloSent)).Sum(item => item.Value);
+			return total;
 		}
 
-		public Task<long> TotalSentMsgs(string siloAddr)
+		public async Task<long> GetSiloNetworkReceivedMsgs(string siloAddr)
 		{
-			return Task.FromResult(0L);
+			var siloRcv = await GetSiloReceivedMsgs(siloAddr);
+			var total = siloRcv.Where(item => !item.Key.Equals(siloRcv)).Sum(item => item.Value);
+			return total;
 		}
-		public Task<long> TotalRcvMsgs(string siloAddr)
+
+		public async Task<long> GetTotalSentMsgs(string siloAddr)
 		{
-			return Task.FromResult(0L);
+			var siloStat = await GetSiloSentMsgs(siloAddr);
+			var total = siloStat.Sum(item => item.Value); ;
+			return total;
+		}
+		public async Task<long> GetTotalReceivedMsgs(string siloAddr)
+		{
+			var siloStat = await GetSiloReceivedMsgs(siloAddr);
+			var total = siloStat.Sum(item => item.Value);
+			return total;
 		}
 	}    
 
 	public static class StatsHelper
 	{
+		public static IStatsGrain GetStatGrain(IGrainFactory grainFactory)
+		{
+			var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
+			return statGrain;
+		}
 		public static Task RegisterMsg(string msg, IGrainFactory grainFactory)
 		{
             var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
             var callerAddr = RequestContext.Get("CallerAddr") as string;
             var calleeAddr = GetMyIPAddr();
-
             return statGrain.RegisterMessage(msg, callerAddr, calleeAddr);
 		}
 
