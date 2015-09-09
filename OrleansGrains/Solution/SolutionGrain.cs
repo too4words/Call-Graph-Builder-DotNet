@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-#define COMPUTESTATS
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -30,11 +29,10 @@ namespace ReachingTypeAnalysis.Analysis
         //ISolutionManager solutionManager;
         OrleansSolutionManager solutionManager;
 
-        public override  async Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
-#if (COMPUTESTATS)
-			await StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			await StatsHelper.RegisterMsg("OnActivate", this.GrainFactory);
+
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
 
@@ -56,10 +54,9 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task SetSolutionPathAsync(string solutionPath)
         {
-#if (COMPUTESTATS)
-			await StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolution", "Enter");
+			await StatsHelper.RegisterMsg("SetSolutionPath", this.GrainFactory);
+
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Enter");
 
             this.State.SolutionPath = solutionPath;
 			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
@@ -67,14 +64,13 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.TestName = null;
 
             await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolution", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
 		}
 
         public async Task SetSolutionSourceAsync(string source)
         {
-#if (COMPUTESTATS)
-			await StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			await StatsHelper.RegisterMsg("SetSolutionSource", this.GrainFactory);
+
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Enter");
 
             this.State.Source = source;
@@ -88,10 +84,9 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task SetSolutionFromTestAsync(string testName)
 		{
-#if (COMPUTESTATS)
-			await StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionTest", "Enter");
+			await StatsHelper.RegisterMsg("SetSolutionFromTest", this.GrainFactory);
+
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Enter");
 
 			this.State.TestName = testName;
 			this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, testName);
@@ -99,52 +94,47 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.Source = null;
 
 			await this.WriteStateAsync();
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionTest", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Exit");
 		}
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{
+			StatsHelper.RegisterMsg("GetProjectCodeProvider", this.GrainFactory);
+
 			return this.solutionManager.GetProjectCodeProviderAsync(assemblyName);
 		}
 
 		public Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetProjectCodeProvider", this.GrainFactory);
+
             return this.solutionManager.GetProjectCodeProviderAsync(methodDescriptor);
         }
 
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetMethodEntity", this.GrainFactory);
+
 			return this.solutionManager.GetMethodEntityAsync(methodDescriptor);
 		}
 
 		public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
         {
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("AddInstantiatedTypes", this.GrainFactory);
 
             return solutionManager.AddInstantiatedTypesAsync(types);
         }
 
         public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetInstantiatedTypes", this.GrainFactory);
+
 			return this.solutionManager.GetInstantiatedTypesAsync();
         }
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {
-#if (COMPUTESTATS)
-			await StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			await StatsHelper.RegisterMsg("GetRoots", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "GetRoots", "Enter");
 		
@@ -159,41 +149,35 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetProjectCodeProviders", this.GrainFactory);
 
 			return this.solutionManager.GetProjectCodeProvidersAsync();
 		}
 
 		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetModifications", this.GrainFactory);
 
 			return this.solutionManager.GetModificationsAsync(modifiedDocuments);
         }
 
 		public Task ReloadAsync()
 		{
+			StatsHelper.RegisterMsg("Reload", this.GrainFactory);
+
 			return this.solutionManager.ReloadAsync();
         }
 
 		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
 		{
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetPublicMethods", this.GrainFactory);
 
 			return this.solutionManager.GetPublicMethodsAsync();
 		}
 
 		public async Task ForceDeactivation()
         {
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
 
             await this.solutionManager.ForceDeactivationOfProjects();
 
@@ -211,14 +195,10 @@ namespace ReachingTypeAnalysis.Analysis
 		// TODO: remove this hack!
 		public Task<IEnumerable<string>> GetDrives()
 		{
-#if (COMPUTESTATS)
-			StatsHelper.RegisterMsg("Activation", this.GrainFactory);
-#endif
+			StatsHelper.RegisterMsg("GetDrives", this.GrainFactory);
 
 			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
 			return Task.FromResult(drivers.AsEnumerable());
 		}
-
-
 	}    
 }

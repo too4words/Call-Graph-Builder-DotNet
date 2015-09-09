@@ -14,17 +14,17 @@ using Microsoft.WindowsAzure;
 using System.Diagnostics.Contracts;
 using Orleans.Runtime;
 using Orleans;
-// using Orleans.Statistics;
 
 namespace ReachingTypeAnalysis.Statistics
 {
-	class SiloNetworkStats
+	internal class SiloNetworkStats
 	{
 		public long TotalRecvNetworkSilo { get; set; }
 		public long TotalSentLocalSilo { get; set; }
 		public long TotalSentNetworkSilo { get; set; }
 		public long TotalRecvLocalSilo  { get; set; }
 	}
+
     public class AnalysisClient
     {
 		private const long SYSTEM_MANAGEMENT_ID = 1;
@@ -33,15 +33,14 @@ namespace ReachingTypeAnalysis.Statistics
 		private CloudTable querytimes;
 		private CloudTable siloMetrics;
 
-        int machines;
-        //int methods;
-        string subject;
+        private int machines;
+        //private int methods;
+        private string subject;
 
 		private Stopwatch stopWatch;
 
 		private SolutionAnalyzer analyzer;
 		public string ExpID { get; private set; }
-
 
 		public AnalysisClient(SolutionAnalyzer analyzer, int machines)
 		{
@@ -49,8 +48,13 @@ namespace ReachingTypeAnalysis.Statistics
 			this.machines = machines;
 		}
 
+		public ISolutionManager SolutionManager
+		{
+			get { return this.analyzer.SolutionManager; }
+		}
+
 		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
-		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "Edgar")
+		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
         {
 			this.ExpID = expId;
 
@@ -77,79 +81,52 @@ namespace ReachingTypeAnalysis.Statistics
 			var stats = await systemManagement.GetRuntimeStatistics(silos);
 
 			var totalAct = 0;
+			var time = DateTime.Now;
 
 			//this.methods = -1;
-			
-            var messageMetric = new MessageMetrics();
-			
-			var time = DateTime.Now;
-			
 
-			var siloNetworkStats = new SiloNetworkStats[silos.Length];
+			//var messageMetric = new MessageMetrics();			
 
-			for (int i = 0; i < silos.Length; i++)
-			{
-				var silo = silos[i];
-				siloNetworkStats[i] = new SiloNetworkStats();
+			//var siloNetworkStats = new SiloNetworkStats[silos.Length];
 
-				//foreach(var item in messageMetric.PerSiloReceiveCounters)
-				//{
-				//	var recCounterAddr = GetAddressFromStat(item.Key, "Messaging.Received.Messages.From.S");
-				//	if (recCounterAddr.Equals(silo.Endpoint.Address.ToString()))
-				//	{
-				//		siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
-				//	}
-				//	else
-				//	{
-				//		siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
-				//	}
-				//}
-				//foreach(var item in messageMetric.PerSiloSendCounters)
-				//{
-				//	var sentCounterAddr = GetAddressFromStat(item.Key, "Messaging.Sent.Messages.To.S");
-				//	if (sentCounterAddr.Equals(silo.Endpoint.Address.ToString()))
-				//	{
-				//		siloNetworkStats[i].TotalSentLocalSilo += item.Value;
-				//	}
-				//	else
-				//	{
-				//		siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
-				//	}
-				//}
-				foreach (var item in messageMetric.PerSiloSendToCounters)
-				{
-					var addresses = GetAddressesFromStat(item.Key, "Messaging.Sent.Messages.To.S");
-					var addrTo = addresses.Item1;
-					var addrFrom = addresses.Item2;
+			//for (int i = 0; i < silos.Length; i++)
+			//{
+			//	var silo = silos[i];
+			//	siloNetworkStats[i] = new SiloNetworkStats();
 
-					if (addrFrom.Equals(silo.Endpoint.Address.ToString()))
-					{
-						if (addrFrom.Equals(addrTo))
-						{
+			//	foreach (var item in messageMetric.PerSiloSendToCounters)
+			//	{
+			//		var addresses = GetAddressesFromStat(item.Key, "Messaging.Sent.Messages.To.S");
+			//		var addrTo = addresses.Item1;
+			//		var addrFrom = addresses.Item2;
+
+			//		if (addrFrom.Equals(silo.Endpoint.Address.ToString()))
+			//		{
+			//			if (addrFrom.Equals(addrTo))
+			//			{
 						
-							siloNetworkStats[i].TotalSentLocalSilo += item.Value;
-							siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
-						}
-						else
-						{
-							siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
-						}
-					}
-					else if (addrTo.Equals(silo.Endpoint.Address.ToString()))
-					{
-							siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
-					}
-				}
+			//				siloNetworkStats[i].TotalSentLocalSilo += item.Value;
+			//				siloNetworkStats[i].TotalRecvLocalSilo += item.Value;
+			//			}
+			//			else
+			//			{
+			//				siloNetworkStats[i].TotalSentNetworkSilo += item.Value;
+			//			}
+			//		}
+			//		else if (addrTo.Equals(silo.Endpoint.Address.ToString()))
+			//		{
+			//				siloNetworkStats[i].TotalRecvNetworkSilo += item.Value;
+			//		}
+			//	}
 
-				totalAct += stats[i].ActivationCount;
-				AddSiloMetric(silos[i], stats[i], siloNetworkStats[i], time);
+			//	totalAct += stats[i].ActivationCount;
+			//	AddSiloMetric(silos[i], stats[i], siloNetworkStats[i], time);
 
-				totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
-				totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
-				totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo;
-				totalRecvLocal += siloNetworkStats[i].TotalRecvLocalSilo;
-			}
-          
+			//	totalRecvNetwork += siloNetworkStats[i].TotalRecvNetworkSilo;
+			//	totalSentLocal += siloNetworkStats[i].TotalSentLocalSilo;
+			//	totalSentNetwork += siloNetworkStats[i].TotalSentNetworkSilo;
+			//	totalRecvLocal += siloNetworkStats[i].TotalRecvLocalSilo;
+			//}          
 			
             var results = new SubjectExperimentResults()
             {
@@ -168,11 +145,9 @@ namespace ReachingTypeAnalysis.Statistics
 				TotalSentLocal   = totalSentLocal,
 				TotalSentNetwork = totalSentNetwork,
 				TotalRecvLocal   = totalRecvLocal 
-            };
-            
+            };            
 		
 			this.AddSubjetResults(results);
-            this.SolutionManager = analyzer.SolutionManager;
 
 			return results;
 		}
@@ -213,7 +188,6 @@ namespace ReachingTypeAnalysis.Statistics
 		{
 			return SiloAddress.FromParsableString(s);
 		}
-
 
         public async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int numberOfMethods, int repetitions)
         {
@@ -311,11 +285,9 @@ namespace ReachingTypeAnalysis.Statistics
 			return table;
 		}
 
-
-		
         internal void AddSubjetResults(SubjectExperimentResults results)
         {
-            if(this.analysisTimes==null)
+            if (this.analysisTimes==null)
             {
                 this.analysisTimes = CreateTable("AnalysisResults");
             }
@@ -323,6 +295,7 @@ namespace ReachingTypeAnalysis.Statistics
             // Execute the insert operation.
             this.analysisTimes.Execute(insertOperation);
         }
+
 		internal void AddSiloMetric(SiloAddress siloAddr,  SiloRuntimeStatistics siloMetric, SiloNetworkStats siloNetworkStat, DateTime time)
 		{
 			var siloStat = new SiloRuntimeStats()
@@ -334,8 +307,8 @@ namespace ReachingTypeAnalysis.Statistics
 				MemoryUsage = siloMetric.MemoryUsage,
 				Activations = siloMetric.ActivationCount,
 				RecentlyUsedActivations = siloMetric.RecentlyUsedActivationCount,
-				SentMessages = siloMetric.SentMessages,
-				ReceivedMessages = siloMetric.ReceivedMessages,
+				//ReceivedMessages = siloMetric.ReceivedMessages,
+				//SentMessages = siloMetric.SentMessages,
 				PartitionKey = this.ExpID,
                 RowKey = siloAddr.ToString(),
 				TotalRecvNetworkSilo = siloNetworkStat.TotalRecvNetworkSilo,
@@ -363,6 +336,7 @@ namespace ReachingTypeAnalysis.Statistics
             // Execute the insert operation.
             this.querytimes.Execute(insertOperation);
         }
+
         internal void RetriveInfoFromAnalysis()
         {
             var table = this.analysisTimes;
@@ -378,9 +352,6 @@ namespace ReachingTypeAnalysis.Statistics
             }
         }
 
-
-        public ISolutionManager SolutionManager { get; set; }
-
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> Analyze()
 		{
 			//var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
@@ -388,6 +359,5 @@ namespace ReachingTypeAnalysis.Statistics
 			var callgraph = await analyzer.GenerateCallGraphAsync();
 			return callgraph;
 		}
-
     }
 }

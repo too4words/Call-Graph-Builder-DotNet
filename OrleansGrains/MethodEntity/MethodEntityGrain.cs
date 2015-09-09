@@ -12,6 +12,7 @@ using System.Diagnostics;
 using CodeGraphModel;
 using Orleans.Placement;
 using Orleans.Runtime;
+using Orleans.Core;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -38,7 +39,12 @@ namespace ReachingTypeAnalysis.Analysis
         private ISolutionGrain solutionGrain;
 
 		private long messages = 0;
-        public override async Task OnActivateAsync()
+
+		protected MethodEntityGrain(IGrainIdentity identity, IGrainRuntime runtime, IOrleansEntityState state, IStorage storage) : base(identity, runtime, state, storage)
+		{
+		}
+
+		public override async Task OnActivateAsync()
         {
 			Logger.OrleansLogger = this.GetLogger();
 
@@ -78,7 +84,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			solutionGrain = GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;

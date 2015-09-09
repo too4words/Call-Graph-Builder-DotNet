@@ -225,9 +225,9 @@ namespace WebRole1
 					TextBox1.Text = String.Format("Callees:{0} \nTime:{1}", calleesStr,stopWatch.ElapsedMilliseconds);
 
 					Logger.LogInfo(GrainClient.Logger,"Stats","Query","Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
-					
+
 					// System.Diagnostics.Trace.TraceInformation("Callees of {0} :{1} \nTime:{2}", methodDescriptor, calleesStr,stopWatch.ElapsedMilliseconds);
-					//var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+					//var solutionManager = analysisClient.SolutionManager as ISolutionGrain;
 					//var drives = await solutionManager.GetDrives();
 					//string drivesStr = String.Join("\n", drives);
 					//TextBox1.Text = drivesStr;
@@ -270,7 +270,7 @@ namespace WebRole1
                     var minTime = result.Item2;
                     var maxTime = result.Item3;
 
-                    TextBox1.Text = String.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
+                    TextBox1.Text = string.Format("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
                     System.Diagnostics.Trace.TraceInformation("Random Query times; Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
                     Logger.LogInfo(GrainClient.Logger, "Stats", "Random Query times; ", "Avg; {0}; Min {1}; Max; {2}", avgTime, minTime, maxTime);
                 }
@@ -282,26 +282,22 @@ namespace WebRole1
 			}
 		}
 
+		protected async void Button7_Click(object sender, EventArgs e)
+		{
+			//var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
+			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 
-        protected async void Button7_Click(object sender, EventArgs e)
-        {
-            //var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
-            var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-            if (solutionManager != null)
-            {
-                if(solutionManager is ISolutionGrain)
-                {
-                    ISolutionGrain solutionGrain = (ISolutionGrain)solutionManager;
-                    await solutionGrain.ForceDeactivation();
-                    this.TextBox1.Text = "All Grains Deactivated!";
-                }
-            }
-		
-        }
+			if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
+			{				
+				var solutionGrain = analysisClient.SolutionManager as ISolutionGrain;
+				await solutionGrain.ForceDeactivation();
+				this.TextBox1.Text = "All Grains Deactivated!";
+			}
+		}
 
 		protected async void Button8_Click(object sender, EventArgs e)
 		{
-			var analysisClient= (AnalysisClient)Application.Get("AnalysisClient");
+			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 			if (analysisClient != null)
 			{
 				// var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
@@ -309,7 +305,5 @@ namespace WebRole1
 				this.TextBox1.Text = "Done";
 			}
 		}
-	
     }
-
 }

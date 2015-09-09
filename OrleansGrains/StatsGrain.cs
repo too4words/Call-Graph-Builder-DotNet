@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Analysis
 	}
 
 	[StorageProvider(ProviderName = "AzureStore")]
-	public class StatsGrain : Grain<IStatsState>,IStatsGrain
+	public class StatsGrain : Grain<IStatsState>, IStatsGrain
     {
         public override  Task OnActivateAsync()
         {
@@ -32,7 +32,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloSentMsgs = new Dictionary<string, Dictionary<string, long>>();
 			this.State.SiloRecvMsgs = new Dictionary<string, Dictionary<string, long>>();
 
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate", "Exit");
 			return TaskDone.Done;
 		}
 
@@ -87,14 +87,18 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		public static Task RegisterMsg(string msg, IGrainFactory grainFactory)
 		{
-            var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
+#if COMPUTE_STATS
+			var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
             var callerAddr = RequestContext.Get("CallerAddr") as string;
             var calleeAddr = GetMyIPAddr();
 
             return statGrain.RegisterMessage(msg, callerAddr, calleeAddr);
+#else
+			return TaskDone.Done;
+#endif
 		}
 
-		public  static string GetMyIPAddr()
+		public static string GetMyIPAddr()
 		{
 			//IPHostEntry host;
 			//string localIP = "?";
@@ -112,11 +116,12 @@ namespace ReachingTypeAnalysis.Analysis
 				return null;
 			}
 
-			IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+			var host = Dns.GetHostEntry(Dns.GetHostName());
 
 			return host
 				.AddressList
-				.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+				.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+				.ToString();
 		}
 	}
 }
