@@ -36,7 +36,7 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProvider codeProvider;
         [NonSerialized]
         private ISolutionGrain solutionGrain;
-
+		[NonSerialized]
 		private long messages = 0;
 		
 		public override async Task OnActivateAsync()
@@ -88,7 +88,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			await StatsHelper.RegisterMsg("CreateMethodEntity", this.GrainFactory);
+			// This is a private method. We must not register this as a grain callee
+			// await StatsHelper.RegisterMsg("CreateMethodEntity", this.GrainFactory);
 
 			solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
@@ -179,7 +180,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-			StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
+			await StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "Propagate", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 

@@ -241,16 +241,16 @@ namespace ReachingTypeAnalysis
             //result.Append("+");
             //result.Append(this.ClassName);
             result.Append(this.ContainerType.Marshall());
-			result.Append("+");
+			result.Append("-");
 			result.Append(this.MethodName);
-			result.Append("+");
+			result.Append("-");
 			result.Append(this.IsStatic);
 
 			if (this.Parameters != null && this.Parameters.Count > 0)
 			{
 				foreach (var parameterType in this.Parameters)
 				{
-					result.Append("+");
+					result.Append("-");
 					result.Append(parameterType.Marshall());
 				}
 			}
@@ -281,7 +281,7 @@ namespace ReachingTypeAnalysis
 
         private static MethodDescriptor ParseMethodDescriptor(string md)
         {
-            var tokens = md.Split('+');
+            var tokens = md.Split('-');
             var containerType = TypeDescriptor.DeMarshall(tokens[0]);
             //var namespaceName = tokens[0];
             //var className = tokens[1];

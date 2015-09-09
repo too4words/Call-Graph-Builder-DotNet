@@ -21,6 +21,7 @@ namespace ReachingTypeAnalysis
 
         private static void AnalyzeExample(string source, RunChecks checker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
         {
+			Environment.SetEnvironmentVariable("MyIPAddr", "127.0.0.1");
             //var solution = ReachingTypeAnalysis.Utils.CreateSolution(source);
             //var solAnalyzer = new SolutionAnalyzer(solution);
             var solAnalyzer = SolutionAnalyzer.CreateFromSource(source);

@@ -31,6 +31,8 @@ namespace ReachingTypeAnalysis.Analysis
 	[StorageProvider(ProviderName = "AzureStore")]
 	public class StatsGrain : Grain<IStatsState>, IStatsGrain
     {
+		private Dictionary<string,long> operationCounter;
+
         public override  Task OnActivateAsync()
         {
 			Logger.OrleansLogger = this.GetLogger();
@@ -39,15 +41,18 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloSentMsgs = new Dictionary<string, Dictionary<string, long>>();
 			this.State.SiloRecvMsgs = new Dictionary<string, Dictionary<string, long>>();
 
+			this.operationCounter = new Dictionary<string,long>();
+
 			Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate", "Exit");
 			return TaskDone.Done;
 		}
 
 		public Task RegisterMessage(string message, string senderAddr, string receiverAddr)
 		{
-
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
+
+			IncrementCounter(message, this.operationCounter);
 
 			return this.WriteStateAsync();
 		}
@@ -61,13 +66,18 @@ namespace ReachingTypeAnalysis.Analysis
 				silosStatMap[fromAddr] = siloStat;
 			}
 
-			if (siloStat.ContainsKey(toAddr))
+			IncrementCounter(toAddr, siloStat);
+		}
+
+		private static void IncrementCounter(string key, Dictionary<string, long> counterMap)
+		{
+			if (counterMap.ContainsKey(key))
 			{
-				siloStat[toAddr]++;
+				counterMap[key]++;
 			}
 			else
 			{
-				siloStat[toAddr] = 0;
+				counterMap[key] = 0;
 			}
 		}
 		
@@ -171,6 +181,10 @@ namespace ReachingTypeAnalysis.Analysis
 			//RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["YourInternalEndpoint"].IPEndpoint.Address;
 
 			var myIP = Environment.GetEnvironmentVariable(SILO_ADDR);
+			if(myIP==null)
+			{
+				myIP = "Unknown";
+			}
 			return myIP;
 
 			//if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
