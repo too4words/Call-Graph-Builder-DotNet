@@ -77,7 +77,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			else
 			{
-				counterMap[key] = 0;
+				counterMap[key] = 1;
 			}
 		}
 		

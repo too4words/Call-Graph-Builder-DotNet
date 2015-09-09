@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Orleans;
+using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.CallGraph;
@@ -26,7 +28,11 @@ namespace ReachingTypeAnalysis
             //var solAnalyzer = new SolutionAnalyzer(solution);
             var solAnalyzer = SolutionAnalyzer.CreateFromSource(source);
             var callgraph = solAnalyzer.Analyze(strategy);
-
+			if (strategy == AnalysisStrategyKind.ONDEMAND_ORLEANS)
+			{
+				var myStatsGrain = StatsHelper.GetStatGrain(GrainClient.GrainFactory);
+				myStatsGrain.ResetStats().Wait();
+			}
             checker(solAnalyzer, callgraph);
         }
 
