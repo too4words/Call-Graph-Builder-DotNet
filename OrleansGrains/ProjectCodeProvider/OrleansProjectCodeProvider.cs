@@ -1,6 +1,4 @@
-﻿#define COMPUTESTATS
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Linq;
@@ -23,15 +21,21 @@ namespace ReachingTypeAnalysis.Analysis
 		private ISet<MethodDescriptor> methodsToRemove;
 
 		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager)
-#if (COMPUTESTATS)
-			: base(new SolutionGrainCallerWrapper(grainFactory))
-#else
-			: base(solutionManager))
-#endif
+			: base(solutionManager)
 		{
 			this.grainFactory = grainFactory;
 			this.methodsToRemove = new HashSet<MethodDescriptor>();
         }
+
+		public static IProjectCodeProviderGrain GetProjectGrain(IGrainFactory grainFactory, string assemblyName)
+		{
+			var grain = grainFactory.GetGrain<IProjectCodeProviderGrain>(assemblyName);
+
+#if COMPUTE_STATS
+			grain = new ProjectCodeProviderGrainCallerWrapper(grainFactory, grain);
+#endif
+			return grain;
+		}
 
 		public static async Task<OrleansProjectCodeProvider> CreateFromProjectAsync(IGrainFactory grainFactory, string projectPath)
 		{

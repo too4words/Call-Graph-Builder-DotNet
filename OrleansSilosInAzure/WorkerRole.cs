@@ -27,7 +27,6 @@ namespace OrleansSilosInAzure
         private AzureSilo orleansAzureSilo;
         private const string DATA_CONNECTION_STRING_KEY = "DataConnectionString";
 
-
         //private AppDomain hostDomain;
         //private static OrleansHostWrapper hostWrapper;
 
@@ -47,8 +46,8 @@ namespace OrleansSilosInAzure
 					config.LoadFromFile(@"OrleansConfiguration.xml");
 				}
 
-
-
+				var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["OrleansSiloEndPoint"].IPEndpoint.Address.ToString();
+				Environment.SetEnvironmentVariable("MyIPAddr",ipAddr);
 
 				// TODO: Delete Orleans Tables
 				// To avoid double delete, check for existence

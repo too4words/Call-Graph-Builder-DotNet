@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
 	}
 
 	[StorageProvider(ProviderName = "AzureStore")]
-	public class StatsGrain : Grain<IStatsState>,IStatsGrain
+	public class StatsGrain : Grain<IStatsState>, IStatsGrain
     {
         public override  Task OnActivateAsync()
         {
@@ -39,15 +39,17 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloSentMsgs = new Dictionary<string, Dictionary<string, long>>();
 			this.State.SiloRecvMsgs = new Dictionary<string, Dictionary<string, long>>();
 
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
+			Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate", "Exit");
 			return TaskDone.Done;
 		}
 
 		public Task RegisterMessage(string message, string senderAddr, string receiverAddr)
 		{
+
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
-			return TaskDone.Done;
+
+			return this.WriteStateAsync();
 		}
 
 		private void AddToMap(Dictionary<string, Dictionary<string, long>> silosStatMap, string fromAddr, string toAddr)
@@ -56,15 +58,24 @@ namespace ReachingTypeAnalysis.Analysis
 			if(!silosStatMap.TryGetValue(fromAddr,out siloStat))
 			{
 				siloStat = new Dictionary<string, long>();
+				silosStatMap[fromAddr] = siloStat;
 			}
-			siloStat[toAddr]++;
+
+			if (siloStat.ContainsKey(toAddr))
+			{
+				siloStat[toAddr]++;
+			}
+			else
+			{
+				siloStat[toAddr] = 0;
+			}
 		}
 		
 		public Task ResetStats()
 		{
 			this.State.SiloSentMsgs.Clear();
 			this.State.SiloRecvMsgs.Clear();
-			return TaskDone.Done;
+			return this.WriteStateAsync();
 		}
 
 		public Task<Dictionary<string, long>> GetSiloSentMsgs(string siloAddr)
@@ -88,20 +99,20 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<long> GetSiloLocalMsgs(string siloAddr)
 		{
 			var siloSent = await GetSiloSentMsgs(siloAddr);
-			var total = siloSent.Where(item => item.Key.Equals(siloSent)).Sum(item => item.Value);
+			var total = siloSent.Where(item => item.Key.Equals(siloAddr)).Sum(item => item.Value);
 			return total;
 		}
 		public async Task<long> GetSiloNetworkSentMsgs(string siloAddr)
 		{
 			var siloSent = await GetSiloSentMsgs(siloAddr);
-			var total = siloSent.Where(item => !item.Key.Equals(siloSent)).Sum(item => item.Value);
+			var total = siloSent.Where(item => !item.Key.Equals(siloAddr)).Sum(item => item.Value);
 			return total;
 		}
 
 		public async Task<long> GetSiloNetworkReceivedMsgs(string siloAddr)
 		{
 			var siloRcv = await GetSiloReceivedMsgs(siloAddr);
-			var total = siloRcv.Where(item => !item.Key.Equals(siloRcv)).Sum(item => item.Value);
+			var total = siloRcv.Where(item => !item.Key.Equals(siloAddr)).Sum(item => item.Value);
 			return total;
 		}
 
@@ -121,20 +132,26 @@ namespace ReachingTypeAnalysis.Analysis
 
 	public static class StatsHelper
 	{
+		public const string STATGRAIN = "Stats";
+		public const string CALLER_ADDR_CONTEXT = "CallerAddr";
 		public static IStatsGrain GetStatGrain(IGrainFactory grainFactory)
 		{
-			var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
+			var statGrain = grainFactory.GetGrain<IStatsGrain>(STATGRAIN);
 			return statGrain;
 		}
 		public static Task RegisterMsg(string msg, IGrainFactory grainFactory)
 		{
-            var statGrain = grainFactory.GetGrain<IStatsGrain>("Stats");
-            var callerAddr = RequestContext.Get("CallerAddr") as string;
+#if COMPUTE_STATS
+			var statGrain = GetStatGrain(grainFactory);
+			var callerAddr = RequestContext.Get(StatsHelper.CALLER_ADDR_CONTEXT) as string;
             var calleeAddr = GetMyIPAddr();
             return statGrain.RegisterMessage(msg, callerAddr, calleeAddr);
+#else
+			return TaskDone.Done;
+#endif
 		}
 
-		public  static string GetMyIPAddr()
+		public static string GetMyIPAddr()
 		{
 			//IPHostEntry host;
 			//string localIP = "?";
@@ -147,16 +164,23 @@ namespace ReachingTypeAnalysis.Analysis
 			//	}
 			//}
 			//return localIP;
-			if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-			{
-				return null;
-			}
 
-			IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+			//RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["YourInternalEndpoint"].IPEndpoint.Address;
 
-			return host
-				.AddressList
-				.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
+			var myIP = Environment.GetEnvironmentVariable("MyIPAddr");
+			return myIP;
+
+			//if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+			//{
+			//	return null;
+			//}
+
+			//var host = Dns.GetHostEntry(Dns.GetHostName());
+
+			//return host
+			//	.AddressList
+			//	.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+			//	.ToString();
 		}
 	}
 }

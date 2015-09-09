@@ -29,6 +29,9 @@ namespace WebAPI
 
 		private void InitOrleansClient()
 		{
+			var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["EndPoint1"].IPEndpoint.Address.ToString();
+			Environment.SetEnvironmentVariable("MyIPAddr", ipAddr);
+
             // No longer needed. The emulator handles the same configuration
             //if (!RoleEnvironment.IsEmulated || true)
             //{

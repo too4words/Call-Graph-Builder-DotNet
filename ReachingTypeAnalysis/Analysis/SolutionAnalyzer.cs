@@ -174,7 +174,7 @@ namespace ReachingTypeAnalysis
 			// For orleans we cannot use the strategy to create a solution
 			// The solution grain creates an internal strategy and contain an internal 
 			// solution manager. We obtain the solution grain that handles everything
-            var solutionManager = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+			var solutionManager = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
 			this.SolutionManager = solutionManager;
 
 			if (this.source != null)
