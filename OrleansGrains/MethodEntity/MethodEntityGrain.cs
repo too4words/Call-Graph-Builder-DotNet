@@ -41,7 +41,8 @@ namespace ReachingTypeAnalysis.Analysis
 		
 		public override async Task OnActivateAsync()
         {
-			//await StatsHelper.RegisterMsg("MethodEntityGrain::OnActivate", this.GrainFactory);
+
+			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
@@ -78,7 +79,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task OnDeactivateAsync()
 		{
-			//await StatsHelper.RegisterMsg("MethodEntityGrain::OnDeactivate", this.GrainFactory);
+			StatsHelper.RegisterDeactivation("MethodEntityGrain", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
 

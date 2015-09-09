@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public override async Task OnActivateAsync()
         {
-			//await StatsHelper.RegisterMsg("SolutionGrain::OnActivate", this.GrainFactory);
+			await StatsHelper.RegisterActivation("SolutionGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
@@ -50,6 +50,10 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
+		}
+		public override Task OnDeactivateAsync()
+		{
+			return StatsHelper.RegisterDeactivation("SolutionGrain", this.GrainFactory); 
 		}
 
         public async Task SetSolutionPathAsync(string solutionPath)

@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private void SetRequestContext()
 		{
-			RequestContext.Set(StatsHelper.CALLER_ADDR_CONTEXT, StatsHelper.GetMyIPAddr());
+			RequestContext.Set(StatsHelper.CALLER_ADDR_CONTEXT, StatsHelper.CreateMyIPAddrContext());
 		}
 
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)

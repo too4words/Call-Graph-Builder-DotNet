@@ -15,11 +15,14 @@ using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	public interface IStatsState : IGrainState
+	public class StatsState  //interface IStatsState : IGrainState
 	{
-		Dictionary<string,Dictionary<string, long>> SiloSentMsgs { get; set; }
-		Dictionary<string,Dictionary<string, long>> SiloRecvMsgs { get; set; }
-		
+		public Dictionary<string,Dictionary<string, long>> SiloSentMsgs { get; set; }
+		public Dictionary<string,Dictionary<string, long>> SiloRecvMsgs { get; set; }
+		public Dictionary<string, Dictionary<string, long>> SiloActivations { get; set; }
+		public Dictionary<string, Dictionary<string, long>> SiloDeactivations { get; set; }
+		public ISet<string> GrainClasses { get; set; }
+
 		//Dictionary<string, long> SiloLocalSentMsgs { get; set; }
 		//Dictionary<string, long> SiloLocalRecvMsgs { get; set; }
 
@@ -28,45 +31,87 @@ namespace ReachingTypeAnalysis.Analysis
 
 	}
 
-	[StorageProvider(ProviderName = "AzureStore")]
-	public class StatsGrain : Grain<IStatsState>, IStatsGrain
+	//[StorageProvider(ProviderName = "AzureStore")]
+	//public class StatsGrain : Grain<IStatsState>, IStatsGrain
+	public class StatsGrain : Grain, IStatsGrain
     {
+		internal  StatsState State;
 		private Dictionary<string,long> operationCounter;
+		private long messages;
+		private double accumulattedTimeDifference;
+
+		private Task WriteStateAsync()
+		{
+			return TaskDone.Done;
+		}
+		private Task ClearStateAsync()
+		{
+			return TaskDone.Done;
+		}
+
 
         public override  Task OnActivateAsync()
         {
+			this.State = new StatsState();
+
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate","Enter");
 
 			this.State.SiloSentMsgs = new Dictionary<string, Dictionary<string, long>>();
 			this.State.SiloRecvMsgs = new Dictionary<string, Dictionary<string, long>>();
 
+			this.State.SiloActivations = new Dictionary<string, Dictionary<string, long>>();
+			this.State.SiloDeactivations = new Dictionary<string, Dictionary<string, long>>();
+
+			this.State.GrainClasses  = new HashSet<string>();
+
 			this.operationCounter = new Dictionary<string,long>();
+			this.messages = 0;
+			this.accumulattedTimeDifference = 0;
 
 			Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate", "Exit");
 			return TaskDone.Done;
 		}
 
-		public Task RegisterMessage(string message, string senderAddr, string receiverAddr)
+		public Task RegisterMessage(string message, string senderAddr, string receiverAddr, double timeDiff)
 		{
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
 
 			IncrementCounter(message, this.operationCounter);
 
+			this.accumulattedTimeDifference += timeDiff;
+			this.messages++;
+
+			return this.WriteStateAsync();
+		}
+		public Task RegisterActivation(string grainClass, string calleeAddr)
+		{
+			AddToMap(this.State.SiloActivations, calleeAddr, grainClass);
+			this.State.GrainClasses.Add(grainClass);
+
 			return this.WriteStateAsync();
 		}
 
-		private void AddToMap(Dictionary<string, Dictionary<string, long>> silosStatMap, string fromAddr, string toAddr)
+		public Task RegisterDeactivation(string msg, string calleeAddr)
+		{
+			AddToMap(this.State.SiloDeactivations, calleeAddr, msg);
+
+			return this.WriteStateAsync();
+		}
+
+		
+
+		private void AddToMap(Dictionary<string, Dictionary<string, long>> silosStatMap, string siloAddr, string key)
 		{
 			Dictionary<string, long> siloStat = null;
-			if(!silosStatMap.TryGetValue(fromAddr,out siloStat))
+			if(!silosStatMap.TryGetValue(siloAddr,out siloStat))
 			{
 				siloStat = new Dictionary<string, long>();
-				silosStatMap[fromAddr] = siloStat;
+				silosStatMap[siloAddr] = siloStat;
 			}
 
-			IncrementCounter(toAddr, siloStat);
+			IncrementCounter(key, siloStat);
 		}
 
 		private static void IncrementCounter(string key, Dictionary<string, long> counterMap)
@@ -81,11 +126,18 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 		
-		public Task ResetStats()
+		public async Task ResetStats()
 		{
+			await this.ClearStateAsync();
+
 			this.State.SiloSentMsgs.Clear();
 			this.State.SiloRecvMsgs.Clear();
-			return this.WriteStateAsync();
+			this.State.SiloActivations.Clear();
+			this.State.SiloDeactivations.Clear();
+			this.operationCounter.Clear();
+			this.State.GrainClasses.Clear();
+
+			await this.WriteStateAsync();
 		}
 
 		public Task<Dictionary<string, long>> GetSiloSentMsgs(string siloAddr)
@@ -108,7 +160,7 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 		public async Task<long> GetSiloLocalMsgs(string siloAddr)
 		{
-			var siloSent = await GetSiloSentMsgs(siloAddr);
+			var siloSent = await this.GetSiloSentMsgs(siloAddr);
 			var total = siloSent.Where(item => item.Key.Equals(siloAddr)).Sum(item => item.Value);
 			return total;
 		}
@@ -138,6 +190,72 @@ namespace ReachingTypeAnalysis.Analysis
 			var total = siloStat.Sum(item => item.Value);
 			return total;
 		}
+		public async Task<long> GetActivations(string grainClass)
+		{
+			return await SumSiloPerCategory(grainClass, this.State.SiloActivations);
+		}
+
+		public Task<Dictionary<string, long>> GetActivationsPerSilo(string siloAddr)
+		{
+			return GetDictForSilo(siloAddr,this.State.SiloActivations);
+		}
+
+		public Task<Dictionary<string, long>> GetDeactivationsPerSilo(string siloAddr)
+		{
+			return GetDictForSilo(siloAddr,this.State.SiloDeactivations);
+		}
+
+		public async Task<long> GetDeactivations(string grainClass)
+		{
+			return await SumSiloPerCategory(grainClass, this.State.SiloDeactivations);
+		}
+
+		public Task<IEnumerable<string>> GetGrainClasses()
+		{
+			return Task.FromResult(this.State.GrainClasses.AsEnumerable());
+		}
+
+		private async Task<long> SumSiloPerCategory(string grainClass,  Dictionary<string, Dictionary<string, long>> silosStatMap)
+		{
+			var total = 0L;
+			foreach (var siloAddr in this.State.SiloActivations.Keys)
+			{
+				var siloActivations = await GetDictForSilo(siloAddr, silosStatMap);
+				var siloTotal = 0L;
+				if (siloActivations.TryGetValue(grainClass, out siloTotal))
+				{
+					total += siloTotal;
+				}
+			}
+			return total;
+		}
+
+		private Task<Dictionary<string, long>> GetDictForSilo(string siloAddr, Dictionary<string, Dictionary<string, long>> silosStatMap)
+		{
+			Dictionary<string, long> result;
+			if (!silosStatMap.TryGetValue(siloAddr, out result))
+			{
+				result = new Dictionary<string, long>();
+			}
+			return Task.FromResult(result);
+		}
+
+		public Task<double> GetAverageLattency()
+		{
+			return Task.FromResult(this.accumulattedTimeDifference / this.messages);
+		}
+
+		public Task<long> TotalMessages()
+		{
+			return Task.FromResult(this.messages);
+		}
+	}
+
+	[Serializable]
+	public class StatsContext
+	{
+		public string IPAddr { get; set; }
+		public DateTime TimeStamp { get; set; }
 	}
 
 	public static class StatsHelper
@@ -156,12 +274,47 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 #if COMPUTE_STATS
 			var statGrain = GetStatGrain(grainFactory);
-			var callerAddr = RequestContext.Get(StatsHelper.CALLER_ADDR_CONTEXT) as string;
+			var context = RequestContext.Get(StatsHelper.CALLER_ADDR_CONTEXT) as StatsContext;
+			var callerAddr = context.IPAddr;
             var calleeAddr = GetMyIPAddr();
-            return statGrain.RegisterMessage(msg, callerAddr, calleeAddr);
+
+			var timeDiff = DateTime.UtcNow.Subtract(context.TimeStamp).TotalMilliseconds;
+            return statGrain.RegisterMessage(msg, callerAddr, calleeAddr, timeDiff);
 #else
 			return TaskDone.Done;
 #endif
+		}
+
+		public static Task RegisterActivation(string grainClass, IGrainFactory grainFactory)
+		{
+#if COMPUTE_STATS
+			var statGrain = GetStatGrain(grainFactory);
+			var calleeAddr = GetMyIPAddr();
+			return statGrain.RegisterActivation(grainClass, calleeAddr);
+#else
+			return TaskDone.Done;
+#endif
+		}
+
+		public static Task RegisterDeactivation(string grainClass, IGrainFactory grainFactory)
+		{
+#if COMPUTE_STATS
+			var statGrain = GetStatGrain(grainFactory);
+			var calleeAddr = GetMyIPAddr();
+			return statGrain.RegisterActivation(grainClass, calleeAddr);
+#else
+			return TaskDone.Done;
+#endif
+		}
+
+		public static StatsContext CreateMyIPAddrContext()
+		{
+			var addr = GetMyIPAddr();
+			return new StatsContext()
+			{
+				IPAddr = addr,
+				TimeStamp = DateTime.UtcNow,
+			};
 		}
 
 		public static string GetMyIPAddr()

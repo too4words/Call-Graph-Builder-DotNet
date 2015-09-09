@@ -58,7 +58,7 @@ namespace ReachingTypeAnalysis.Statistics
 		public long TotalSentLocal { get; set; }
 		public long TotalSentNetwork { get; set; }
 		public long TotalRecvLocal { get; set; }
-
+		public double AverageLatency { get; set; }
 	}
 	public class QueriesPerSubject : TableEntityCSV
 	{
@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis.Statistics
 
 		public double CPU { get; set; }
 		public long MemoryUsage { get; set; }
-		public int Activations { get; set; }
+		public long Activations { get; set; }
 		public int RecentlyUsedActivations { get; set; }
 		//public int SendQueue { get; set; }
 		//public int ReceiveQueue { get; set; }
