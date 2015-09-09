@@ -41,7 +41,7 @@ namespace ReachingTypeAnalysis.Analysis
 		
 		public override async Task OnActivateAsync()
         {
-			//await StatsHelper.RegisterMsg("OnActivate", this.GrainFactory);
+			//await StatsHelper.RegisterMsg("MethodEntityGrain::OnActivate", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
@@ -62,7 +62,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task ForceDeactivationAsync()
 		{
-			//await StatsHelper.RegisterMsg("ForceDeactivation", this.GrainFactory);
+			//await StatsHelper.RegisterMsg("MethodEntityGrain::ForceDeactivation", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKeyString());
             //await this.ClearStateAsync();
@@ -78,7 +78,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task OnDeactivateAsync()
 		{
-			//await StatsHelper.RegisterMsg("OnDeactivate", this.GrainFactory);
+			//await StatsHelper.RegisterMsg("MethodEntityGrain::OnDeactivate", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
 
@@ -89,7 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			// This is a private method. We must not register this as a grain callee
-			// await StatsHelper.RegisterMsg("CreateMethodEntity", this.GrainFactory);
+			// await StatsHelper.RegisterMsg("MethodEntityGrain::CreateMethodEntity", this.GrainFactory);
 
 			solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
@@ -129,14 +129,14 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
-			StatsHelper.RegisterMsg("GetCallees", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetCallees", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCalleesAsync();
         }
 
         public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
-			StatsHelper.RegisterMsg("GetCalleesInfo", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetCalleesInfo", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCalleesInfoAsync();
         }
@@ -173,14 +173,14 @@ namespace ReachingTypeAnalysis.Analysis
 		//}
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
-			StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
 
 			return this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet);
 		}
 
 		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
-			await StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "Propagate", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
@@ -195,91 +195,91 @@ namespace ReachingTypeAnalysis.Analysis
 
         public  Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
-			StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
 
 			return this.methodEntityPropagator.PropagateAsync(callMessageInfo);
         }
 
         public  Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
-			StatsHelper.RegisterMsg("Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
 
 			return this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
         {
-			StatsHelper.RegisterMsg("GetCallees", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetCallees", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCalleesAsync(invocationPosition);
         }
 
         public Task<int> GetInvocationCountAsync()
         {
-			StatsHelper.RegisterMsg("GetInvocationCount", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetInvocationCount", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetInvocationCountAsync();
         }
 
         public Task<bool> IsInitializedAsync()
         {
-			StatsHelper.RegisterMsg("IsInitialized", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::IsInitialized", this.GrainFactory);
 
 			return Task.FromResult(this.methodEntity != null);
         }
            
         public Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
-			StatsHelper.RegisterMsg("GetInstantiatedTypes", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetInstantiatedTypes", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetInstantiatedTypesAsync();
         }
 
 		public Task<SymbolReference> GetDeclarationInfoAsync()
 		{
-			StatsHelper.RegisterMsg("GetDeclarationInfo", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetDeclarationInfo", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetDeclarationInfoAsync();
         }
 
 		public Task<IEnumerable<Annotation>> GetAnnotationsAsync()
 		{
-			StatsHelper.RegisterMsg("GetAnnotations", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetAnnotations", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetAnnotationsAsync();
 		}
 
         public Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync()
         {
-			StatsHelper.RegisterMsg("GetCallersDeclarationInfo", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetCallersDeclarationInfo", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCallersDeclarationInfoAsync();
         }
 
 		public Task<PropagationEffects> RemoveMethodAsync()
 		{
-			StatsHelper.RegisterMsg("RemoveMethod", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::RemoveMethod", this.GrainFactory);
 
 			return this.methodEntityPropagator.RemoveMethodAsync();
 		}
 
 		public Task UnregisterCallerAsync(CallContext callContext)
 		{
-			StatsHelper.RegisterMsg("UnregisterCaller", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::UnregisterCaller", this.GrainFactory);
 
 			return this.methodEntityPropagator.UnregisterCallerAsync(callContext);
 		}
 
 		//public Task UnregisterCalleeAsync(CallContext callContext)
 		//{
-		//	StatsHelper.RegisterMsg("UnregisterCallee", this.GrainFactory);
+		//	StatsHelper.RegisterMsg("MethodEntityGrain::UnregisterCallee", this.GrainFactory);
 		//
 		//	return this.methodEntityPropagator.UnregisterCalleeAsync(callContext);
 		//}
 
 		public Task<IEnumerable<CallContext>> GetCallersAsync()
 		{
-			StatsHelper.RegisterMsg("GetCallers", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::GetCallers", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCallersAsync();
 		}
