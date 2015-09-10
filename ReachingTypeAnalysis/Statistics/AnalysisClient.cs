@@ -17,6 +17,7 @@ using Orleans;
 using ReachingTypeAnalysis.Analysis;
 using System.Data;
 using System.IO;
+using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis.Statistics
 {
@@ -172,6 +173,14 @@ namespace ReachingTypeAnalysis.Statistics
 			SaveTable<SiloRuntimeStats>("SiloMetrics",path);
 		}
 
+		public async Task PerformDeactivation(IGrainFactory grainFactory)
+		{
+			var solutionGrain = this.SolutionManager as ISolutionGrain;
+			await solutionGrain.ForceDeactivation();
+
+			var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+		}
 
 		private static string GetAddressFromStat(string statValue, string statPrefix)
 		{

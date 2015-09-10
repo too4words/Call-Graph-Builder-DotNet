@@ -291,9 +291,8 @@ namespace WebRole1
 			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 
 			if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
-			{				
-				var solutionGrain = analysisClient.SolutionManager as ISolutionGrain;
-				await solutionGrain.ForceDeactivation();
+			{
+				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
 				this.TextBox1.Text = "All Grains Deactivated!";
 			}
 		}
