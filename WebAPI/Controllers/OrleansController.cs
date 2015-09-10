@@ -38,7 +38,8 @@ namespace WebAPI
 		static OrleansController()
 		{
 			OrleansController.documentsAssemblyName = new Dictionary<string, string>();
-		}
+			OrleansController.buildInfo = new BuildInfo();
+        }
 
 		public static ISolutionManager SolutionManager
 		{
@@ -70,6 +71,13 @@ namespace WebAPI
 		[HttpGet]
 		public async Task AnalyzeSolutionAsync(string solutionPath, AnalysisStrategyKind strategyKind = StrategyKind)
 		{
+			{
+				// Hack! Remove these lines
+				var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+				//var solutionToTest = @"Coby\Coby.sln";
+				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
+			}
+
 			OrleansController.solutionPath = solutionPath;
 			OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			await analyzer.AnalyzeAsync(strategyKind);
@@ -92,7 +100,7 @@ namespace WebAPI
 		}
 
 		[HttpGet]
-		private async Task GenerateCallGraphAsync(string outputPath)
+		public async Task GenerateCallGraphAsync(string outputPath)
 		{
 			var callgraph = await analyzer.GenerateCallGraphAsync();
 			callgraph.Save(outputPath);
@@ -116,17 +124,6 @@ namespace WebAPI
 			}
 
 			return result;
-		}
-
-		private static bool FilterFile(FileResponse file)
-		{
-			// TODO: Hack!!!
-			var filename = Path.GetFileName(file.filepath);
-			if (filename.StartsWith(".NETFramework,")) return true;
-
-			ProcessFileResponse(file);
-			documentsAssemblyName[file.filepath] = file.assemblyname;
-			return false;
 		}
 
 		[HttpGet]
@@ -304,6 +301,17 @@ namespace WebAPI
 			}
 
 			return result;
+		}
+
+		private static bool FilterFile(FileResponse file)
+		{
+			// TODO: Hack!!!
+			var filename = Path.GetFileName(file.filepath);
+			if (filename.StartsWith(".NETFramework,")) return true;
+
+			ProcessFileResponse(file);
+			documentsAssemblyName[file.filepath] = file.assemblyname;
+			return false;
 		}
 
 		private static void ProcessFileResponse(FileResponse file)
