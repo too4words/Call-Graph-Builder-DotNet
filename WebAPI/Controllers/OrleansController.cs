@@ -32,7 +32,6 @@ namespace WebAPI
 
 		private static string solutionPath;
 		private static SolutionAnalyzer analyzer;
-		private static AnalysisClient analysisClient;
 		private static IDictionary<string, string> documentsAssemblyName;
 		private static BuildInfo buildInfo;
 

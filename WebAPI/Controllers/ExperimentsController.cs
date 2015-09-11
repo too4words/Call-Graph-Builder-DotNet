@@ -21,10 +21,6 @@ namespace WebAPI
 
 	public class ExperimentsController : ApiController
     {
-		private static string solutionPath;
-		private static SolutionAnalyzer analyzer;
-		private static AnalysisClient analysisClient;
-
 		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2
 		[HttpGet]
 		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods)
