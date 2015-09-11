@@ -32,6 +32,7 @@ namespace WebAPI
 
 		private static string solutionPath;
 		private static SolutionAnalyzer analyzer;
+		private static AnalysisClient analysisClient;
 		private static IDictionary<string, string> documentsAssemblyName;
 		private static BuildInfo buildInfo;
 
@@ -53,8 +54,8 @@ namespace WebAPI
 
 			try
 			{
-				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
-				var analysisClient = new AnalysisClient(analyzer, machines);
+				OrleansController.analyzer = SolutionAnalyzer.CreateFromTest(testName);
+				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
 				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
 
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
@@ -68,6 +69,27 @@ namespace WebAPI
 			return result;
 		}
 
+		[HttpGet]
+		public async Task<string> PerformDeactivationAsync()
+		{
+			var result = string.Empty;
+
+			try
+			{
+				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
+
+				result = string.Format("All grains are deactivated");
+			}
+			catch (Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+
+			return result;
+		}
+
+		// http://localhost:49176/api/Orleans?solutionPath=Hola
 		[HttpGet]
 		public async Task AnalyzeSolutionAsync(string solutionPath, AnalysisStrategyKind strategyKind = StrategyKind)
 		{
@@ -151,6 +173,7 @@ namespace WebAPI
 		/// </summary>
 		/// <param name="entityType">type of entity</param>
 		/// <returns>a list of entities that matches the given type</returns>
+		// http://localhost:49176/api/Orleans?entityType=File
 		[HttpGet]
 		public async Task<IList<FileResponse>> GetEntitiesAsync(string entityType)
 		{
@@ -168,14 +191,15 @@ namespace WebAPI
 			return result;
 		}
 
-        /// <summary>
-        /// Handle REST request for _apis/arcusgraph/entities?entitytype={string}&filepath={string}&repository={string}&version={string}.
-        /// </summary>
-        /// <param name="entityType">type of entity (has to be file type)</param>
-        /// <param name="filepath">file path of the file entity</param>
-        /// <param name="version">git version of file entity (by default is the git branch name)</param>
-        /// <param name="repository">repository of the file entity</param>
-        /// <returns>file entity that matches the filtering parameters</returns>
+		/// <summary>
+		/// Handle REST request for _apis/arcusgraph/entities?entitytype={string}&filepath={string}&repository={string}&version={string}.
+		/// </summary>
+		/// <param name="entityType">type of entity (has to be file type)</param>
+		/// <param name="filepath">file path of the file entity</param>
+		/// <param name="version">git version of file entity (by default is the git branch name)</param>
+		/// <param name="repository">repository of the file entity</param>
+		/// <returns>file entity that matches the filtering parameters</returns>
+		// http://localhost:49176/api/Orleans?entityType=File&filePath=ConsoleApplication1/ConsoleApplication1/Program.cs&version=1&repository=hola
         [HttpGet]
         public async Task<IList<FileResponse>> GetFilesWithFilterAsync(string entityType, string filepath, string version, string repository)
         {
