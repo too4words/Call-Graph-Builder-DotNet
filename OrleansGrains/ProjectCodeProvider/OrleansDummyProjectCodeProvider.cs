@@ -18,16 +18,25 @@ namespace ReachingTypeAnalysis.Analysis
 	public class OrleansDummyProjectCodeProvider : DummyProjectCodeProvider
 	{
 		private IGrainFactory grainFactory;
+		private ISet<MethodDescriptor> reachableMethods;
 
 		public OrleansDummyProjectCodeProvider(IGrainFactory grainFactory)
 		{
 			this.grainFactory = grainFactory;
+			this.reachableMethods = new HashSet<MethodDescriptor>();
 		}
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
+			reachableMethods.Add(methodDescriptor);
+
 			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
+		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(reachableMethods.AsEnumerable());
 		}
 	}
 }

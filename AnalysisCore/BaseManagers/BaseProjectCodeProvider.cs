@@ -171,6 +171,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
+		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
 		public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
@@ -338,18 +340,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
 		}
-
-        internal Task<IEnumerable<MethodDescriptor>> GetAllMethodDescriptors()
-        {
-            var result = new HashSet<MethodDescriptor>();
-
-            foreach(var documentInfo in this.DocumentsInfo.Values)
-            {
-                result.UnionWith(documentInfo.DeclaredMethods.Keys);
-            }
-
-            return Task.FromResult(result.AsEnumerable());
-        }
 
 		public virtual async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{

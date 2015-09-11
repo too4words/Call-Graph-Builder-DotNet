@@ -388,5 +388,10 @@ namespace ReachingTypeAnalysis.Roslyn
 			var result = new List<TypeDescriptor>() { type };
 			return Task.FromResult(result.AsEnumerable());
 		}
+
+		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

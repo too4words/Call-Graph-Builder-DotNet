@@ -140,13 +140,20 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetRootsAsync();
         }
 
-        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			StatsHelper.RegisterMsg("ProjectGrain::GetReachableMethods", this.GrainFactory);
+
+			return this.projectCodeProvider.GetReachableMethodsAsync();
+		}
+
+		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
 			StatsHelper.RegisterMsg("ProjectGrain::CreateMethodEntity", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "CreateMethodEntity", "Enter");
 
-			Stopwatch timer = new Stopwatch();
+			var timer = new Stopwatch();
             timer.Start();
 
             var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);

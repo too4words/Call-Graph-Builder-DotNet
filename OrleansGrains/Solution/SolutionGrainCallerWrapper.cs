@@ -35,6 +35,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return solutionGrain.GetPublicMethodsAsync();
 		}
 
+		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			this.SetRequestContext();
+			return solutionGrain.GetReachableMethodsAsync();
+		}
+
 		public Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
 			this.SetRequestContext();

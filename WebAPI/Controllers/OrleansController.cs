@@ -23,11 +23,10 @@ namespace WebAPI
 	/// Controller to handle all REST calls against graph entities
 	/// </summary>
 	/// 
-	// http://localhost:49176/api/Orleans?testName=Hola&machines=1&numberOfMethods=2
 	public class OrleansController : ApiController
     {
-		public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
-		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
 		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
@@ -48,86 +47,16 @@ namespace WebAPI
 			get { return analyzer.SolutionManager; }
 		}
 
-		[HttpGet]
-		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods)
-		{
-			var result = string.Empty;
-
-			try
-			{
-				OrleansController.analyzer = SolutionAnalyzer.CreateFromTest(testName);
-				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
-
-				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
-
-			return result;
-		}
-
-		[HttpGet]
-		public async Task<string> PerformDeactivationAsync()
-		{
-			var result = string.Empty;
-
-			try
-			{
-				var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-				await AnalysisClient.PerformDeactivation(GrainClient.GrainFactory,solutionGrain);
-
-				result = string.Format("All grains are deactivated");
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
-
-			return result;
-		}
-
-		[HttpGet]
-		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines)
-		{
-			var result = string.Empty;
-			try
-			{
-				string path = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
-				OrleansController.solutionPath = path;
-				OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(path);
-
-				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
-
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
-
-				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
-
-			return result;
-
-		}
-
 		// http://localhost:49176/api/Orleans?solutionPath=Hola
 		[HttpGet]
 		public async Task AnalyzeSolutionAsync(string solutionPath, AnalysisStrategyKind strategyKind = StrategyKind)
 		{
-			//{
-			//	// Hack! Remove these lines
-			var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-			//	//var solutionToTest = @"Coby\Coby.sln";
-			solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
-			//}
-
+			{
+				// Hack! Remove these lines
+				//var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+				var solutionToTest = @"Coby\Coby.sln";
+				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
+			}
 
 			OrleansController.solutionPath = solutionPath;
 			OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
@@ -243,6 +172,7 @@ namespace WebAPI
 				RepositoryName = repository
 			};
 
+			filepath = "coby/src/" + filepath;
 			var fullPath = Path.Combine(ROOT_DIR, filepath).Replace("/", @"\");
 			var assemblyName = documentsAssemblyName[filepath];
 			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
@@ -363,7 +293,7 @@ namespace WebAPI
 			if (filename.StartsWith(".NETFramework,")) return true;
 
 			ProcessFileResponse(file);
-			documentsAssemblyName[file.filepath] = file.assemblyname;
+			documentsAssemblyName[file.filepath.ToLowerInvariant()] = file.assemblyname;
 			return false;
 		}
 
@@ -419,10 +349,11 @@ namespace WebAPI
 		private static string FixFilePath(string filePath)
 		{
 			if (filePath == null) return null;
+			var rootDir = ROOT_DIR + @"Coby\src\";
 
-			if (filePath.StartsWith(ROOT_DIR, StringComparison.InvariantCultureIgnoreCase))
+			if (filePath.StartsWith(rootDir, StringComparison.InvariantCultureIgnoreCase))
 			{
-				filePath = filePath.Substring(ROOT_DIR.Length, filePath.Length - ROOT_DIR.Length);
+				filePath = filePath.Substring(rootDir.Length, filePath.Length - rootDir.Length);
 			}
 
 			filePath = filePath.Replace(@"\", "/");
