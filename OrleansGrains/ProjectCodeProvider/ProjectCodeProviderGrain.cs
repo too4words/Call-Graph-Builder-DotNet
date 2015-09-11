@@ -64,7 +64,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
-			public override Task OnDeactivateAsync()
+	
+		public override Task OnDeactivateAsync()
 		{
 			return StatsHelper.RegisterDeactivation("ProjectCodeProviderGrain", this.GrainFactory); 
 		}
