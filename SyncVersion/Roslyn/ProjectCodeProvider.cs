@@ -385,7 +385,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
 		{
-			throw new NotImplementedException();
+			var result = new List<TypeDescriptor>() { type };
+			return Task.FromResult(result.AsEnumerable());
 		}
 	}
 }

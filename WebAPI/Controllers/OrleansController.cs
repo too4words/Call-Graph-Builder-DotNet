@@ -16,6 +16,7 @@ namespace WebAPI
 	using ReachingTypeAnalysis.Statistics;
 	using ReachingTypeAnalysis;
 	using Orleans;
+	using System.IO;
 
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
@@ -24,28 +25,124 @@ namespace WebAPI
 	// http://localhost:49176/api/Orleans?testName=Hola&machines=1&numberOfMethods=2
 	public class OrleansController : ApiController
     {
+		public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
+		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+
+		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
+
+		private static string solutionPath;
+		private static SolutionAnalyzer analyzer;
+		private static AnalysisClient analysisClient;
+		private static IDictionary<string, string> documentsAssemblyName;
+		private static BuildInfo buildInfo;
+
+		static OrleansController()
+		{
+			OrleansController.documentsAssemblyName = new Dictionary<string, string>();
+			OrleansController.buildInfo = new BuildInfo();
+        }
+
+		public static ISolutionManager SolutionManager
+		{
+			get { return analyzer.SolutionManager; }
+		}
+
 		[HttpGet]
-		public async Task<string> RunTest(string testName, int machines, int numberOfMethods)
+		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods)
 		{
 			var result = string.Empty;
 
 			try
 			{
-				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
-
-				var analysisClient = new AnalysisClient(analyzer, machines);
-
-				//var stopWatch = Stopwatch.StartNew();
+				OrleansController.analyzer = SolutionAnalyzer.CreateFromTest(testName);
+				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
 				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
 
-				//stopWatch.Stop();
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-
 			}
 			catch (Exception exc)
 			{
 				while (exc is AggregateException) exc = exc.InnerException;
 				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+
+			return result;
+		}
+
+		[HttpGet]
+		public async Task<string> PerformDeactivationAsync()
+		{
+			var result = string.Empty;
+
+			try
+			{
+				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
+
+				result = string.Format("All grains are deactivated");
+			}
+			catch (Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+
+			return result;
+		}
+
+		// http://localhost:49176/api/Orleans?solutionPath=Hola
+		[HttpGet]
+		public async Task AnalyzeSolutionAsync(string solutionPath, AnalysisStrategyKind strategyKind = StrategyKind)
+		{
+			{
+				// Hack! Remove these lines
+				var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+				//var solutionToTest = @"Coby\Coby.sln";
+				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
+			}
+
+			OrleansController.solutionPath = solutionPath;
+			OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
+			await analyzer.AnalyzeAsync(strategyKind);
+
+			// This call is to fill the documentsAssemblyName mapping
+			await GetAllFilesAsync();
+        }
+
+		[HttpGet]
+		public async Task AnalyzeUpdatesAsync(string gitDiffOutput)
+		{
+			var solutionFolder = Path.GetDirectoryName(solutionPath);
+			var modifiedDocuments = gitDiffOutput.Split('\n')
+												 .Where(docPath => !string.IsNullOrEmpty(docPath))
+												 .Select(docPath => docPath.Replace("/", @"\"))
+												 .Select(docPath => Path.Combine(solutionFolder, docPath))
+												 .ToList();
+
+			await analyzer.ApplyModificationsAsync(modifiedDocuments);
+		}
+
+		[HttpGet]
+		public async Task GenerateCallGraphAsync(string outputPath)
+		{
+			var callgraph = await analyzer.GenerateCallGraphAsync();
+			callgraph.Save(outputPath);
+		}
+
+		[HttpGet]
+		public async Task<IList<FileResponse>> GetAllFilesAsync()
+		{
+			var providers = await SolutionManager.GetProjectCodeProvidersAsync();
+			var result = new List<FileResponse>();
+
+			foreach (var provider in providers)
+			{
+				var files = await provider.GetDocumentsAsync();
+
+				files = from f in files
+						where !FilterFile(f)
+						select f;
+
+				result.AddRange(files);
 			}
 
 			return result;
@@ -62,70 +159,77 @@ namespace WebAPI
 			//	{"edges", graphProvider.GetEdgesCount() }
 			//};
 
-			throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// _apis/arcusgraph/entities?entitytype={string}
-        /// </summary>
-        /// <param name="entityType">type of entity</param>
-        /// <returns>a list of entities that matches the given type</returns>
-        [HttpGet]
-        public IList<object> GetEntities(string entityType)
-        {
-			//if (entityType == EntityType.File || entityType == EntityType.Symbol)
+			//return new Dictionary<string, long>
 			//{
-			//    var graphProvider = ArcusGraphService.CreateGraphProvider();
-
-			//    if (entityType == EntityType.File)
-			//    {
-			//        return graphProvider.GetEntitiesByType<File>(entityType).Select(e => FileToResponse(e)).Cast<object>().ToList();
-			//    }
-			//    else if (entityType == EntityType.Symbol)
-			//    {
-			//        return graphProvider.GetEntitiesByType<Symbol>(entityType).Select(e => SymbolToResponse(e)).Cast<object>().ToList();
-			//    }
-			//}
-
-			//throw new HttpResponseException(HttpStatusCode.NotFound);
+			//	{"vertices", 0L },
+			//	{"edges", 0L }
+			//};
 
 			throw new NotImplementedException();
 		}
 
-        /// <summary>
-        /// Handle REST request for _apis/arcusgraph/entities?entitytype={string}&filepath={string}&repository={string}&version={string}.
-        /// </summary>
-        /// <param name="entityType">type of entity (has to be file type)</param>
-        /// <param name="filepath">file path of the file entity</param>
-        /// <param name="version">git version of file entity (by default is the git branch name)</param>
-        /// <param name="repository">repository of the file entity</param>
-        /// <returns>file entity that matches the filtering parameters</returns>
+		/// <summary>
+		/// _apis/arcusgraph/entities?entitytype={string}
+		/// </summary>
+		/// <param name="entityType">type of entity</param>
+		/// <returns>a list of entities that matches the given type</returns>
+		// http://localhost:49176/api/Orleans?entityType=File
+		[HttpGet]
+		public async Task<IList<FileResponse>> GetEntitiesAsync(string entityType)
+		{
+			IList<FileResponse> result = null;
+
+			if (entityType == EntityType.File)
+			{
+				result = await GetAllFilesAsync();
+			}
+			else
+			{
+				throw new HttpResponseException(HttpStatusCode.NotFound);
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Handle REST request for _apis/arcusgraph/entities?entitytype={string}&filepath={string}&repository={string}&version={string}.
+		/// </summary>
+		/// <param name="entityType">type of entity (has to be file type)</param>
+		/// <param name="filepath">file path of the file entity</param>
+		/// <param name="version">git version of file entity (by default is the git branch name)</param>
+		/// <param name="repository">repository of the file entity</param>
+		/// <returns>file entity that matches the filtering parameters</returns>
+		// http://localhost:49176/api/Orleans?entityType=File&filePath=ConsoleApplication1/ConsoleApplication1/Program.cs&version=1&repository=hola
         [HttpGet]
-        public IList<FileResponse> GetFilesWithFilter(string entityType, string filepath, string version, string repository)
+        public async Task<IList<FileResponse>> GetFilesWithFilterAsync(string entityType, string filepath, string version, string repository)
         {
-			//if (entityType != EntityType.File)
-			//{
-			//    throw new HttpResponseException(HttpStatusCode.BadRequest);
-			//}
+			if (entityType != EntityType.File)
+			{
+				throw new HttpResponseException(HttpStatusCode.BadRequest);
+			}
 
-			//var graphProvider = ArcusGraphService.CreateGraphProvider();
+			buildInfo = new BuildInfo()
+			{
+				VersionName = version,
+				RepositoryName = repository
+			};
 
-			//var filter = new Dictionary<string, object>
-			//{
-			//    { "GitBranch", version },
-			//    { "FilePath", filepath.ToLower() },
-			//    { "GitRepository", repository }
-			//};
+			var fullPath = Path.Combine(ROOT_DIR, filepath).Replace("/", @"\");
+			var assemblyName = documentsAssemblyName[filepath];
+			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
+			var result = await provider.GetDocumentEntitiesAsync(fullPath);
 
-			//var files = graphProvider.GetEntitiesByFilters<File>(EntityType.File, filter);
-			//if (!files.Any())
-			//{
-			//    throw new HttpResponseException(HttpStatusCode.NotFound);
-			//}
+			foreach (var file in result)
+			{
+				ProcessFileResponse(file);
+			}
 
-			//return files.Select(f => FileToResponse(f)).ToList();
+			if (!result.Any())
+			{
+				throw new HttpResponseException(HttpStatusCode.NotFound);
+			}
 
-			throw new NotImplementedException();
+			return result.ToList();
 		}
 
         /// <summary>
@@ -159,5 +263,141 @@ namespace WebAPI
 
 			throw new NotImplementedException();
 		}
-    }
+
+		// _apis/arcusgraph/entities/{uid}/references
+		[HttpGet]
+		public async Task<IList<SymbolReference>> GetReferencesAsync(string uid)
+		{
+			var result = new List<SymbolReference>();
+
+			if (uid.Contains('@'))
+			{
+				// Find all method definitions
+				var uidparts = uid.Split('@');
+				var methodId = uidparts[0];
+				var invocationIndex = Convert.ToInt32(uidparts[1]);
+
+				var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
+				var methodEntity = await SolutionManager.GetMethodEntityAsync(methodDescriptor);
+				var callees = await methodEntity.GetCalleesAsync(invocationIndex);
+
+				foreach (var callee in callees)
+				{
+					var provider = await SolutionManager.GetProjectCodeProviderAsync(callee);
+					var reference = await provider.GetDeclarationInfoAsync(callee);
+					//var calleeEntity = await SolutionManager.GetMethodEntityAsync(calleeDescriptor);
+					//var reference = await calleeEntity.GetDeclarationInfoAsync();
+
+					if (reference != null)
+					{
+						ProcessSymbolReference(reference);
+						result.Add(reference);
+					}
+				}
+			}
+			else
+			{
+				// Find all method references
+				var methodId = uid;
+				var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
+				var methodEntity = await SolutionManager.GetMethodEntityAsync(methodDescriptor);
+				var callers = await methodEntity.GetCallersAsync();
+
+				foreach (var caller in callers)
+				{
+					var provider = await SolutionManager.GetProjectCodeProviderAsync(caller.Caller);
+					var reference = await provider.GetInvocationInfoAsync(caller);
+
+					if (reference != null)
+					{
+						ProcessSymbolReference(reference);
+						result.Add(reference);
+					}
+				}
+
+				//var callers = await methodEntity.GetCallersDeclarationInfoAsync();
+
+				//foreach (var reference in callers)
+				//{
+				//	ProcessSymbolReference(reference);
+				//	result.Add(reference);
+				//}
+			}
+
+			return result;
+		}
+
+		private static bool FilterFile(FileResponse file)
+		{
+			// TODO: Hack!!!
+			var filename = Path.GetFileName(file.filepath);
+			if (filename.StartsWith(".NETFramework,")) return true;
+
+			ProcessFileResponse(file);
+			documentsAssemblyName[file.filepath] = file.assemblyname;
+			return false;
+		}
+
+		private static void ProcessFileResponse(FileResponse file)
+		{
+			//var buildInfo = new BuildInfo();
+
+			file.filepath = FixFilePath(file.filepath);
+			file.repository = buildInfo.RepositoryName;
+			file.version = buildInfo.VersionName;
+
+			if (file.referenceAnnotation != null)
+			{
+				foreach (var declaration in file.declarationAnnotation)
+				{
+					ProcessDeclarationAnnotation(declaration);
+				}
+
+				foreach (var reference in file.referenceAnnotation)
+				{
+					ProcessReferenceAnnotation(reference);
+				}
+			}
+		}
+
+		private static void ProcessAnnotation(Annotation annotation)
+		{
+			//var buildInfo = new BuildInfo();
+
+			annotation.declAssembly = string.Format("{0}/{1}", buildInfo.RepositoryName, buildInfo.BranchName);
+		}
+
+		private static void ProcessDeclarationAnnotation(DeclarationAnnotation declaration)
+		{
+			ProcessAnnotation(declaration);
+		}
+
+		private static void ProcessReferenceAnnotation(ReferenceAnnotation reference)
+		{
+			ProcessAnnotation(reference);
+
+			reference.declFile = FixFilePath(reference.declFile);
+		}
+
+		private static void ProcessSymbolReference(SymbolReference reference)
+		{
+			//var buildInfo = new BuildInfo();
+
+			reference.preview = FixFilePath(reference.preview);
+			reference.tref = string.Format("{0}/{1}/{2}", buildInfo.RepositoryName, buildInfo.BranchName, reference.preview);
+		}
+
+		private static string FixFilePath(string filePath)
+		{
+			if (filePath == null) return null;
+
+			if (filePath.StartsWith(ROOT_DIR, StringComparison.InvariantCultureIgnoreCase))
+			{
+				filePath = filePath.Substring(ROOT_DIR.Length, filePath.Length - ROOT_DIR.Length);
+			}
+
+			filePath = filePath.Replace(@"\", "/");
+			return filePath;
+		}
+	}
 }

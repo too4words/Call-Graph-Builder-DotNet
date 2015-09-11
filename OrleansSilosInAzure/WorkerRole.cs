@@ -84,16 +84,14 @@ namespace OrleansSilosInAzure
 				}
 
 			}
-			catch(Exception exc)
+			catch (Exception exc)
 			{
 				while (exc is AggregateException) exc = exc.InnerException;
 				Trace.TraceError("Error dutring initialization of WorkerRole {0}",exc.ToString());
                 var excString = exc.ToString();
 
-                SaveErrorToBlob(excString);
-                
+                SaveErrorToBlob(excString);                
                 throw exc;
-
 			}
             //try
             //{
