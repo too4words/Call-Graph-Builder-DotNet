@@ -338,6 +338,17 @@
     <Content Include="Metadata\deploymentTemplates\apiappconfig.azureresource.json" />
     <None Include="Project_Readme.html" />
     <Content Include="Views\web.config" />
+    <Content Include="WebApi.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebApi.dll.Debug.config">
+      <DependentUpon>WebApi.dll.config</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebApi.dll.Release.config">
+      <DependentUpon>WebApi.dll.config</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
