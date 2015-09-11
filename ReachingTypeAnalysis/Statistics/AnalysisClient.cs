@@ -18,6 +18,8 @@ using ReachingTypeAnalysis.Analysis;
 using System.Data;
 using System.IO;
 using OrleansInterfaces;
+using Microsoft.WindowsAzure.Storage.Table.Protocol;
+using System.Threading;
 
 namespace ReachingTypeAnalysis.Statistics
 {
@@ -178,8 +180,12 @@ namespace ReachingTypeAnalysis.Statistics
 			//var solutionGrain = this.SolutionManager as ISolutionGrain;
 			await solutionGrain.ForceDeactivation();
 
-			var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-			await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+			//var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			//await systemManagement.ForceActivationCollection(new System.TimeSpan(0,0,5));
+
+			// EmptyTable("OrleansGrainState");
+
+
 		}
 
 		private static string GetAddressFromStat(string statValue, string statPrefix)
@@ -326,21 +332,39 @@ namespace ReachingTypeAnalysis.Statistics
 				}
 			}
 		}
-
-
-		private static CloudTable EmptyTable(string name)
+		public static CloudTable EmptyTable(string name)
 		{
 			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
-
 			// Create the table client.
 			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-
 			// Create the table if it doesn't exist.
 			CloudTable table = tableClient.GetTableReference(name);
 			table.DeleteIfExists();
-			table.CreateIfNotExists();
+
+			SafeCreateIfNotExists(table);
+			// table.CreateIfNotExists();
 			return table;
 		}
+
+
+		public static bool SafeCreateIfNotExists(CloudTable table, TableRequestOptions requestOptions = null, OperationContext operationContext = null)
+		{
+			do
+			{
+				try
+				{
+					return table.CreateIfNotExists(requestOptions, operationContext);
+				}
+				catch (StorageException e)
+				{
+					if ((e.RequestInformation.HttpStatusCode == 409) && (e.RequestInformation.ExtendedErrorInformation.ErrorCode.Equals(TableErrorCodeStrings.TableBeingDeleted)))
+							Thread.Sleep(1000);// The table is currently being deleted. Try again until it works.
+					else
+						throw;
+				}
+			} while (true);
+		}
+
 
         internal void AddSubjetResults(SubjectExperimentResults results)
         {

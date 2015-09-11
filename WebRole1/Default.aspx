@@ -26,10 +26,10 @@
             <asp:TextBox ID="TextBoxPathPrefix" runat="server" Width="675px">C;N2;0</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px" OnTextChanged="TextBoxPath_TextChanged">LongGeneratedTest2</asp:TextBox>
+            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px" OnTextChanged="TextBoxPath_TextChanged">LongGeneratedTest1</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;100;50;1</asp:TextBox>
+            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;10;50;1</asp:TextBox>
         </p>
     </div>
 

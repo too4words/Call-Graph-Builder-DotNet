@@ -292,6 +292,8 @@ namespace WebRole1
 			// var solutionGrain = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
 			var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
+			
+
 			// var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 			//if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
 			{

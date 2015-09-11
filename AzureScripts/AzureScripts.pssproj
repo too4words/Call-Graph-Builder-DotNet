@@ -27,12 +27,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="NewFolder1\" />
+    <Compile Include="ChangeNumberOfInstances.ps1" />
+    <Compile Include="ConnectToAzure.ps1" />
+    <Compile Include="Stop-Start-CloudService - Copy.ps1" />
+    <Compile Include="InvokeExperiment.ps1" />
+    <Compile Include="WindowsPowerShell\Modules\Update-CloudServiceScale\Update-CloudServiceScale.psm1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChangeNumberOfInstances.ps1" />
-    <Compile Include="Stop-Start-CloudService.ps1" />
-    <Compile Include="Update-CloudServiceScale.psm1" />
+    <Folder Include="WindowsPowerShell\" />
+    <Folder Include="WindowsPowerShell\Modules\" />
+    <Folder Include="WindowsPowerShell\Modules\Update-CloudServiceScale\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

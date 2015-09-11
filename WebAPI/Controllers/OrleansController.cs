@@ -17,6 +17,7 @@ namespace WebAPI
 	using ReachingTypeAnalysis;
 	using Orleans;
 	using System.IO;
+	using OrleansInterfaces;
 
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
@@ -76,7 +77,8 @@ namespace WebAPI
 
 			try
 			{
-				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
+				var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+				await AnalysisClient.PerformDeactivation(GrainClient.GrainFactory,solutionGrain);
 
 				result = string.Format("All grains are deactivated");
 			}
@@ -89,16 +91,43 @@ namespace WebAPI
 			return result;
 		}
 
+		[HttpGet]
+		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines)
+		{
+			var result = string.Empty;
+			try
+			{
+				string path = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
+				OrleansController.solutionPath = path;
+				OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(path);
+
+				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
+
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
+
+				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+			}
+			catch (Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+
+			return result;
+
+		}
+
 		// http://localhost:49176/api/Orleans?solutionPath=Hola
 		[HttpGet]
 		public async Task AnalyzeSolutionAsync(string solutionPath, AnalysisStrategyKind strategyKind = StrategyKind)
 		{
-			{
-				// Hack! Remove these lines
-				var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-				//var solutionToTest = @"Coby\Coby.sln";
-				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
-			}
+			//{
+			//	// Hack! Remove these lines
+			var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+			//	//var solutionToTest = @"Coby\Coby.sln";
+			solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
+			//}
+
 
 			OrleansController.solutionPath = solutionPath;
 			OrleansController.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
