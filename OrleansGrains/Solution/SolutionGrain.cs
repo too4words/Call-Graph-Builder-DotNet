@@ -186,21 +186,19 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
 		public async Task ForceDeactivation()
-        {
+		{
 			//await StatsHelper.RegisterMsg("SolutionGrain::ForceDeactivation", this.GrainFactory);
 
-            await this.solutionManager.ForceDeactivationOfProjects();
-
+			await this.solutionManager.ForceDeactivationOfProjects();
 			await this.ClearStateAsync();
 
-            //this.State.Etag = null;
-            this.State.SolutionPath = null;
-            this.State.Source = null;
-			this.State.TestName = null;
-			await this.WriteStateAsync();
+			//this.State.SolutionPath = null;
+			//this.State.Source = null;
+			//this.State.TestName = null;
+			//await this.WriteStateAsync();
 
 			this.DeactivateOnIdle();
-        }
+		}
 
 		// TODO: remove this hack!
 		public Task<IEnumerable<string>> GetDrives()

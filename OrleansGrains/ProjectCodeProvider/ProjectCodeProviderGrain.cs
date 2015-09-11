@@ -254,12 +254,11 @@ namespace ReachingTypeAnalysis.Analysis
 
             await this.ClearStateAsync();
 
-            //this.State.Etag = null;
-            this.State.ProjectPath = null;
-            this.State.Source = null;
-            this.State.TestName = null;
-            this.State.AssemblyName = null;
-            await this.WriteStateAsync();
+            //this.State.ProjectPath = null;
+            //this.State.Source = null;
+            //this.State.TestName = null;
+            //this.State.AssemblyName = null;
+            //await this.WriteStateAsync();
 
             this.DeactivateOnIdle();
         }
