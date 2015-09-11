@@ -10,8 +10,8 @@
     -->
     <Instances count="4" />
     <ConfigurationSettings>
-	  <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-		<!-- 
+      <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
+      <!-- 
 		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
 		-->
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
@@ -31,12 +31,11 @@
   <Role name="WebRole1">
     <Instances count="1" />
     <ConfigurationSettings>
-		<Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-		<!-- 
+      <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
+      <!-- 
 		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
 		-->
-
-		<Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="t-digarb" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFJLBxzzA+StStja+PGm5/kwDQYJKoZIhvcNAQEBBQAEggEAtAXzIxQ8UqkdhGrm4puJcbd3KEY9NvIPId3XaJRYp8NUDwt5R2kcmSIPkQ7AUwdz/JPVFED1inl5aRvE22MBbt42ZNRYDpUUMqp3OPwF2vgG5Q3oSm2QTiweUqaJi703adchtQfsDl/lvOVdsFtQK/V/KGYrHxOGRzQz/gGNWFOEfsO5okbMnXufK3ZsBU99NoaTLvUSrGXQ7NgaD+7mhSgJ0lOjggRLFRcEpK5zSXCRROpJ//KCKJZkuLgeehhQEA0y1ZN1oRVmM/amwezRRyt0VnUOMNBXubuDymTHv4SOCiQHC4vrcfZZukxRYQ2v814zv7G0diYJk81iUjmYtTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECJlzKQ6IeyyFgBAUCJSJhwHdtLy8IPBodcGQ" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
@@ -48,15 +47,14 @@
   <Role name="WebAPI">
     <Instances count="1" />
     <ConfigurationSettings>
-		<Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-		<!-- 
+      <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
+      <!-- 
 		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
 		-->
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="t-digarb" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFJLBxzzA+StStja+PGm5/kwDQYJKoZIhvcNAQEBBQAEggEAtAXzIxQ8UqkdhGrm4puJcbd3KEY9NvIPId3XaJRYp8NUDwt5R2kcmSIPkQ7AUwdz/JPVFED1inl5aRvE22MBbt42ZNRYDpUUMqp3OPwF2vgG5Q3oSm2QTiweUqaJi703adchtQfsDl/lvOVdsFtQK/V/KGYrHxOGRzQz/gGNWFOEfsO5okbMnXufK3ZsBU99NoaTLvUSrGXQ7NgaD+7mhSgJ0lOjggRLFRcEpK5zSXCRROpJ//KCKJZkuLgeehhQEA0y1ZN1oRVmM/amwezRRyt0VnUOMNBXubuDymTHv4SOCiQHC4vrcfZZukxRYQ2v814zv7G0diYJk81iUjmYtTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECJlzKQ6IeyyFgBAUCJSJhwHdtLy8IPBodcGQ" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="EE0BAA0C9294556FF64F57C7C2E8FADA2D8DC295" thumbprintAlgorithm="sha1" />
