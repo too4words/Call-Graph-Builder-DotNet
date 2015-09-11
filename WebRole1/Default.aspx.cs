@@ -70,7 +70,8 @@ namespace WebRole1
 					var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
 
 					var analysisClient = new AnalysisClient(analyzer, machines);
-					await analysisClient.Analyze();
+					// await analysisClient.Analyze();
+					await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath);
 
 					//var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
 					//string methods = String.Join("\n", reachableMethods);
@@ -287,12 +288,14 @@ namespace WebRole1
 
 		protected async void Button7_Click(object sender, EventArgs e)
 		{
-			//var solutionManager = (ISolutionManager)Application.Get("SolutionManager");
-			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
+			// This doesn't work. I need to move OrleansSolutionManager no another project
+			// var solutionGrain = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
+			var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
-			if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
+			// var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
+			//if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
 			{
-				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
+				await AnalysisClient.PerformDeactivation(GrainClient.GrainFactory, solutionGrain);
 				this.TextBox1.Text = "All Grains Deactivated!";
 			}
 		}

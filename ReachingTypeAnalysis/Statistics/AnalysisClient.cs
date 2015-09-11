@@ -173,9 +173,9 @@ namespace ReachingTypeAnalysis.Statistics
 			SaveTable<SiloRuntimeStats>("SiloMetrics",path);
 		}
 
-		public async Task PerformDeactivation(IGrainFactory grainFactory)
+		public static async Task PerformDeactivation(IGrainFactory grainFactory, ISolutionGrain solutionGrain)
 		{
-			var solutionGrain = this.SolutionManager as ISolutionGrain;
+			//var solutionGrain = this.SolutionManager as ISolutionGrain;
 			await solutionGrain.ForceDeactivation();
 
 			var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
