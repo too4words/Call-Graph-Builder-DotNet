@@ -17,12 +17,12 @@ namespace WebAPI
 	using ReachingTypeAnalysis;
 	using Orleans;
 	using System.IO;
+	using OrleansInterfaces;
 
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
 	/// </summary>
 	/// 
-	// http://localhost:49176/api/Orleans?testName=Hola&machines=1&numberOfMethods=2
 	public class OrleansController : ApiController
     {
 		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
@@ -45,48 +45,6 @@ namespace WebAPI
 		public static ISolutionManager SolutionManager
 		{
 			get { return analyzer.SolutionManager; }
-		}
-
-		[HttpGet]
-		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods)
-		{
-			var result = string.Empty;
-
-			try
-			{
-				OrleansController.analyzer = SolutionAnalyzer.CreateFromTest(testName);
-				OrleansController.analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
-
-				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
-
-			return result;
-		}
-
-		[HttpGet]
-		public async Task<string> PerformDeactivationAsync()
-		{
-			var result = string.Empty;
-
-			try
-			{
-				await analysisClient.PerformDeactivation(GrainClient.GrainFactory);
-
-				result = string.Format("All grains are deactivated");
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
-
-			return result;
 		}
 
 		// http://localhost:49176/api/Orleans?solutionPath=Hola

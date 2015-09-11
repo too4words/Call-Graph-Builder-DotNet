@@ -66,13 +66,10 @@ namespace ReachingTypeAnalysis.Analysis
 			//await StatsHelper.RegisterMsg("MethodEntityGrain::ForceDeactivation", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKeyString());
-            //await this.ClearStateAsync();
-
-            //this.State.Etag = null;
-            this.State.MethodDescriptor = null;
-            await this.WriteStateAsync();
-
-			//await this.CreateMethodEntityAsync(methodDescriptor);
+            await this.ClearStateAsync();
+        
+			//this.State.MethodDescriptor = null;
+			//await this.WriteStateAsync();
 
 			this.DeactivateOnIdle();
 		}

@@ -31,6 +31,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 	}
 
+	public class LatencyInfo
+	{
+		public double AccumulattedTimeDifference { get; set; }
+		public double MaxLatency  { get; set; }
+		public string MaxLatencyMsg { get; set; }
+	}
 	//[StorageProvider(ProviderName = "AzureStore")]
 	//public class StatsGrain : Grain<IStatsState>, IStatsGrain
 	public class StatsGrain : Grain, IStatsGrain
@@ -38,7 +44,7 @@ namespace ReachingTypeAnalysis.Analysis
 		internal  StatsState State;
 		private Dictionary<string,long> operationCounter;
 		private long messages;
-		private double accumulattedTimeDifference;
+		private LatencyInfo latencyInfo;
 
 		private Task WriteStateAsync()
 		{
@@ -67,7 +73,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.operationCounter = new Dictionary<string,long>();
 			this.messages = 0;
-			this.accumulattedTimeDifference = 0;
+
+			this.latencyInfo = new LatencyInfo
+			{
+				AccumulattedTimeDifference = 0,
+				MaxLatency = 0,
+				MaxLatencyMsg = ""
+			};
 
 			Logger.LogVerbose(this.GetLogger(), "StatsGrain", "OnActivate", "Exit");
 			return TaskDone.Done;
@@ -80,7 +92,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 			IncrementCounter(message, this.operationCounter);
 
-			this.accumulattedTimeDifference += timeDiff;
+			this.latencyInfo.AccumulattedTimeDifference += timeDiff;
+			if(timeDiff>this.latencyInfo.MaxLatency)
+			{
+				this.latencyInfo.MaxLatency= timeDiff;
+				this.latencyInfo.MaxLatencyMsg= message;
+			}
 			this.messages++;
 
 			return this.WriteStateAsync();
@@ -242,7 +259,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<double> GetAverageLattency()
 		{
-			return Task.FromResult(this.accumulattedTimeDifference / this.messages);
+			return Task.FromResult(this.latencyInfo.AccumulattedTimeDifference / this.messages);
 		}
 
 		public Task<long> TotalMessages()
