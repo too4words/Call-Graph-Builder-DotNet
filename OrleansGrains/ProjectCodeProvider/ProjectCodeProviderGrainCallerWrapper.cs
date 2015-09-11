@@ -103,6 +103,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return providerGrain.GetRootsAsync();
 		}
 
+		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			this.SetRequestContext();
+			return providerGrain.GetReachableMethodsAsync();
+		}
+
 		public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
 		{
 			this.SetRequestContext();

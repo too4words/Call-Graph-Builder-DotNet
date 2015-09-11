@@ -119,6 +119,21 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.publicMethods;
 		}
 
+		public async Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			var result = new HashSet<MethodDescriptor>();
+
+			foreach (var project in this.Projects)
+			{
+				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+				var reachableMethods = await provider.GetReachableMethodsAsync();
+
+				result.UnionWith(reachableMethods);
+			}
+
+			return result;
+		}
+
 		public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
 			var cancellationTokenSource = new CancellationTokenSource();

@@ -18,12 +18,14 @@ namespace ReachingTypeAnalysis.Analysis
     public class OrleansProjectCodeProvider : BaseProjectCodeProvider
     {
 		private IGrainFactory grainFactory;
+		private ISet<MethodDescriptor> reachableMethods;
 		private ISet<MethodDescriptor> methodsToRemove;
 
 		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager)
 			: base(solutionManager)
 		{
 			this.grainFactory = grainFactory;
+			this.reachableMethods = new HashSet<MethodDescriptor>();
 			this.methodsToRemove = new HashSet<MethodDescriptor>();
         }
 
@@ -63,8 +65,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
+			reachableMethods.Add(methodDescriptor);
+
 			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
+		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(reachableMethods.AsEnumerable());
 		}
 
 		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
@@ -112,9 +121,8 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task ForceDeactivationOfMethodEntitiesAsync()
         {
             var tasks = new List<Task>();
-			var allMethodDescriptors = await base.GetAllMethodDescriptors();
 
-			foreach (var methodDescriptor in allMethodDescriptors)
+			foreach (var methodDescriptor in reachableMethods)
             {
                 var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 				var task = methodEntityGrain.ForceDeactivationAsync();

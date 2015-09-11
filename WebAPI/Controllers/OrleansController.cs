@@ -25,8 +25,8 @@ namespace WebAPI
 	// http://localhost:49176/api/Orleans?testName=Hola&machines=1&numberOfMethods=2
 	public class OrleansController : ApiController
     {
-		public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
-		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
 
 		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
@@ -95,8 +95,8 @@ namespace WebAPI
 		{
 			{
 				// Hack! Remove these lines
-				var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-				//var solutionToTest = @"Coby\Coby.sln";
+				//var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
+				var solutionToTest = @"Coby\Coby.sln";
 				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
 			}
 
@@ -214,6 +214,7 @@ namespace WebAPI
 				RepositoryName = repository
 			};
 
+			filepath = "coby/src/" + filepath;
 			var fullPath = Path.Combine(ROOT_DIR, filepath).Replace("/", @"\");
 			var assemblyName = documentsAssemblyName[filepath];
 			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
@@ -334,7 +335,7 @@ namespace WebAPI
 			if (filename.StartsWith(".NETFramework,")) return true;
 
 			ProcessFileResponse(file);
-			documentsAssemblyName[file.filepath] = file.assemblyname;
+			documentsAssemblyName[file.filepath.ToLowerInvariant()] = file.assemblyname;
 			return false;
 		}
 
@@ -390,10 +391,11 @@ namespace WebAPI
 		private static string FixFilePath(string filePath)
 		{
 			if (filePath == null) return null;
+			var rootDir = ROOT_DIR + @"Coby\src\";
 
-			if (filePath.StartsWith(ROOT_DIR, StringComparison.InvariantCultureIgnoreCase))
+			if (filePath.StartsWith(rootDir, StringComparison.InvariantCultureIgnoreCase))
 			{
-				filePath = filePath.Substring(ROOT_DIR.Length, filePath.Length - ROOT_DIR.Length);
+				filePath = filePath.Substring(rootDir.Length, filePath.Length - rootDir.Length);
 			}
 
 			filePath = filePath.Replace(@"\", "/");

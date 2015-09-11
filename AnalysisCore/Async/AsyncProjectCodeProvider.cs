@@ -51,25 +51,29 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			IMethodEntityWithPropagator result;
 
-			
-				if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
+			if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
+			{
+				var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
+
+				if (methodDescriptor.IsAnonymousDescriptor)
 				{
-					var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
-
-					if (methodDescriptor.IsAnonymousDescriptor)
-					{
-						methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
-					}
-
-					result = new MethodEntityWithPropagator(methodEntity, this);
-					//lock (this.methodEntities)
-					{
-						this.methodEntities.TryAdd(methodDescriptor, result);
-					}
+					methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
 				}
-			
+
+				result = new MethodEntityWithPropagator(methodEntity, this);
+				//lock (this.methodEntities)
+				{
+					this.methodEntities.TryAdd(methodDescriptor, result);
+				}
+			}
+
 			return result;
-        }
+		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(methodEntities.Keys.AsEnumerable());
+		}
 
 		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{

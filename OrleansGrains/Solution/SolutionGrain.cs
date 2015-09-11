@@ -178,6 +178,13 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.solutionManager.GetPublicMethodsAsync();
 		}
 
+		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			StatsHelper.RegisterMsg("SolutionGrain::GetReachableMethodsAsync", this.GrainFactory);
+
+			return this.solutionManager.GetReachableMethodsAsync();
+		}
+
 		public async Task ForceDeactivation()
         {
 			//await StatsHelper.RegisterMsg("SolutionGrain::ForceDeactivation", this.GrainFactory);

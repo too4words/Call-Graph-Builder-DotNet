@@ -35,5 +35,10 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			return result;
 		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(methodEntities.Keys.AsEnumerable());
+		}
 	}
 }
