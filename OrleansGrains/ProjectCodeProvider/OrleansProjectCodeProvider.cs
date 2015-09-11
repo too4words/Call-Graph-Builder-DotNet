@@ -63,10 +63,14 @@ namespace ReachingTypeAnalysis.Analysis
 			return provider;
 		}
 
-		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public override Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			reachableMethods.Add(methodDescriptor);
+			return base.CreateMethodEntityAsync(methodDescriptor);
+        }
 
+		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+		{
 			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}

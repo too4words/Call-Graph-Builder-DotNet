@@ -103,7 +103,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.LoadSourceAsync(source, assemblyName);
         }
 
-		public async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public virtual async Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             var methodParserInfo = await this.FindMethodInProjectAsync(methodDescriptor);
 			MethodEntity methodEntity = null;
