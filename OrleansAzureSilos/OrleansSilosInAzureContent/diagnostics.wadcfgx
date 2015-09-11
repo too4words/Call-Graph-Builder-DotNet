@@ -31,8 +31,8 @@
     </WadCfg>
     <StorageAccount>orleansdatastorage</StorageAccount>
   </PublicConfig>
-  <PrivateConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
-    <StorageAccount name="orleansdatastorage" key="w1Ue+xPB9xEZt5A1WzXWjXNUtZ1pSkykC1VtbJElMmCjK4bmkrLCtiZ4k0N7o8IEzHWDAp4kn0P+X+HhqsttdQ==" endpoint="https://core.windows.net/" />
-  </PrivateConfig>
+	<PrivateConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+		<StorageAccount name="orleansdatastorage2" key="ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" endpoint="https://core.windows.net/" />
+	</PrivateConfig>
   <IsEnabled>false</IsEnabled>
 </DiagnosticsConfiguration>

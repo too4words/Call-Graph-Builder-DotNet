@@ -32,8 +32,8 @@
     <StorageAccount>
     </StorageAccount>
   </PublicConfig>
-  <PrivateConfig>
-    <StorageAccount name="" key="" endpoint="" />
-  </PrivateConfig>
+	<PrivateConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+		<StorageAccount name="orleansdatastorage2" key="ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" endpoint="https://core.windows.net/" />
+	</PrivateConfig>
   <IsEnabled>false</IsEnabled>
 </DiagnosticsConfiguration>
