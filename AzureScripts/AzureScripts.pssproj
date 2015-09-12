@@ -29,9 +29,9 @@
   <ItemGroup>
     <Compile Include="ChangeNumberOfInstances.ps1" />
     <Compile Include="ConnectToAzure.ps1" />
-    <Compile Include="InvokeDeactivationGrains.ps1" />
+    <Compile Include="InvokeTestExperiments.ps1" />
     <Compile Include="Stop-Start-CloudService.ps1" />
-    <Compile Include="InvokeExperiment.ps1" />
+    <Compile Include="InvokeGrainDeactivation.ps1" />
     <Compile Include="WindowsPowerShell\Modules\Update-CloudServiceScale\Update-CloudServiceScale.psm1" />
   </ItemGroup>
   <ItemGroup>
