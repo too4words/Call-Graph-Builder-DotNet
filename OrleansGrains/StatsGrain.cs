@@ -45,6 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private Dictionary<string,long> operationCounter;
 		private long messages;
 		private LatencyInfo latencyInfo;
+		private long memoryUsage;
 
 		private Task WriteStateAsync()
 		{
@@ -87,10 +88,18 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task RegisterMessage(string message, string senderAddr, string receiverAddr, double timeDiff)
 		{
+			var currentMemoryUsage = System.GC.GetTotalMemory(false);
+			if(currentMemoryUsage>this.memoryUsage)
+			{
+				this.memoryUsage = currentMemoryUsage;
+			}
+
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
 
 			IncrementCounter(message, this.operationCounter);
+
+			this.messages++;
 
 			this.latencyInfo.AccumulattedTimeDifference += timeDiff;
 			if(timeDiff>this.latencyInfo.MaxLatency)
@@ -98,7 +107,7 @@ namespace ReachingTypeAnalysis.Analysis
 				this.latencyInfo.MaxLatency= timeDiff;
 				this.latencyInfo.MaxLatencyMsg= message;
 			}
-			this.messages++;
+			
 
 			return this.WriteStateAsync();
 		}
@@ -155,6 +164,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.GrainClasses.Clear();
 
 			await this.WriteStateAsync();
+		}
+
+		public Task<IEnumerable<string>> GetSilos()
+		{
+			return Task.FromResult(this.State.SiloActivations.Keys.AsEnumerable());
 		}
 
 		public Task<Dictionary<string, long>> GetSiloSentMsgs(string siloAddr)
@@ -262,9 +276,13 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(this.latencyInfo.AccumulattedTimeDifference / this.messages);
 		}
 
-		public Task<long> TotalMessages()
+		public Task<long> GetTotalMessages()
 		{
 			return Task.FromResult(this.messages);
+		}
+		public Task<long> GetSiloMemoryUsage(string addrString)
+		{
+			return Task.FromResult(this.memoryUsage);
 		}
 	}
 

@@ -49,7 +49,7 @@ namespace ReachingTypeAnalysis.Statistics
 		public int Machines { get; set; }
 		public string Subject { get; set; }
 		public int Methods { get; set; }
-		public int Messages { get; set; }
+		public long Messages { get; set; }
 		public long ElapsedTime { get; set; }
 		public long Activations { get; set; }
 		public long Deactivations { get; set; }

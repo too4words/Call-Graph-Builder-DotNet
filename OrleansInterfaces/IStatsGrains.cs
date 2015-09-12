@@ -26,7 +26,10 @@ namespace OrleansInterfaces
 		Task<IEnumerable<string>> GetGrainClasses();
 		Task<long> GetActivations(string grainClass);
 		Task<long> GetDeactivations(string grainClass);
-		Task<long> TotalMessages();
+		Task<long> GetTotalMessages();
 		Task<double> GetAverageLattency();
+		Task<long> GetSiloMemoryUsage(string addrString);
+
+		Task<IEnumerable<string>> GetSilos();
 	}
 }
