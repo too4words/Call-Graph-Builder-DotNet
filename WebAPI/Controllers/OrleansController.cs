@@ -18,6 +18,7 @@ namespace WebAPI
 	using Orleans;
 	using System.IO;
 	using OrleansInterfaces;
+	using System.Web;
 
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
@@ -26,7 +27,8 @@ namespace WebAPI
 	public class OrleansController : ApiController
     {
 		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
-		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\New folder";
 
 		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
@@ -168,11 +170,11 @@ namespace WebAPI
 			buildInfo = new BuildInfo()
 			{
 				VersionName = version,
-				RepositoryName = repository
+				RepositoryName = repository,
+				BranchName = "master"
 			};
 
-			filepath = "coby/src/" + filepath;
-			var fullPath = Path.Combine(ROOT_DIR, filepath).Replace("/", @"\");
+			var fullPath = Path.Combine(ROOT_DIR, "Coby", filepath).Replace("/", @"\");
 			var assemblyName = documentsAssemblyName[filepath];
 			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
 			var result = await provider.GetDocumentEntitiesAsync(fullPath);
@@ -224,14 +226,16 @@ namespace WebAPI
 
 		// _apis/arcusgraph/entities/{uid}/references
 		[HttpGet]
-		public async Task<IList<SymbolReference>> GetReferencesAsync(string uid)
+		public async Task<IList<SymbolReference>> GetReferencesAsync(string ruid)
 		{
 			var result = new List<SymbolReference>();
 
-			if (uid.Contains('@'))
+			//ruid = HttpUtility.UrlDecode(ruid);
+
+			if (ruid.Contains('@'))
 			{
 				// Find all method definitions
-				var uidparts = uid.Split('@');
+				var uidparts = ruid.Split('@');
 				var methodId = uidparts[0];
 				var invocationIndex = Convert.ToInt32(uidparts[1]);
 
@@ -256,7 +260,7 @@ namespace WebAPI
 			else
 			{
 				// Find all method references
-				var methodId = uid;
+				var methodId = ruid;
 				var methodDescriptor = MethodDescriptor.DeMarsall(methodId);
 				var methodEntity = await SolutionManager.GetMethodEntityAsync(methodDescriptor);
 				var callers = await methodEntity.GetCallersAsync();
@@ -292,7 +296,7 @@ namespace WebAPI
 			if (filename.StartsWith(".NETFramework,")) return true;
 
 			ProcessFileResponse(file);
-			documentsAssemblyName[file.filepath.ToLowerInvariant()] = file.assemblyname;
+			documentsAssemblyName[file.filepath] = file.assemblyname;
 			return false;
 		}
 
@@ -322,6 +326,7 @@ namespace WebAPI
 		{
 			//var buildInfo = new BuildInfo();
 
+			annotation.symbolId = HttpUtility.UrlEncode(annotation.symbolId);
 			annotation.declAssembly = string.Format("{0}/{1}", buildInfo.RepositoryName, buildInfo.BranchName);
 		}
 
@@ -348,7 +353,7 @@ namespace WebAPI
 		private static string FixFilePath(string filePath)
 		{
 			if (filePath == null) return null;
-			var rootDir = ROOT_DIR + @"Coby\src\";
+			var rootDir = Path.Combine(ROOT_DIR, @"Coby") + Path.DirectorySeparatorChar;
 
 			if (filePath.StartsWith(rootDir, StringComparison.InvariantCultureIgnoreCase))
 			{

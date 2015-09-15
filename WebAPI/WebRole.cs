@@ -6,7 +6,6 @@ using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using System.Diagnostics;
 
-
 namespace WebAPI
 {
     public class WebRole : RoleEntryPoint
