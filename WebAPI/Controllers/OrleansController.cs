@@ -1,10 +1,4 @@
-﻿//---------------------------------------------------------------------------------------------------------------------
-// <copyright company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-//---------------------------------------------------------------------------------------------------------------------
-
-namespace WebAPI
+﻿namespace WebAPI
 {
 	using System.Collections.Generic;
 	using System.Linq;
@@ -23,7 +17,6 @@ namespace WebAPI
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
 	/// </summary>
-	/// 
 	public class OrleansController : ApiController
     {
 		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
