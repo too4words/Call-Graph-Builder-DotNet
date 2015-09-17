@@ -28,7 +28,7 @@ namespace WebAPI
     {
 		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
 		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
-		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\New folder";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\Demo\";
 
 		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
@@ -55,7 +55,7 @@ namespace WebAPI
 			{
 				// Hack! Remove these lines
 				//var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-				var solutionToTest = @"Coby\Coby.sln";
+				var solutionToTest = @"coby\Coby.sln";
 				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
 			}
 

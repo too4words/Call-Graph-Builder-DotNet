@@ -108,12 +108,16 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var tasks = new List<Task>();
 
+			// TODO: maybe we should only deactivate methods that are reachable (i.e. have a MethodEntityGrain created for them)
+			// all reachable methods are stored in the reachableMethods set
 			foreach (var methodDescriptor in methodsToRemove)
 			{
 				var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 				var task = methodEntityGrain.ForceDeactivationAsync();
 				//await task;
 				tasks.Add(task);
+
+				// TODO: maybe we should also need to remove the method from the reachableMethods set
 			}
 
 			methodsToRemove.Clear();
