@@ -98,6 +98,12 @@
         </Bindings>
       </Site>
     </Sites>
+    <Startup>
+      <Task commandLine="scripts\EnablePowerShell.cmd" executionContext="elevated" taskType="simple">
+        <Environment>
+        </Environment>
+      </Task>
+    </Startup>    
     <Imports>
       <!--      <Import moduleName="Diagnostics" />  -->
       <Import moduleName="RemoteAccess" />

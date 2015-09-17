@@ -20,6 +20,7 @@ using System.IO;
 using OrleansInterfaces;
 using Microsoft.WindowsAzure.Storage.Table.Protocol;
 using System.Threading;
+using System.Text;
 
 namespace ReachingTypeAnalysis.Statistics
 {
@@ -88,17 +89,14 @@ namespace ReachingTypeAnalysis.Statistics
 			var totalSentNetwork = 0L;
 			var totalRecvLocal = 0L;
 
-			//this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID); 
-			//var hosts = await systemManagement.GetHosts();
-			//var silos = hosts.Keys.ToArray();
-			// await systemManagement.ForceGarbageCollection(silos);
+            this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+            await systemManagement.ForceGarbageCollection(null);
+            var orleansStats = await systemManagement.GetRuntimeStatistics(null);
+            var hosts = await systemManagement.GetHosts();
+            var silos = hosts.Keys.ToArray();
 
-			//this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-			//var hosts = await systemManagement.GetHosts();
-			//var silos = hosts.Keys.ToArray();
-			//var orleansStats = await systemManagement.GetRuntimeStatistics(silos);
 
-			var totalAct = 0L;
+            var totalAct = 0L;
 			var totalDeact = 0L;
 			var time = DateTime.Now;
 
@@ -106,17 +104,16 @@ namespace ReachingTypeAnalysis.Statistics
 			
 			// var messageMetric = new MessageMetrics();			
 
-			var silos = (await  myStatsGrain.GetSilos()).ToArray();
+			//var silos = (await  myStatsGrain.GetSilos()).ToArray();
 
 			var siloComputedStats = new SiloComputedStats[silos.Length];
 						
 			for (int i = 0; i < silos.Length; i++)
 			{
 				var silo = silos[i];
-				var addrString = silo; //silo.Endpoint.Address.ToString();
+				var addrString = /*silo; /*/silo.Endpoint.Address.ToString();
 				siloComputedStats[i] = new SiloComputedStats();
 
-				siloComputedStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
 				siloComputedStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
 				siloComputedStats[i].TotalRecvNetworkSilo += await myStatsGrain.GetSiloNetworkReceivedMsgs(addrString);
 				siloComputedStats[i].MemoryUsage += await myStatsGrain.GetSiloMemoryUsage(addrString);
@@ -132,9 +129,9 @@ namespace ReachingTypeAnalysis.Statistics
 				totalAct += activations;
 				totalDeact += deactivations;
 
-				AddSiloMetric(silos[i], siloComputedStats[i], time);
+				//AddSiloMetric(silos[i], siloComputedStats[i], time);
 				// Save results in per silo table
-				//AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time);
+				AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time);
 
 
 				totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo; 
@@ -212,18 +209,15 @@ namespace ReachingTypeAnalysis.Statistics
 		public async Task PrintGrainStatistics(IGrainFactory grainFactory)
 		{
 			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-			var hosts = await systemManagement.GetHosts();
-			var silos = hosts.Keys.ToArray();
+			await systemManagement.ForceGarbageCollection(null);
 
-			// var stats = await systemManagement.GetSimpleGrainStatistics(silos);
-			await systemManagement.ForceGarbageCollection(silos);
+			var stats = await systemManagement.GetRuntimeStatistics(null);
 
-			hosts = await systemManagement.GetHosts();
-			silos = hosts.Keys.ToArray();
-			var stats = await systemManagement.GetRuntimeStatistics(silos);
-			
+            var hosts = await systemManagement.GetHosts();
+            var silos = hosts.Keys.ToArray();
 
-			foreach (var s in stats)
+
+            foreach (var s in stats)
 				Console.WriteLine("Act;{0};  Mem;{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / 1024, s.CpuUsage,
 					s.ReceiveQueueLength, s.SendQueueLength);
 		}
@@ -340,7 +334,34 @@ namespace ReachingTypeAnalysis.Statistics
 				}
 			}
 		}
-		public static CloudTable EmptyTable(string name)
+        public static string TableToCvs<T>(string name) where T : TableEntityCSV, new()
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+
+            TableQuery<T> query = new TableQuery<T>()
+            {
+            };
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            // Create the table if it doesn't exist.
+            CloudTable table = tableClient.GetTableReference(name);
+
+            var entities = table.ExecuteQuery<T>(query).ToList();
+
+            var output = new StringBuilder();
+            {
+                if (entities.Count > 0)
+                {
+                    output.Append(entities.First().GetHeaders() + "\n");
+                    foreach (var entity in entities)
+                    {
+                        output.Append(entity.ToDelimited() + "\n");
+                    }
+                }
+            }
+            return output.ToString();
+        }
+
+        public static CloudTable EmptyTable(string name)
 		{
 			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 			// Create the table client.
