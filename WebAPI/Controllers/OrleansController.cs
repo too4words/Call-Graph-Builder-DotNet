@@ -165,9 +165,17 @@
 				VersionName = version,
 				RepositoryName = repository,
 				BranchName = "master"
+				//BranchName = "orleansdemo"
 			};
 
-			var fullPath = Path.Combine(ROOT_DIR, "Coby", filepath).Replace("/", @"\");
+			// TODO: Hack for demo!
+			if (!filepath.StartsWith("src"))
+			{
+				var startIndex = filepath.IndexOf("src");
+                filepath = filepath.Substring(startIndex);
+			}
+
+			var fullPath = Path.Combine(ROOT_DIR, "coby", filepath).Replace("/", @"\");
 			var assemblyName = documentsAssemblyName[filepath];
 			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
 			var result = await provider.GetDocumentEntitiesAsync(fullPath);
@@ -346,7 +354,7 @@
 		private static string FixFilePath(string filePath)
 		{
 			if (filePath == null) return null;
-			var rootDir = Path.Combine(ROOT_DIR, @"Coby") + Path.DirectorySeparatorChar;
+			var rootDir = Path.Combine(ROOT_DIR, @"coby") + Path.DirectorySeparatorChar;
 
 			if (filePath.StartsWith(rootDir, StringComparison.InvariantCultureIgnoreCase))
 			{

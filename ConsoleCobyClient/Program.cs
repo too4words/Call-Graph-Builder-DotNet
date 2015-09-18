@@ -197,7 +197,8 @@ namespace ConsoleCobyClient
 
 			if (!isUpToDate || updateRequestedByUser)
 			{
-				result = RunGitCommand(solutionFolder, "diff --name-only origin/orleansdemo");
+				result = RunGitCommand(solutionFolder, "diff --name-only origin/master");
+				//result = RunGitCommand(solutionFolder, "diff --name-only origin/orleansdemo");
 
 				if (!string.IsNullOrWhiteSpace(result.Output))
 				{
