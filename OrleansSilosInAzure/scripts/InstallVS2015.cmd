@@ -45,7 +45,10 @@ IF EXIST "%VSINSTALLDIR%" (
 )
 
 REM  We add a share to access solution files
-net use X: \\orleansstorage2.file.core.windows.net\solutions  /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
+REM net use X: \\orleansstorage2.file.core.windows.net\solutions  /u:orleansstorage2  ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==
+
+net use X: \\orleansstoragedg.file.core.windows.net\solutions  /u:orleansstoragedg 0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q== 
+
 
 ECHO "Check mount X:" "%TEMP%\StartupLog.txt" 2>&1
 

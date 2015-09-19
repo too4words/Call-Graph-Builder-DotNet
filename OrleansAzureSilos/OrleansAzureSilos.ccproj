@@ -76,6 +76,7 @@
     <DiagnosticsConfiguration Include="WebRole1Content\diagnostics.wadcfgx" />
   </ItemGroup>
   <ItemGroup>
+    <PublishProfile Include="Profiles\orleansservicedgProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction1.azurePubxml" />
   </ItemGroup>

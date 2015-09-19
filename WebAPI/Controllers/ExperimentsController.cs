@@ -101,12 +101,19 @@ namespace WebAPI
                     case "RemoveGrainState":
                         result = AnalysisClient.EmptyTable("OrleansGrainState").ToString();
                         break;
-                    case "Restart":
-                        result= RunScript("Stop-Start-CloudService.ps1").ToString();
+                    case "Stats":
+                        result = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
                         break;
-                    case "Instances":
-                        result = RunScript("ChangeNumberOfInstances.ps1","-Instances","2").ToString();
-                        break;
+                        // Unfortunately I cannot run the following scripts from a WebRole
+                        // I can run scripts from Azure PowerShell on the development machine
+                        // or use the Azure Web API
+                    //case "Restart":
+                    //    result = RunScript("Stop-Start-CloudService.ps1").ToString();
+                    //    break;
+                    //case "Instances":
+                    //    result = RunScript("ChangeNumberOfInstances.ps1", "-Instances", "2").ToString();
+                    //    break;
+
                 }
             }
             catch (Exception exc)

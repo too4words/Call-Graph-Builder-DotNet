@@ -148,11 +148,11 @@ namespace OrleansSilosInAzure
 					var storageAccountName = storageAccount.Credentials.AccountName;
 					// Mount a drive.
 					FilesMappedDrive.Mount("Y:", @"\\"+storageAccountName+@".file.core.windows.net\solutions", storageAccountName,key);
-
-					//FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
-					//	"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
-				}
-				catch(Exception exc)
+                    // Dg Subsription: orleansstoragedg 0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==
+                    //FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
+                    //	"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+                }
+                catch (Exception exc)
 				{
 					while (exc is AggregateException) exc = exc.InnerException;
 					Trace.TraceError("Error trying to mount Azure File {0}", exc.ToString());

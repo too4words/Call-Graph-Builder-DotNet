@@ -308,8 +308,8 @@ namespace WebRole1
 			if (analysisClient != null)
 			{
 				// var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
-				await analysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
-				this.TextBox1.Text = "Done";
+				var res = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
+				this.TextBox1.Text = res;
 			}
 		}
     }

@@ -12,12 +12,11 @@
     <ConfigurationSettings>
       <!-- 
       <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-      -->  
-		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
-		
+      -->
+      <Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="t-digarb" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFJLBxzzA+StStja+PGm5/kwDQYJKoZIhvcNAQEBBQAEggEAtAXzIxQ8UqkdhGrm4puJcbd3KEY9NvIPId3XaJRYp8NUDwt5R2kcmSIPkQ7AUwdz/JPVFED1inl5aRvE22MBbt42ZNRYDpUUMqp3OPwF2vgG5Q3oSm2QTiweUqaJi703adchtQfsDl/lvOVdsFtQK/V/KGYrHxOGRzQz/gGNWFOEfsO5okbMnXufK3ZsBU99NoaTLvUSrGXQ7NgaD+7mhSgJ0lOjggRLFRcEpK5zSXCRROpJ//KCKJZkuLgeehhQEA0y1ZN1oRVmM/amwezRRyt0VnUOMNBXubuDymTHv4SOCiQHC4vrcfZZukxRYQ2v814zv7G0diYJk81iUjmYtTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECJlzKQ6IeyyFgBAUCJSJhwHdtLy8IPBodcGQ" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="dgarber" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEDE1ASyB5euZTIJRvzMTWwQwDQYJKoZIhvcNAQEBBQAEggEAEFpSoCMYlZ3WqH/QLpdiyL14J5c7T1/0tHhGOz3qfgMwPGGhzRtJFY/hPY/W8/zqZ2QPHxo/+Er0apaeQW4n38kP5jJyh//GJXTg9Ts9m23poj4rkP4Bke9zFuOIWmNlhYJ+FiQAla6AtitutTTata4N0w2woXHcn1PhbX25m2HF7GbDj8hG9wcTk9vwtS9CKUDLz5xBWyuoRDS8NKQ+F7gxHegL9n22dhIXtGzvPBXrsxdoJ/yWvCdXi0bOziEL9yp83xAkXpNwcG0h2UMGEMBevM/pPX0PpNzJKMK5m5SRvJjO7F/bKYsV6uCYu0UkZ4Q01J9jbO0VJsNEV7ylPzAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECLoRdQPHuxcUgBBGbyT98EqGk0jYZ4bLGkki" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
       <!-- 	 <Setting name="Startup.ExternalTasksUrl" value="http://aka.ms/downloadazcopy" /> -->
@@ -26,7 +25,7 @@
       <Setting name="Startup.NetSourceDir" value="X:\IDEinstall\NET46" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="EE0BAA0C9294556FF64F57C7C2E8FADA2D8DC295" thumbprintAlgorithm="sha1" />
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="7A5FE607CBB727B70440DBB64FBEF4BD5E91C6B6" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
   <Role name="WebRole1">
@@ -34,16 +33,15 @@
     <ConfigurationSettings>
       <!-- 
       <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-    --> 
-		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
-		
+    -->
+      <Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="t-digarb" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFJLBxzzA+StStja+PGm5/kwDQYJKoZIhvcNAQEBBQAEggEAtAXzIxQ8UqkdhGrm4puJcbd3KEY9NvIPId3XaJRYp8NUDwt5R2kcmSIPkQ7AUwdz/JPVFED1inl5aRvE22MBbt42ZNRYDpUUMqp3OPwF2vgG5Q3oSm2QTiweUqaJi703adchtQfsDl/lvOVdsFtQK/V/KGYrHxOGRzQz/gGNWFOEfsO5okbMnXufK3ZsBU99NoaTLvUSrGXQ7NgaD+7mhSgJ0lOjggRLFRcEpK5zSXCRROpJ//KCKJZkuLgeehhQEA0y1ZN1oRVmM/amwezRRyt0VnUOMNBXubuDymTHv4SOCiQHC4vrcfZZukxRYQ2v814zv7G0diYJk81iUjmYtTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECJlzKQ6IeyyFgBAUCJSJhwHdtLy8IPBodcGQ" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="dgarber" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEDE1ASyB5euZTIJRvzMTWwQwDQYJKoZIhvcNAQEBBQAEggEAEFpSoCMYlZ3WqH/QLpdiyL14J5c7T1/0tHhGOz3qfgMwPGGhzRtJFY/hPY/W8/zqZ2QPHxo/+Er0apaeQW4n38kP5jJyh//GJXTg9Ts9m23poj4rkP4Bke9zFuOIWmNlhYJ+FiQAla6AtitutTTata4N0w2woXHcn1PhbX25m2HF7GbDj8hG9wcTk9vwtS9CKUDLz5xBWyuoRDS8NKQ+F7gxHegL9n22dhIXtGzvPBXrsxdoJ/yWvCdXi0bOziEL9yp83xAkXpNwcG0h2UMGEMBevM/pPX0PpNzJKMK5m5SRvJjO7F/bKYsV6uCYu0UkZ4Q01J9jbO0VJsNEV7ylPzAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECLoRdQPHuxcUgBBGbyT98EqGk0jYZ4bLGkki" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="EE0BAA0C9294556FF64F57C7C2E8FADA2D8DC295" thumbprintAlgorithm="sha1" />
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="7A5FE607CBB727B70440DBB64FBEF4BD5E91C6B6" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
   <Role name="WebAPI">
@@ -51,16 +49,15 @@
     <ConfigurationSettings>
       <!-- 
       <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />
-    -->  
-		<Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
-		
+    -->
+      <Setting name="DataConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="t-digarb" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFJLBxzzA+StStja+PGm5/kwDQYJKoZIhvcNAQEBBQAEggEAtAXzIxQ8UqkdhGrm4puJcbd3KEY9NvIPId3XaJRYp8NUDwt5R2kcmSIPkQ7AUwdz/JPVFED1inl5aRvE22MBbt42ZNRYDpUUMqp3OPwF2vgG5Q3oSm2QTiweUqaJi703adchtQfsDl/lvOVdsFtQK/V/KGYrHxOGRzQz/gGNWFOEfsO5okbMnXufK3ZsBU99NoaTLvUSrGXQ7NgaD+7mhSgJ0lOjggRLFRcEpK5zSXCRROpJ//KCKJZkuLgeehhQEA0y1ZN1oRVmM/amwezRRyt0VnUOMNBXubuDymTHv4SOCiQHC4vrcfZZukxRYQ2v814zv7G0diYJk81iUjmYtTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECJlzKQ6IeyyFgBAUCJSJhwHdtLy8IPBodcGQ" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="dgarber" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEDE1ASyB5euZTIJRvzMTWwQwDQYJKoZIhvcNAQEBBQAEggEAEFpSoCMYlZ3WqH/QLpdiyL14J5c7T1/0tHhGOz3qfgMwPGGhzRtJFY/hPY/W8/zqZ2QPHxo/+Er0apaeQW4n38kP5jJyh//GJXTg9Ts9m23poj4rkP4Bke9zFuOIWmNlhYJ+FiQAla6AtitutTTata4N0w2woXHcn1PhbX25m2HF7GbDj8hG9wcTk9vwtS9CKUDLz5xBWyuoRDS8NKQ+F7gxHegL9n22dhIXtGzvPBXrsxdoJ/yWvCdXi0bOziEL9yp83xAkXpNwcG0h2UMGEMBevM/pPX0PpNzJKMK5m5SRvJjO7F/bKYsV6uCYu0UkZ4Q01J9jbO0VJsNEV7ylPzAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECLoRdQPHuxcUgBBGbyT98EqGk0jYZ4bLGkki" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2016-08-06T23:59:59.0000000-07:00" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="EE0BAA0C9294556FF64F57C7C2E8FADA2D8DC295" thumbprintAlgorithm="sha1" />
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="7A5FE607CBB727B70440DBB64FBEF4BD5E91C6B6" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

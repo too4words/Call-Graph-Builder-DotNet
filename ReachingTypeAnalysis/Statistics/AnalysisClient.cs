@@ -206,9 +206,9 @@ namespace ReachingTypeAnalysis.Statistics
 		}
 
 
-		public async Task PrintGrainStatistics(IGrainFactory grainFactory)
+		public static async Task<string> PrintGrainStatistics(IGrainFactory grainFactory)
 		{
-			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
 			await systemManagement.ForceGarbageCollection(null);
 
 			var stats = await systemManagement.GetRuntimeStatistics(null);
@@ -216,10 +216,11 @@ namespace ReachingTypeAnalysis.Statistics
             var hosts = await systemManagement.GetHosts();
             var silos = hosts.Keys.ToArray();
 
-
+            var output = new StringBuilder();
             foreach (var s in stats)
-				Console.WriteLine("Act;{0};  Mem;{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / 1024, s.CpuUsage,
+				output.AppendFormat("Act;{0};  Mem;{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / 1024, s.CpuUsage,
 					s.ReceiveQueueLength, s.SendQueueLength);
+            return output.ToString();
 		}
 		
 		private static SiloAddress ParseSilo(string s)
