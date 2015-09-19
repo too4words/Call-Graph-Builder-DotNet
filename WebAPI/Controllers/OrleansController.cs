@@ -1,10 +1,4 @@
-﻿//---------------------------------------------------------------------------------------------------------------------
-// <copyright company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-//---------------------------------------------------------------------------------------------------------------------
-
-namespace WebAPI
+﻿namespace WebAPI
 {
 	using System.Collections.Generic;
 	using System.Linq;
@@ -23,12 +17,11 @@ namespace WebAPI
 	/// <summary>
 	/// Controller to handle all REST calls against graph entities
 	/// </summary>
-	/// 
 	public class OrleansController : ApiController
     {
 		//public const string ROOT_DIR = @"C:\Users\t-digarb\Source\Repos\ArcusClientPrototype\src\ArcusClient\data\";
 		//public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\";
-		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\New folder";
+		public const string ROOT_DIR = @"C:\Users\t-edzopp\Desktop\Demo\";
 
 		private const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
 
@@ -55,7 +48,7 @@ namespace WebAPI
 			{
 				// Hack! Remove these lines
 				//var solutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-				var solutionToTest = @"Coby\Coby.sln";
+				var solutionToTest = @"coby\Coby.sln";
 				solutionPath = Path.Combine(OrleansController.ROOT_DIR, solutionToTest);
 			}
 
@@ -172,9 +165,17 @@ namespace WebAPI
 				VersionName = version,
 				RepositoryName = repository,
 				BranchName = "master"
+				//BranchName = "orleansdemo"
 			};
 
-			var fullPath = Path.Combine(ROOT_DIR, "Coby", filepath).Replace("/", @"\");
+			// TODO: Hack for demo!
+			if (!filepath.StartsWith("src"))
+			{
+				var startIndex = filepath.IndexOf("src");
+                filepath = filepath.Substring(startIndex);
+			}
+
+			var fullPath = Path.Combine(ROOT_DIR, "coby", filepath).Replace("/", @"\");
 			var assemblyName = documentsAssemblyName[filepath];
 			var provider = await SolutionManager.GetProjectCodeProviderAsync(assemblyName);
 			var result = await provider.GetDocumentEntitiesAsync(fullPath);
@@ -353,7 +354,7 @@ namespace WebAPI
 		private static string FixFilePath(string filePath)
 		{
 			if (filePath == null) return null;
-			var rootDir = Path.Combine(ROOT_DIR, @"Coby") + Path.DirectorySeparatorChar;
+			var rootDir = Path.Combine(ROOT_DIR, @"coby") + Path.DirectorySeparatorChar;
 
 			if (filePath.StartsWith(rootDir, StringComparison.InvariantCultureIgnoreCase))
 			{

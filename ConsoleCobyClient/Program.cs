@@ -6,103 +6,71 @@ using System.Threading.Tasks;
 using Microsoft.Owin.Hosting;
 using System.Net.Http;
 using System.Reflection;
-using ReachingTypeAnalysis;
-using ConsoleServer.Controllers;
 using System.IO;
 using Orleans;
 using System.Diagnostics.Contracts;
 using System.Diagnostics;
 using System.Threading;
+using System.Net;
+using System.Web;
 
-namespace ConsoleServer
+namespace ConsoleCobyClient
 {
     public class Program
     {
-        const uint DefaultPort = 7413;
+		private const string SolutionToTest = @"coby\Coby.sln";
 
-		const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ASYNC;
-		//const AnalysisStrategyKind StrategyKind = AnalysisStrategyKind.ONDEMAND_ORLEANS;
+		private const string CallGraphPath = @"C:\Temp\callgraph.dgml";
 
-		const string SolutionToTest = @"ConsoleApplication1\ConsoleApplication1.sln";
-		//const string SolutionToTest = @"Coby\Coby.sln";
+		private const string DefaultBaseAddress = "http://localhost:{0}/api/Orleans";
+		private const uint DefaultPort = 49176;
 
-		const string CallGraphPath = @"C:\Temp\callgraph.dgml";
-
-		const string WelcomeMessage = @"Console Server started
------------------
-Routes: 
-   - Get All Files........:  api/{{graph}}/files
-   - Get File.............:  api/{{graph}}/entities/file/{{*filePath}}
-   - Get References.......:  api/{{graph}}/references/{{uid}}
-   - Get Top References...:  api/{{graph}}/referencecount/{{count}}
-   - Get Top Co-occurences:  api/{{graph}}/co-occurs/file/{{count}}
-(Enter 'Exit' to shutdown)
-
-Listening on Port {0} ...
-
-";
-
-		private AnalysisStrategyKind strategyKind;
-		private AppDomain hostDomain;
-		private static OrleansHostWrapper hostWrapper;
-		private SolutionAnalyzer analyzer;
 		private string solutionPath;
-		private bool isCheckingForUpdates;
+		private string baseAddress;
+        private bool isCheckingForUpdates;
 		private Timer checkForUpdatesTimer;
 		private string gitDiffOutput;
 
-		public Program(AnalysisStrategyKind strategyKind)
-		{
-			this.strategyKind = strategyKind;
-		}
-
-		static void Main(string[] args)
+		public static void Main(string[] args)
         {
             // read port argument
             var port = GetValidPort(args.Length >= 1 ? args[0] : null);
-            var baseAddress = string.Format("http://localhost:{0}/", port);
-			var solutionPath = Path.Combine(OrleansController.ROOT_DIR, SolutionToTest);
+            var baseAddress = string.Format(DefaultBaseAddress, port);
+			var solutionPath = Path.Combine(@"C:\Users\t-edzopp\Desktop\Demo", SolutionToTest);
 
-			var program = new Program(StrategyKind);
-			program.Start(solutionPath, baseAddress, port);
+			var program = new Program();
+			program.Start(solutionPath, baseAddress);
 
 			Console.WriteLine("Done");
 		}
 
-		public void Start(string solutionPath, string baseAddress, uint port)
+		public void Start(string solutionPath, string baseAddress)
 		{
-            InitializeAnalysis(solutionPath);
-			InitializeServer(baseAddress, port);
+			this.solutionPath = solutionPath;
+			this.baseAddress = baseAddress;
+
+			this.InitializeAnalysis();
+			this.InitializeTimer();
 		}
 
-		private void InitializeAnalysis(string solutionPath)
+		private void InitializeAnalysis()
 		{
 			Console.WriteLine("Analyzing solution...");
 
-			this.Initialize();
-			this.solutionPath = solutionPath;
-			this.analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-			analyzer.AnalyzeAsync(strategyKind).Wait();
+			var arguments = new Dictionary<string, object>();
+			arguments.Add("solutionPath", this.solutionPath);
 
-			OrleansController.SolutionManager = analyzer.SolutionManager;
+			var response = this.RunWebAPICommandAsync(arguments).Result;
 
 			Console.WriteLine("Done");
 		}
 
-		private void InitializeServer(string baseAddress, uint port)
+		private void InitializeTimer()
 		{
-			Console.WriteLine("Starting Local Server...");
-
-			// Start OWIN host 
-			using (WebApp.Start<Startup>(url: baseAddress))
 			using (checkForUpdatesTimer = new Timer(OnCheckForUpdates, null, 10 * 1000, 10 * 1000))
 			{
-				Console.WriteLine(WelcomeMessage, port);
 				this.CheckForCommands();
 			}
-
-			this.Cleanup();
-			Console.WriteLine("Shutting down Local Server...");
 		}
 
 		private void OnCheckForUpdates(object state)
@@ -164,8 +132,10 @@ Listening on Port {0} ...
 		{
 			Console.WriteLine("Generating call graph...");
 
-			var callgraph =  analyzer.GenerateCallGraphAsync().Result;
-			callgraph.Save(CallGraphPath);
+			var arguments = new Dictionary<string, object>();
+			arguments.Add("outputPath", CallGraphPath);
+
+			var response = this.RunWebAPICommandAsync(arguments).Result;
 
 			Console.WriteLine("Call graph generated successfully.");
 		}
@@ -228,6 +198,7 @@ Listening on Port {0} ...
 			if (!isUpToDate || updateRequestedByUser)
 			{
 				result = RunGitCommand(solutionFolder, "diff --name-only origin/master");
+				//result = RunGitCommand(solutionFolder, "diff --name-only origin/orleansdemo");
 
 				if (!string.IsNullOrWhiteSpace(result.Output))
 				{
@@ -252,75 +223,55 @@ Listening on Port {0} ...
 
 		private void UpdateAnalysis()
 		{
-			var solutionFolder = Path.GetDirectoryName(solutionPath);
-			var modifiedDocuments = gitDiffOutput.Split('\n')
-												 .Where(docPath => !string.IsNullOrEmpty(docPath))
-												 .Select(docPath => docPath.Replace("/", @"\"))
-												 .Select(docPath => Path.Combine(solutionFolder, docPath))
-												 .ToList();
+			//var solutionFolder = Path.GetDirectoryName(solutionPath);
+			//var modifiedDocuments = gitDiffOutput.Split('\n')
+			//									 .Where(docPath => !string.IsNullOrEmpty(docPath))
+			//									 .Select(docPath => docPath.Replace("/", @"\"))
+			//									 .Select(docPath => Path.Combine(solutionFolder, docPath))
+			//									 .ToList();
 
 			Console.WriteLine("Starting incremental analysis...");
 
-			analyzer.ApplyModificationsAsync(modifiedDocuments).Wait();
+			var arguments = new Dictionary<string, object>();
+			arguments.Add("gitDiffOutput", gitDiffOutput);
+
+			var response = this.RunWebAPICommandAsync(arguments).Result;
 
 			Console.WriteLine("Incremental analysis finish");
-
-			//var callGraph = analyzer.GenerateCallGraphAsync().Result;
-			//callGraph.Save(CallGraphPath);
 		}
 
-		private void Initialize()
+		private async Task<string> RunWebAPICommandAsync(IDictionary<string, object> arguments)
 		{
-			if (strategyKind != AnalysisStrategyKind.ONDEMAND_ORLEANS) return;
-			Console.WriteLine("Initializing Orleans silo...");
+			var argumentsString = new StringBuilder();
+			string response = null;
 
-			var applicationPath = Environment.CurrentDirectory;
-
-			var appDomainSetup = new AppDomainSetup
+			if (arguments.Count > 0)
 			{
-				AppDomainInitializer = InitSilo,
-				ApplicationBase = applicationPath,
-				ApplicationName = "ConsoleServer",
-				AppDomainInitializerArguments = new string[] { },
-				ConfigurationFile = "ConsoleServer.exe.config"
-			};
+				foreach (var argument in arguments)
+				{
+					var value = Convert.ToString(argument.Value);
+					value = HttpUtility.UrlEncode(value);
 
-			// set up the Orleans silo
-			hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
+					argumentsString.AppendFormat("&{0}={1}", argument.Key, value);
+				}
 
-			var xmlConfig = "ClientConfigurationForTesting.xml";
-			Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
+				argumentsString.Remove(0, 1);
+				argumentsString.Insert(0, '?');
+            }
 
-			GrainClient.Initialize(xmlConfig);
-			Console.WriteLine("Orleans silo initialized successfully");
-		}
+			var address = string.Format("{0}{1}", this.baseAddress, argumentsString);
 
-		private void Cleanup()
-		{
-			if (strategyKind != AnalysisStrategyKind.ONDEMAND_ORLEANS) return;
-
-			hostDomain.DoCallBack(ShutdownSilo);
-		}
-
-		private static void InitSilo(string[] args)
-		{
-			hostWrapper = new OrleansHostWrapper();
-			hostWrapper.Init();
-			var ok = hostWrapper.Run();
-
-			if (!ok)
+			using (var client = new WebClient())
 			{
-				Console.WriteLine("Failed to initialize Orleans silo");
+				var data = await client.OpenReadTaskAsync(address);
+
+				using (var reader = new StreamReader(data))
+				{
+					response = await reader.ReadToEndAsync();
+				}
 			}
-		}
 
-		private static void ShutdownSilo()
-		{
-			if (hostWrapper != null)
-			{
-				hostWrapper.Dispose();
-				GC.SuppressFinalize(hostWrapper);
-			}
+			return response;
 		}
 	}
 }

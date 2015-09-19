@@ -79,6 +79,7 @@
     <PublishProfile Include="Profiles\orleansservicedgProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction1.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansServiceProduction3.azurePubxml" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
