@@ -71,7 +71,7 @@ namespace WebRole1
 
 					var analysisClient = new AnalysisClient(analyzer, machines);
 					// await analysisClient.Analyze();
-					await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath);
+					await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\','-').Replace('.','-'));
 
 					//var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
 					//string methods = String.Join("\n", reachableMethods);

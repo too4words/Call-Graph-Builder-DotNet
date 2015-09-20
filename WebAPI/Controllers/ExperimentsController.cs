@@ -20,9 +20,9 @@ namespace WebAPI
 
     public class ExperimentsController : ApiController
     {
-		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2
+		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2&expID=dummy
 		[HttpGet]
-		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods)
+		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID)
 		{
 			var result = string.Empty;
 
@@ -30,7 +30,7 @@ namespace WebAPI
 			{
 				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
 				var analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,expID);
 
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 			}
@@ -53,7 +53,7 @@ namespace WebAPI
 				solutionPath = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,solutionName);
 
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 			}
@@ -65,7 +65,27 @@ namespace WebAPI
 
 			return result;
 		}
+        [HttpGet]
+        public async Task<string> ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions, string expID)
+        {
+            var resultStr = "";
+            try
+            {
+                var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
+                var analysisClient = new AnalysisClient(solutionGrain, machines);
+                var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions,expID);
+                var avgTime = result.Item1;
+                var minTime = result.Item2;
+                var maxTime = result.Item3;
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                resultStr = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
+            return resultStr;
+        }
 		//[HttpGet]
 		public async Task<string> PerformDeactivationAsync()
 		{

@@ -1,8 +1,8 @@
 ﻿#
 #
 
-$resource = "http://orleansservice.cloudapp.net:8080/"
+$resource = "http://orleansservicedg.cloudapp.net:8080/"
 $controler="api/Experiments"
-$cmd = ""
+$cmd = "?command=Deactivate"
 $uri = $resource+$controler+$cmd
 Invoke-WebRequest -Uri $uri 

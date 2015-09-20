@@ -50,6 +50,7 @@ namespace ReachingTypeAnalysis.Statistics
 		public string Subject { get; set; }
 		public int Methods { get; set; }
 		public long Messages { get; set; }
+        public long ClientMessages { get; set; }
 		public long ElapsedTime { get; set; }
 		public long Activations { get; set; }
 		public long Deactivations { get; set; }

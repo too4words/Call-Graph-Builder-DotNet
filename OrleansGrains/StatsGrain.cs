@@ -93,7 +93,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				this.memoryUsage = currentMemoryUsage;
 			}
-
+            Logger.LogWarning(this.GetLogger(), "StatGrain", "Register Msg", "Addr1:{0} Addr2:{1}",senderAddr,receiverAddr);
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
 
@@ -162,7 +162,15 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloDeactivations.Clear();
 			this.operationCounter.Clear();
 			this.State.GrainClasses.Clear();
-
+            this.messages = 0;
+            this.memoryUsage = 0;
+            this.operationCounter.Clear();
+            this.latencyInfo = new LatencyInfo()
+            {
+                AccumulattedTimeDifference = 0,
+                MaxLatency = 0,
+                MaxLatencyMsg = ""
+            };
 			await this.WriteStateAsync();
 		}
 
@@ -310,11 +318,18 @@ namespace ReachingTypeAnalysis.Analysis
 #if COMPUTE_STATS
 			var statGrain = GetStatGrain(grainFactory);
 			var context = RequestContext.Get(StatsHelper.CALLER_ADDR_CONTEXT) as StatsContext;
-			var callerAddr = context.IPAddr;
-            var calleeAddr = GetMyIPAddr();
+            if (context != null)
+            {
+                var callerAddr = context.IPAddr;
+                var calleeAddr = GetMyIPAddr();
 
-			var timeDiff = DateTime.UtcNow.Subtract(context.TimeStamp).TotalMilliseconds;
-            return statGrain.RegisterMessage(msg, callerAddr, calleeAddr, timeDiff);
+                var timeDiff = DateTime.UtcNow.Subtract(context.TimeStamp).TotalMilliseconds;
+                return statGrain.RegisterMessage(msg, callerAddr, calleeAddr, timeDiff);
+            }
+            else
+            {
+                return TaskDone.Done;
+            }
 #else
 			return TaskDone.Done;
 #endif
