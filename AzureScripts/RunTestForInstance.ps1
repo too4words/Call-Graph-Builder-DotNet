@@ -4,7 +4,7 @@ param (
 	[string] $drive = "Y",
     [string] $solutionPath = "LongTest2",
 	[string] $solutionName = "LongTest2",
-	[int] $machines = 1,
+	[int] $machines = 2,
 	[int] $numberOfMethods = 100,
 	[string] $className = "C",
 	[string] $namespaceName = "ConsoleApplication",
