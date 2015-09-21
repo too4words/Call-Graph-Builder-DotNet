@@ -80,7 +80,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(reachableMethods.AsEnumerable());
 		}
 
-		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
+        public override Task<int> GetReachableMethodsCountAsync()
+        {
+            return Task.FromResult(reachableMethods.Count);
+        }
+
+        public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
 			//var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);

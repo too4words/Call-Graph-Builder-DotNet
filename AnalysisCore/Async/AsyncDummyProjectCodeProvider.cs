@@ -40,5 +40,9 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			return Task.FromResult(methodEntities.Keys.AsEnumerable());
 		}
-	}
+        public override Task<int> GetReachableMethodsCountAsync()
+        {
+            return Task.FromResult(methodEntities.Keys.Count);
+        }
+    }
 }

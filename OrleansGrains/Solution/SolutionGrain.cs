@@ -184,8 +184,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.solutionManager.GetReachableMethodsAsync();
 		}
+        public Task<int> GetReachableMethodsCountAsync()
+        {
+            StatsHelper.RegisterMsg("SolutionGrain::GetReachableMethodsCount", this.GrainFactory);
 
-		public async Task ForceDeactivation()
+            return this.solutionManager.GetReachableMethodsCountAsync();
+        }
+
+        public async Task ForceDeactivation()
 		{
 			//await StatsHelper.RegisterMsg("SolutionGrain::ForceDeactivation", this.GrainFactory);
 
@@ -208,5 +214,5 @@ namespace ReachingTypeAnalysis.Analysis
 			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
 			return Task.FromResult(drivers.AsEnumerable());
 		}
-	}    
+    }    
 }

@@ -66,7 +66,7 @@ namespace WebAPI
 			return result;
 		}
         [HttpGet]
-        public async Task<string> ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions, string expID)
+        public async Task<string> ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions, string assemblyName, string expID)
         {
             var resultStr = "";
             try
@@ -74,7 +74,7 @@ namespace WebAPI
                 var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
                 var analysisClient = new AnalysisClient(solutionGrain, machines);
-                var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions,expID);
+                var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions, assemblyName, expID);
                 var avgTime = result.Item1;
                 var minTime = result.Item2;
                 var maxTime = result.Item3;

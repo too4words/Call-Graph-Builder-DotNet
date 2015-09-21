@@ -38,5 +38,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(reachableMethods.AsEnumerable());
 		}
-	}
+        public override Task<int> GetReachableMethodsCountAsync()
+        {
+            return Task.FromResult(reachableMethods.Count);
+        }
+
+    }
 }

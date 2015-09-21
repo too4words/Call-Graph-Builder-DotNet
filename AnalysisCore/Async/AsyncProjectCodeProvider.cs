@@ -75,7 +75,12 @@ namespace ReachingTypeAnalysis.Roslyn
 			return Task.FromResult(methodEntities.Keys.AsEnumerable());
 		}
 
-		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
+        public override Task<int> GetReachableMethodsCountAsync()
+        {
+            return Task.FromResult(methodEntities.Keys.Count);
+        }
+
+        public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
 			//this.methodEntities.Remove(methodDescriptor);

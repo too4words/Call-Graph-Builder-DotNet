@@ -68,7 +68,9 @@ namespace ReachingTypeAnalysis
 
 		Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
 
-		Task<IEnumerable<FileResponse>> GetDocumentsAsync();
+        Task<int> GetReachableMethodsCountAsync();
+
+        Task<IEnumerable<FileResponse>> GetDocumentsAsync();
 
 		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
 
@@ -98,8 +100,9 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+        Task<int> GetReachableMethodsCountAsync();
 
-		Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
+        Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
 
 		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
 

@@ -64,8 +64,9 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+        public abstract Task<int> GetReachableMethodsCountAsync();
 
-		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
+        public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{
 			return Task.FromResult(new PropagationEffects(new HashSet<CallInfo>(), false));
 		}

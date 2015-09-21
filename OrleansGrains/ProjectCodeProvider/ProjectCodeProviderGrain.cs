@@ -148,7 +148,14 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetReachableMethodsAsync();
 		}
 
-		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+        public Task<int> GetReachableMethodsCountAsync()
+        {
+            StatsHelper.RegisterMsg("ProjectGrain::GetReachableMethods", this.GrainFactory);
+            return this.projectCodeProvider.GetReachableMethodsCountAsync();
+        }
+
+
+        public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
 			StatsHelper.RegisterMsg("ProjectGrain::CreateMethodEntity", this.GrainFactory);
 
@@ -283,5 +290,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.projectCodeProvider.GetCompatibleInstantiatedTypesAsync(type);
 		}
-	}
+
+    }
 }

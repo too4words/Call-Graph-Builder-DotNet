@@ -94,7 +94,12 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.GetReachableMethodsAsync();
 		}
 
-		public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
+        public Task<int> GetReachableMethodsCountAsync()
+        {
+            return codeProvider.GetReachableMethodsCountAsync();
+        }
+
+        public Task<IEnumerable<FileResponse>> GetDocumentsAsync()
 		{
 			return codeProvider.GetDocumentsAsync();
 		}

@@ -166,7 +166,7 @@ namespace ReachingTypeAnalysis.Statistics
 			var avgLattency = await myStatsGrain.GetAverageLattency();
 			var totalMessages = await myStatsGrain.GetTotalMessages();
 
-            var methods = (await this.SolutionManager.GetReachableMethodsAsync()).Count();
+            var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
 
             var results = new SubjectExperimentResults()
             {
@@ -253,7 +253,7 @@ namespace ReachingTypeAnalysis.Statistics
 			return SiloAddress.FromParsableString(s);
 		}
 
-        public async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int numberOfMethods, int repetitions, string expId = "DummyExperimentID")
+        public async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int numberOfMethods, int repetitions, string assemblyName = "MyProject", string expId = "DummyExperimentID")
         {
             if(String.IsNullOrEmpty(this.ExpID))
             {
@@ -270,7 +270,8 @@ namespace ReachingTypeAnalysis.Statistics
             for (int i = 0; i < repetitions; i++)
             {
                 int methodNumber = random.Next(numberOfMethods) + 1;
-                var methodDescriptor = new MethodDescriptor(className, methodPrejix + methodNumber, true);
+                var typeDescriptor = new TypeDescriptor("", className, assemblyName);
+                var methodDescriptor = new MethodDescriptor(typeDescriptor, methodPrejix + methodNumber, true);
                 var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
 
                 if (invocationCount > 0)

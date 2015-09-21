@@ -393,5 +393,10 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			throw new NotImplementedException();
 		}
-	}
+
+        public Task<int> GetReachableMethodsCountAsync()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

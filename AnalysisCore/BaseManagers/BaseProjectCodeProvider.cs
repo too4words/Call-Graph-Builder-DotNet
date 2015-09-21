@@ -172,8 +172,9 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+        public abstract Task<int> GetReachableMethodsCountAsync();
 
-		public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
             var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
             var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);

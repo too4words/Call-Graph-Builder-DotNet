@@ -133,8 +133,22 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
 		}
+        public async Task<int> GetReachableMethodsCountAsync()
+        {
+            var result = 0;
 
-		public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
+            foreach (var project in this.Projects)
+            {
+                var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+                var reachableMethodsCount = await provider.GetReachableMethodsCountAsync();
+
+                result+= reachableMethodsCount;
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<IProjectCodeProvider>();
