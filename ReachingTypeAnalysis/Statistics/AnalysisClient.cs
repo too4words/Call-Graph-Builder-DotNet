@@ -34,7 +34,8 @@ namespace ReachingTypeAnalysis.Statistics
 		public long TotalDeactivations { get; set; }
 
 		public long MemoryUsage { get; set; }
-	}
+        public long TotalClientMessages { get; internal set; }
+    }
 
     public class AnalysisClient
     {
@@ -115,11 +116,16 @@ namespace ReachingTypeAnalysis.Statistics
 			var totalDeact = 0L;
 			var time = DateTime.Now;
 
-			//this.methods = -1;
-			
-			// var messageMetric = new MessageMetrics();			
+            var acummulatedPerSiloMemoryUsage = 0L;
+            var maxPerSiloMemoryUsage = 0L;
+            var acummulatedPerSiloCPUUsage = 0D;
+            var maxPerSiloCPUUsage = 0D;
 
-			var silos = (await  myStatsGrain.GetSilos()).ToArray();
+            //this.methods = -1;
+
+            // var messageMetric = new MessageMetrics();			
+
+            var silos = (await  myStatsGrain.GetSilos()).ToArray();
 
 			var siloComputedStats = new SiloComputedStats[silos.Length];
 						
@@ -142,7 +148,7 @@ namespace ReachingTypeAnalysis.Statistics
 				var deactivations = deactivationDic.Sum(items => items.Value);
 				siloComputedStats[i].TotalActivations += activations;
 				siloComputedStats[i].TotalDeactivations += deactivations;
-						
+                siloComputedStats[i].TotalClientMessages += await myStatsGrain.GetTotalClientMsgsPerSilo(addrString);		
 				// totalAct += orleansStats[i].ActivationCount;
 				totalAct += activations;
 				totalDeact += deactivations;
@@ -161,11 +167,25 @@ namespace ReachingTypeAnalysis.Statistics
 
 				totalSentLocal += siloComputedStats[i].TotalSentLocalSilo;
 				totalRecvLocal += siloComputedStats[i].TotalSentLocalSilo;
+
+                acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
+                acummulatedPerSiloCPUUsage += orleansStats[i].CpuUsage;
+                if(maxPerSiloMemoryUsage<orleansStats[i].MemoryUsage)
+                {
+                    maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
+                }
+                if(maxPerSiloCPUUsage<orleansStats[i].CpuUsage)
+                {
+                    maxPerSiloCPUUsage = orleansStats[i].CpuUsage;
+                }
 			}
 			
-			var avgLattency = await myStatsGrain.GetAverageLattency();
-			var totalMessages = await myStatsGrain.GetTotalMessages();
+			var avgLatency = await myStatsGrain.GetAverageLatency();
+            var maxLatency = await myStatsGrain.GetMaxLatency();
+            var maxLatencyMsg = await myStatsGrain.GetMaxLatencyMsg();
 
+            var totalMessages = await myStatsGrain.GetTotalMessages();
+            var clientMessages = await myStatsGrain.GetTotalClientMessages();
             var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
 
             var results = new SubjectExperimentResults()
@@ -176,7 +196,7 @@ namespace ReachingTypeAnalysis.Statistics
                 Machines = machines,
                 Methods = methods,
                 Messages = totalMessages,
-                ClientMessages = SolutionAnalyzer.MessageCounter,
+                ClientMessages =  clientMessages, // SolutionAnalyzer.MessageCounter,
                 ElapsedTime = stopWatch.ElapsedMilliseconds,
 				Activations = totalAct,
 				Deactivations = totalDeact,
@@ -187,7 +207,13 @@ namespace ReachingTypeAnalysis.Statistics
 				TotalSentLocal = totalSentLocal,
 				TotalSentNetwork = totalSentNetwork,
 				TotalRecvLocal = totalRecvLocal,
-				AverageLatency = avgLattency
+				AverageLatency = avgLatency,
+                MaxLatency = maxLatency,
+                MaxLatencyMsg = maxLatencyMsg,
+                AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage/ silos.Length,
+                AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
+                MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
+                MaxPerSiloCPUUsage = maxPerSiloCPUUsage
             };
 
 			// Save results in main table
@@ -490,7 +516,8 @@ namespace ReachingTypeAnalysis.Statistics
 				TotalRecvNetworkSilo = siloComputedStat.TotalRecvNetworkSilo,
 				TotalSentLocalSilo   = siloComputedStat.TotalSentLocalSilo,
 				TotalSentNetworkSilo = siloComputedStat.TotalSentNetworkSilo,
-				TotalRecvLocalSilo   = siloComputedStat.TotalRecvLocalSilo 
+				TotalRecvLocalSilo   = siloComputedStat.TotalRecvLocalSilo, 
+                TotalClientMsg = siloComputedStat.TotalClientMessages
 			};
 
 			if (this.siloMetrics == null)

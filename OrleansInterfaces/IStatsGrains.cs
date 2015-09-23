@@ -10,7 +10,7 @@ namespace OrleansInterfaces
 {
     public interface IStatsGrain : IGrainWithStringKey
     {
-        Task RegisterMessage(string message, string senderAddr, string receiverAddr, double timeDiff);
+        Task RegisterMessage(string message, string senderAddr, string receiverAddr, bool isClient, double timeDiff);
 		Task ResetStats();
 		Task<Dictionary<string,long>> GetSiloSentMsgs(string siloAddr);
 		Task<Dictionary<string,long>> GetSiloReceivedMsgs(string siloAddr);
@@ -27,8 +27,12 @@ namespace OrleansInterfaces
 		Task<long> GetActivations(string grainClass);
 		Task<long> GetDeactivations(string grainClass);
 		Task<long> GetTotalMessages();
-		Task<double> GetAverageLattency();
-		Task<long> GetSiloMemoryUsage(string addrString);
+        Task<long> GetTotalClientMessages();
+        Task<long> GetTotalClientMsgsPerSilo(string siloAddr);
+        Task<double> GetAverageLatency();
+        Task<double> GetMaxLatency();
+        Task<string> GetMaxLatencyMsg();
+        Task<long> GetSiloMemoryUsage(string addrString);
 
 		Task<IEnumerable<string>> GetSilos();
 	}

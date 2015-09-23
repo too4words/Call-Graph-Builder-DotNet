@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public Dictionary<string, Dictionary<string, long>> SiloDeactivations { get; set; }
 		public ISet<string> GrainClasses { get; set; }
 
-		//Dictionary<string, long> SiloLocalSentMsgs { get; set; }
+		public Dictionary<string, long> SiloClientMsgs { get; set; }
 		//Dictionary<string, long> SiloLocalRecvMsgs { get; set; }
 
 		//Dictionary<string, long> SiloNetworkSentMsgs { get; set; }
@@ -46,8 +46,9 @@ namespace ReachingTypeAnalysis.Analysis
 		private long messages;
 		private LatencyInfo latencyInfo;
 		private long memoryUsage;
+        private long clientMessages;
 
-		private Task WriteStateAsync()
+        private Task WriteStateAsync()
 		{
 			return TaskDone.Done;
 		}
@@ -55,7 +56,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return TaskDone.Done;
 		}
-
 
         public override  Task OnActivateAsync()
         {
@@ -71,9 +71,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloDeactivations = new Dictionary<string, Dictionary<string, long>>();
 
 			this.State.GrainClasses  = new HashSet<string>();
+            this.State.SiloClientMsgs = new Dictionary<string, long>();
 
-			this.operationCounter = new Dictionary<string,long>();
+            this.operationCounter = new Dictionary<string,long>();
 			this.messages = 0;
+            this.clientMessages = 0;
 
 			this.latencyInfo = new LatencyInfo
 			{
@@ -86,21 +88,28 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		public Task RegisterMessage(string message, string senderAddr, string receiverAddr, double timeDiff)
+		public Task RegisterMessage(string message, string senderAddr, string receiverAddr, bool isClient, double timeDiff)
 		{
-			var currentMemoryUsage = System.GC.GetTotalMemory(false);
-			if(currentMemoryUsage>this.memoryUsage)
-			{
-				this.memoryUsage = currentMemoryUsage;
-			}
+            // This is wrong: we need to get the memory as a parameter, if not we are measuring the Silo that contains the stat grain
+            //var currentMemoryUsage = System.GC.GetTotalMemory(false);
+            //if(currentMemoryUsage>this.memoryUsage)
+            //{
+            //	this.memoryUsage = currentMemoryUsage;
+            //}
+            this.memoryUsage = 0;
+
             Logger.LogWarning(this.GetLogger(), "StatGrain", "Register Msg", "Addr1:{0} Addr2:{1}",senderAddr,receiverAddr);
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
-
-			IncrementCounter(message, this.operationCounter);
+     		IncrementCounter(message, this.operationCounter);
 
 			this.messages++;
+            if (isClient)
+            {
+                this.clientMessages++;
+                IncrementCounter(receiverAddr, this.State.SiloClientMsgs);
 
+            }
 			this.latencyInfo.AccumulattedTimeDifference += timeDiff;
 			if(timeDiff>this.latencyInfo.MaxLatency)
 			{
@@ -160,9 +169,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.State.SiloRecvMsgs.Clear();
 			this.State.SiloActivations.Clear();
 			this.State.SiloDeactivations.Clear();
+            this.State.SiloClientMsgs.Clear();
 			this.operationCounter.Clear();
 			this.State.GrainClasses.Clear();
             this.messages = 0;
+            this.clientMessages = 0;
             this.memoryUsage = 0;
             this.operationCounter.Clear();
             this.latencyInfo = new LatencyInfo()
@@ -229,7 +240,19 @@ namespace ReachingTypeAnalysis.Analysis
 			var total = siloStat.Sum(item => item.Value);
 			return total;
 		}
-		public async Task<long> GetActivations(string grainClass)
+
+        public  Task<long> GetTotalClientMsgsPerSilo(string siloAddr)
+        {
+            var total = 0L;
+            if(!this.State.SiloClientMsgs.TryGetValue(siloAddr, out total))
+            {
+                total = 0;
+            }
+            return Task.FromResult(total);
+        }
+
+
+        public async Task<long> GetActivations(string grainClass)
 		{
 			return await SumSiloPerCategory(grainClass, this.State.SiloActivations);
 		}
@@ -279,16 +302,28 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(result);
 		}
 
-		public Task<double> GetAverageLattency()
+		public Task<double> GetAverageLatency()
 		{
 			return Task.FromResult(this.latencyInfo.AccumulattedTimeDifference / this.messages);
 		}
-
-		public Task<long> GetTotalMessages()
+        public Task<double> GetMaxLatency()
+        {
+            return Task.FromResult(this.latencyInfo.MaxLatency);
+        }
+        public Task<string> GetMaxLatencyMsg()
+        {
+            return Task.FromResult(this.latencyInfo.MaxLatencyMsg);
+        }
+        public Task<long> GetTotalMessages()
 		{
 			return Task.FromResult(this.messages);
 		}
-		public Task<long> GetSiloMemoryUsage(string addrString)
+        public Task<long> GetTotalClientMessages()
+        {
+            return Task.FromResult(this.clientMessages);
+        }
+
+        public Task<long> GetSiloMemoryUsage(string addrString)
 		{
 			return Task.FromResult(this.memoryUsage);
 		}
@@ -297,7 +332,8 @@ namespace ReachingTypeAnalysis.Analysis
 	[Serializable]
 	public class StatsContext
 	{
-		public string IPAddr { get; set; }
+        public bool IsClient { get; set; }
+        public string IPAddr { get; set; }
 		public DateTime TimeStamp { get; set; }
 	}
 
@@ -306,6 +342,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public const string STATS_GRAIN = "Stats";
 		public const string CALLER_ADDR_CONTEXT = "CallerAddr";
 		public const string SILO_ADDR = "MyIPAddr";
+        public const string IS_ORLEANS_CLIENT = "ISORLEANSCLIENT";
 
 		public static IStatsGrain GetStatGrain(IGrainFactory grainFactory)
 		{
@@ -322,9 +359,14 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 var callerAddr = context.IPAddr;
                 var calleeAddr = GetMyIPAddr();
-
+                var isClient = context.IsClient;
+                // TODO: This time diffenrence may not work well if machines are not coordinated. 
+                // It may be better to use a stopwatch both in the caller and callee and substract the difference
+                // But for that we would need to include a stopwtach in the grain wrapper and another stopwatch in the grain 
+                // Then, the stat grain needs to compute the difference. We may need another method and the end of the grain call for that
+                // Something like RegisterEndMsg 
                 var timeDiff = DateTime.UtcNow.Subtract(context.TimeStamp).TotalMilliseconds;
-                return statGrain.RegisterMessage(msg, callerAddr, calleeAddr, timeDiff);
+                return statGrain.RegisterMessage(msg, callerAddr, calleeAddr, isClient, timeDiff);
             }
             else
             {
@@ -360,14 +402,25 @@ namespace ReachingTypeAnalysis.Analysis
 		public static StatsContext CreateMyIPAddrContext()
 		{
 			var addr = GetMyIPAddr();
-			return new StatsContext()
+    		return new StatsContext()
 			{
+                IsClient = IsOrleansClient(),
 				IPAddr = addr,
 				TimeStamp = DateTime.UtcNow,
 			};
 		}
 
-		public static string GetMyIPAddr()
+        private static bool IsOrleansClient()
+        {
+            var isClient = Environment.GetEnvironmentVariable(IS_ORLEANS_CLIENT);
+            if(isClient==null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static string GetMyIPAddr()
 		{
 			//IPHostEntry host;
 			//string localIP = "?";

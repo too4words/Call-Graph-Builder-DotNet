@@ -59,9 +59,17 @@ namespace ReachingTypeAnalysis.Statistics
 		public long TotalSentLocal { get; set; }
 		public long TotalSentNetwork { get; set; }
 		public long TotalRecvLocal { get; set; }
-		public double AverageLatency { get; set; }
-	}
-	public class QueriesPerSubject : TableEntityCSV
+        public long AveragePerSiloMemoryUsage { get; set; }
+        public double AveragePerSiloCPUUsage { get; set; }
+        public long MaxPerSiloMemoryUsage { get; set; }
+        public double MaxPerSiloCPUUsage { get; set; }
+
+        public double AverageLatency { get; set; }
+        public double MaxLatency { get; set; }
+        public string MaxLatencyMsg { get; set; }
+
+    }
+    public class QueriesPerSubject : TableEntityCSV
 	{
 		public string ExpID { get; set; }
 		public DateTime Time { get; set; }
@@ -94,9 +102,11 @@ namespace ReachingTypeAnalysis.Statistics
 		//public long RequestQueue { get; set; }
 		public long SentMessages { get; set; }
 		public long ReceivedMessages { get; set; }
-		//public bool LoadShedding { get; set; }
-		//public long ClientCount { get; set; }
-		public long TotalRecvNetworkSilo { get; set; }
+        //public bool LoadShedding { get; set; }
+        //public long ClientCount { get; set; }
+        public long TotalClientMsg { get; set; }
+
+        public long TotalRecvNetworkSilo { get; set; }
 		public long TotalSentNetworkSilo { get; set; }
 		public long TotalRecvLocalSilo { get; set; }
 		public long TotalSentLocalSilo { get; set; }

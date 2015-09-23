@@ -31,6 +31,7 @@ namespace WebAPI
 		{
 			var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["EndPoint1"].IPEndpoint.Address.ToString();
 			Environment.SetEnvironmentVariable("MyIPAddr", ipAddr);
+            Environment.SetEnvironmentVariable("ISORLEANSCLIENT", "True");
 
             // No longer needed. The emulator handles the same configuration
             //if (!RoleEnvironment.IsEmulated || true)

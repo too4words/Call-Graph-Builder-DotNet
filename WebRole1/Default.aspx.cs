@@ -25,6 +25,7 @@ namespace WebRole1
         {
 			var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["EndPoint1"].IPEndpoint.Address.ToString();
 			Environment.SetEnvironmentVariable("MyIPAddr", ipAddr);
+            Environment.SetEnvironmentVariable("ISORLEANSCLIENT", "True");
 
             if (Page.IsPostBack)
             {
