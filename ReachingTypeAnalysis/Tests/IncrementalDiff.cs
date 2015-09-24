@@ -78,7 +78,7 @@ class Program
 
 		private static void GetDocumentsFromSource(string oldSource, string newSource, out Document oldDocument, out Document newDocument)
 		{
-			var solution = Utils.CreateSolution(oldSource);
+			var solution = SolutionFileGenerator.CreateSolution(oldSource);
 			var project = solution.Projects.Single();
 			oldDocument = project.Documents.Single();
 

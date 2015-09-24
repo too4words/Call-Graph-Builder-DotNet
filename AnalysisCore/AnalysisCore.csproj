@@ -200,6 +200,7 @@
     <Compile Include="BaseManagers\ProjectCodeProviderIncremental.cs" />
     <Compile Include="Roslyn\RoslynASTVisitor.cs" />
     <Compile Include="Roslyn\RoslynSymbolFactory.cs" />
+    <Compile Include="Roslyn\SolutionFileGenerator.cs" />
     <Compile Include="Roslyn\Utils.cs" />
     <Compile Include="StatementProcessor.cs" />
     <Compile Include="Tests\TestSources.cs" />

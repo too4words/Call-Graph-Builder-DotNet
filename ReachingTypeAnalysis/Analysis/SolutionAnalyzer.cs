@@ -248,7 +248,7 @@ namespace ReachingTypeAnalysis
 
 			if (this.source != null)
 			{
-				solution = Utils.CreateSolution(this.source);
+				solution = SolutionFileGenerator.CreateSolution(this.source);
 			}
 			else
 			{

@@ -193,6 +193,12 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(218487452, null );
             }
             
+            System.Threading.Tasks.Task<int> ReachingTypeAnalysis.IProjectCodeProvider.GetReachableMethodsCountAsync()
+            {
+
+                return base.InvokeMethodAsync<System.Int32>(-407445145, null );
+            }
+            
             System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<CodeGraphModel.FileResponse>> ReachingTypeAnalysis.IProjectCodeProvider.GetDocumentsAsync()
             {
 
@@ -307,6 +313,8 @@ namespace OrleansInterfaces
                                 return ((IProjectCodeProviderGrain)grain).GetPublicMethodsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 218487452: 
                                 return ((IProjectCodeProviderGrain)grain).GetReachableMethodsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -407445145: 
+                                return ((IProjectCodeProviderGrain)grain).GetReachableMethodsCountAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1786662708: 
                                 return ((IProjectCodeProviderGrain)grain).GetDocumentsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -215926694: 
@@ -380,6 +388,8 @@ namespace OrleansInterfaces
                             return "GetPublicMethodsAsync";
                     case 218487452:
                             return "GetReachableMethodsAsync";
+                    case -407445145:
+                            return "GetReachableMethodsCountAsync";
                     case -1786662708:
                             return "GetDocumentsAsync";
                     case -215926694:
@@ -611,16 +621,28 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Int64>(196409260, new object[] {@grainClass} );
             }
             
-            System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.TotalMessages()
+            System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.GetTotalMessages()
             {
 
-                return base.InvokeMethodAsync<System.Int64>(356115300, null );
+                return base.InvokeMethodAsync<System.Int64>(819616702, null );
             }
             
             System.Threading.Tasks.Task<double> OrleansInterfaces.IStatsGrain.GetAverageLattency()
             {
 
                 return base.InvokeMethodAsync<System.Double>(-1421021834, null );
+            }
+            
+            System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.GetSiloMemoryUsage(string @addrString)
+            {
+
+                return base.InvokeMethodAsync<System.Int64>(438298509, new object[] {@addrString} );
+            }
+            
+            System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<string>> OrleansInterfaces.IStatsGrain.GetSilos()
+            {
+
+                return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<System.String>>(-861948649, null );
             }
         }
     }
@@ -681,10 +703,14 @@ namespace OrleansInterfaces
                                 return ((IStatsGrain)grain).GetActivations((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 196409260: 
                                 return ((IStatsGrain)grain).GetDeactivations((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case 356115300: 
-                                return ((IStatsGrain)grain).TotalMessages().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 819616702: 
+                                return ((IStatsGrain)grain).GetTotalMessages().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1421021834: 
                                 return ((IStatsGrain)grain).GetAverageLattency().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 438298509: 
+                                return ((IStatsGrain)grain).GetSiloMemoryUsage((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -861948649: 
+                                return ((IStatsGrain)grain).GetSilos().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
                         }case -1277021679:  // IGrainWithStringKey
@@ -746,10 +772,14 @@ namespace OrleansInterfaces
                             return "GetActivations";
                     case 196409260:
                             return "GetDeactivations";
-                    case 356115300:
-                            return "TotalMessages";
+                    case 819616702:
+                            return "GetTotalMessages";
                     case -1421021834:
                             return "GetAverageLattency";
+                    case 438298509:
+                            return "GetSiloMemoryUsage";
+                    case -861948649:
+                            return "GetSilos";
                     
                         default: 
                             throw new NotImplementedException("interfaceId="+interfaceId+",methodId="+methodId);
@@ -911,6 +941,12 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>>(218487452, null );
             }
             
+            System.Threading.Tasks.Task<int> ReachingTypeAnalysis.ISolutionManager.GetReachableMethodsCountAsync()
+            {
+
+                return base.InvokeMethodAsync<System.Int32>(-407445145, null );
+            }
+            
             System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.IProjectCodeProvider>> ReachingTypeAnalysis.ISolutionManager.GetProjectCodeProvidersAsync()
             {
 
@@ -1001,6 +1037,8 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).GetPublicMethodsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 218487452: 
                                 return ((ISolutionGrain)grain).GetReachableMethodsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -407445145: 
+                                return ((ISolutionGrain)grain).GetReachableMethodsCountAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1200848455: 
                                 return ((ISolutionGrain)grain).GetProjectCodeProvidersAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 117374023: 
@@ -1062,6 +1100,8 @@ namespace OrleansInterfaces
                             return "GetPublicMethodsAsync";
                     case 218487452:
                             return "GetReachableMethodsAsync";
+                    case -407445145:
+                            return "GetReachableMethodsCountAsync";
                     case -1200848455:
                             return "GetProjectCodeProvidersAsync";
                     case 117374023:

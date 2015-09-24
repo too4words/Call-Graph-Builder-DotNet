@@ -241,36 +241,6 @@ namespace ReachingTypeAnalysis
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
 
-		private static MetadataReference mscorlib;
-
-		internal static MetadataReference Mscorlib
-		{
-			get
-			{
-				if (mscorlib == null)
-				{
-					mscorlib = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
-				}
-
-				return mscorlib;
-			}
-		}
-
-		public static Solution CreateSolution(string source)
-		{
-			var projectId = ProjectId.CreateNewId();
-			var documentId = DocumentId.CreateNewId(projectId);
-
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
-			var ws = MSBuildWorkspace.Create(props);
-			var solution = ws.CurrentSolution
-				.AddProject(projectId, TestConstants.ProjectName, TestConstants.ProjectAssemblyName, LanguageNames.CSharp)
-				.AddMetadataReference(projectId, Mscorlib)
-				.AddDocument(documentId, TestConstants.DocumentName, source, null, TestConstants.DocumentPath);
-
-			return solution;
-		}
 
 		public static Task<Project> ReadProjectAsync(string path)
 		{

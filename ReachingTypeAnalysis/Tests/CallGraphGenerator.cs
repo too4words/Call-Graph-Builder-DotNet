@@ -11,8 +11,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Diagnostics.Contracts;
 using System.IO;
+using Microsoft.CodeAnalysis.MSBuild;
+using System.Xml;
+using System.Text;
 
-namespace ReachingTypeAnalysis
+namespace ReachingTypeAnalysis.Tests
 {
     /// <summary>
     /// This will produce randomy generated callgraphs of a given size. 
@@ -21,7 +24,7 @@ namespace ReachingTypeAnalysis
     [TestClass]
     public class CallGraphGenerator
     {
-        public static CallGraph<string, int> GenerateCallGraph(int n)
+        public static CallGraph<string, int> GenerateCallGraph(int n, bool addCallsFromMain = true)
         {
 			Trace.TraceInformation("Adding Nodes");
             var result = new CallGraph<string, int>();
@@ -48,21 +51,40 @@ namespace ReachingTypeAnalysis
             }
             result.Add("Main");
             result.AddRootMethod("Main");
-			
-			Trace.TraceInformation("Adding calls from main");
-            foreach (var method in result.GetNodes())
+
+            if (addCallsFromMain)
             {
-                result.AddCall("Main", method);
+                Trace.TraceInformation("Adding calls from main");
+                foreach (var method in result.GetNodes())
+                {
+                    result.AddCall("Main", method);
+                }
             }
 
             return result;
         }
 
+
+        public static Solution GenerateSolution(int nodes, int maxCalls)
+        {
+            string solutionPath = @"C:\Users\...\PathToSolution\MySolution.sln";
+            var msWorkspace = MSBuildWorkspace.Create();
+            var solution = msWorkspace.OpenSolutionAsync(solutionPath).Result;
+
+
+
+            //IWorkspace workspace = Workspace.LoadSolution("MySolution.sln");
+            //var originalSolution = workspace.CurrentSolution;
+            //var project = originalSolution.GetProject(originalSolution.ProjectIds.First());
+            //IDocument doc = project.AddDocument("index.html", "<html></html>");
+            //workspace.ApplyChanges(originalSolution, doc.Project.Solution);
+            throw new NotImplementedException();
+        }
+
 		public static SyntaxNode GenerateCode(int nodes, int maxCalls)
 		{
 			Trace.TraceInformation("Adding Methods");
-			List<MethodDeclarationSyntax> methods = new List<MethodDeclarationSyntax>();
-
+			var methods = new List<MethodDeclarationSyntax>();
 			var mainCallees = new List<string>();
 			
             for (var i = 0; i < nodes; i++)
@@ -72,7 +94,7 @@ namespace ReachingTypeAnalysis
 					Trace.TraceInformation("Adding method {0}", i);
 				}
 				var method = string.Format("N{0}", i);
-				methods.Add(GetMethod(method, generateCalles(nodes,maxCalls)));
+				methods.Add(GetMethod(method, GenerateCalles(nodes,maxCalls)));
 				mainCallees.Add(method);
             }
 		
@@ -91,15 +113,15 @@ namespace ReachingTypeAnalysis
 				.NormalizeWhitespace();
 		}
 
-		private static IEnumerable<string> generateCalles(int nodes, int p)
+		private static IEnumerable<string> GenerateCalles(int nodes, int calleeRange)
 		{
 			var rand = new Random();
 
 			var calles = new List<string>();
 
-			var nCalless = rand.Next(1,p);
+            var numberOfCallees = rand.Next(1, calleeRange);
 
-			for (var i = 0; i < nCalless; i++)
+			for (var i = 0; i < numberOfCallees; i++)
 			{
 				var dest = rand.Next(nodes - 1);
 
@@ -108,10 +130,10 @@ namespace ReachingTypeAnalysis
 			return calles;
 		}
 
-        public static SyntaxNode GenerateCode(CallGraph<string,int> callgraph)
+        public static CompilationUnitSyntax GenerateCode(CallGraph<string, int> callgraph)
         {
 			Trace.TraceInformation("Adding Methods");
-            List<MethodDeclarationSyntax> methods = new List<MethodDeclarationSyntax>();
+            var methods = new List<MethodDeclarationSyntax>();
 			int i = 0;
             foreach (var vertex in callgraph.GetNodes())
             {
@@ -134,6 +156,56 @@ namespace ReachingTypeAnalysis
                             SyntaxFactory.List<MemberDeclarationSyntax>(methods)
                         )))
                 .NormalizeWhitespace();
+        }
+
+        /// <summary>
+        /// The resulting structure has one file per project and one class per file.
+        /// </summary>
+        /// <param name="callgraph"></param>
+        /// <param name="projectCount"></param>
+        /// <returns></returns>
+        public static IEnumerable<CompilationUnitSyntax> GenerateCodeWithDifferentProjects(CallGraph<string, int> callgraph, int projectCount)
+        {
+			Trace.TraceInformation("Adding Methods");
+			int i = 0;
+            var fileList = new List<MethodDeclarationSyntax>[projectCount];
+            for (var index = 0; index < projectCount; index++)
+            {
+                fileList[index] = new List<MethodDeclarationSyntax>();
+            }
+            foreach (var vertex in callgraph.GetNodes())
+            {
+				i++;
+				if (i % 500 == 0)
+				{
+					Trace.TraceInformation("Adding method {0}", i);
+				}
+                var method = GetMethod(vertex,
+                    callgraph.GetCallees(vertex).Select(
+                        m =>
+                        string.Format("C{0}.{1}", Math.Abs(vertex.GetHashCode()) % projectCount, m)));
+                var hash = vertex.GetHashCode();
+                var fileForThisMethod = Math.Abs(hash) % projectCount;
+                Contract.Assert(fileForThisMethod >= 0);
+                Contract.Assert(fileForThisMethod < projectCount);
+
+                fileList[fileForThisMethod].Add(method);
+            }
+            //methods.Add(GetMain(callgraph.GetNodes()));
+
+            for (var index = 0; index < fileList.Count(); index++)
+            {
+                yield return
+                    SyntaxFactory.CompilationUnit()
+                    .WithMembers(
+                        SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                            SyntaxFactory.ClassDeclaration(
+                                string.Format("C{0}", index))
+                            .WithMembers(
+                                SyntaxFactory.List<MemberDeclarationSyntax>(fileList[index])
+                            )))
+                    .NormalizeWhitespace();
+            }
         }
 
         /// <summary>
@@ -590,6 +662,91 @@ namespace ReachingTypeAnalysis
             Console.WriteLine(code);
         }
 
+        [TestMethod]
+        [TestCategory("Generation")]
+        
+         public void GenerateSimpleCallGraphWithMultipleFiles()
+        {
+
+            try
+            {
+                if (Directory.Exists(TestConstants.TestDirectory))
+                {
+                    Directory.Delete(TestConstants.TestDirectory, true);
+                }
+                Directory.CreateDirectory(TestConstants.TestDirectory);
+
+                var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
+                Trace.TraceInformation("Writing to {0}", writingTo);
+
+                var callgraph = GenerateCallGraph(10);
+                var syntaxes = GenerateCodeWithDifferentProjects(callgraph, 3);
+                int index = 0;
+                foreach (var syntax in syntaxes)
+                {
+                    var code = syntax.ToFullString();
+
+                    var fileName = string.Format("test\\file{0}.cs", index);
+                    Trace.TraceInformation(fileName);
+                    Trace.TraceInformation(code);
+                    File.WriteAllText(fileName, code);
+                    index++;
+                }
+                //Console.WriteLine(code);
+            }
+            finally
+            {
+                //Directory.Delete(TestConstants.TestDirectory, true);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        
+        public void GenerateSimpleCallGraphWithMultipleProjects()
+        {
+            try
+            {
+                if (Directory.Exists(TestConstants.TestDirectory))
+                {
+                    Directory.Delete(TestConstants.TestDirectory, true);
+                }
+                Directory.CreateDirectory(TestConstants.TestDirectory);
+
+                var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
+                Trace.TraceInformation("Writing to {0}", writingTo);
+
+                var callgraph = GenerateCallGraph(10);
+                var syntaxes = GenerateCodeWithDifferentProjects(callgraph, 3);
+                int index = 0;
+                var descriptors = new List<ProjectDescriptor>();
+                foreach (var syntax in syntaxes)
+                {
+                    var code = syntax.ToFullString();
+
+                    var fileName = string.Format("test\\file{0}.cs", index);
+                    Trace.TraceInformation(fileName);
+                    Trace.TraceInformation(code);
+                    File.WriteAllText(fileName, code);
+                    descriptors.Add(new ProjectDescriptor {
+                        AbsolutePath = Path.Combine(writingTo, string.Format("P{0}.csproj", index)), 
+                        Name = string.Format("P{0}", index),
+                        ProjectGuid = Guid.NewGuid().ToString(),
+                        Files = new[] { fileName},
+                        Dependencies = new string [] { },
+                    });
+                    index++;
+                }
+                var solution = SolutionFileGenerator.GenerateSolutionWithProjects(TestConstants.SolutionPath, descriptors);
+                Assert.IsTrue(solution != null);
+                //Console.WriteLine(code);
+            }
+            finally
+            {
+                //Directory.Delete(TestConstants.TestDirectory, true);
+            }
+        }
+
 
 		[TestMethod]
 		[TestCategory("Generation")]
@@ -621,7 +778,7 @@ namespace ReachingTypeAnalysis
 
         [TestMethod]
         [TestCategory("Generation")]
-        public void GenerateSimpleSolution()
+        public void TestSimpleSolutionGeneration()
         {
             var callgraph = GenerateCallGraph(10);
             var syntax = GenerateCode(callgraph);
@@ -630,9 +787,100 @@ namespace ReachingTypeAnalysis
             var queryCode = queries.ToFullString();
             Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "source code: {0}", code);
             Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "query code: {0}", queryCode);
-            var solution = ReachingTypeAnalysis.Utils.CreateSolution(code);
+            var solution = SolutionFileGenerator.CreateSolution(code);
 			Logger.Instance.Log("CallGraphGenerator", "GenerateSimpleSolution", "solution filename: {0}", solution.FilePath);
+        }
 
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestMoreComplexSolutionGeneration()
+        {
+            var text = SolutionFileGenerator.GenerateSolutionText(new[] 
+            {
+                new ProjectDescriptor
+                {
+                    Name = TestConstants.ProjectName,
+                    AbsolutePath = "test\\test.csproj",
+                    Dependencies = new [] { "" },
+                    ProjectGuid  = Guid.NewGuid().ToString(),
+                    Files = new [] 
+                    {
+                        "a.cs", "b.cs"
+                    }
+                }
+            });
+            Debug.WriteLine(text);
+
+            Assert.IsTrue(text != null);
+        }
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestSolutionAndProjectFileGeneration()
+        {
+            var solution = SolutionFileGenerator.GenerateSolutionWithProjects(
+                TestConstants.SolutionPath,
+                new[]
+                {
+                    new ProjectDescriptor
+                    {
+                        Name = TestConstants.ProjectName,
+                        AbsolutePath = "test\\test.csproj",
+                        Dependencies = new [] { "" },
+                        ProjectGuid  = Guid.NewGuid().ToString(),
+                        Files = new []
+                        {
+                            "a.cs", "b.cs"
+                        }
+                    }
+                });
+            Assert.IsTrue(solution != null);
+        }
+
+        
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestSolutionGenerationAndReading()
+        {
+            string solutionPath = @"test.sln";
+            string directoryName = "test";
+            try
+            {
+
+                var project = new ProjectDescriptor
+                {
+                    Name = TestConstants.ProjectName,
+                    AbsolutePath = "test\\test.csproj",
+                    Dependencies = new[] { "" },
+                    ProjectGuid = Guid.NewGuid().ToString(),
+                    Files = new[]
+                    {
+                        "a.cs",
+                        "b.cs"
+                    }
+                };
+                var text = SolutionFileGenerator.GenerateSolutionText(new[] { project });
+                Assert.IsTrue(text != null);
+                Trace.TraceInformation(text);
+                File.WriteAllText(solutionPath, text);
+                Directory.CreateDirectory(directoryName);
+                var projectContents = SolutionFileGenerator.CreateProjectFile(project);
+                File.WriteAllText("test\\test.csproj", projectContents);
+                Trace.TraceInformation(projectContents);
+
+                var msWorkspace = MSBuildWorkspace.Create();
+                var solution = msWorkspace.OpenSolutionAsync(solutionPath).Result;
+                Trace.TraceInformation("Opened {0} projects", solution.Projects.Count());
+                Assert.IsTrue(solution != null);
+                Assert.IsTrue(solution.Projects.Count() > 0);
+            }
+            finally
+            {
+                // cleanup
+                File.Delete(solutionPath);
+                Directory.Delete(directoryName, true);
+            }
         }
 
         [TestMethod]

@@ -56,7 +56,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		protected Task LoadSourceAsync(string source)
 		{
-			var solution = Utils.CreateSolution(source);
+			var solution = SolutionFileGenerator.CreateSolution(source);
 			this.projects = Utils.FilterProjects(solution);
 
 			return this.CreateProjectCodeProviderFromSourceAsync(source, TestConstants.ProjectAssemblyName);
@@ -65,7 +65,7 @@ namespace ReachingTypeAnalysis.Analysis
 		protected Task LoadTestAsync(string testName)
 		{
 			var source = TestSources.BasicTestsSources.Test[testName];
-			var solution = Utils.CreateSolution(source);
+			var solution = SolutionFileGenerator.CreateSolution(source);
 			this.projects = Utils.FilterProjects(solution);
 
 			return this.CreateProjectCodeProviderFromTestAsync(testName, TestConstants.ProjectAssemblyName);

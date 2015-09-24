@@ -68,12 +68,10 @@ namespace ReachingTypeAnalysis
             var testToExecute = args[0];
             var iterations = int.Parse(args[1]);
             program.RunOneTest(testToExecute, iterations);
-
         }
 
         private void RunOneTest(string testToExecute, int iterations)
         {
-
             Console.WriteLine("Executing {0}", testToExecute);
             var minTime = long.MaxValue;
             var maxTime = 0L;
@@ -82,7 +80,7 @@ namespace ReachingTypeAnalysis
             {
                 Console.WriteLine("Iteration {0}", i); 
                 var watch = new Stopwatch();
-                var test = new Tests();
+                var test = new ReachingTypeAnalysis.Test.Tests();
                 var methodToExecute = test.GetType().GetMethod(testToExecute);
                 watch.Start();
                 methodToExecute.Invoke(test, new object[0]);

@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Text;
 using CodeGraphModel;
 
@@ -15,6 +14,8 @@ namespace ReachingTypeAnalysis
 		public const string ProjectAssemblyName = "MyProject";
 		public const string DocumentName = "MyFile.cs";
 		public const string DocumentPath = @"C:\MyFile.cs";
+        public const string SolutionPath = @"test.sln";
+        public const string TestDirectory = "test";
 	}
 
 	[Serializable]

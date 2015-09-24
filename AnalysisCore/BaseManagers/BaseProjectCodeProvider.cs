@@ -92,7 +92,7 @@ namespace ReachingTypeAnalysis.Analysis
 		protected async Task LoadSourceAsync(string source, string assemblyName)
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
-			var solution = Utils.CreateSolution(source);
+			var solution = SolutionFileGenerator.CreateSolution(source);
 			this.project = solution.Projects.Single(p => p.AssemblyName == assemblyName);
 			this.compilation = await Utils.CompileProjectAsync(this.Project, cancellationTokenSource.Token);
 		}
