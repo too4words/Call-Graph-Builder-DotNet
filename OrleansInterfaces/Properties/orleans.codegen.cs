@@ -525,10 +525,10 @@ namespace OrleansInterfaces
                 return StatsGrainMethodInvoker.GetMethodName(interfaceId, methodId);
             }
             
-            System.Threading.Tasks.Task OrleansInterfaces.IStatsGrain.RegisterMessage(string @message, string @senderAddr, string @receiverAddr, double @timeDiff)
+            System.Threading.Tasks.Task OrleansInterfaces.IStatsGrain.RegisterMessage(string @message, string @senderAddr, string @receiverAddr, bool @isClient, double @timeDiff)
             {
 
-                return base.InvokeMethodAsync<object>(380073046, new object[] {@message, @senderAddr, @receiverAddr, @timeDiff} );
+                return base.InvokeMethodAsync<object>(1573407269, new object[] {@message, @senderAddr, @receiverAddr, @isClient, @timeDiff} );
             }
             
             System.Threading.Tasks.Task OrleansInterfaces.IStatsGrain.ResetStats()
@@ -627,10 +627,34 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Int64>(819616702, null );
             }
             
-            System.Threading.Tasks.Task<double> OrleansInterfaces.IStatsGrain.GetAverageLattency()
+            System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.GetTotalClientMessages()
             {
 
-                return base.InvokeMethodAsync<System.Double>(-1421021834, null );
+                return base.InvokeMethodAsync<System.Int64>(1678246452, null );
+            }
+            
+            System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.GetTotalClientMsgsPerSilo(string @siloAddr)
+            {
+
+                return base.InvokeMethodAsync<System.Int64>(-201262218, new object[] {@siloAddr} );
+            }
+            
+            System.Threading.Tasks.Task<double> OrleansInterfaces.IStatsGrain.GetAverageLatency()
+            {
+
+                return base.InvokeMethodAsync<System.Double>(788988929, null );
+            }
+            
+            System.Threading.Tasks.Task<double> OrleansInterfaces.IStatsGrain.GetMaxLatency()
+            {
+
+                return base.InvokeMethodAsync<System.Double>(199155870, null );
+            }
+            
+            System.Threading.Tasks.Task<string> OrleansInterfaces.IStatsGrain.GetMaxLatencyMsg()
+            {
+
+                return base.InvokeMethodAsync<System.String>(1239575080, null );
             }
             
             System.Threading.Tasks.Task<long> OrleansInterfaces.IStatsGrain.GetSiloMemoryUsage(string @addrString)
@@ -671,8 +695,8 @@ namespace OrleansInterfaces
                     case 1441553740:  // IStatsGrain
                         switch (methodId)
                         {
-                            case 380073046: 
-                                return ((IStatsGrain)grain).RegisterMessage((String)arguments[0], (String)arguments[1], (String)arguments[2], (Double)arguments[3]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
+                            case 1573407269: 
+                                return ((IStatsGrain)grain).RegisterMessage((String)arguments[0], (String)arguments[1], (String)arguments[2], (Boolean)arguments[3], (Double)arguments[4]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -308491259: 
                                 return ((IStatsGrain)grain).ResetStats().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case 1592963437: 
@@ -705,8 +729,16 @@ namespace OrleansInterfaces
                                 return ((IStatsGrain)grain).GetDeactivations((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 819616702: 
                                 return ((IStatsGrain)grain).GetTotalMessages().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
-                            case -1421021834: 
-                                return ((IStatsGrain)grain).GetAverageLattency().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1678246452: 
+                                return ((IStatsGrain)grain).GetTotalClientMessages().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case -201262218: 
+                                return ((IStatsGrain)grain).GetTotalClientMsgsPerSilo((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 788988929: 
+                                return ((IStatsGrain)grain).GetAverageLatency().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 199155870: 
+                                return ((IStatsGrain)grain).GetMaxLatency().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 1239575080: 
+                                return ((IStatsGrain)grain).GetMaxLatencyMsg().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case 438298509: 
                                 return ((IStatsGrain)grain).GetSiloMemoryUsage((String)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -861948649: 
@@ -740,7 +772,7 @@ namespace OrleansInterfaces
                 case 1441553740:  // IStatsGrain
                     switch (methodId)
                     {
-                        case 380073046:
+                        case 1573407269:
                             return "RegisterMessage";
                     case -308491259:
                             return "ResetStats";
@@ -774,8 +806,16 @@ namespace OrleansInterfaces
                             return "GetDeactivations";
                     case 819616702:
                             return "GetTotalMessages";
-                    case -1421021834:
-                            return "GetAverageLattency";
+                    case 1678246452:
+                            return "GetTotalClientMessages";
+                    case -201262218:
+                            return "GetTotalClientMsgsPerSilo";
+                    case 788988929:
+                            return "GetAverageLatency";
+                    case 199155870:
+                            return "GetMaxLatency";
+                    case 1239575080:
+                            return "GetMaxLatencyMsg";
                     case 438298509:
                             return "GetSiloMemoryUsage";
                     case -861948649:

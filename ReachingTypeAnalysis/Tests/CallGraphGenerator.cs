@@ -716,24 +716,36 @@ namespace ReachingTypeAnalysis.Tests
                 var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
                 Trace.TraceInformation("Writing to {0}", writingTo);
 
-                var callgraph = GenerateCallGraph(10);
-                var syntaxes = GenerateCodeWithDifferentProjects(callgraph, 3);
+                var callgraph = GenerateCallGraph(100);
+                var numProjects = 3;
+                var syntaxes = GenerateCodeWithDifferentProjects(callgraph, numProjects);
                 int index = 0;
                 var descriptors = new List<ProjectDescriptor>();
+                var projectNames = new List<ProjectDescriptor>();
+                for (index = 0; index < numProjects; index++)
+                {
+                    projectNames.Add(new ProjectDescriptor {
+                        Name = string.Format("P{0}", index),
+                        AbsolutePath = string.Format("P{0}.csproj", index),
+                    });
+                }
                 foreach (var syntax in syntaxes)
                 {
                     var code = syntax.ToFullString();
 
-                    var fileName = string.Format("test\\file{0}.cs", index);
+                    var fileName = string.Format("file{0}.cs", index);
                     Trace.TraceInformation(fileName);
                     Trace.TraceInformation(code);
                     File.WriteAllText(fileName, code);
-                    descriptors.Add(new ProjectDescriptor {
-                        AbsolutePath = Path.Combine(writingTo, string.Format("P{0}.csproj", index)), 
+                    descriptors.Add(new ProjectDescriptor
+                    {
+                        AbsolutePath = Path.Combine(writingTo, string.Format("P{0}.csproj", index)),
                         Name = string.Format("P{0}", index),
                         ProjectGuid = Guid.NewGuid().ToString(),
-                        Files = new[] { fileName},
-                        Dependencies = new string [] { },
+                        Files = new[] { fileName },
+                        // TODO: we may need to worry about project 
+                        // dependencies because it will likely fail to compile without them
+                        Dependencies = projectNames,
                     });
                     index++;
                 }
@@ -802,7 +814,7 @@ namespace ReachingTypeAnalysis.Tests
                 {
                     Name = TestConstants.ProjectName,
                     AbsolutePath = "test\\test.csproj",
-                    Dependencies = new [] { "" },
+                    Dependencies = new ProjectDescriptor[] {  },
                     ProjectGuid  = Guid.NewGuid().ToString(),
                     Files = new [] 
                     {
@@ -827,7 +839,7 @@ namespace ReachingTypeAnalysis.Tests
                     {
                         Name = TestConstants.ProjectName,
                         AbsolutePath = "test\\test.csproj",
-                        Dependencies = new [] { "" },
+                        Dependencies = new ProjectDescriptor[] {  },
                         ProjectGuid  = Guid.NewGuid().ToString(),
                         Files = new []
                         {
@@ -852,7 +864,7 @@ namespace ReachingTypeAnalysis.Tests
                 {
                     Name = TestConstants.ProjectName,
                     AbsolutePath = "test\\test.csproj",
-                    Dependencies = new[] { "" },
+                    Dependencies = new ProjectDescriptor[] { },
                     ProjectGuid = Guid.NewGuid().ToString(),
                     Files = new[]
                     {

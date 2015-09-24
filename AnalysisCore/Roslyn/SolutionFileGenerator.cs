@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using System.Linq;
 
 namespace ReachingTypeAnalysis
 {
@@ -14,7 +15,7 @@ namespace ReachingTypeAnalysis
         internal string Name { get; set; }
         internal string ProjectGuid { get; set; }
         internal string AbsolutePath { get; set; }
-        internal IEnumerable<string> Dependencies { get; set; }
+        internal IEnumerable<ProjectDescriptor> Dependencies { get; set; }
         internal IEnumerable<string> Files { get; set; }
     }
 
@@ -118,8 +119,21 @@ namespace ReachingTypeAnalysis
                 result.AppendFormat("    <Compile Include=\"{0}\" />\n", file);
             }
             result.Append(
-    @"</ItemGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+    @"</ItemGroup>");
+            if (project.Dependencies.Count() > 0)
+            {
+                result.Append(@"<ItemGroup>");
+                foreach (var dependency in project.Dependencies)
+                {
+                    result.AppendFormat(@"<ProjectReference Include = ""{0}"">", dependency.AbsolutePath);
+                    result.AppendFormat(@"<Project>{0}</Project>", dependency.ProjectGuid);
+                    result.AppendFormat(@"<Name>{0}</Name>", dependency.Name);
+                    result.Append("</ProjectReference>");
+                }
+                result.Append(@"</ItemGroup>");
+            }
+            result.Append(
+@"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name=""BeforeBuild"">
@@ -130,6 +144,7 @@ namespace ReachingTypeAnalysis
 </Project>");
 
             var str = result.ToString();
+
             return str;
         }
 
