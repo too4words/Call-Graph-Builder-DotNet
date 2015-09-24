@@ -20,22 +20,26 @@ namespace ReachingTypeAnalysis
     }
 
 
+    /// <summary>
+    /// Support for artificially generating solutions, both in memory and on disk. 
+    /// </summary>
+
     public class SolutionFileGenerator
     {
-        	private static MetadataReference mscorlib;
+        private static MetadataReference mscorlib;
 
-		private static MetadataReference Mscorlib
-		{
-			get
-			{
-				if (mscorlib == null)
-				{
-					mscorlib = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
-				}
+        private static MetadataReference Mscorlib
+        {
+            get
+            {
+                if (mscorlib == null)
+                {
+                    mscorlib = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+                }
 
-				return mscorlib;
-			}
-		}
+                return mscorlib;
+            }
+        }
 
         /// <summary>
         /// Create a simple solution that contains only one source file.
@@ -43,20 +47,20 @@ namespace ReachingTypeAnalysis
         /// <param name="source"></param>
         /// <returns></returns>
 		public static Solution CreateSolution(string source)
-		{
-			var projectId = ProjectId.CreateNewId();
-			var documentId = DocumentId.CreateNewId(projectId);
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
 
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
-			var ws = MSBuildWorkspace.Create(props);
-			var solution = ws.CurrentSolution
-				.AddProject(projectId, TestConstants.ProjectName, TestConstants.ProjectAssemblyName, LanguageNames.CSharp)
-				.AddMetadataReference(projectId, Mscorlib)
-				.AddDocument(documentId, TestConstants.DocumentName, source, null, TestConstants.DocumentPath);
+            var props = new Dictionary<string, string>();
+            props["CheckForSystemRuntimeDependency"] = "true";
+            var ws = MSBuildWorkspace.Create(props);
+            var solution = ws.CurrentSolution
+                .AddProject(projectId, TestConstants.ProjectName, TestConstants.ProjectAssemblyName, LanguageNames.CSharp)
+                .AddMetadataReference(projectId, Mscorlib)
+                .AddDocument(documentId, TestConstants.DocumentName, source, null, TestConstants.DocumentPath);
 
-			return solution;
-		}
+            return solution;
+        }
 
         /// <summary>
         /// Creates a project file out of the descriptor and returns its body.

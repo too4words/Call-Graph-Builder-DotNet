@@ -8,62 +8,62 @@ using CodeGraphModel;
 
 namespace ReachingTypeAnalysis
 {
-	public static class TestConstants
-	{
-		public const string ProjectName = "MyProject";
-		public const string ProjectAssemblyName = "MyProject";
-		public const string DocumentName = "MyFile.cs";
-		public const string DocumentPath = @"C:\MyFile.cs";
+    public static class TestConstants
+    {
+        public const string ProjectName = "MyProject";
+        public const string ProjectAssemblyName = "MyProject";
+        public const string DocumentName = "MyFile.cs";
+        public const string DocumentPath = @"C:\MyFile.cs";
         public const string SolutionPath = @"test.sln";
         public const string TestDirectory = "test";
-	}
+    }
 
-	[Serializable]
-	public enum ModificationKind
-	{
-		MethodAdded, MethodRemoved, MethodUpdated
-	}
+    [Serializable]
+    public enum ModificationKind
+    {
+        MethodAdded, MethodRemoved, MethodUpdated
+    }
 
-	[Serializable]
-	public class MethodModification
-	{
-		public ModificationKind ModificationKind { get; private set; }
-		public MethodDescriptor MethodDescriptor { get; private set; }
+    [Serializable]
+    public class MethodModification
+    {
+        public ModificationKind ModificationKind { get; private set; }
+        public MethodDescriptor MethodDescriptor { get; private set; }
 
-		public MethodModification(MethodDescriptor methodDescriptor, ModificationKind modificationKind)
-		{
-			this.MethodDescriptor = methodDescriptor;
-			this.ModificationKind = modificationKind;
-		}
+        public MethodModification(MethodDescriptor methodDescriptor, ModificationKind modificationKind)
+        {
+            this.MethodDescriptor = methodDescriptor;
+            this.ModificationKind = modificationKind;
+        }
 
-		public override int GetHashCode()
-		{
-			return this.MethodDescriptor.GetHashCode() ^
-				   this.ModificationKind.GetHashCode();
-		}
+        public override int GetHashCode()
+        {
+            return this.MethodDescriptor.GetHashCode() ^
+                   this.ModificationKind.GetHashCode();
+        }
 
-		public override bool Equals(object obj)
-		{
-			var other = obj as MethodModification;
-			return other != null &&
-				   this.MethodDescriptor.Equals(other.MethodDescriptor) &&
-				   this.ModificationKind == other.ModificationKind;
-		}
+        public override bool Equals(object obj)
+        {
+            var other = obj as MethodModification;
+            return other != null &&
+                   this.MethodDescriptor.Equals(other.MethodDescriptor) &&
+                   this.ModificationKind == other.ModificationKind;
+        }
 
-		public override string ToString()
-		{
-			return string.Format("{0}: {1}", this.ModificationKind, this.MethodDescriptor);
-		}
-	}
+        public override string ToString()
+        {
+            return string.Format("{0}: {1}", this.ModificationKind, this.MethodDescriptor);
+        }
+    }
 
-	/// <summary>
-	/// This is a string represenation of a method designed to be 
-	/// put as keys in Dictionaries and used for comparison.
-	/// </summary>
-	[Serializable]
+    /// <summary>
+    /// This is a string represenation of a method designed to be 
+    /// put as keys in Dictionaries and used for comparison.
+    /// </summary>
+    [Serializable]
     public class MethodDescriptor
     {
-		protected string name;
+        protected string name;
 
         public TypeDescriptor ContainerType { get; protected set; }
         public string MethodName { get; protected set; }
@@ -81,27 +81,27 @@ namespace ReachingTypeAnalysis
             get { return ContainerType.NamespaceName; }
         }
 
-		public string Name
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(name))
-				{
-					var qualifiedName = new List<string>();
+        public string Name
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    var qualifiedName = new List<string>();
 
-					if (!string.IsNullOrEmpty(this.NamespaceName))
-					{
-						qualifiedName.Add(this.NamespaceName);
-					}
+                    if (!string.IsNullOrEmpty(this.NamespaceName))
+                    {
+                        qualifiedName.Add(this.NamespaceName);
+                    }
 
-					qualifiedName.Add(this.ClassName);
-					qualifiedName.Add(this.MethodName);
-					name = string.Join(".", qualifiedName);
-				}
+                    qualifiedName.Add(this.ClassName);
+                    qualifiedName.Add(this.MethodName);
+                    name = string.Join(".", qualifiedName);
+                }
 
-				return name;
-			}
-		}
+                return name;
+            }
+        }
 
         public TypeDescriptor ThisType
         {
@@ -114,17 +114,17 @@ namespace ReachingTypeAnalysis
         /// <summary>
         ///  I include this just to simplify 
         /// </summary>
-        public virtual MethodDescriptor BaseDescriptor 
-        { 
-            get { return this;  }
-            protected set { } 
+        public virtual MethodDescriptor BaseDescriptor
+        {
+            get { return this; }
+            protected set { }
         }
-		
+
         public bool IsAnonymousDescriptor { get; protected set; }
 
-		public MethodDescriptor() : this("","")
-		{
-		}
+        public MethodDescriptor() : this("", "")
+        {
+        }
 
         public MethodDescriptor(TypeDescriptor typeDescriptor, string methodName,
                                     bool isStatic = false,
@@ -145,27 +145,27 @@ namespace ReachingTypeAnalysis
             }
         }
 
-		public MethodDescriptor(string namespaceName, string className, string methodName,
-									bool isStatic = false,
-									IEnumerable<TypeDescriptor> parameters = null,
-									TypeDescriptor returnType = null)
-		{
+        public MethodDescriptor(string namespaceName, string className, string methodName,
+                                    bool isStatic = false,
+                                    IEnumerable<TypeDescriptor> parameters = null,
+                                    TypeDescriptor returnType = null)
+        {
             this.ContainerType = new TypeDescriptor(namespaceName, className, isReferenceType: true);
             //this.NamespaceName = namespaceName;
             //this.ClassName = className;
-			this.MethodName = methodName;
-			this.IsStatic = isStatic;
-			this.ReturnType = returnType;
-			this.IsAnonymousDescriptor = false;
+            this.MethodName = methodName;
+            this.IsStatic = isStatic;
+            this.ReturnType = returnType;
+            this.IsAnonymousDescriptor = false;
 
-			if (parameters != null)
-			{
-				this.Parameters = new List<TypeDescriptor>(parameters);
-			}            
-		}
+            if (parameters != null)
+            {
+                this.Parameters = new List<TypeDescriptor>(parameters);
+            }
+        }
 
         public MethodDescriptor(string className, string methodName, bool isStatic = false)
-			: this("", className, methodName, isStatic)
+            : this("", className, methodName, isStatic)
         {
             //this.Parameters = new List<TypeDescriptor>();
         }
@@ -193,14 +193,14 @@ namespace ReachingTypeAnalysis
             this.MethodName = original.MethodName;
             this.Parameters = original.Parameters;
             this.ReturnType = original.ReturnType;
-			this.IsStatic = original.IsStatic;
-			// this.ThisType = original.ThisType;
-		}
+            this.IsStatic = original.IsStatic;
+            // this.ThisType = original.ThisType;
+        }
 
         public override bool Equals(object obj)
         {
             var md = obj as MethodDescriptor;
-			if (md == null) return false;
+            if (md == null) return false;
 
             //var nEq = this.NamespaceName == "" || md.NamespaceName == "" || this.NamespaceName.Equals(md.NamespaceName);
             //var cEq = this.ClassName.Equals(md.ClassName);
@@ -236,48 +236,48 @@ namespace ReachingTypeAnalysis
 
         public virtual string Marshall()
         {
-			var result = new StringBuilder();
+            var result = new StringBuilder();
 
             //result.Append(this.NamespaceName);
             //result.Append("+");
             //result.Append(this.ClassName);
             result.Append(this.ContainerType.Marshall());
-			result.Append("-");
-			result.Append(this.MethodName);
-			result.Append("-");
-			result.Append(this.IsStatic);
+            result.Append("-");
+            result.Append(this.MethodName);
+            result.Append("-");
+            result.Append(this.IsStatic);
 
-			if (this.Parameters != null && this.Parameters.Count > 0)
-			{
-				foreach (var parameterType in this.Parameters)
-				{
-					result.Append("-");
-					result.Append(parameterType.Marshall());
-				}
-			}
+            if (this.Parameters != null && this.Parameters.Count > 0)
+            {
+                foreach (var parameterType in this.Parameters)
+                {
+                    result.Append("-");
+                    result.Append(parameterType.Marshall());
+                }
+            }
 
-			return result.ToString();
+            return result.ToString();
         }
 
         public static MethodDescriptor DeMarsall(string md)
         {
             var anonymousMD = "";
             var i = md.IndexOf(':');
-            if(i>=0)
+            if (i >= 0)
             {
                 anonymousMD = md.Substring(0, i);
-                md = md.Substring(i+1);
+                md = md.Substring(i + 1);
             }
 
             var methodDescriptor = ParseMethodDescriptor(md);
 
-            if(anonymousMD.Length>0)
+            if (anonymousMD.Length > 0)
             {
                 var anonymousMDContent = ParseMethodDescriptor(anonymousMD);
                 return new AnonymousMethodDescriptor(methodDescriptor, anonymousMDContent);
             }
 
-			return methodDescriptor;
+            return methodDescriptor;
         }
 
         private static MethodDescriptor ParseMethodDescriptor(string md)
@@ -289,9 +289,9 @@ namespace ReachingTypeAnalysis
             var methodName = tokens[1];
             var isStatic = Convert.ToBoolean(tokens[2]);
             var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic);
-			methodDescriptor.Parameters = new List<TypeDescriptor>();
+            methodDescriptor.Parameters = new List<TypeDescriptor>();
 
-			if (tokens.Length > 3 && tokens[3].Length > 0)
+            if (tokens.Length > 3 && tokens[3].Length > 0)
             {
                 //methodDescriptor.Parameters = new List<TypeDescriptor>();
 
@@ -308,33 +308,33 @@ namespace ReachingTypeAnalysis
     }
 
     [Serializable]
-    public class AnonymousMethodDescriptor: MethodDescriptor
+    public class AnonymousMethodDescriptor : MethodDescriptor
     {
-       public override MethodDescriptor BaseDescriptor { get; protected set; }
+        public override MethodDescriptor BaseDescriptor { get; protected set; }
 
-       public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor, MethodDescriptor anonymousMethodDescriptor)
-           : base(anonymousMethodDescriptor)
-       {
-           this.BaseDescriptor = baseMethodDescriptor;
-           this.MethodName = "Anonymous";
-           this.IsAnonymousDescriptor = true;
-       }
-	
-       public override bool Equals(object obj)
-       {
-           var other = (AnonymousMethodDescriptor)obj;
-           return this.BaseDescriptor.Equals(other.BaseDescriptor) && this.MethodName.Equals(other.MethodName);
-       }
+        public AnonymousMethodDescriptor(MethodDescriptor baseMethodDescriptor, MethodDescriptor anonymousMethodDescriptor)
+            : base(anonymousMethodDescriptor)
+        {
+            this.BaseDescriptor = baseMethodDescriptor;
+            this.MethodName = "Anonymous";
+            this.IsAnonymousDescriptor = true;
+        }
 
-       public override int GetHashCode()
-       {
-           return this.BaseDescriptor.GetHashCode() + this.MethodName.GetHashCode();
-       }
+        public override bool Equals(object obj)
+        {
+            var other = (AnonymousMethodDescriptor)obj;
+            return this.BaseDescriptor.Equals(other.BaseDescriptor) && this.MethodName.Equals(other.MethodName);
+        }
 
-       public override string Marshall()
-       {
-           return base.Marshall() + ":" + this.BaseDescriptor.Marshall();
-       }
+        public override int GetHashCode()
+        {
+            return this.BaseDescriptor.GetHashCode() + this.MethodName.GetHashCode();
+        }
+
+        public override string Marshall()
+        {
+            return base.Marshall() + ":" + this.BaseDescriptor.Marshall();
+        }
     }
 
     [Serializable]
@@ -346,15 +346,15 @@ namespace ReachingTypeAnalysis
         TypeParameter,
         Array,
         Struct,
-		Module,
-		Enum,
-		Pointer,
-		Dynamic,
-		Error,
-		Submission,
-		Unknown,
+        Module,
+        Enum,
+        Pointer,
+        Dynamic,
+        Error,
+        Submission,
+        Unknown,
         Undefined
-	}
+    }
 
     [Serializable]
     public class TypeDescriptor
@@ -387,12 +387,12 @@ namespace ReachingTypeAnalysis
 
         public string TypeName
         {
-            get 
+            get
             {
                 var typeName = this.ClassName;
-                if(!String.IsNullOrEmpty(this.NamespaceName))
+                if (!String.IsNullOrEmpty(this.NamespaceName))
                     typeName = this.NamespaceName + '.' + this.ClassName;
-                return  typeName; 
+                return typeName;
             }
         }
 
@@ -412,7 +412,7 @@ namespace ReachingTypeAnalysis
             var eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
 
             return this.FullTypeName.Equals(typeDescriptor.FullTypeName)
-             //       && eqRef && eqConcrete
+                    //       && eqRef && eqConcrete
                     && eqKind;
         }
 
@@ -471,10 +471,10 @@ namespace ReachingTypeAnalysis
         //    InMethodOrder = 0; // need to search for the statement # in that location
         //}
 
-        public int Location 
-        { 
-            get { return InMethodOrder;  } 
-        } 
+        public int Location
+        {
+            get { return InMethodOrder; }
+        }
         public LocationDescriptor(int inMethodOrder, Range range, string filePath)
         {
             this.InMethodOrder = inMethodOrder;
@@ -497,53 +497,53 @@ namespace ReachingTypeAnalysis
         }
     }
 
-	[Serializable]
-	public class AnalysisCallNodeAdditionalInfo
-	{
-		public string DisplayString { get; private set; }
-		public string StaticMethodDeclarationPath { get; private set; }
-		public MethodDescriptor StaticMethodDescriptor { get; private set; }
+    [Serializable]
+    public class AnalysisCallNodeAdditionalInfo
+    {
+        public string DisplayString { get; private set; }
+        public string StaticMethodDeclarationPath { get; private set; }
+        public MethodDescriptor StaticMethodDescriptor { get; private set; }
 
-		public AnalysisCallNodeAdditionalInfo(MethodDescriptor staticMethodDescriptor, string staticMethodDeclarationPath, string displayString)
-		{
-			this.StaticMethodDescriptor = staticMethodDescriptor;            
-			this.StaticMethodDeclarationPath = staticMethodDeclarationPath;
-			this.DisplayString = displayString;
-		}
-	}
+        public AnalysisCallNodeAdditionalInfo(MethodDescriptor staticMethodDescriptor, string staticMethodDeclarationPath, string displayString)
+        {
+            this.StaticMethodDescriptor = staticMethodDescriptor;
+            this.StaticMethodDeclarationPath = staticMethodDeclarationPath;
+            this.DisplayString = displayString;
+        }
+    }
 
-	/// <summary>
-	/// This is essentially a node in the propagation graph 
-	/// It represents either a variable, field, parameter or even a method invocation (that are specials)
-	/// Currently they conrtain information about the corresponding Roslyn symbol they represent 
-	/// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
-	/// </summary> 
-	[Serializable]
+    /// <summary>
+    /// This is essentially a node in the propagation graph 
+    /// It represents either a variable, field, parameter or even a method invocation (that are specials)
+    /// Currently they conrtain information about the corresponding Roslyn symbol they represent 
+    /// But the idea is to get rid of roslyn into (maybe keeping only the syntax expression they denote)
+    /// </summary> 
+    [Serializable]
     public abstract class PropGraphNodeDescriptor
-	{
-		public string Name { get; private set; }
-		public TypeDescriptor Type { get; private set; }
+    {
+        public string Name { get; private set; }
+        public TypeDescriptor Type { get; private set; }
 
         protected PropGraphNodeDescriptor(string name, TypeDescriptor declaredType)
-		{
-			this.Type = declaredType;
-			this.Name = name;
- 		}
+        {
+            this.Type = declaredType;
+            this.Name = name;
+        }
 
         public override bool Equals(object obj)
         {
             var analysisNode = (obj as PropGraphNodeDescriptor);
-            return (analysisNode != null && analysisNode.Name.Equals(this.Name) 
+            return (analysisNode != null && analysisNode.Name.Equals(this.Name)
                     && analysisNode.Type.Equals(this.Type));
         }
- 
-		public override int GetHashCode()
-		{
-            return this.Name.GetHashCode()+this.Type.GetHashCode();
-		}
 
-		public override string ToString()
-		{
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode() + this.Type.GetHashCode();
+        }
+
+        public override string ToString()
+        {
             return string.Format("{0}:{1}", this.Name, this.Type);
             //string tString = "Dummy";
             //if (this.DeclaredType != null)
@@ -559,7 +559,7 @@ namespace ReachingTypeAnalysis
             //    eSymbol = this.Symbol.ContainingType.Name.ToString() + ".";
 
             //return eSymbol + eString + lString + ":" + tString;
-		}
+        }
 
         //public static AnalysisNode Define(TypeDescriptor declaredType)
         //{
@@ -576,7 +576,7 @@ namespace ReachingTypeAnalysis
         //internal SyntaxNodeOrToken Expression { get; private set; }
         //internal VariableDescriptor Symbol { get; private set; }
 
-	}
+    }
 
     [Serializable]
     public class VariableNode : PropGraphNodeDescriptor
@@ -589,74 +589,74 @@ namespace ReachingTypeAnalysis
     }
 
     [Serializable]
-	public class ParameterNode : VariableNode
-	{
-		public int Position { get; private set; }
-		public ParameterNode(string name, int position, TypeDescriptor declaredType) :
+    public class ParameterNode : VariableNode
+    {
+        public int Position { get; private set; }
+        public ParameterNode(string name, int position, TypeDescriptor declaredType) :
             base(name, declaredType)
-		{
-			this.Position = position;
-		}
+        {
+            this.Position = position;
+        }
         public override string ToString()
         {
-            return base.ToString()+"_"+Position.ToString();
+            return base.ToString() + "_" + Position.ToString();
         }
-	}
+    }
 
     [Serializable]
-	public class ThisNode : VariableNode
-	{
-		public ThisNode(TypeDescriptor declaredType) :
+    public class ThisNode : VariableNode
+    {
+        public ThisNode(TypeDescriptor declaredType) :
             base("this", declaredType)
-		{
+        {
 
-		}
-	}
+        }
+    }
 
     [Serializable]
-	public class UnsupportedNode : PropGraphNodeDescriptor
-	{
-		public UnsupportedNode(TypeDescriptor declaredType) :
+    public class UnsupportedNode : PropGraphNodeDescriptor
+    {
+        public UnsupportedNode(TypeDescriptor declaredType) :
             base("unsupported", declaredType)
-		{
+        {
 
-		}
-	}
+        }
+    }
 
     [Serializable]
-	public class ReturnNode : VariableNode
-	{
-		public ReturnNode(TypeDescriptor declaredType) :
+    public class ReturnNode : VariableNode
+    {
+        public ReturnNode(TypeDescriptor declaredType) :
             base("return", declaredType)
-		{
-		}
-	}
+        {
+        }
+    }
 
-        
+
     [Serializable]
-	public class FieldNode : VariableNode
-	{
-		public string ClassName { get; private set; }
-		public string Field { get; private set; }
-		public FieldNode(string className, string fieldName, TypeDescriptor declaredType)
+    public class FieldNode : VariableNode
+    {
+        public string ClassName { get; private set; }
+        public string Field { get; private set; }
+        public FieldNode(string className, string fieldName, TypeDescriptor declaredType)
             : base(string.Format("{0}.{1}", className, fieldName), declaredType)
-		{
-			this.ClassName = className;
-			this.Field = fieldName;
-		}
-	}
+        {
+            this.ClassName = className;
+            this.Field = fieldName;
+        }
+    }
 
     [Serializable]
-	public class DelegateVariableNode : VariableNode
-	{
-		public DelegateVariableNode(string name,TypeDescriptor declaredType)
-			: base(name,declaredType)
-		{ }
+    public class DelegateVariableNode : VariableNode
+    {
+        public DelegateVariableNode(string name, TypeDescriptor declaredType)
+            : base(name, declaredType)
+        { }
         public override string ToString()
         {
- 	         return "Delegate: " + base.ToString();
+            return "Delegate: " + base.ToString();
         }
-	}
+    }
 
     [Serializable]
     public class PropertyVariableNode : VariableNode
@@ -675,220 +675,34 @@ namespace ReachingTypeAnalysis
     }
 
     [Serializable]
-	public class AnalysisCallNode : PropGraphNodeDescriptor
-	{
-		public AnalysisCallNodeAdditionalInfo AdditionalInfo { get; private set; }
- 		public LocationDescriptor LocationDescriptor { get; private set; }
+    public class AnalysisCallNode : PropGraphNodeDescriptor
+    {
+        public AnalysisCallNodeAdditionalInfo AdditionalInfo { get; private set; }
+        public LocationDescriptor LocationDescriptor { get; private set; }
         public int InMethodPosition { get; private set; }
-		public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location, AnalysisCallNodeAdditionalInfo additionalInfo)
+        public AnalysisCallNode(string methodName, TypeDescriptor declaredType, LocationDescriptor location, AnalysisCallNodeAdditionalInfo additionalInfo)
             : base(methodName, declaredType)
-		{
-			this.LocationDescriptor = location;
-            this.InMethodPosition = location.InMethodOrder;
-			this.AdditionalInfo = additionalInfo;
-        }
-
-		/// <summary>
-		/// The idea is to use the same hash and equals than ANode but also locations
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public override bool Equals(object obj)
-		{
-			AnalysisCallNode analysisCallNode = (obj as AnalysisCallNode);
-            return base.Equals(obj) 
-                    && analysisCallNode != null && base.Equals(analysisCallNode) 
-                    && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
-		}
-		public override int GetHashCode()
-		{
-			return base.GetHashCode() + this.LocationDescriptor.GetHashCode();
-		}
-	}
-
-/*	REMOVED: AnalysisType	
-	internal abstract class AnalysisType
-	{
-		protected bool concrete = true;
-
-		internal string Name { get; private set; }
-
-		internal AnalysisType(ITypeSymbol rt)
-		{
-			this.Name = rt.Name.ToString();
-			this.RoslynType = rt;
-		}
-
-		public bool IsSubtype(AnalysisType t)
-		{
-			AnalysisType at = t as AnalysisType;
-			var res = TypeHelper.InheritsByName(this.RoslynType, at.RoslynType);
-			return res;
-		}
-
-		//public bool IsAssignable(AnalysisType t)
-		//{
-		//    AType at = t as AType;
-		//    var res = TypeHelper.Inherits(this.RoslynType, at.RoslynType);
-		//    return res;
-		//}
-
-		internal ITypeSymbol RoslynType { get; private set; }
-
-		public override string ToString()
-		{
-			return this.Name.ToString();
-		}
-
-		public override bool Equals(object obj)
-		{
-			var at = obj as AnalysisType;
-			return at != null && this.RoslynType.ToString() == this.RoslynType.ToString();
-			//return at != null && this.RoslynType.Equals(at.RoslynType);
-		}
-
-		public override int GetHashCode()
-		{
-			return RoslynType.ToString().GetHashCode();
-		}
-
-		public virtual bool IsConcreteType
-		{
-			get { return concrete; }
-		}
-
-		//public virtual bool IsDelegate
-		//{
-		//	get { return RoslynType != null && RoslynType.TypeKind == TypeKind.Delegate; }
-		//}
-
-		internal void SetDeclaredType()
-		{
-			this.concrete = true;
-		}
-	}
-
-	internal class ConcreteType : AnalysisType
-	{
-		internal ConcreteType(ITypeSymbol rt) : base(rt)
-		{
-
-		}
-	}
-
-	internal class DeclaredType : AnalysisType
-	{
-		internal DeclaredType(ITypeSymbol rt) : base(rt)
-		{ }
-		internal DeclaredType(AnalysisType aType) : base(aType.RoslynType)
-		{
-
-		}
-	}
-
-	//public interface AMethod
-	//{
-	//    AMethod FindMethodImplementation(AnalysisType t);
-	//    AnalysisType ContainerType { get; }
-	//    MethodDescriptor MethodDescriptor { get; }
-	//}
-*/
-/*      REMOVED: AnalysisMethod
-	internal class AnalysisMethod
-	{
-        internal MethodDescriptor MethodDescriptor { get; private set; }
-        internal TypeDescriptor ContainerType { get; private set; }
-        //private IMethodSymbol method;
-        //internal IMethodSymbol RoslynMethod
-        //{
-        //    get { return method; }
-        //    private set { method = value; }
-        //}
-        //internal AnalysisMethod(IMethodSymbol method)
-        //{
-        //    this.method = method;
-        //}
-        //internal AnalysisMethod(IPropertySymbol property)
-        //{
-        //    this.method = property.GetMethod;
-        //}
-        //internal MethodDescriptor MethodDescriptor
-        //{
-        //    get { return new MethodDescriptor(this.RoslynMethod); }
-        //}
-
-        internal AnalysisMethod(MethodDescriptor methodDescriptor, TypeDescriptor containerType)
         {
-            this.MethodDescriptor = methodDescriptor;
-            this.ContainerType = containerType;
+            this.LocationDescriptor = location;
+            this.InMethodPosition = location.InMethodOrder;
+            this.AdditionalInfo = additionalInfo;
         }
 
-		public override bool Equals(object obj)
-		{
-            //AnalysisMethod m = obj as AnalysisMethod;
-            //return m != null && method.ToString().Equals(m.method.ToString());
-            AnalysisMethod analysisMethod = (AnalysisMethod)obj;
-            return this.ContainerType.Equals(analysisMethod.ContainerType)
-                    && this.MethodDescriptor.Equals(analysisMethod.MethodDescriptor);
-		}
-
-		public override int GetHashCode()
-		{
-			return this.MethodDescriptor.GetHashCode()+this.ContainerType.GetHashCode();
-		}
-
-		public override string ToString()
-		{
-			return MethodDescriptor.ToString();
-		}
-
-        //internal AnalysisMethod FindMethodImplementation(AnalysisType t)
-        //{
-        //    throw new NotImplementedException();
-
-        //    //AnalysisType aType = t as AnalysisType;
-        //    //var realCallee = Utils.FindMethodImplementation(this.RoslynMethod, aType.RoslynType);
-        //    //if (realCallee != null)
-        //    //{
-        //    //    return new AnalysisMethod(realCallee);
-        //    //}
-        //    //return this;
-        //}
-
-	}
-
-	public class AnalysisLocation
-	{
-		public Location Location { get; private set; }
-		internal AnalysisLocation(Location location)
-		{
-			this.Location = location;
-		}
- 
-		public override bool Equals(object obj)
-		{
-			AnalysisLocation analysisLocation = obj as AnalysisLocation;
-			return obj != null && (this.Location == null && analysisLocation.Location == null) 
-                || this.Location.SourceSpan.Start.Equals(analysisLocation.Location.SourceSpan.Start);
-		}
-
-		public override int GetHashCode()
-		{
-			return this.Location != null ? this.Location.GetLineSpan().GetHashCode() : 1;
-		}
-	}
-     */
-
-    //[Serializable]
-    //public class VariableDescriptor : INodeDescriptor
-    //{
-    //    public string Name { get; private set; }
-    //    public TypeDescriptor Type { get; private set; }
-
-    //    public VariableDescriptor(string name, TypeDescriptor type)
-    //    {
-    //        this.Name = name;
-    //        this.Type = type;
-    //    }
-    //}
+        /// <summary>
+        /// The idea is to use the same hash and equals than ANode but also locations
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            AnalysisCallNode analysisCallNode = (obj as AnalysisCallNode);
+            return base.Equals(obj)
+                    && analysisCallNode != null && base.Equals(analysisCallNode)
+                    && analysisCallNode.LocationDescriptor.Equals(this.LocationDescriptor);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() + this.LocationDescriptor.GetHashCode();
+        }
+    }
 }

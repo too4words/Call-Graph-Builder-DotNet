@@ -808,15 +808,21 @@ namespace ReachingTypeAnalysis.Tests
         [TestCategory("Generation")]
         public void TestMoreComplexSolutionGeneration()
         {
-            var text = SolutionFileGenerator.GenerateSolutionText(new[] 
+            if (Directory.Exists(TestConstants.TestDirectory))
+            {
+                Directory.Delete(TestConstants.TestDirectory, true);
+            }
+            Directory.CreateDirectory(TestConstants.TestDirectory);
+
+            var text = SolutionFileGenerator.GenerateSolutionText(new[]
             {
                 new ProjectDescriptor
                 {
                     Name = TestConstants.ProjectName,
-                    AbsolutePath = "test\\test.csproj",
+                    AbsolutePath = Path.Combine(TestConstants.TestDirectory, "test.csproj"),
                     Dependencies = new ProjectDescriptor[] {  },
                     ProjectGuid  = Guid.NewGuid().ToString(),
-                    Files = new [] 
+                    Files = new []
                     {
                         "a.cs", "b.cs"
                     }
@@ -831,6 +837,10 @@ namespace ReachingTypeAnalysis.Tests
         [TestCategory("Generation")]
         public void TestSolutionAndProjectFileGeneration()
         {
+            if (Directory.Exists(TestConstants.TestDirectory))
+            {
+                Directory.Delete(TestConstants.TestDirectory, true);
+            }
             var solution = SolutionFileGenerator.GenerateSolutionWithProjects(
                 TestConstants.SolutionPath,
                 new[]
@@ -838,7 +848,7 @@ namespace ReachingTypeAnalysis.Tests
                     new ProjectDescriptor
                     {
                         Name = TestConstants.ProjectName,
-                        AbsolutePath = "test\\test.csproj",
+                        AbsolutePath = Path.Combine(TestConstants.TestDirectory, "test.csproj"),
                         Dependencies = new ProjectDescriptor[] {  },
                         ProjectGuid  = Guid.NewGuid().ToString(),
                         Files = new []
@@ -860,10 +870,16 @@ namespace ReachingTypeAnalysis.Tests
             try
             {
 
+                if (Directory.Exists(TestConstants.TestDirectory))
+                {
+                    Directory.Delete(TestConstants.TestDirectory, true);
+                }
+                Directory.CreateDirectory(TestConstants.TestDirectory);
+
                 var project = new ProjectDescriptor
                 {
                     Name = TestConstants.ProjectName,
-                    AbsolutePath = "test\\test.csproj",
+                    AbsolutePath = Path.Combine(TestConstants.TestDirectory, "test.csproj"),
                     Dependencies = new ProjectDescriptor[] { },
                     ProjectGuid = Guid.NewGuid().ToString(),
                     Files = new[]
