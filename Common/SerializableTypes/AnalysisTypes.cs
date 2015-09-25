@@ -16,6 +16,8 @@ namespace ReachingTypeAnalysis
         public const string DocumentPath = @"C:\MyFile.cs";
         public const string SolutionPath = @"test.sln";
         public const string TestDirectory = "test";
+        public const string TemporarySolutionDirectory = "temp";
+        public const string TemporaryNamespace = "Temporary";
     }
 
     [Serializable]

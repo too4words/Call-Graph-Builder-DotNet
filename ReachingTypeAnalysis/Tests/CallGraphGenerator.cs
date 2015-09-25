@@ -180,12 +180,17 @@ namespace ReachingTypeAnalysis.Tests
 				{
 					Trace.TraceInformation("Adding method {0}", i);
 				}
-                var method = GetMethod(vertex,
-                    callgraph.GetCallees(vertex).Select(
-                        m =>
-                        string.Format("C{0}.{1}", Math.Abs(vertex.GetHashCode()) % projectCount, m)));
-                var hash = vertex.GetHashCode();
+                var hash = vertex.ToString().GetHashCode();
                 var fileForThisMethod = Math.Abs(hash) % projectCount;
+                var method = GetMethod(vertex,
+                    callgraph.GetCallees(vertex)
+                    // only call things in classes numbered lower than ours to avoid circular depdendencies
+                    .Where(m => Math.Abs(m.GetHashCode()) % projectCount <= fileForThisMethod)
+                    .Select(
+                        m =>
+                        string.Format("C{0}.{1}", Math.Abs(m.GetHashCode()) % projectCount, m)));
+                
+                
                 Contract.Assert(fileForThisMethod >= 0);
                 Contract.Assert(fileForThisMethod < projectCount);
 
@@ -196,14 +201,29 @@ namespace ReachingTypeAnalysis.Tests
             for (var index = 0; index < fileList.Count(); index++)
             {
                 yield return
-                    SyntaxFactory.CompilationUnit()
+                    SyntaxFactory.CompilationUnit()                    
                     .WithMembers(
                         SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                            SyntaxFactory.ClassDeclaration(
-                                string.Format("C{0}", index))
+                             SyntaxFactory.NamespaceDeclaration(
+                                SyntaxFactory.IdentifierName(
+                                    TestConstants.TemporaryNamespace))
+                            .WithNamespaceKeyword(
+                                SyntaxFactory.Token(
+                                    SyntaxKind.NamespaceKeyword))
+                            .WithOpenBraceToken(
+                                SyntaxFactory.Token(
+                                    SyntaxKind.OpenBraceToken))
                             .WithMembers(
-                                SyntaxFactory.List<MemberDeclarationSyntax>(fileList[index])
-                            )))
+                                SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                    SyntaxFactory.ClassDeclaration(
+                                        string.Format("C{0}", index))
+                                    .WithModifiers(
+                                        SyntaxFactory.TokenList(
+                                            SyntaxFactory.Token(
+                                                SyntaxKind.PublicKeyword)))
+                                    .WithMembers(
+                                        SyntaxFactory.List<MemberDeclarationSyntax>(fileList[index])
+                                    )))))
                     .NormalizeWhitespace();
             }
         }
@@ -664,10 +684,9 @@ namespace ReachingTypeAnalysis.Tests
 
         [TestMethod]
         [TestCategory("Generation")]
-        
-         public void GenerateSimpleCallGraphWithMultipleFiles()
-        {
 
+        public void GenerateSimpleCallGraphWithMultipleFiles()
+        {
             try
             {
                 if (Directory.Exists(TestConstants.TestDirectory))
@@ -860,6 +879,94 @@ namespace ReachingTypeAnalysis.Tests
             Assert.IsTrue(solution != null);
         }
 
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestZipSolutionGeneration()
+        {
+              var zipFile = SolutionFileGenerator.GenerateSolutionWithProjectsAsAZip(
+                TestConstants.SolutionPath,
+                new[]
+                {
+                    new ProjectDescriptor
+                    {
+                        Name = TestConstants.ProjectName,
+                        AbsolutePath = Path.Combine(TestConstants.TestDirectory, "test.csproj"),
+                        Dependencies = new ProjectDescriptor[] {  },
+                        ProjectGuid  = Guid.NewGuid().ToString(),
+                        Files = new []
+                        {
+                            "a.cs", "b.cs"
+                        }
+                    }
+                });
+            Assert.IsNotNull(zipFile);
+        }
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestZipSolutionGenerationWithComplexProjects()
+        {
+            try
+            {
+                if (Directory.Exists(TestConstants.TestDirectory))
+                {
+                    Directory.Delete(TestConstants.TestDirectory, true);
+                }
+                Directory.CreateDirectory(TestConstants.TestDirectory);
+
+                var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
+                Trace.TraceInformation("Writing to {0}", writingTo);
+
+                var callgraph = GenerateCallGraph(1000);
+                var numProjects = 30;
+                var syntaxes = GenerateCodeWithDifferentProjects(callgraph, numProjects);
+                int index = 0;
+                var descriptors = new List<ProjectDescriptor>();
+                //var projectNames = new List<ProjectDescriptor>();
+                //for (index = 0; index < numProjects; index++)
+                //{
+                //    projectNames.Add(new ProjectDescriptor
+                //    {
+                //        Name = string.Format("P{0}", index),
+                //        AbsolutePath = string.Format("P{1}.csproj", TestConstants.TestDirectory, index),
+                //    });
+                //}
+                foreach (var syntax in syntaxes)
+                {
+                    var code = syntax.ToFullString();
+
+                    var fileName = string.Format("file{0}.cs", index);
+                    Trace.TraceInformation(fileName);
+                    Directory.CreateDirectory(TestConstants.TemporarySolutionDirectory);
+                    Directory.CreateDirectory(Path.Combine(TestConstants.TemporarySolutionDirectory, TestConstants.TestDirectory));
+
+                    var csFileName = Path.Combine(
+                            Path.Combine(TestConstants.TemporarySolutionDirectory, TestConstants.TestDirectory),
+                            fileName);
+                    File.WriteAllText(csFileName, code);
+                    Trace.TraceInformation("Writing to {0}: {1}", csFileName, code);
+
+                    descriptors.Add(new ProjectDescriptor
+                    {
+                        AbsolutePath = string.Format("{0}\\P{1}.csproj", TestConstants.TestDirectory, index),
+                        Name = string.Format("P{0}", index),
+                        ProjectGuid = Guid.NewGuid().ToString(),
+                        Files = new[] { fileName },
+                        // TODO: we may need to worry about project 
+                        // dependencies because it will likely fail to compile without them
+                        Dependencies = descriptors.Take(index),
+                    });
+                    index++;
+                }
+                var zipFile = SolutionFileGenerator.GenerateSolutionWithProjectsAsAZip(TestConstants.SolutionPath, descriptors);
+              Assert.IsTrue(zipFile != null);
+                //Console.WriteLine(code);
+            }
+            finally
+            {
+                //Directory.Delete(TestConstants.TestDirectory, true);
+            }
+        }
         
         [TestMethod]
         [TestCategory("Generation")]
