@@ -11,7 +11,8 @@ param (
 # http://orleansservicedg.cloudapp.net:8080/api/Experiments?drive=Y&solutionPath=LongTest2&solutionName=LongTest2&machines=1
 
 if($env:ISEMULATED -ne $true)  {
-	$resource = "http://orleansservicedg.cloudapp.net:8080/"
+	$port = "45002"
+	$resource = "http://orleansservicedg.cloudapp.net:"+$port+"/"
 }
 else
 {

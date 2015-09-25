@@ -14,7 +14,8 @@ param (
 # ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions)
 
 if($env:ISEMULATED -ne $true)  {
-	$resource = "http://orleansservicedg.cloudapp.net:8080/"
+	$port = "45002"
+	$resource = "http://orleansservicedg.cloudapp.net:"+$port+"/"
 }
 else
 {
