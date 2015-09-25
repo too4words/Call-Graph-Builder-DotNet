@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using System.Linq;
+using System.IO.Compression;
 
 namespace ReachingTypeAnalysis
 {
@@ -81,11 +82,14 @@ namespace ReachingTypeAnalysis
             result.Append(project.ProjectGuid);
             result.Append(
     @"}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ConsoleApplication1</RootNamespace>
-    <AssemblyName>ConsoleApplication1</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    ");
+            result.AppendFormat(
+@"<RootNamespace>{0}</RootNamespace>
+    <AssemblyName>{0}{1}</AssemblyName>", TestConstants.TemporaryNamespace, project.Name);
+                result.Append(
+@"<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
@@ -122,19 +126,29 @@ namespace ReachingTypeAnalysis
             {
                 result.AppendFormat("    <Compile Include=\"{0}\" />\n", file);
             }
-            result.Append(
-    @"</ItemGroup>");
+            result.Append("</ItemGroup>\n");
             if (project.Dependencies.Count() > 0)
             {
-                result.Append(@"<ItemGroup>");
+                result.Append("<ItemGroup>\n");
                 foreach (var dependency in project.Dependencies)
                 {
-                    result.AppendFormat(@"<ProjectReference Include = ""{0}"">", dependency.AbsolutePath);
-                    result.AppendFormat(@"<Project>{0}</Project>", dependency.ProjectGuid);
-                    result.AppendFormat(@"<Name>{0}</Name>", dependency.Name);
-                    result.Append("</ProjectReference>");
+                    // skip ourselves to avoid cycles
+                    if (!dependency.Name.Equals(project.Name))
+                    {
+                        result.AppendFormat(@"    <ProjectReference Include = ""{0}"">",
+                            Path.GetDirectoryName(dependency.AbsolutePath).Equals(Path.GetDirectoryName(project.AbsolutePath)) ?
+                            Path.GetFileName(dependency.AbsolutePath) : dependency.AbsolutePath
+                            );
+                        result.Append("\n");
+                        result.AppendFormat(@"        <Project>{0}</Project>", "{" + dependency.ProjectGuid + "}");
+                        result.Append("\n");
+                        result.AppendFormat(@"        <Name>{0}</Name>", dependency.Name);
+                        result.Append("\n");
+                        result.Append("    </ProjectReference>");
+                        result.Append("\n");
+                    }
                 }
-                result.Append(@"</ItemGroup>");
+                result.Append("</ItemGroup>\n");
             }
             result.Append(
 @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
@@ -182,7 +196,7 @@ EndGlobal
             {
                 result.Append("Project(\"{");
                 result.Append(solutionGuid);
-                result.Append("\"}");
+                result.Append("}");
                 result.AppendFormat("\") = \"{0}\", \"{1}\", \"",
                     project.Name, project.AbsolutePath);
                 result.Append("{");
@@ -203,7 +217,7 @@ GlobalSection(ProjectConfigurationPlatforms) = postSolution");
                 {
                     result.Append("{");
                     result.AppendFormat("{0}", project.ProjectGuid);
-                    result.Append("}.{");
+                    result.Append("}.");
                     result.Append(config);
                     result.AppendFormat("= {0}\n", config);
                 }
@@ -223,25 +237,68 @@ EndGlobalSection");
         /// <summary>
         /// Write the entire solution structure to disk.
         /// </summary>
-        /// <param name="solutionPath">Where to save the sln file</param>
+        /// <param name="solutionFileName">Where to save the sln file</param>
         /// <param name="projects">Projects to include</param>
-        public static Solution GenerateSolutionWithProjects(string solutionPath, IEnumerable<ProjectDescriptor> projects)
+        public static Solution GenerateSolutionWithProjects(string solutionFileName, IEnumerable<ProjectDescriptor> projects, string baseDirectory = null, bool clean = true)
         {
-            Contract.Assert(solutionPath != null);
+            Contract.Assert(solutionFileName != null);
+            Contract.Assert(!solutionFileName.Contains(Path.PathSeparator));
+            if (baseDirectory == null)
+            {
+                baseDirectory = Directory.GetCurrentDirectory();
+            }
+
             var text = GenerateSolutionText(projects);
             Contract.Assert(text != null);
+            if (clean)
+            {
+                if (Directory.Exists(Path.Combine(baseDirectory, TestConstants.TestDirectory)))
+                {
+                    Directory.Delete(Path.Combine(baseDirectory, TestConstants.TestDirectory), true);
+                }
+            }
+
+            if (!Directory.Exists(Path.Combine(baseDirectory, TestConstants.TestDirectory)))
+            {
+                Directory.CreateDirectory(Path.Combine(baseDirectory, TestConstants.TestDirectory));
+            }
 
             foreach (var project in projects)
             {
                 var csprojText = CreateProjectFile(project);
                 Contract.Assert(csprojText != null);
-                Trace.TraceInformation("Writing project file to to {0}", project.AbsolutePath);
-                File.WriteAllText(project.AbsolutePath, csprojText);
+                var csProjFile = Path.Combine(baseDirectory, project.AbsolutePath);
+                Trace.TraceInformation("Writing project file to to {0}", csProjFile);
+                File.WriteAllText(csProjFile, csprojText);
             }
 
-            File.WriteAllText(solutionPath, text);
+            File.WriteAllText(Path.Combine(baseDirectory, solutionFileName), text);
 
-            return Utils.ReadSolution(solutionPath);
+            return Utils.ReadSolution(solutionFileName);
+        }
+
+        /// <summary>
+        /// Creates a directory structure for a solution and zips it up. 
+        /// </summary>
+        /// <param name="solutionFileName"></param>
+        /// <param name="projects"></param>
+        /// <returns>Path to the zip file</returns>
+        public static string GenerateSolutionWithProjectsAsAZip(string solutionFileName, IEnumerable<ProjectDescriptor> projects, bool deleteTemp = true)
+        {
+            var solution = GenerateSolutionWithProjects(solutionFileName, projects, "temp", false);
+            Contract.Assert(Directory.Exists("temp"));
+            Contract.Assert(Directory.Exists(Path.Combine("temp", TestConstants.TestDirectory)));
+
+            var destinationFile = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".zip";
+
+            ZipFile.CreateFromDirectory("temp", destinationFile);
+            Trace.TraceInformation("Wrote the archive to {0}", destinationFile);
+            if (deleteTemp)
+            {
+                Directory.Delete("temp", true);
+            }
+
+            return destinationFile;
         }
     }
 }
