@@ -963,6 +963,12 @@ namespace OrleansInterfaces
                 return base.InvokeMethodAsync<System.Collections.Generic.IEnumerable<System.String>>(-928521370, null );
             }
             
+            System.Threading.Tasks.Task<ReachingTypeAnalysis.MethodDescriptor> OrleansInterfaces.ISolutionGrain.GetMethodDescriptorByIndexAsync(int @methodNumber)
+            {
+
+                return base.InvokeMethodAsync<ReachingTypeAnalysis.MethodDescriptor>(87854168, new object[] {@methodNumber} );
+            }
+            
             System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<ReachingTypeAnalysis.MethodDescriptor>> ReachingTypeAnalysis.ISolutionManager.GetRootsAsync()
             {
 
@@ -1071,6 +1077,8 @@ namespace OrleansInterfaces
                                 return ((ISolutionGrain)grain).ForceDeactivation().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)null; });
                             case -928521370: 
                                 return ((ISolutionGrain)grain).GetDrives().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
+                            case 87854168: 
+                                return ((ISolutionGrain)grain).GetMethodDescriptorByIndexAsync((Int32)arguments[0]).ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1382348266: 
                                 return ((ISolutionGrain)grain).GetRootsAsync().ContinueWith(t => {if (t.Status == System.Threading.Tasks.TaskStatus.Faulted) throw t.Exception; return (object)t.Result; });
                             case -1048664479: 
@@ -1134,6 +1142,8 @@ namespace OrleansInterfaces
                             return "ForceDeactivation";
                     case -928521370:
                             return "GetDrives";
+                    case 87854168:
+                            return "GetMethodDescriptorByIndexAsync";
                     case -1382348266:
                             return "GetRootsAsync";
                     case -1048664479:

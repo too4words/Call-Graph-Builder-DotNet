@@ -187,7 +187,7 @@ namespace ReachingTypeAnalysis.Analysis
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(propKind);
             sw.Stop();
 
-            Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} ", this.methodEntity.MethodDescriptor,sw.Elapsed);
+            Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} Effects size: {2}", this.methodEntity.MethodDescriptor,sw.Elapsed, propagationEffects.CalleesInfo.Count);
             return propagationEffects;
         }
 

@@ -119,7 +119,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.publicMethods;
 		}
 
-		public async Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		public virtual async Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
 		{
 			var result = new HashSet<MethodDescriptor>();
 
@@ -133,7 +133,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
 		}
-        public async Task<int> GetReachableMethodsCountAsync()
+        public virtual async Task<int> GetReachableMethodsCountAsync()
         {
             var result = 0;
 
@@ -147,6 +147,11 @@ namespace ReachingTypeAnalysis.Analysis
 
             return result;
         }
+        public virtual Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{

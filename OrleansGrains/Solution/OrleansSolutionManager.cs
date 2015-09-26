@@ -12,6 +12,7 @@ namespace ReachingTypeAnalysis.Analysis
     internal class OrleansSolutionManager : SolutionManager
     {
         private IGrainFactory grainFactory;
+        private ISet<MethodDescriptor> methodDescriptors = new HashSet<MethodDescriptor>();
 
         private OrleansSolutionManager(IGrainFactory grainFactory)
         {
@@ -94,8 +95,11 @@ namespace ReachingTypeAnalysis.Analysis
         }
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
-		{
-			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
+        {
+#if COMPUTE_STATS
+            methodDescriptors.Add(methodDescriptor);
+#endif
+            var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
 
@@ -115,5 +119,19 @@ namespace ReachingTypeAnalysis.Analysis
 			//this.projects = null;
 			//this.solutionPath = null;
         }
-	}
+        public override Task<int> GetReachableMethodsCountAsync()
+        {
+            return Task.FromResult(this.methodDescriptors.Count);
+        }
+        public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+        {
+            return Task.FromResult(this.methodDescriptors.AsEnumerable());
+        }
+        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+        {
+            //HashSet<MethodDescriptor> set = (HashSet<MethodDescriptor>) this.methodDescriptors;
+            return Task.FromResult(this.methodDescriptors.ElementAt(methodNumber));
+        }
+
+    }
 }

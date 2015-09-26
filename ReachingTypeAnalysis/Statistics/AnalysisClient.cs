@@ -52,17 +52,25 @@ namespace ReachingTypeAnalysis.Statistics
 		private Stopwatch stopWatch;
 
 		private SolutionAnalyzer analyzer;
-        private ISolutionManager solutionManager; 
+        private ISolutionGrain solutionManager; 
 		public string ExpID { get; private set; }
 
 		public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
 		{
 			this.analyzer = analyzer;
-            this.solutionManager = analyzer.SolutionManager;
+            // We want to force the manager to be obtained when is ready
+            // this.solutionManager = analyzer.SolutionManager;
 			this.machines = machines;
 			this.subject = subject;
 		}
-        public AnalysisClient(ISolutionManager solutionManager, int machines, string subject = "")
+        /// <summary>
+        /// This auxiliary constructor is used only then a SolutionManager (e.g. SolutionGrain, already exists)
+        /// This is the case when we want to query an existing system
+        /// </summary>
+        /// <param name="solutionManager"></param>
+        /// <param name="machines"></param>
+        /// <param name="subject"></param>
+        public AnalysisClient(ISolutionGrain solutionManager, int machines, string subject = "")
         {
             this.analyzer = null;
             this.solutionManager = solutionManager;
@@ -70,12 +78,12 @@ namespace ReachingTypeAnalysis.Statistics
             this.subject = subject;
         }
 
-        public ISolutionManager SolutionManager
+        public ISolutionGrain SolutionManager
 		{
 			get {
                 if(this.solutionManager==null)
                 {
-                    this.solutionManager = analyzer.SolutionManager;
+                    this.solutionManager = (ISolutionGrain)analyzer.SolutionManager;
                 }
                 return this.solutionManager;
             }
@@ -353,7 +361,86 @@ namespace ReachingTypeAnalysis.Statistics
 
         }
 
-		private static CloudTable CreateTable(string name)
+        public async Task<Tuple<long, long, long>> ComputeRandomQueries(int repetitions, string expId = "DummyExperimentID")
+        {
+            if (String.IsNullOrEmpty(this.ExpID))
+            {
+                this.ExpID = expId;
+            }
+
+            var solutionManager = this.SolutionManager;
+            Random random = new Random();
+            long sumTime = 0;
+            long maxTime = 0;
+            long minTime = long.MaxValue;
+            long[] times = new long[repetitions];
+
+            var numberOfMethods = await solutionManager.GetReachableMethodsCountAsync();
+
+            for (int i = 0; i < repetitions; i++)
+            {
+                int methodNumber = random.Next(numberOfMethods);
+                var methodDescriptor = await solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
+                //var typeDescriptor = new TypeDescriptor("", className, assemblyName);
+                //var methodDescriptor = new MethodDescriptor(typeDescriptor, methodPrejix + methodNumber, true);
+                var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
+
+                if (invocationCount > 0)
+                {
+                    var invocation = random.Next(invocationCount) + 1;
+
+                    IEnumerable<MethodDescriptor> result = null;
+
+                    var stopWatch = Stopwatch.StartNew();
+                    if (invocation > 0)
+                    {
+                        result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor, invocation, "");
+                    }
+                    else
+                    {
+                        result = await CallGraphQueryInterface.GetCalleesAsync(solutionManager, methodDescriptor);
+                    }
+
+                    stopWatch.Stop();
+                    var time = stopWatch.ElapsedMilliseconds;
+                    times[i] = time;
+                    if (time > maxTime) maxTime = time;
+                    if (time < minTime) minTime = time;
+                    sumTime += time;
+                }
+            }
+            if (repetitions > 0)
+            {
+                var avgTime = sumTime / repetitions;
+
+                var time = DateTime.Now;
+                var results = new QueriesPerSubject()
+                {
+                    ExpID = this.ExpID,
+                    Time = time,
+                    Subject = this.subject,
+                    Machines = machines,
+                    Repeticions = repetitions,
+                    AvgTime = avgTime,
+                    MinTime = minTime,
+                    MaxTime = maxTime,
+                    Median = times[repetitions / 2],
+                    Observations = "From web",
+                    PartitionKey = this.ExpID,
+                    RowKey = time.ToFileTime().ToString()
+                };
+                this.AddQueryResults(results);
+                // SaveTable<QueriesPerSubject>("QueryResults", @"Y:\");
+
+                return Tuple.Create<long, long, long>(avgTime, minTime, maxTime);
+            }
+            return Tuple.Create<long, long, long>(0, 0, 0);
+
+        }
+
+
+
+        private static CloudTable CreateTable(string name)
 		{
 			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 

@@ -23,5 +23,5 @@ else
 $controler="api/Experiments"
 $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines <#+"&numberOfMethods="+$numberOfMethods#>
 $uri = $resource+$controler+$cmd
-echo Invoking $uri
+Write-Host "Invoking"  $uri
 Invoke-WebRequest -Uri $uri -TimeoutSec 5000 

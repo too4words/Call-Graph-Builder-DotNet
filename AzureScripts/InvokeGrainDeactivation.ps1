@@ -1,7 +1,7 @@
 ﻿#
 #
 if($env:ISEMULATED -ne $true)  {
-	$port = "21"
+	$port = "45002"
 	$resource = "http://orleansservicedg.cloudapp.net:"+$port+"/"
 }
 else

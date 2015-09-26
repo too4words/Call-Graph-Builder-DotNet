@@ -123,5 +123,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.SetRequestContext();
 			return solutionGrain.GetDrives();
 		}
-	}
+
+        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+        {
+            // This is used for the random queries. We don't need to use stats
+           return this.solutionGrain.GetMethodDescriptorByIndexAsync(methodNumber);
+        }
+    }
 }

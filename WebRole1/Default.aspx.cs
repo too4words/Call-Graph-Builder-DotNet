@@ -175,12 +175,14 @@ namespace WebRole1
 
 				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, results.ElapsedTime);
 
-                var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, numberOfMethods, repetitions);
+                //var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, numberOfMethods, repetitions);
+
+                var result = await analysisClient.ComputeRandomQueries(repetitions);
 
 
                 //program.RetriveInfoFromAnalysis();
 
-				//System.Diagnostics.Trace.TraceInformation("Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
+                //System.Diagnostics.Trace.TraceInformation("Analyzing {0} took:{1} ms", testName, stopWatch.ElapsedMilliseconds);
             }
             catch (Exception exc)
             {

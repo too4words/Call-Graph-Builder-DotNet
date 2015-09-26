@@ -214,5 +214,10 @@ namespace ReachingTypeAnalysis.Analysis
 			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
 			return Task.FromResult(drivers.AsEnumerable());
 		}
+
+        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+        {
+            return this.solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
+        }
     }    
 }

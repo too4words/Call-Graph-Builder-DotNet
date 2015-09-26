@@ -74,7 +74,8 @@ namespace WebAPI
                 var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
                 var analysisClient = new AnalysisClient(solutionGrain, machines);
-                var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions, assemblyName, expID);
+                //var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions, assemblyName, expID);
+                var result = await analysisClient.ComputeRandomQueries(repetitions, expID);
                 var avgTime = result.Item1;
                 var minTime = result.Item2;
                 var maxTime = result.Item3;

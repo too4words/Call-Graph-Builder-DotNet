@@ -15,5 +15,8 @@ namespace OrleansInterfaces
 		Task SetSolutionFromTestAsync(string testName); 
 		Task ForceDeactivation();
 		Task<IEnumerable<string>> GetDrives();
-	}
+        Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber);
+
+
+    }
 }

@@ -30,7 +30,8 @@
     <Compile Include="ChangeNumberOfInstances.ps1" />
     <Compile Include="ConnectToAzure.ps1" />
     <Compile Include="InvokeSolutionExperiment.ps1" />
-    <Compile Include="RunAllTestForInstance.ps1" />
+    <Compile Include="RunAllTest.ps1" />
+    <Compile Include="RunAllTestsForInstance.ps1" />
     <Compile Include="RunTestForInstance.ps1" />
     <Compile Include="InvokeRandomQueries.ps1" />
     <Compile Include="InvokeTestExperiments.ps1" />
