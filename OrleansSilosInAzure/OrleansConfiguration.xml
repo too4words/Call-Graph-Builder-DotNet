@@ -20,8 +20,9 @@
 		  </Defaults>
 	  </Application>
     <Messaging ResponseTimeout="1200s"/>
-    <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="120s" LogWriteInterval="300s"
-                WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Warning"/>
+    <Statistics WriteLogStatisticsToTable="false"/>
+    <!-- <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="120s" LogWriteInterval="300s"
+                WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Critical"/> -->
   </Globals>
   <Defaults>
     <!--

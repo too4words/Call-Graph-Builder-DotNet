@@ -52,7 +52,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #Write-Host "Path:" $MyInvocation.MyCommand.Path
 #Write-Host "ScripPath:" $ScriptPath 
 
-$machinesSet = 8, 4 
+$machinesSet = 8, 4 , 1
 #$machinesSet = 16,8,4,2,1 
 
 # this is the time in seconds for the wait before starting to run experiments

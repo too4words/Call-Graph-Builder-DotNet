@@ -18,7 +18,7 @@ else
 {
 	$resource = "http://localhost:49176/"
 	$drive = "C"
-	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\LongTest2"
+	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\" + $solutionPath
 }
 $controler="api/Experiments"
 $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines <#+"&numberOfMethods="+$numberOfMethods#>

@@ -377,7 +377,9 @@ namespace ReachingTypeAnalysis.Statistics
 
             var numberOfMethods = await solutionManager.GetReachableMethodsCountAsync();
 
-            for (int i = 0; i < repetitions; i++)
+            var warmingUpQueries = 10;
+
+            for (int i = 0; i < repetitions+ warmingUpQueries; i++)
             {
                 int methodNumber = random.Next(numberOfMethods);
                 var methodDescriptor = await solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
@@ -402,11 +404,14 @@ namespace ReachingTypeAnalysis.Statistics
                     }
 
                     stopWatch.Stop();
-                    var time = stopWatch.ElapsedMilliseconds;
-                    times[i] = time;
-                    if (time > maxTime) maxTime = time;
-                    if (time < minTime) minTime = time;
-                    sumTime += time;
+                    if (i >= warmingUpQueries)
+                    {
+                        var time = stopWatch.ElapsedMilliseconds;
+                        times[i - warmingUpQueries] = time;
+                        if (time > maxTime) maxTime = time;
+                        if (time < minTime) minTime = time;
+                        sumTime += time;
+                    }
                 }
             }
             if (repetitions > 0)
