@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ReachingTypeAnalysis.Analysis;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace ReachingTypeAnalysis
-{   
-	 public partial class BasicTests 
+{
+    public partial class BasicTests 
 	 {
 	    public static void TestSimpleCall(AnalysisStrategyKind strategy)
         {

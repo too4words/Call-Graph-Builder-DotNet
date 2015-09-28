@@ -57,6 +57,7 @@ namespace ReachingTypeAnalysis.Tests
                 Trace.TraceInformation("Adding calls from main");
                 foreach (var method in result.GetNodes())
                 {
+                    // avoid self-recursive calls
                     if (method != "Main")
                     {
                         result.AddCall("Main", method);

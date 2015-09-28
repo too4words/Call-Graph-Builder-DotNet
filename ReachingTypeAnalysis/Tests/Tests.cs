@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orleans;
 using ReachingTypeAnalysis.Analysis;
-using ReachingTypeAnalysis.Communication;
-using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.CallGraph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Linq;
 
 namespace ReachingTypeAnalysis
 {
@@ -112,6 +106,7 @@ namespace ReachingTypeAnalysis
         public static void TestSolution1Share(AnalysisStrategyKind strategy)
         {
             string currentSolutionPath = @"\\t-digarb-z440\share\solutions";
+            Assert.IsTrue(Directory.Exists(currentSolutionPath));
             string solutionPath = Path.Combine(currentSolutionPath, ConfigurationManager.AppSettings["Solution1"]);
 
             TestSolution1(strategy, solutionPath);
@@ -206,6 +201,7 @@ namespace ReachingTypeAnalysis
         public void TestPrecisionVsFindReferences2()
         {
             string solutionPath = @"C:\Users\t-digarb\Source\Workspaces\VSO\RosInt VSO\ReachingTypeAnalysis\ReachingTypeAnalysis.sln";
+            Assert.IsTrue(Directory.Exists(solutionPath));
             CompareWithRoslyn(solutionPath);
         }
 
@@ -214,6 +210,8 @@ namespace ReachingTypeAnalysis
         public void TestPrecisionVsFindReferences3()
         {
             string solutionPath = @"C:\Users\t-digarb\Source\gillopy\Source\Gillopy.sln";
+            Assert.IsTrue(Directory.Exists(solutionPath));
+
             //string solutionPath = @"C:\Users\t-digarb\Source\Repos\contractor-net\Contractor.sln";
             CompareWithRoslyn(solutionPath);
         }
