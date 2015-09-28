@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -11,13 +13,19 @@ using System.IO.Compression;
 
 namespace ReachingTypeAnalysis
 {
-    public class ProjectDescriptor 
+    internal enum ProjectType {
+        Library,
+        Executable,
+    }
+
+    public class ProjectDescriptor
     {
         internal string Name { get; set; }
         internal string ProjectGuid { get; set; }
         internal string AbsolutePath { get; set; }
         internal IEnumerable<ProjectDescriptor> Dependencies { get; set; }
         internal IEnumerable<string> Files { get; set; }
+        internal ProjectType Type { get; set; }
     }
 
 
@@ -82,9 +90,10 @@ namespace ReachingTypeAnalysis
             result.Append(project.ProjectGuid);
             result.Append(
     @"}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>");
+            result.AppendFormat(@"{0}</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    ");
+    ", project.Type == ProjectType.Library ? "Library" : "Exe");
             result.AppendFormat(
 @"<RootNamespace>{0}</RootNamespace>
     <AssemblyName>{0}{1}</AssemblyName>", TestConstants.TemporaryNamespace, project.Name);
