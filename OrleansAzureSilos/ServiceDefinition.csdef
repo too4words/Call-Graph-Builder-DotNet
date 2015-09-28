@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="OrleansAzureSilos" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
-<!--  <WorkerRole name="OrleansSilosInAzure" vmsize="ExtraLarge"> -->
-    <WorkerRole name="OrleansSilosInAzure" vmsize="Large">
-      <Imports>
+  <!--  <WorkerRole name="OrleansSilosInAzure" vmsize="ExtraLarge"> -->
+  <WorkerRole name="OrleansSilosInAzure" vmsize="Large">
+    <Imports>
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
       <!--      <Import moduleName="Diagnostics" />  -->
@@ -104,7 +104,7 @@
         <Environment>
         </Environment>
       </Task>
-    </Startup>    
+    </Startup>
     <Imports>
       <!--      <Import moduleName="Diagnostics" />  -->
       <Import moduleName="RemoteAccess" />
@@ -113,7 +113,7 @@
       <Setting name="DataConnectionString" />
     </ConfigurationSettings>
     <Endpoints>
-      <InputEndpoint name="Endpoint1" protocol="http" port="8080" />
+      <InputEndpoint name="Endpoint1" protocol="http" port="45002" />
     </Endpoints>
   </WebRole>
 </ServiceDefinition>

@@ -45,12 +45,17 @@ namespace WebRole1
 
         private void RoleEnvironmentChanging(object sender, RoleEnvironmentChangingEventArgs e)
         {
-            // If a configuration setting is changing
-            if (e.Changes.Any(change => change is RoleEnvironmentConfigurationSettingChange))
+            foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentTopologyChange))
             {
-                // Set e.Cancel to true to restart this role instance
                 e.Cancel = true;
+                return;
             }
+            // If a configuration setting is changing
+            //if (e.Changes.Any(change => change is RoleEnvironmentConfigurationSettingChange))
+            //{
+            //    // Set e.Cancel to true to restart this role instance
+            //    e.Cancel = true;
+            //}
         }
     }
 }

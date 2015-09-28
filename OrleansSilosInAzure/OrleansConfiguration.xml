@@ -19,9 +19,10 @@
 			  <Deactivation AgeLimit="24hr"/>
 		  </Defaults>
 	  </Application>
-    <Messaging ResponseTimeout="600s"/>
-    <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="120s" LogWriteInterval="300s"
-                WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Warning"/>
+    <Messaging ResponseTimeout="1200s"/>
+    <Statistics WriteLogStatisticsToTable="false"/>
+    <!-- <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="120s" LogWriteInterval="300s"
+                WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Critical"/> -->
   </Globals>
   <Defaults>
     <!--
@@ -31,7 +32,7 @@
       message lifecycle. This may be useful debugging performance issues.
       -->
     <!--   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" > -->
-       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+       <Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
 
         <!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".

@@ -74,7 +74,8 @@ namespace WebAPI
                 var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
 
                 var analysisClient = new AnalysisClient(solutionGrain, machines);
-                var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions, assemblyName, expID);
+                //var result = await analysisClient.ComputeRandomQueries(className, methodPrefix, numberOfMethods, repetitions, assemblyName, expID);
+                var result = await analysisClient.ComputeRandomQueries(repetitions, expID);
                 var avgTime = result.Item1;
                 var minTime = result.Item2;
                 var maxTime = result.Item3;
@@ -86,8 +87,28 @@ namespace WebAPI
             }
             return resultStr;
         }
-		//[HttpGet]
-		public async Task<string> PerformDeactivationAsync()
+        [HttpGet]
+        public async Task<string> ComputeQueries(int machines, int repetitions, string expID)
+        {
+            var resultStr = "";
+            try
+            {
+                var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+                var analysisClient = new AnalysisClient(solutionGrain, machines);
+                var result = await analysisClient.ComputeRandomQueries(repetitions, expID);
+                var avgTime = result.Item1;
+                var minTime = result.Item2;
+                var maxTime = result.Item3;
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                resultStr = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
+            return resultStr;
+        }
+        //[HttpGet]
+        public async Task<string> PerformDeactivationAsync()
 		{
 			var result = string.Empty;
 

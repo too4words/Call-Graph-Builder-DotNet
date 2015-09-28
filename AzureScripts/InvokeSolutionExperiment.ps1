@@ -11,16 +11,17 @@ param (
 # http://orleansservicedg.cloudapp.net:8080/api/Experiments?drive=Y&solutionPath=LongTest2&solutionName=LongTest2&machines=1
 
 if($env:ISEMULATED -ne $true)  {
-	$resource = "http://orleansservicedg.cloudapp.net:8080/"
+	$port = "45002"
+	$resource = "http://orleansservicedg.cloudapp.net:"+$port+"/"
 }
 else
 {
 	$resource = "http://localhost:49176/"
 	$drive = "C"
-	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\LongTest2"
+	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\" + $solutionPath
 }
 $controler="api/Experiments"
 $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines <#+"&numberOfMethods="+$numberOfMethods#>
 $uri = $resource+$controler+$cmd
-echo Invoking $uri
+Write-Host "Invoking"  $uri
 Invoke-WebRequest -Uri $uri -TimeoutSec 5000 

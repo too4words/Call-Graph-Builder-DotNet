@@ -26,6 +26,7 @@ namespace OrleansSilosInAzure
 
         private AzureSilo orleansAzureSilo;
         private const string DATA_CONNECTION_STRING_KEY = "DataConnectionString";
+        private int instances;
 
         //private AppDomain hostDomain;
         //private static OrleansHostWrapper hostWrapper;
@@ -47,6 +48,8 @@ namespace OrleansSilosInAzure
 
 				var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["OrleansSiloEndPoint"].IPEndpoint.Address.ToString();
 				Environment.SetEnvironmentVariable("MyIPAddr",ipAddr);
+
+                this.instances = RoleEnvironment.CurrentRoleInstance.Role.Instances.Count;
 
 				// TODO: Delete Orleans Tables
 				// To avoid double delete, check for existence
@@ -198,20 +201,26 @@ namespace OrleansSilosInAzure
 		/// <param name="e">The <see cref="RoleEnvironmentChangingEventArgs" /> instance containing the event data.</param>
 		private void RoleEnvironmentOnChanging(object sender, RoleEnvironmentChangingEventArgs e)
 		{
-			// Implements the changes after restarting the role instance
-			//foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
+            // Implements the changes after restarting the role instance
+            foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentTopologyChange))
+            {
+                e.Cancel = true;
+                return;
+            }
+
+   //         foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
 			//{
 			//	switch (settingChange.ConfigurationSettingName)
 			//	{
-			//		case "Startup.ExternalTasksUrl":
-			//			Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
-			//			e.Cancel = true;
-			//			return;
-			//		case "Startup.VsInstallDir":
-			//			Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
-			//			e.Cancel = true;
-			//			return;
-			//	}
+   //                 case "Startup.ExternalTasksUrl":
+   //                     Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+   //                     e.Cancel = true;
+   //                     return;
+   //                 case "Startup.VsInstallDir":
+   //                     Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+   //                     e.Cancel = true;
+   //                     return;
+   //             }
 			//}
 		}
 
