@@ -57,7 +57,11 @@ namespace ReachingTypeAnalysis.Tests
                 Trace.TraceInformation("Adding calls from main");
                 foreach (var method in result.GetNodes())
                 {
-                    result.AddCall("Main", method);
+                    // avoid self-recursive calls
+                    if (method != "Main")
+                    {
+                        result.AddCall("Main", method);
+                    }
                 }
             }
 
@@ -181,7 +185,9 @@ namespace ReachingTypeAnalysis.Tests
 					Trace.TraceInformation("Adding method {0}", i);
 				}
                 var hash = vertex.ToString().GetHashCode();
-                var fileForThisMethod = Math.Abs(hash) % projectCount;
+                var fileForThisMethod = (vertex != "Main") ?
+                        (Math.Abs(hash) % projectCount) :
+                        projectCount - 1;
                 var method = GetMethod(vertex,
                     callgraph.GetCallees(vertex)
                     // only call things in classes numbered lower than ours to avoid circular depdendencies
@@ -746,6 +752,7 @@ namespace ReachingTypeAnalysis.Tests
                     projectNames.Add(new ProjectDescriptor {
                         Name = string.Format("P{0}", index),
                         AbsolutePath = string.Format("P{0}.csproj", index),
+                        Type = (index == numProjects - 1) ? ProjectType.Executable : ProjectType.Library,
                     });
                 }
                 foreach (var syntax in syntaxes)
@@ -762,6 +769,7 @@ namespace ReachingTypeAnalysis.Tests
                         Name = string.Format("P{0}", index),
                         ProjectGuid = Guid.NewGuid().ToString(),
                         Files = new[] { fileName },
+                        Type = (index == numProjects - 1) ? ProjectType.Executable : ProjectType.Library,
                         // TODO: we may need to worry about project 
                         // dependencies because it will likely fail to compile without them
                         Dependencies = projectNames,
@@ -952,6 +960,7 @@ namespace ReachingTypeAnalysis.Tests
                         Name = string.Format("P{0}", index),
                         ProjectGuid = Guid.NewGuid().ToString(),
                         Files = new[] { fileName },
+                        Type = (index == numProjects - 1) ? ProjectType.Executable : ProjectType.Library,
                         // TODO: we may need to worry about project 
                         // dependencies because it will likely fail to compile without them
                         Dependencies = descriptors.Take(index),
