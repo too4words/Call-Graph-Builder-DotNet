@@ -161,13 +161,13 @@ namespace ReachingTypeAnalysis.Statistics
 				totalAct += activations;
 				totalDeact += deactivations;
 
-				//AddSiloMetric(silos[i], siloComputedStats[i], time);
+				//AddSiloMetric(silos[i], siloComputedStats[i], time, machines);
 				// Save results in per silo table
                 if(orleansStats.Length<=i)
                 {
                     throw new IndexOutOfRangeException(String.Format("OrlenasStats Lenght is {0} and silos Lenght is {1}", orleansStats.Length, silos.Length));
                 }
-				AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time);
+				AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time, machines);
 
 
 				totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo; 
@@ -557,12 +557,13 @@ namespace ReachingTypeAnalysis.Statistics
         }
 
 
-		internal void AddSiloMetric(string siloAddr, SiloComputedStats siloComputedStat, DateTime time)
+		internal void AddSiloMetric(string siloAddr, SiloComputedStats siloComputedStat, DateTime time, int machines)
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
 				ExpID = this.ExpID,
 				Time = time,
+                Machines = machines, 
 				Address = siloAddr.ToString(),
 				CPU = -1,
 				MemoryUsage = siloComputedStat.MemoryUsage,
@@ -589,12 +590,13 @@ namespace ReachingTypeAnalysis.Statistics
 		}
 
 
-		internal void AddSiloMetricWithOrleans(/*SiloAddress*/ string siloAddr,  SiloRuntimeStatistics siloMetric, SiloComputedStats siloComputedStat, DateTime time)
+		internal void AddSiloMetricWithOrleans(/*SiloAddress*/ string siloAddr,  SiloRuntimeStatistics siloMetric, SiloComputedStats siloComputedStat, DateTime time, int machines)
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
                 ExpID = this.ExpID,
 				Time = time,
+                Machines = machines,
 				Address = siloAddr.ToString(), 
 				CPU = siloMetric.CpuUsage,
 				MemoryUsage = siloMetric.MemoryUsage,

@@ -23,7 +23,7 @@ else
 }
 $controler="api/Experiments"
 # replaced the long call by this call 
-## $cmd = "?className="+$className+"&methodPrefix="+$methodPrefix+"&machines="+$machines+ "&numberOfMethods="+$numberOfMethods+"&repetitions="+$repetitions+"&assemblyName="+$assemblyName+"&expID="+$expID
+#$cmd = "?className="+$className+"&methodPrefix="+$methodPrefix+"&machines="+$machines+ "&numberOfMethods="+$numberOfMethods+"&repetitions="+$repetitions+"&assemblyName="+$assemblyName+"&expID="+$expID
 $cmd = "?machines="+$machines+"&repetitions="+$repetitions+"&expID="+$expID
 $uri = $resource+$controler+$cmd
 echo Invoking $uri
