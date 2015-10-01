@@ -113,6 +113,28 @@ namespace ReachingTypeAnalysis
                 AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+
+        public void TestSynthetic_500_000()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-500000.zip"), 
+                100001, 585,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+
+        public void TestSynthetic_10_000_000()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-1000000.zip"), 
+                100001, 585,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
         private static void TestSyntheticSolution(string zipFileName, 
             int correctNodeCount, int correctEdgeCount,
             AnalysisStrategyKind strategy)
