@@ -5,11 +5,12 @@ param (
     [string] $solutionPath = "LongTest2",
 	[string] $solutionName = "LongTest2",
 	[int] $machines = 2,
-	[int] $numberOfMethods = 100,
-	[string] $className = "C",
-	[string] $assemblyName = "ConsoleApplication",
-    [string] $methodPrefix = "N",
-	[int] $repetitions = 50
+#	[int] $numberOfMethods = 100,
+#	[string] $className = "C",
+#	[string] $assemblyName = "ConsoleApplication",
+#    [string] $methodPrefix = "N",
+	[int] $repetitions = 50,
+    [string] $expID = ""
 	)
 
 # get the paths to use in the invocations
@@ -20,7 +21,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 
 Write-Host "Invoke test:"  $solutionName
 #$job = Start-Job { 
-	$result1 = & "$ScriptPath\InvokeSolutionExperiment.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -numberOfMethods $numberOfMethods | Write-Output
+	$result1 = & "$ScriptPath\InvokeSolutionExperiment.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -numberOfMethods $numberOfMethods -expID $expID| Write-Output
 #}
 #Wait-Job $job
 #Receive-Job $job
@@ -28,7 +29,8 @@ Write-Host "Result:" $result1
 
 echo "Invoke query"
 #$job = Start-Job { 
-	$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -className $className -methodPrefix $methodPrefix -machines $machines -numberOfMethods $numberOfMethods -repetitions $repetitions -assemblyName $assemblyName -expID $solutionName | Write-Output
+	#$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -className $className -methodPrefix $methodPrefix -machines $machines -numberOfMethods $numberOfMethods -repetitions $repetitions -assemblyName $assemblyName -expID $solutionName | Write-Output
+	$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -machines $machines -repetitions $repetitions -expID $solutionName | Write-Output
 #}
 #Wait-Job $job
 #Receive-Job $job

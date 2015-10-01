@@ -2,9 +2,9 @@
 #
 param (
 	[string] $drive = "Y",
-	[string] $className = "C",
-	[string] $assemblyName = "ConsoleApplication",
-    [string] $methodPrefix = "N",
+#	[string] $className = "C",
+#	[string] $assemblyName = "ConsoleApplication",
+#    [string] $methodPrefix = "N",
 	[int] $repetitions = 50
 	)
 
@@ -52,8 +52,8 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #Write-Host "Path:" $MyInvocation.MyCommand.Path
 #Write-Host "ScripPath:" $ScriptPath 
 
-$machinesSet = 8, 4 , 1
-#$machinesSet = 16,8,4,2,1 
+#$machinesSet = 1
+$machinesSet = 16,8,4,2,1 
 
 # this is the time in seconds for the wait before starting to run experiments
 $waitTime = 3
@@ -74,8 +74,8 @@ foreach($machines in $machinesSet)
 	Start-Sleep -s $waitTime
 	
 	Write-Host "Analizing all test in:" $machines " instances"
-	$result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive  -machines $machines -className $className -assemblyName $assemblyName -methodPrefix $methodPrefix -repetitions $repetitions  | Write-Output
-
+    # $result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive  -machines $machines -className $className -assemblyName $assemblyName -methodPrefix $methodPrefix -repetitions $repetitions  | Write-Output
+    $result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive -machines $machines -repetitions $repetitions  | Write-Output
 	Write-Host "Result:" $result2
 }
 

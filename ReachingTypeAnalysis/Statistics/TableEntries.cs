@@ -81,7 +81,8 @@ namespace ReachingTypeAnalysis.Statistics
 		public long Median { get; set; }
 		public int Repeticions { get; set; }
 		public string Observations { get; set; }
-	}
+        public double StdDev { get; internal set; }
+    }
 
 	public class SiloRuntimeStats : TableEntityCSV
 	{
@@ -89,11 +90,14 @@ namespace ReachingTypeAnalysis.Statistics
 		//public string DeploymentId { get; set; }
 		public DateTime Time { get; set; }
 		public string Address { get; set; }
-		//public string SiloName { get; set; }
-		//public string GatewayAddress { get; set; }
-		//public string HostName { get; set; }
 
-		public double CPU { get; set; }
+        public int Machines { get; set; }
+
+        //public string SiloName { get; set; }
+        //public string GatewayAddress { get; set; }
+        //public string HostName { get; set; }
+
+        public double CPU { get; set; }
 		public long MemoryUsage { get; set; }
 		public long Activations { get; set; }
 		public int RecentlyUsedActivations { get; set; }

@@ -44,16 +44,20 @@ namespace WebAPI
 		}
 
 		[HttpGet]
-		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines)
+		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
 		{
 			var result = string.Empty;
 
 			try
 			{
+                if(String.IsNullOrEmpty(expID))
+                {
+                    expID = solutionName;
+                }
 				solutionPath = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,solutionName);
+				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,expID);
 
 				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 			}
