@@ -1,11 +1,11 @@
 ﻿#
 #
 param (
-	[string] $className = "C",
-    [string] $methodPrefix = "N",
-	[string] $assemblyName = "ConsoleApplication",
+#	[string] $className = "C",
+#    [string] $methodPrefix = "N",
+#	[string] $assemblyName = "ConsoleApplication",
 	[int] $machines = 1,
-	[int] $numberOfMethods = 100,
+#	[int] $numberOfMethods = 100,
 	[int] $repetitions = 50,
 	[string] $expID = "dummy"
 	)
