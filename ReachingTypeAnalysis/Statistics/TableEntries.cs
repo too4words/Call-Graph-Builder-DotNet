@@ -81,7 +81,8 @@ namespace ReachingTypeAnalysis.Statistics
 		public long Median { get; set; }
 		public int Repeticions { get; set; }
 		public string Observations { get; set; }
-	}
+        public double StdDev { get; internal set; }
+    }
 
 	public class SiloRuntimeStats : TableEntityCSV
 	{

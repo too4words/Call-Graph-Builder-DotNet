@@ -417,7 +417,12 @@ namespace ReachingTypeAnalysis.Statistics
             if (repetitions > 0)
             {
                 var avgTime = sumTime / repetitions;
-
+                var stdDev = 0D;
+                for (var i =0; i<times.Length;i++)
+                {
+                    stdDev +=  (times[i] - avgTime)*(times[i] - avgTime);
+                }
+                stdDev = Math.Sqrt(stdDev / repetitions);
                 var time = DateTime.Now;
                 var results = new QueriesPerSubject()
                 {
@@ -429,6 +434,7 @@ namespace ReachingTypeAnalysis.Statistics
                     AvgTime = avgTime,
                     MinTime = minTime,
                     MaxTime = maxTime,
+                    StdDev = stdDev,
                     Median = times[repetitions / 2],
                     Observations = "From web",
                     PartitionKey = this.ExpID,
