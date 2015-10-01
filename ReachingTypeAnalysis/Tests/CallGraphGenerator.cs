@@ -1003,7 +1003,7 @@ namespace ReachingTypeAnalysis.Tests
         {
             // increasing sizes of solutions
             //int[] sizes = { 100, 1000, 10000, 10000, 100000, 1000000 };
-            int[] sizes = { 500000 };
+            int[] sizes = { 1000000 };
             foreach (var solutionSize in sizes)
             {
                 Trace.TraceInformation("Generating a new solution for size {0}", solutionSize);
