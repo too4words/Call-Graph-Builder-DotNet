@@ -2,6 +2,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using TestSources;
+using System;
+using System.Reflection;
+using System.IO;
+using System.IO.Compression;
 
 namespace ReachingTypeAnalysis
 {
@@ -65,9 +69,104 @@ namespace ReachingTypeAnalysis
             LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
-		////////////////////////////////////////////////////////////////////////
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
 
-		public static void LongGeneratedTestAsync1(AnalysisStrategyKind strategy)
+        public void TestSynthetic_100()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-100.zip"), 
+                100, 585,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+
+        public void TestSynthetic_1_000()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-1000.zip"), 
+                1001, 5992,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+
+        public void TestSynthetic_10_000()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-10000.zip"), 
+                10001, 37545,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+        [TestMethod]
+        [TestCategory("VeryLongRunning")]
+
+        public void TestSynthetic_100_000()
+        {
+            TestSyntheticSolution(
+                Path.Combine("Tests", "synthetic-100000.zip"), 
+                100001, 585,
+                AnalysisStrategyKind.ONDEMAND_ASYNC);
+        }
+
+        private static void TestSyntheticSolution(string zipFileName, 
+            int correctNodeCount, int correctEdgeCount,
+            AnalysisStrategyKind strategy)
+        {
+            Assert.IsTrue(File.Exists(zipFileName));
+            var destinationDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Assert.IsTrue(!Directory.Exists(destinationDirectory));
+            Directory.CreateDirectory(destinationDirectory);
+            ZipFile.ExtractToDirectory(zipFileName, destinationDirectory);
+            Assert.IsTrue(Directory.Exists(destinationDirectory));
+            var solutionPath = Path.Combine(destinationDirectory, TestConstants.SolutionPath);
+            Assert.IsTrue(File.Exists(solutionPath));
+
+			AnalyzeSolution(solutionPath, (s, callgraph) =>
+            {
+                //var reachable = s.GetReachableMethods(callgraph);
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N0", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N1", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N2", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N3", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N4", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N5", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N6", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N7", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N8", true)));
+                //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "N9", true)));
+
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N4", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N8", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N7", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N8", true), new MethodDescriptor("C", "N0", true)));
+
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N6", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N2", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N3", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N7", true)));
+                //Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "N5", true), new MethodDescriptor("C", "N4", true)));
+
+                var nodeCount = callgraph.GetNodes().Count();
+				Assert.IsTrue(nodeCount == correctNodeCount,
+                    string.Format("Found {0} nodes instead of {1}", 
+                   nodeCount, correctNodeCount));
+                var edgeCount = callgraph.GetEdges().Count();
+                
+               Assert.IsTrue(edgeCount == correctEdgeCount, 
+                   string.Format("Found {0} edges instead of {1}", 
+                   edgeCount, correctEdgeCount));
+            }, strategy);
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+
+        public static void LongGeneratedTestAsync1(AnalysisStrategyKind strategy)
 		{
 			#region Test Source Code
 			var source = @"
