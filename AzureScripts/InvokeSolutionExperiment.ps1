@@ -5,7 +5,7 @@ param (
     [string] $solutionPath = "LongTest2",
 	[string] $solutionName = "LongTest2",
 	[int] $machines = 1,
-	[string] expID= "",
+	[string] $expID= "",
 	[int] $numberOfMethods = 100
 	)
 

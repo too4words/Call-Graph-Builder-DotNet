@@ -292,14 +292,22 @@ EndGlobalSection");
         /// <param name="solutionFileName"></param>
         /// <param name="projects"></param>
         /// <returns>Path to the zip file</returns>
-        public static string GenerateSolutionWithProjectsAsAZip(string solutionFileName, IEnumerable<ProjectDescriptor> projects, bool deleteTemp = true)
+        public static string GenerateSolutionWithProjectsAsAZip(string solutionFileName, IEnumerable<ProjectDescriptor> projects, string pathSeparator = null, bool deleteTemp = true)
         {
+            if (pathSeparator == null)
+            {
+                pathSeparator = Guid.NewGuid().ToString();
+            }
             var solution = GenerateSolutionWithProjects(solutionFileName, projects, "temp", false);
             Contract.Assert(Directory.Exists("temp"));
             Contract.Assert(Directory.Exists(Path.Combine("temp", TestConstants.TestDirectory)));
 
-            var destinationFile = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".zip";
+            var destinationFile = System.IO.Path.GetTempPath() + pathSeparator + ".zip";
 
+            if (File.Exists(destinationFile))
+            {
+                File.Delete(destinationFile);
+            }
             ZipFile.CreateFromDirectory("temp", destinationFile);
             Trace.TraceInformation("Wrote the archive to {0}", destinationFile);
             if (deleteTemp)
