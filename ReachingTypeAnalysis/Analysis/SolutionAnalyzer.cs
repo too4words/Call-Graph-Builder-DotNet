@@ -33,8 +33,6 @@ namespace ReachingTypeAnalysis
 	{
 		private string source;
 		private string solutionPath;
-
-		private Solution solution;
 		private string testName;
 
 		public ISolutionManager SolutionManager { get; private set; }

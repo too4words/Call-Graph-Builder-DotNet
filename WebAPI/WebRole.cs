@@ -10,7 +10,6 @@ namespace WebAPI
 {
     public class WebRole : RoleEntryPoint
     {
-		private IDisposable _app = null;
         public override bool OnStart()
         {
             Trace.WriteLine("WebAPI-OnStart");
@@ -34,7 +33,6 @@ namespace WebAPI
 
         public override void Run()
         {
-
             Trace.WriteLine("WebAPI-Run");
             try
             {

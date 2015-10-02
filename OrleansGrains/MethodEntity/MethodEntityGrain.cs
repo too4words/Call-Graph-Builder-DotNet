@@ -36,12 +36,9 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProvider codeProvider;
         [NonSerialized]
         private ISolutionGrain solutionGrain;
-		[NonSerialized]
-		private long messages = 0;
 		
 		public override async Task OnActivateAsync()
         {
-
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
