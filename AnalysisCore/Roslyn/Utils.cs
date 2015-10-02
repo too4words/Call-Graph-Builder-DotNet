@@ -280,7 +280,11 @@ namespace ReachingTypeAnalysis
 
 			if (errors.Any())
 			{
-				var fileName = string.Format("roslyn compilation errors for {0}.txt", project.Name);
+				var folderName = "Roslyn compilation errors";
+				var fileName = string.Format("{0}.txt", project.Name);
+
+				Directory.CreateDirectory(folderName);
+				fileName = Path.Combine(folderName, fileName);
 
 				Console.WriteLine("Failed to compile project {0}", project.Name);
 				Console.WriteLine("To see the error log open file: {0}", fileName);

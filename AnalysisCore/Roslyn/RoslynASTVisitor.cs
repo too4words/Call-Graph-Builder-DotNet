@@ -918,7 +918,6 @@ namespace ReachingTypeAnalysis
 
 		private void ProcessBaseMethodDecl(MethodDescriptor thisDescriptor, MethodParserInfo methodInfo)
 		{
-
 			this.DeclaredMethods.Add(thisDescriptor, methodInfo);
 
 			if (thisDescriptor.Equals(this.MethodDescriptor))

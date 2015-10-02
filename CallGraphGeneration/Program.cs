@@ -30,13 +30,16 @@ namespace CallGraphGeneration
 			args = new string[]
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
-				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-                @"c:\Users\diegog\Temp\Projects3\test.sln", "OnDemandOrleans"
+				@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+                //@"c:\Users\diegog\Temp\Projects3\test.sln", "OnDemandOrleans"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandOrleans"
 				//@"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\Coby\Coby.sln", "OnDemandAsync"
                 //@"C:\Users\t-digarb\Source\Coby\Coby.sln", "OnDemandAsync"
                 //@"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\Coby\Coby.sln", "OnDemandOrleans"
+				
+				//@"C:\Users\Edgar\Projects\Test projects\de4dot\de4dot.sln", "OnDemandAsync"
+				//@"C:\Users\Edgar\Projects\Test projects\RestSharp\RestSharp.sln", "OnDemandAsync"
 			};
 			
 			if (args.Length == 2)
