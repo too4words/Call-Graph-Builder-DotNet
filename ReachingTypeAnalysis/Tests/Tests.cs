@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis
 			updatesChecker(solAnalyzer, callgraph);
 		}
 
-		private static void AnalizeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
+		private static void AnalyzeSolution(string solutionPath, RunChecks checker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
         {
             var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
             var callgraph = solAnalyzer.Analyze(strategy);
@@ -51,7 +51,7 @@ namespace ReachingTypeAnalysis
             checker(solAnalyzer, callgraph);
         }
 
-		private static void AnalizeSolution(string solutionPath, RunChecks initialChecker, Action<SolutionAnalyzer> updates, RunChecks updatesChecker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
+		private static void AnalyzeSolution(string solutionPath, RunChecks initialChecker, Action<SolutionAnalyzer> updates, RunChecks updatesChecker, AnalysisStrategyKind strategy = AnalysisStrategyKind.NONE)
 		{
 			var solAnalyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 			var callgraph = solAnalyzer.Analyze(strategy);
@@ -114,7 +114,7 @@ namespace ReachingTypeAnalysis
 
         private static void TestSolution1(AnalysisStrategyKind strategy, string solutionPath)
         {
-            AnalizeSolution(solutionPath, (s, callgraph) =>
+            AnalyzeSolution(solutionPath, (s, callgraph) =>
             {
                 //callgraph.Save("solution1.dot");
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
@@ -158,7 +158,7 @@ namespace ReachingTypeAnalysis
 
 			CopyFiles(baseFolder, currentFolder);
 
-			AnalizeSolution(solutionPath,
+			AnalyzeSolution(solutionPath,
 				(s, callgraph) =>
 				{
 					//callgraph.Save("solution1.dot");
@@ -218,7 +218,7 @@ namespace ReachingTypeAnalysis
 
         public void CompareWithRoslyn(string solutionPath)
         {
-            AnalizeSolution(solutionPath, (s, callgraph) =>
+            AnalyzeSolution(solutionPath, (s, callgraph) =>
             {
                 callgraph.Save("solution1.dot");
 				s.CompareWithRoslynFindReferences(solutionPath + ".txt");

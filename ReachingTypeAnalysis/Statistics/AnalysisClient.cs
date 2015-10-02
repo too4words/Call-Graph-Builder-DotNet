@@ -377,7 +377,7 @@ namespace ReachingTypeAnalysis.Statistics
 
             var numberOfMethods = await solutionManager.GetReachableMethodsCountAsync();
 
-            var warmingUpQueries = 10;
+            var warmingUpQueries = 50;
 
             for (int i = 0; i < repetitions+ warmingUpQueries; i++)
             {

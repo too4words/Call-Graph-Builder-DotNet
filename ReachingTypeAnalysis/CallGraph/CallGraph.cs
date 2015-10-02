@@ -20,6 +20,11 @@ namespace SolutionTraversal.CallGraph
 			this.vertexIndex = new Dictionary<M, int>();
 		}
 
+        public void Compress()
+        {
+            this.graph.Compress();
+        }
+
 		public void Add(M method)
 		{
 			int index;

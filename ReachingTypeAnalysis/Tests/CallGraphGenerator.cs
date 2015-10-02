@@ -52,18 +52,26 @@ namespace ReachingTypeAnalysis.Tests
             result.Add("Main");
             result.AddRootMethod("Main");
 
+            var modulo = Math.Ceiling((decimal)n / 100);
             if (addCallsFromMain)
             {
-                Trace.TraceInformation("Adding calls from main");
+                Trace.TraceInformation("Adding calls from main for every {0} method", modulo);
+                var index = 0;
                 foreach (var method in result.GetNodes())
                 {
-                    // avoid self-recursive calls
-                    if (method != "Main")
+                    if (index % modulo == 0)
                     {
-                        result.AddCall("Main", method);
+                        // avoid self-recursive calls
+                        if (method != "Main")
+                        {
+                            result.AddCall("Main", method);
+                        }
                     }
+                    index++;
                 }
             }
+
+            result.Compress();
 
             return result;
         }
@@ -172,6 +180,7 @@ namespace ReachingTypeAnalysis.Tests
         {
 			Trace.TraceInformation("Adding Methods");
 			int i = 0;
+            var calleeCache = new Dictionary<string, IEnumerable<string>>();
             var fileList = new List<MethodDeclarationSyntax>[projectCount];
             for (var index = 0; index < projectCount; index++)
             {
@@ -188,13 +197,24 @@ namespace ReachingTypeAnalysis.Tests
                 var fileForThisMethod = (vertex != "Main") ?
                         (Math.Abs(hash) % projectCount) :
                         projectCount - 1;
-                var method = GetMethod(vertex,
-                    callgraph.GetCallees(vertex)
+                IEnumerable<string> callees = null;
+                if (!calleeCache.TryGetValue(vertex, out callees))
+                {
+                    callees = callgraph.GetCallees(vertex).ToList();
+                    calleeCache.Add(vertex, callees);
+                }
+                else {
+                    // cache hit
+                    Trace.TraceInformation("Cache hit for {0}", vertex); 
+                }
+                var filteredCallees =
+                    callees
                     // only call things in classes numbered lower than ours to avoid circular depdendencies
                     .Where(m => Math.Abs(m.GetHashCode()) % projectCount <= fileForThisMethod)
                     .Select(
                         m =>
-                        string.Format("C{0}.{1}", Math.Abs(m.GetHashCode()) % projectCount, m)));
+                        string.Format("C{0}.{1}", Math.Abs(m.GetHashCode()) % projectCount, m));
+                var method = GetMethod(vertex, filteredCallees);
                 
                 
                 Contract.Assert(fileForThisMethod >= 0);
@@ -974,6 +994,76 @@ namespace ReachingTypeAnalysis.Tests
             finally
             {
                 //Directory.Delete(TestConstants.TestDirectory, true);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void TestZipSolutionGenerationWithIncreasingSizes()
+        {
+            // increasing sizes of solutions
+            //int[] sizes = { 100, 1000, 10000, 10000, 100000, 1000000 };
+            int[] sizes = { 1000000 };
+            foreach (var solutionSize in sizes)
+            {
+                Trace.TraceInformation("Generating a new solution for size {0}", solutionSize);
+                try
+                {
+                    if (Directory.Exists(TestConstants.TestDirectory))
+                    {
+                        Directory.Delete(TestConstants.TestDirectory, true);
+                    }
+                    Directory.CreateDirectory(TestConstants.TestDirectory);
+
+                    var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
+                    Trace.TraceInformation("Writing to {0}", writingTo);
+
+                    var callgraph = GenerateCallGraph(solutionSize);
+                    Trace.TraceInformation("Call graph generation succeeded.");
+                    var numProjects = (int)Math.Ceiling((decimal)solutionSize / 1000);
+                    Assert.IsTrue(numProjects > 0);
+                    var syntaxes = GenerateCodeWithDifferentProjects(callgraph, numProjects);
+                    int index = 0;
+                    var descriptors = new List<ProjectDescriptor>();
+                    foreach (var syntax in syntaxes)
+                    {
+                        var code = syntax.ToFullString();
+
+                        var fileName = string.Format("file{0}.cs", index);
+                        Trace.TraceInformation(fileName);
+                        Directory.CreateDirectory(TestConstants.TemporarySolutionDirectory);
+                        Directory.CreateDirectory(Path.Combine(TestConstants.TemporarySolutionDirectory, TestConstants.TestDirectory));
+
+                        var csFileName = Path.Combine(
+                                Path.Combine(TestConstants.TemporarySolutionDirectory, TestConstants.TestDirectory),
+                                fileName);
+                        File.WriteAllText(csFileName, code);
+                        //Trace.TraceInformation("Writing to {0}: {1}", csFileName, code);
+
+                        descriptors.Add(new ProjectDescriptor
+                        {
+                            AbsolutePath = string.Format("{0}\\P{1}.csproj", TestConstants.TestDirectory, index),
+                            Name = string.Format("P{0}", index),
+                            ProjectGuid = Guid.NewGuid().ToString(),
+                            Files = new[] { fileName },
+                            Type = (index == numProjects - 1) ? ProjectType.Executable : ProjectType.Library,
+                            // TODO: we may need to worry about project 
+                            // dependencies because it will likely fail to compile without them
+                            Dependencies = descriptors.Take(index),
+                        });
+                        index++;
+                    }
+                    var zipFile = SolutionFileGenerator.GenerateSolutionWithProjectsAsAZip(
+                        TestConstants.SolutionPath, descriptors, string.Format("synthetic-{0}", solutionSize));
+                    Assert.IsTrue(zipFile != null);
+                    Trace.TraceInformation("Writing a solution of size {0} with {1} projects to {1}",
+                        solutionSize, numProjects, zipFile);
+                    //Console.WriteLine(code);
+                }
+                finally
+                {
+                    //Directory.Delete(TestConstants.TestDirectory, true);
+                }
             }
         }
         
