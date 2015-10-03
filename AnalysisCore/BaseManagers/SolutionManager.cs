@@ -26,6 +26,11 @@ namespace ReachingTypeAnalysis.Analysis
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
+		public int ProjectsCount
+		{
+			get { return this.Projects.Count; }
+		}
+
 		protected IList<Project> Projects
 		{
 			get { return useNewFieldsVersion ? newProjects : projects; }

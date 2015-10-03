@@ -29,11 +29,12 @@ namespace ReachingTypeAnalysis
         NONE,
     }
 
-	public class SolutionAnalyzer
+	public class SolutionAnalyzer : IEntityGrainObserver
 	{
 		private string source;
 		private string solutionPath;
 		private string testName;
+		private bool isSolutionManagerReady;
 
 		public ISolutionManager SolutionManager { get; private set; }
 
@@ -63,6 +64,18 @@ namespace ReachingTypeAnalysis
 			analyzer.testName= testName;
 			return analyzer;
 		}
+
+		#region On SolutionManager state changed
+
+		public void OnStateChanged(IGrain sender, EntityGrainState newState)
+		{
+			if (newState == EntityGrainState.Ready)
+			{
+				this.isSolutionManagerReady = true;
+			}
+		}
+
+		#endregion
 
 		/// <summary>
 		/// IMPORTANT: OnDemandSolvers need an OnDemand Dispatcher
@@ -173,7 +186,11 @@ namespace ReachingTypeAnalysis
 			// The solution grain creates an internal strategy and contain an internal 
 			// solution manager. We obtain the solution grain that handles everything
 			var solutionManager = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
+
 			this.SolutionManager = solutionManager;
+			this.isSolutionManagerReady = false;
+
+			await solutionManager.Subscribe(this);
 
 			if (this.source != null)
             {
@@ -191,6 +208,11 @@ namespace ReachingTypeAnalysis
             {
                 throw new Exception("We need a solutionPath or source code or testName to analyze");
             }
+
+			while (!this.isSolutionManagerReady)
+			{
+				await Task.Delay(100);
+			}
 
             var mainMethods = await this.SolutionManager.GetRootsAsync();
             var orchestator = new AnalysisOrchestator(this.SolutionManager);

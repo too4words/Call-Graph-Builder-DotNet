@@ -36,7 +36,7 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProvider codeProvider;
         [NonSerialized]
         private ISolutionGrain solutionGrain;
-		
+
 		public override async Task OnActivateAsync()
         {
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);

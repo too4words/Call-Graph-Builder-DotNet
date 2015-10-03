@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace OrleansInterfaces
 {
-    public interface ISolutionGrain : IGrainWithStringKey, ISolutionManager
+	public interface ISolutionGrain : IGrainWithStringKey, ISolutionManager
     {
+		Task Subscribe(IEntityGrainObserver observer);
+		Task Unsubscribe(IEntityGrainObserver observer);
         Task SetSolutionPathAsync(string solutionPath);
         Task SetSolutionSourceAsync(string solutionSource);
 		Task SetSolutionFromTestAsync(string testName); 
 		Task ForceDeactivation();
 		Task<IEnumerable<string>> GetDrives();
         Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber);
-
-
     }
 }

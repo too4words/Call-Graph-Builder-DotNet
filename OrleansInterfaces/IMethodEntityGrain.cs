@@ -7,12 +7,11 @@ using System.Collections.Generic;
 namespace OrleansInterfaces
 {
     /*
-    public interface IOrleansEntityDescriptor : 
-		Orleans.IGrainWithGuidKey, IEntityDescriptor
+    public interface IOrleansEntityDescriptor : Orleans.IGrainWithGuidKey, IEntityDescriptor
     {
         Task<Guid> GetGuid();
     }
-     */
+    */
 
     public interface IMethodEntityGrain :  IGrainWithStringKey, IMethodEntityWithPropagator
     {
@@ -32,5 +31,4 @@ namespace OrleansInterfaces
         //Task<int> GetInvocationCountAsync();
 		Task ForceDeactivationAsync();
 	}
-
 }

@@ -14,6 +14,9 @@ namespace OrleansInterfaces
         //Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
         //Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
         //Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		Task Subscribe(IEntityGrainObserver observer);
+		Task Unsubscribe(IEntityGrainObserver observer);
         Task SetProjectPathAsync(string fullPath);
         Task SetProjectSourceAsync(string source);
 		Task SetProjectFromTestAsync(string testName);

@@ -22,11 +22,15 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
 	[StorageProvider(ProviderName = "AzureStore")]
-    public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain
+	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserver
     {
         [NonSerialized]
-        //ISolutionManager solutionManager;
-        OrleansSolutionManager solutionManager;
+        //private ISolutionManager solutionManager;
+        private OrleansSolutionManager solutionManager;
+		[NonSerialized]
+		private ObserverSubscriptionManager<IEntityGrainObserver> observers;
+		[NonSerialized]
+		private int projectsReadyCount;
 
         public override async Task OnActivateAsync()
         {
@@ -35,25 +39,77 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
 
-            if (!String.IsNullOrEmpty(this.State.SolutionPath))
-            {
-				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
-            }
-            else if (!String.IsNullOrEmpty(this.State.Source))
-            {
-				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
-            }
-			else if (!String.IsNullOrEmpty(this.State.TestName))
+			this.observers = new ObserverSubscriptionManager<IEntityGrainObserver>();
+
+			Task.Run(async () =>
 			{
-				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
-			}
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.projectsReadyCount = 0;
+
+				if (!String.IsNullOrEmpty(this.State.SolutionPath))
+				{
+					this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
+				}
+				else if (!String.IsNullOrEmpty(this.State.Source))
+				{
+					this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
+				}
+				else if (!String.IsNullOrEmpty(this.State.TestName))
+				{
+					this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
+				}
+
+				if (this.solutionManager != null)
+				{
+					while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
+					{
+						await Task.Delay(100);
+					}
+				}
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
 		}
+
 		public override Task OnDeactivateAsync()
 		{
 			return StatsHelper.RegisterDeactivation("SolutionGrain", this.GrainFactory); 
 		}
+
+		#region Observer pattern methods
+
+		public Task Subscribe(IEntityGrainObserver observer)
+		{
+			this.observers.Subscribe(observer);
+			return TaskDone.Done;
+		}
+
+		public Task Unsubscribe(IEntityGrainObserver observer)
+		{
+			this.observers.Unsubscribe(observer);
+			return TaskDone.Done;
+		}
+
+		private void RaiseStateChangedEvent(EntityGrainState newState)
+		{
+			this.observers.Notify(observer => observer.OnStateChanged(this, newState));
+		}
+
+		#endregion
+
+		#region On any ProjectCodeProvider state changed
+
+		public void OnStateChanged(IGrain sender, EntityGrainState newState)
+		{
+			if (newState == EntityGrainState.Ready)
+			{
+				this.projectsReadyCount++;
+			}
+		}
+
+		#endregion
 
         public async Task SetSolutionPathAsync(string solutionPath)
         {
@@ -62,11 +118,26 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Enter");
 
             this.State.SolutionPath = solutionPath;
-			this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
 			this.State.Source = null;
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.projectsReadyCount = 0;
+
+				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
+
+				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
+				{
+					await Task.Delay(100);
+				}
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
 		}
 
@@ -77,11 +148,26 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Enter");
 
             this.State.Source = source;
-			this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
 			this.State.SolutionPath = null;
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.projectsReadyCount = 0;
+
+				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
+
+				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
+				{
+					await Task.Delay(100);
+				}
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Exit");
         }
 
@@ -92,11 +178,26 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Enter");
 
 			this.State.TestName = testName;
-			this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, testName);
 			this.State.SolutionPath = null;
             this.State.Source = null;
 
 			await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.projectsReadyCount = 0;
+
+				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
+
+				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
+				{
+					await Task.Delay(100);
+				}
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Exit");
 		}
 
@@ -219,5 +320,5 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return this.solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
         }
-    }    
+	}    
 }

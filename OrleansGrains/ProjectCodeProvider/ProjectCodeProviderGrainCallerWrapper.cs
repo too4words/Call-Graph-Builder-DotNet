@@ -162,5 +162,15 @@ namespace ReachingTypeAnalysis.Analysis
 			this.SetRequestContext();
 			return providerGrain.SetProjectFromTestAsync(testName);
 		}
+
+		public Task Subscribe(IEntityGrainObserver observer)
+		{
+			return providerGrain.Subscribe(observer);
+		}
+
+		public Task Unsubscribe(IEntityGrainObserver observer)
+		{
+			return providerGrain.Unsubscribe(observer);
+		}
 	}
 }

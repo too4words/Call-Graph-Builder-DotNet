@@ -35,6 +35,8 @@ namespace ReachingTypeAnalysis.Analysis
     {
         [NonSerialized]
         private IProjectCodeProvider projectCodeProvider;
+		[NonSerialized]
+		private ObserverSubscriptionManager<IEntityGrainObserver> observers;
 
         public override async Task OnActivateAsync()
         {
@@ -43,46 +45,84 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
+			this.observers = new ObserverSubscriptionManager<IEntityGrainObserver>();
             this.State.AssemblyName = this.GetPrimaryKeyString();
 
-            if (!String.IsNullOrEmpty(this.State.ProjectPath))
-            {
-                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
-            }
-            else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
-            {
-                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
-            }
-            else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
-            {
-                this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
-            }
-            else if (this.State.AssemblyName.Equals("DUMMY"))
-            {
-                this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
-            }
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+
+				if (!String.IsNullOrEmpty(this.State.ProjectPath))
+				{
+					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+				}
+				else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+				{
+					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+				}
+				else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
+				{
+					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+				}
+				else if (this.State.AssemblyName.Equals("DUMMY"))
+				{
+					this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+				}
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
-	
+
 		public override Task OnDeactivateAsync()
 		{
 			return StatsHelper.RegisterDeactivation("ProjectCodeProviderGrain", this.GrainFactory); 
 		}
 
-        public async Task SetProjectPathAsync(string fullPath)
+		#region Observer pattern methods
+
+		public Task Subscribe(IEntityGrainObserver observer)
+		{
+			this.observers.Subscribe(observer);
+			return TaskDone.Done;
+		}
+
+		public Task Unsubscribe(IEntityGrainObserver observer)
+		{
+			this.observers.Unsubscribe(observer);
+			return TaskDone.Done;
+		}
+
+		private void RaiseStateChangedEvent(EntityGrainState newState)
+	    {
+			this.observers.Notify(observer => observer.OnStateChanged(this, newState));
+	    }
+
+		#endregion
+
+		public async Task SetProjectPathAsync(string fullPath)
         {
 			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
 
-            this.State.ProjectPath = fullPath;
-            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+            this.State.ProjectPath = fullPath;            
             this.State.AssemblyName = null;
             this.State.Source = null;
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
@@ -94,11 +134,20 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.State.Source = source;
             this.State.AssemblyName = TestConstants.ProjectAssemblyName;
-            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
             this.State.ProjectPath = null;
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
         }
 
@@ -110,11 +159,20 @@ namespace ReachingTypeAnalysis.Analysis
 
             this.State.TestName = testName;
             this.State.AssemblyName = TestConstants.ProjectAssemblyName;
-            this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
             this.State.ProjectPath = null;
             this.State.Source = null;
 
             await this.WriteStateAsync();
+
+			Task.Run(async () =>
+			{
+				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+
+				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+
+				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+			});
+
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Exit");
         }
 

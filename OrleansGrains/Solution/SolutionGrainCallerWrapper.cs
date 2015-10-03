@@ -129,5 +129,15 @@ namespace ReachingTypeAnalysis.Analysis
             // This is used for the random queries. We don't need to use stats
            return this.solutionGrain.GetMethodDescriptorByIndexAsync(methodNumber);
         }
-    }
+
+		public Task Subscribe(IEntityGrainObserver observer)
+		{
+			return this.solutionGrain.Subscribe(observer);
+		}
+
+		public Task Unsubscribe(IEntityGrainObserver observer)
+		{
+			return this.solutionGrain.Unsubscribe(observer);
+		}
+	}
 }
