@@ -112,32 +112,47 @@ namespace ReachingTypeAnalysis.Analysis
 			return solutionGrain.SetSolutionFromTestAsync(testName);
 		}
 
-		public Task ForceDeactivation()
+		public Task ForceDeactivationAsync()
 		{
 			this.SetRequestContext();
-			return solutionGrain.ForceDeactivation();
+			return solutionGrain.ForceDeactivationAsync();
 		}
 
-		public Task<IEnumerable<string>> GetDrives()
-		{
-			this.SetRequestContext();
-			return solutionGrain.GetDrives();
-		}
-
-        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int index)
         {
             // This is used for the random queries. We don't need to use stats
-           return this.solutionGrain.GetMethodDescriptorByIndexAsync(methodNumber);
+           return solutionGrain.GetMethodDescriptorByIndexAsync(index);
         }
 
-		public Task Subscribe(IEntityGrainObserver observer)
+		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			return this.solutionGrain.Subscribe(observer);
+			return solutionGrain.AddObserverAsync(observer);
 		}
 
-		public Task Unsubscribe(IEntityGrainObserver observer)
+		public Task RemoveObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			return this.solutionGrain.Unsubscribe(observer);
+			return solutionGrain.RemoveObserverAsync(observer);
 		}
+
+		public Task<EntityGrainStatus> GetStatusAsync()
+		{
+			return solutionGrain.GetStatusAsync();
+		}
+
+		public Task StartObservingAsync(IObservableEntityGrain target)
+		{
+			return solutionGrain.StartObservingAsync(target);
+		}
+
+		public Task StopObservingAsync(IObservableEntityGrain target)
+		{
+			return solutionGrain.StopObservingAsync(target);
+		}
+
+		//public Task<IEnumerable<string>> GetDrives()
+		//{
+		//	this.SetRequestContext();
+		//	return solutionGrain.GetDrivesAsync();
+		//}
 	}
 }

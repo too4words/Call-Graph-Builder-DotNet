@@ -241,14 +241,12 @@ namespace ReachingTypeAnalysis.Statistics
 		public static async Task PerformDeactivation(IGrainFactory grainFactory, ISolutionGrain solutionGrain)
 		{
 			//var solutionGrain = this.SolutionManager as ISolutionGrain;
-			await solutionGrain.ForceDeactivation();
+			await solutionGrain.ForceDeactivationAsync();
 
 			//var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
 			//await systemManagement.ForceActivationCollection(new System.TimeSpan(0,0,5));
 
 			// EmptyTable("OrleansGrainState");
-
-
 		}
 
 		private static string GetAddressFromStat(string statValue, string statPrefix)

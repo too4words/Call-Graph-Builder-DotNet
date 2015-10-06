@@ -69,7 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IEntityGrainObserver.cs" />
+    <Compile Include="Observers.cs" />
     <Compile Include="IProjectCodeProviderGrain.cs" />
     <Compile Include="IStatsGrains.cs" />
     <Compile Include="ISolutionGrain.cs" />

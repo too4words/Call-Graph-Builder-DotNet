@@ -8,6 +8,7 @@ using OrleansInterfaces;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using Orleans.Concurrency;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -22,13 +23,14 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
 	[StorageProvider(ProviderName = "AzureStore")]
-	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserver
+	[Reentrant]
+	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserverNotifications
     {
         [NonSerialized]
         //private ISolutionManager solutionManager;
         private OrleansSolutionManager solutionManager;
 		[NonSerialized]
-		private ObserverSubscriptionManager<IEntityGrainObserver> observers;
+		private ObserverSubscriptionManager<IEntityGrainObserverNotifications> observers;
 		[NonSerialized]
 		private int projectsReadyCount;
 
@@ -39,36 +41,34 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
 
-			this.observers = new ObserverSubscriptionManager<IEntityGrainObserver>();
+			this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
+			this.projectsReadyCount = 0;
 
-			Task.Run(async () =>
-			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
-				this.projectsReadyCount = 0;
+			//Task.Run(async () =>
+			//Task.Factory.StartNew(async () =>
+			//{
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				if (!String.IsNullOrEmpty(this.State.SolutionPath))
 				{
-					this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
+					this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this, this.GrainFactory, this.State.SolutionPath);
 				}
 				else if (!String.IsNullOrEmpty(this.State.Source))
 				{
-					this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
+					this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this, this.GrainFactory, this.State.Source);
 				}
 				else if (!String.IsNullOrEmpty(this.State.TestName))
 				{
-					this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
+					this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this, this.GrainFactory, this.State.TestName);
 				}
 
-				if (this.solutionManager != null)
-				{
-					while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
-					{
-						await Task.Delay(100);
-					}
-				}
+				//if (this.solutionManager != null)
+				//{
+				//	await this.WaitForAllProjects();
+				//}
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
-			});
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
 		}
@@ -78,32 +78,58 @@ namespace ReachingTypeAnalysis.Analysis
 			return StatsHelper.RegisterDeactivation("SolutionGrain", this.GrainFactory); 
 		}
 
-		#region Observer pattern methods
+		#region IObservableEntityGrain
 
-		public Task Subscribe(IEntityGrainObserver observer)
+		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
 			this.observers.Subscribe(observer);
 			return TaskDone.Done;
 		}
 
-		public Task Unsubscribe(IEntityGrainObserver observer)
+		public Task RemoveObserverAsync(IEntityGrainObserverNotifications observer)
 		{
 			this.observers.Unsubscribe(observer);
 			return TaskDone.Done;
 		}
 
-		private void RaiseStateChangedEvent(EntityGrainState newState)
+		private void RaiseStateChangedEvent(EntityGrainStatus newState)
 		{
-			this.observers.Notify(observer => observer.OnStateChanged(this, newState));
+			this.observers.Notify(observer => observer.OnStatusChanged(this.AsReference<ISolutionGrain>(), newState));
+		}
+
+		private async Task WaitForAllProjects()
+		{
+			while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
+			{
+				await Task.Delay(100);
+			}
 		}
 
 		#endregion
 
-		#region On any ProjectCodeProvider state changed
+		#region IEntityGrainObserver
 
-		public void OnStateChanged(IGrain sender, EntityGrainState newState)
+		public async Task StartObservingAsync(IObservableEntityGrain target)
 		{
-			if (newState == EntityGrainState.Ready)
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "StartObserving", "Enter");
+
+			await target.AddObserverAsync(this);
+
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "StartObserving", "Exit");
+		}
+
+		public async Task StopObservingAsync(IObservableEntityGrain target)
+		{
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "StopObserving", "Enter");
+
+			await target.RemoveObserverAsync(this);
+
+			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "StopObserving", "Exit");
+		}
+
+		public void OnStatusChanged(IObservableEntityGrain sender, EntityGrainStatus newState)
+		{
+			if (newState == EntityGrainStatus.Ready)
 			{
 				this.projectsReadyCount++;
 			}
@@ -122,21 +148,19 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+			this.projectsReadyCount = 0;
 
-			Task.Run(async () =>
-			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
-				this.projectsReadyCount = 0;
+			//Task.Run(async () =>
+			//Task.Factory.StartNew(async () =>
+			//{
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
-				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this.GrainFactory, this.State.SolutionPath);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this, this.GrainFactory, this.State.SolutionPath);
 
-				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
-				{
-					await Task.Delay(100);
-				}
+				//await this.WaitForAllProjects();
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
-			});
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
 		}
@@ -152,21 +176,19 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.TestName = null;
 
             await this.WriteStateAsync();
+			this.projectsReadyCount = 0;
 
-			Task.Run(async () =>
-			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
-				this.projectsReadyCount = 0;
+			//Task.Run(async () =>
+			//Task.Factory.StartNew(async () =>
+			//{
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
-				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this.GrainFactory, this.State.Source);
+				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this, this.GrainFactory, this.State.Source);
 
-				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
-				{
-					await Task.Delay(100);
-				}
+				//await this.WaitForAllProjects();
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
-			});
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			//});
 
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Exit");
         }
@@ -182,21 +204,19 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.Source = null;
 
 			await this.WriteStateAsync();
+			this.projectsReadyCount = 0;
 
-			Task.Run(async () =>
-			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
-				this.projectsReadyCount = 0;
+			//Task.Run(async () =>
+			//Task.Factory.StartNew(async () =>
+			//{
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
-				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this.GrainFactory, this.State.TestName);
+				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this, this.GrainFactory, this.State.TestName);
 
-				while (this.projectsReadyCount < this.solutionManager.ProjectsCount)
-				{
-					await Task.Delay(100);
-				}
+				//await this.WaitForAllProjects();
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
-			});
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Exit");
 		}
@@ -285,6 +305,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.solutionManager.GetReachableMethodsAsync();
 		}
+
         public Task<int> GetReachableMethodsCountAsync()
         {
             StatsHelper.RegisterMsg("SolutionGrain::GetReachableMethodsCount", this.GrainFactory);
@@ -292,7 +313,7 @@ namespace ReachingTypeAnalysis.Analysis
             return this.solutionManager.GetReachableMethodsCountAsync();
         }
 
-        public async Task ForceDeactivation()
+        public async Task ForceDeactivationAsync()
 		{
 			//await StatsHelper.RegisterMsg("SolutionGrain::ForceDeactivation", this.GrainFactory);
 
@@ -307,18 +328,28 @@ namespace ReachingTypeAnalysis.Analysis
 			this.DeactivateOnIdle();
 		}
 
-		// TODO: remove this hack!
-		public Task<IEnumerable<string>> GetDrives()
+		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int index)
 		{
-			StatsHelper.RegisterMsg("SolutionGrain::GetDrives", this.GrainFactory);
-
-			var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
-			return Task.FromResult(drivers.AsEnumerable());
+			return this.solutionManager.GetMethodDescriptorByIndexAsync(index);
 		}
 
-        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
-        {
-            return this.solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
-        }
+		public Task<EntityGrainStatus> GetStatusAsync()
+		{
+			var status = this.solutionManager != null &&
+						 this.projectsReadyCount == this.solutionManager.ProjectsCount ?
+							EntityGrainStatus.Ready :
+							EntityGrainStatus.Busy;
+
+			return Task.FromResult(status);
+		}
+
+		// TODO: remove this hack!
+		//public Task<IEnumerable<string>> GetDrivesAsync()
+		//{
+		//	StatsHelper.RegisterMsg("SolutionGrain::GetDrives", this.GrainFactory);
+
+		//	var drivers = DriveInfo.GetDrives().Select(d => d.Name).ToList();
+		//	return Task.FromResult(drivers.AsEnumerable());
+		//}
 	}    
 }

@@ -20,6 +20,13 @@ namespace ReachingTypeAnalysis
         public const string TemporaryNamespace = "Temporary";
     }
 
+	[Serializable]
+	public enum EntityGrainStatus
+	{
+		Busy,
+		Ready
+	}
+
     [Serializable]
     public enum ModificationKind
     {

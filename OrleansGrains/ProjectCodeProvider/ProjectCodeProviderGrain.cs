@@ -31,12 +31,12 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "MemoryStore")]
     [StorageProvider(ProviderName = "AzureStore")]
     [Reentrant]
-    public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
+	public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
     {
         [NonSerialized]
         private IProjectCodeProvider projectCodeProvider;
 		[NonSerialized]
-		private ObserverSubscriptionManager<IEntityGrainObserver> observers;
+		private ObserverSubscriptionManager<IEntityGrainObserverNotifications> observers;
 
         public override async Task OnActivateAsync()
         {
@@ -45,12 +45,13 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
-			this.observers = new ObserverSubscriptionManager<IEntityGrainObserver>();
+			this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
             this.State.AssemblyName = this.GetPrimaryKeyString();
 
-			Task.Run(async () =>
-			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+			//Task.Run(async () =>
+			//Task.Factory.StartNew(async () =>
+			//{
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				if (!String.IsNullOrEmpty(this.State.ProjectPath))
 				{
@@ -69,8 +70,8 @@ namespace ReachingTypeAnalysis.Analysis
 					this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
 				}
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
-			});
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			//});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
@@ -80,23 +81,23 @@ namespace ReachingTypeAnalysis.Analysis
 			return StatsHelper.RegisterDeactivation("ProjectCodeProviderGrain", this.GrainFactory); 
 		}
 
-		#region Observer pattern methods
+		#region IObservableEntityGrain
 
-		public Task Subscribe(IEntityGrainObserver observer)
+		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
 			this.observers.Subscribe(observer);
 			return TaskDone.Done;
 		}
 
-		public Task Unsubscribe(IEntityGrainObserver observer)
+		public Task RemoveObserverAsync(IEntityGrainObserverNotifications observer)
 		{
 			this.observers.Unsubscribe(observer);
 			return TaskDone.Done;
 		}
 
-		private void RaiseStateChangedEvent(EntityGrainState newState)
+		private void RaiseStateChangedEvent(EntityGrainStatus newState)
 	    {
-			this.observers.Notify(observer => observer.OnStateChanged(this, newState));
+			this.observers.Notify(observer => observer.OnStatusChanged(this.AsReference<IProjectCodeProviderGrain>(), newState));
 	    }
 
 		#endregion
@@ -114,13 +115,14 @@ namespace ReachingTypeAnalysis.Analysis
 
             await this.WriteStateAsync();
 
-			Task.Run(async () =>
+			//Task.Run(async () =>
+			Task.Factory.StartNew(async () =>
 			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
 			});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
@@ -139,13 +141,14 @@ namespace ReachingTypeAnalysis.Analysis
 
             await this.WriteStateAsync();
 
-			Task.Run(async () =>
+			//Task.Run(async () =>
+			Task.Factory.StartNew(async () =>
 			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
 			});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
@@ -164,13 +167,14 @@ namespace ReachingTypeAnalysis.Analysis
 
             await this.WriteStateAsync();
 
-			Task.Run(async () =>
+			//Task.Run(async () =>
+			Task.Factory.StartNew(async () =>
 			{
-				this.RaiseStateChangedEvent(EntityGrainState.Busy);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
 
-				this.RaiseStateChangedEvent(EntityGrainState.Ready);
+				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
 			});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Exit");

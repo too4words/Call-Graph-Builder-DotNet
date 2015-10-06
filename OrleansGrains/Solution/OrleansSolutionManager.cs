@@ -11,13 +11,16 @@ namespace ReachingTypeAnalysis.Analysis
 {
     internal class OrleansSolutionManager : SolutionManager
     {
+		private SolutionGrain solutionGrain;
         private IGrainFactory grainFactory;
-        private ISet<MethodDescriptor> methodDescriptors = new HashSet<MethodDescriptor>();
+        private ISet<MethodDescriptor> methodDescriptors;
 
-        private OrleansSolutionManager(IGrainFactory grainFactory)
-        {
-            this.grainFactory = grainFactory;
-        }
+		private OrleansSolutionManager(SolutionGrain solutionGrain, IGrainFactory grainFactory)
+		{
+			this.solutionGrain = solutionGrain;
+			this.grainFactory = grainFactory;
+			this.methodDescriptors = new HashSet<MethodDescriptor>();
+		}
 
 		public static ISolutionGrain GetSolutionGrain(IGrainFactory grainFactory)
 		{
@@ -28,44 +31,71 @@ namespace ReachingTypeAnalysis.Analysis
 #endif
 			return grain;
 		}
-		
-        public static async Task<OrleansSolutionManager> CreateFromSolutionAsync(IGrainFactory grainFactory, string solutionPath)
+
+		public static async Task<OrleansSolutionManager> CreateFromSolutionAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string solutionPath)
         {
-            var manager = new OrleansSolutionManager(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
             await manager.LoadSolutionAsync(solutionPath);
             return manager;
         }
 
-        public static async Task<OrleansSolutionManager> CreateFromSourceAsync(IGrainFactory grainFactory, string source)
+        public static async Task<OrleansSolutionManager> CreateFromSourceAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string source)
         {
-            var manager = new OrleansSolutionManager(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
             await manager.LoadSourceAsync(source);
             return manager;
         }
 
-        public static async Task<OrleansSolutionManager> CreateFromTestAsync(IGrainFactory grainFactory, string testName)
+		public static async Task<OrleansSolutionManager> CreateFromTestAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string testName)
         {
-            var manager = new OrleansSolutionManager(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
             await manager.LoadTestAsync(testName);
             return manager;
         }
 
-        protected override Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
+        protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
         {
-            var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
-            return projectGrain.SetProjectPathAsync(projectFilePath);
+			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
+			var projectGrainReference = projectGrain;
+
+			if (projectGrain is ProjectCodeProviderGrainCallerWrapper)
+			{
+				var projectGrainWrapper = projectGrain as ProjectCodeProviderGrainCallerWrapper;
+				projectGrainReference = projectGrainWrapper.AsReference();
+			}
+
+			await solutionGrain.StartObservingAsync(projectGrainReference);
+            await projectGrain.SetProjectPathAsync(projectFilePath);
         }
 
-        protected override Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
+        protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
         {
-            var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
-            return projectGrain.SetProjectSourceAsync(source);
+			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
+			var projectGrainReference = projectGrain;
+
+			if (projectGrain is ProjectCodeProviderGrainCallerWrapper)
+			{
+				var projectGrainWrapper = projectGrain as ProjectCodeProviderGrainCallerWrapper;
+				projectGrainReference = projectGrainWrapper.AsReference();
+			}
+
+			await solutionGrain.StartObservingAsync(projectGrainReference);
+            await projectGrain.SetProjectSourceAsync(source);
         }
 
-		protected override Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
+		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
 		{
 			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
-			return projectGrain.SetProjectFromTestAsync(testName);
+			var projectGrainReference = projectGrain;
+
+			if (projectGrain is ProjectCodeProviderGrainCallerWrapper)
+			{
+				var projectGrainWrapper = projectGrain as ProjectCodeProviderGrainCallerWrapper;
+				projectGrainReference = projectGrainWrapper.AsReference();
+			}
+
+			await solutionGrain.StartObservingAsync(projectGrainReference);
+			await projectGrain.SetProjectFromTestAsync(testName);
 		}
 
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
@@ -132,6 +162,5 @@ namespace ReachingTypeAnalysis.Analysis
             //HashSet<MethodDescriptor> set = (HashSet<MethodDescriptor>) this.methodDescriptors;
             return Task.FromResult(this.methodDescriptors.ElementAt(methodNumber));
         }
-
     }
 }

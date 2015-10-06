@@ -163,14 +163,19 @@ namespace ReachingTypeAnalysis.Analysis
 			return providerGrain.SetProjectFromTestAsync(testName);
 		}
 
-		public Task Subscribe(IEntityGrainObserver observer)
+		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			return providerGrain.Subscribe(observer);
+			return providerGrain.AddObserverAsync(observer);
 		}
 
-		public Task Unsubscribe(IEntityGrainObserver observer)
+		public Task RemoveObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			return providerGrain.Unsubscribe(observer);
+			return providerGrain.RemoveObserverAsync(observer);
+		}
+
+		public IProjectCodeProviderGrain AsReference()
+		{
+			return providerGrain;
 		}
 	}
 }
