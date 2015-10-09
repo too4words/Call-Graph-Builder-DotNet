@@ -166,48 +166,67 @@ namespace ReachingTypeAnalysis
 
 		public async Task AnalyzeOnDemandOrleans()
         {
+			await this.InitializeOnDemandOrleansAnalysis();
+			await this.WaitForOnDemandOrleansAnalysisToBeReady();
+			await this.ContinueOnDemandOrleansAnalysis();
+        }
+
+		public async Task InitializeOnDemandOrleansAnalysis()
+		{
 			SolutionAnalyzer.MessageCounter = 0;
 			GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
 			// For orleans we cannot use the strategy to create a solution
 			// The solution grain creates an internal strategy and contain an internal 
 			// solution manager. We obtain the solution grain that handles everything
-			var solutionManager = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
-
-			this.SolutionManager = solutionManager;
+			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
+			this.SolutionManager = solutionGrain;
 
 			if (this.source != null)
-            {
-                await solutionManager.SetSolutionSourceAsync(this.source);
-            }
-			else if (this.testName!= null)
 			{
-				await solutionManager.SetSolutionFromTestAsync(this.testName);
+				await solutionGrain.SetSolutionSourceAsync(this.source);
 			}
-            else if(this.solutionPath!=null)
-            {
-                await solutionManager.SetSolutionPathAsync(this.solutionPath);
-            }
-            else
-            {
-                throw new Exception("We need a solutionPath or source code or testName to analyze");
-            }
-
-			var solutionManagerStatus = await solutionManager.GetStatusAsync();
-
-			while (solutionManagerStatus != EntityGrainStatus.Ready)
+			else if (this.testName != null)
 			{
-				await Task.Delay(100);
-				solutionManagerStatus = await solutionManager.GetStatusAsync();
+				await solutionGrain.SetSolutionFromTestAsync(this.testName);
 			}
+			else if (this.solutionPath != null)
+			{
+				await solutionGrain.SetSolutionPathAsync(this.solutionPath);
+			}
+			else
+			{
+				throw new Exception("We need a solutionPath, source code or testName to analyze");
+			}
+		}
 
-            var mainMethods = await this.SolutionManager.GetRootsAsync();
-            var orchestator = new AnalysisOrchestator(this.SolutionManager);
-            await orchestator.AnalyzeAsync(mainMethods);
+		public Task<EntityGrainStatus> GetOnDemandOrleansAnalysisStatus()
+		{
+			var solutionGrain = this.SolutionManager as ISolutionGrain;
+			return solutionGrain.GetStatusAsync();
+		}
+
+		public async Task WaitForOnDemandOrleansAnalysisToBeReady(int millisecondsDelay = 100)
+		{
+			var solutionGrain = this.SolutionManager as ISolutionGrain;
+			var solutionGrainStatus = await solutionGrain.GetStatusAsync();
+
+			while (solutionGrainStatus != EntityGrainStatus.Ready)
+			{
+				await Task.Delay(millisecondsDelay);
+				solutionGrainStatus = await solutionGrain.GetStatusAsync();
+			}
+		}
+
+		public async Task ContinueOnDemandOrleansAnalysis()
+		{
+			var mainMethods = await this.SolutionManager.GetRootsAsync();
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			await orchestator.AnalyzeAsync(mainMethods);
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
 			//return callGraph;
-        }
+		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
 		{
