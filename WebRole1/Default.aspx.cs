@@ -15,12 +15,10 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using ReachingTypeAnalysis.Statistics;
 
-
 namespace WebRole1
 {
     public partial class _Default : Page
     {
-
         protected void Page_Load(object sender, EventArgs e)
         {
 			var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["EndPoint1"].IPEndpoint.Address.ToString();
@@ -50,29 +48,30 @@ namespace WebRole1
             }
         }
 
-        protected async void Button1_Click(object sender, EventArgs e)
+		protected void ButtonTestSolution_Click(object sender, EventArgs e)
         {
             try
             {
                 this.TextBox1.Text = "Accessing Grains...";
 				var solutionPath = TextBoxPath.Text;
 				var pathPrefix = TextBoxPathPrefix.Text;
+
 				try
 				{
-                    string[] tokens = TextRandomQueryInput.Text.Split(';');
-
+                    var tokens = TextRandomQueryInput.Text.Split(';');
                     var className = tokens[0];
                     var methodPrejix = tokens[1];
                     var numberOfMethods = int.Parse(tokens[2]);
                     var repetitions = int.Parse(tokens[3]);
                     var machines = int.Parse(tokens[4]);
 
-					string solutionFileName = Path.Combine(pathPrefix, solutionPath);
+					var solutionFileName = Path.Combine(pathPrefix, solutionPath);
 					var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
 
 					var analysisClient = new AnalysisClient(analyzer, machines);
 					// await analysisClient.Analyze();
-					await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\','-').Replace('.','-'));
+					//await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\','-').Replace('.','-'));
+					analysisClient.StartRunningExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\', '-').Replace('.', '-'));
 
 					//var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
 					//string methods = String.Join("\n", reachableMethods);
@@ -93,12 +92,11 @@ namespace WebRole1
                 this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
             }
         }
-        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync(int machines, string pathPrefix, 
-																	string solutionRelativePath)
+
+        private static async Task<ISet<MethodDescriptor>> RunAnalysisAsync(int machines, string pathPrefix, string solutionRelativePath)
         {
-			string currentSolutionPath = pathPrefix;
-			
-            string solutionFileName = Path.Combine(currentSolutionPath, solutionRelativePath);
+			var currentSolutionPath = pathPrefix;			
+            var solutionFileName = Path.Combine(currentSolutionPath, solutionRelativePath);
 
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
 
@@ -111,9 +109,7 @@ namespace WebRole1
 
 		private static async Task<ISet<MethodDescriptor>> RunAnalysisFromSourceAsync(int machines, string source)
 		{
-
 			var analyzer = SolutionAnalyzer.CreateFromSource(source);
-
 			var analysisClient = new AnalysisClient(analyzer, machines);
 			var callgraph = await analysisClient.Analyze();
 
@@ -121,13 +117,11 @@ namespace WebRole1
 			return await Task.FromResult(reachableMethods);
 		}
 
-
-		protected async void Button3_Click(object sender, EventArgs e)
+		protected async void ButtonTestSource_Click(object sender, EventArgs e)
 		{
 			try
             {
-                string[] tokens = TextRandomQueryInput.Text.Split(';');
-
+                var tokens = TextRandomQueryInput.Text.Split(';');
                 var className = tokens[0];
                 var methodPrejix = tokens[1];
                 var numberOfMethods = int.Parse(tokens[2]);
@@ -136,7 +130,7 @@ namespace WebRole1
 
 				var solutionSource = TextBox1.Text;
                 var reachableMethods = await RunAnalysisFromSourceAsync(machines, solutionSource);
-				string methods = String.Join("\n", reachableMethods);
+				var methods = string.Join("\n", reachableMethods);
                 this.TextBox1.Text = string.Format("Reachable methods={0} \n{1}", reachableMethods.Count,methods);
             }
             catch (Exception exc)
@@ -144,17 +138,14 @@ namespace WebRole1
                 while (exc is AggregateException) exc = exc.InnerException;
                 this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
             }
-
-
 		}
 
-        protected async void Button4_Click(object sender, EventArgs e)
+		protected void ButtonTestTest_Click(object sender, EventArgs e)
         {
             try
             {
                 var testName = TextBoxPath.Text;
-
-                string[] tokens = TextRandomQueryInput.Text.Split(';');
+                var tokens = TextRandomQueryInput.Text.Split(';');
 
                 var className = tokens[0];
                 var methodPrejix = tokens[1];
@@ -166,18 +157,21 @@ namespace WebRole1
 				var analysisClient = new AnalysisClient(analyzer, machines);
 
 				//var stopWatch = Stopwatch.StartNew();
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
+				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory);
 
 				//stopWatch.Stop();
 				Application["AnalysisClient"] = analysisClient;
 
-				this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				//this.TextBox1.Text = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				this.TextBox1.Text = string.Format("Running test {0}.", testName);
 
-				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, results.ElapsedTime);
+				//Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0} took:{1} ms", testName, results.ElapsedTime);
+				Logger.LogInfo(GrainClient.Logger, "Stats", "Query", "Analyzing {0}.", testName);
 
                 //var result = await analysisClient.ComputeRandomQueries(className, methodPrejix, numberOfMethods, repetitions);
 
-                var result = await analysisClient.ComputeRandomQueries(repetitions);
+                //var result = await analysisClient.ComputeRandomQueries(repetitions);
 
 
                 //program.RetriveInfoFromAnalysis();
@@ -189,15 +183,23 @@ namespace WebRole1
                 while (exc is AggregateException) exc = exc.InnerException;
                 this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
             }
-
         }
 
-        protected void TextBox1_TextChanged(object sender, EventArgs e)
-        {
+		protected void ButtonQueryStatus_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				var status = AnalysisClient.ExperimentStatus;
+				this.TextBox1.Text = string.Format("Analysis status={0}", status);
+			}
+			catch (Exception exc)
+			{
+				while (exc is AggregateException) exc = exc.InnerException;
+				this.TextBox1.Text = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+			}
+		}
 
-        }
-
-		protected async void Button5_Click(object sender, EventArgs e)
+		protected async void ButtonQueryCallees_Click(object sender, EventArgs e)
 		{
 			try
             {
@@ -251,13 +253,7 @@ namespace WebRole1
 			}
 		}
 
-		protected void TextBoxPath_TextChanged(object sender, EventArgs e)
-		{
-			
-
-		}
-
-		protected async void Button6_Click(object sender, EventArgs e)
+		protected async void ButtonRandomQueries_Click(object sender, EventArgs e)
 		{
 			var analysisClient= (AnalysisClient)Application.Get("AnalysisClient");
 			if (analysisClient != null)
@@ -289,13 +285,11 @@ namespace WebRole1
 			}
 		}
 
-		protected async void Button7_Click(object sender, EventArgs e)
+		protected async void ButtonRemoveGrains_Click(object sender, EventArgs e)
 		{
 			// This doesn't work. I need to move OrleansSolutionManager no another project
 			// var solutionGrain = OrleansSolutionManager.GetSolutionGrain(GrainClient.GrainFactory);
-			var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-
-			
+			var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");			
 
 			// var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 			//if (analysisClient != null && analysisClient.SolutionManager is ISolutionGrain)
@@ -305,7 +299,7 @@ namespace WebRole1
 			}
 		}
 
-		protected async void Button8_Click(object sender, EventArgs e)
+		protected async void ButtonStats_Click(object sender, EventArgs e)
 		{
 			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
 			if (analysisClient != null)

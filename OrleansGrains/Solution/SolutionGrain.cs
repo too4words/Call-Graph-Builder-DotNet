@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.projectsReadyCount = 0;
 
 			//Task.Run(async () =>
-			//Task.Factory.StartNew(async () =>
+			//await Task.Factory.StartNew(async () =>
 			//{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -151,7 +151,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.projectsReadyCount = 0;
 
 			//Task.Run(async () =>
-			//Task.Factory.StartNew(async () =>
+			//await Task.Factory.StartNew(async () =>
 			//{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -179,7 +179,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.projectsReadyCount = 0;
 
 			//Task.Run(async () =>
-			//Task.Factory.StartNew(async () =>
+			//await Task.Factory.StartNew(async () =>
 			//{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -207,7 +207,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.projectsReadyCount = 0;
 
 			//Task.Run(async () =>
-			//Task.Factory.StartNew(async () =>
+			//await Task.Factory.StartNew(async () =>
 			//{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 

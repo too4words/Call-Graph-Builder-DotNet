@@ -9,24 +9,25 @@
 			CG Azure Starting Point</h1>
         <p class="lead">Trying to run the Silos</p>
         <p>
-            <asp:TextBox ID="TextBox1" runat="server" Height="250px" Width="670px" TextMode="MultiLine" OnTextChanged="TextBox1_TextChanged"></asp:TextBox>
+            <asp:TextBox ID="TextBox1" runat="server" Height="250px" Width="670px" TextMode="MultiLine"></asp:TextBox>
         </p>
         <p>
-            <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Test Solution" />
-        	<asp:Button ID="Button3" runat="server" OnClick="Button3_Click" Text="TestSource" />
-            <asp:Button ID="Button4" runat="server" OnClick="Button4_Click" Text="Test Test" />
-        	<asp:Button ID="Button5" runat="server" OnClick="Button5_Click" Text="QueryCallees" />
+            <asp:Button ID="ButtonTestSolution" runat="server" OnClick="ButtonTestSolution_Click" Text="Test Solution" />
+        	<asp:Button ID="ButtonTestSource" runat="server" OnClick="ButtonTestSource_Click" Text="Test Source" />
+            <asp:Button ID="ButtonTestTest" runat="server" OnClick="ButtonTestTest_Click" Text="Test Test" />
+			<asp:Button ID="ButtonQueryStatus" runat="server" OnClick="ButtonQueryStatus_Click" Text="Query Status" />
+        	<asp:Button ID="ButtonQueryCallees" runat="server" OnClick="ButtonQueryCallees_Click" Text="Query Callees" />
         </p>
 		<p>
-            <asp:Button ID="Button6" runat="server" OnClick="Button6_Click" Text="RandomQueries" />
-            <asp:Button ID="Button7" runat="server" OnClick="Button7_Click" Text="RemoveGrains" />
-        	<asp:Button ID="Button8" runat="server" OnClick="Button8_Click" Text="Stats" />
+            <asp:Button ID="ButtonRandomQueries" runat="server" OnClick="ButtonRandomQueries_Click" Text="Random Queries" />
+            <asp:Button ID="ButtonRemoveGrains" runat="server" OnClick="ButtonRemoveGrains_Click" Text="Remove Grains" />
+        	<asp:Button ID="ButtonStats" runat="server" OnClick="ButtonStats_Click" Text="Stats" />
         </p>
 		<p>
             <asp:TextBox ID="TextBoxPathPrefix" runat="server" Width="675px">C;N2;0</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px" OnTextChanged="TextBoxPath_TextChanged">LongGeneratedTest1</asp:TextBox>
+            <asp:TextBox ID="TextBoxPath" runat="server" Width="680px">LongGeneratedTest1</asp:TextBox>
         </p>
 		<p>
             <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;10;50;1</asp:TextBox>

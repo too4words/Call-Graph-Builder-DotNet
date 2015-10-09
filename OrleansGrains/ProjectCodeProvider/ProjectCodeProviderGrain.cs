@@ -85,7 +85,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			this.observers.Subscribe(observer);
+			// TODO: Hack to avoid subscribing the same observer twice
+			if (this.observers.Count == 0)
+			{
+				this.observers.Subscribe(observer);
+			}
+
 			return TaskDone.Done;
 		}
 
@@ -116,7 +121,7 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			Task.Factory.StartNew(async () =>
+			await Task.Factory.StartNew(async () =>
 			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -124,7 +129,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
 			});
-
+			
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
@@ -142,7 +147,7 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			Task.Factory.StartNew(async () =>
+			await Task.Factory.StartNew(async () =>
 			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -168,7 +173,7 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			Task.Factory.StartNew(async () =>
+			await Task.Factory.StartNew(async () =>
 			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 

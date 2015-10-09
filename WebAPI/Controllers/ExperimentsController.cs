@@ -22,7 +22,7 @@ namespace WebAPI
     {
 		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2&expID=dummy
 		[HttpGet]
-		public async Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID)
+		public Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID)
 		{
 			var result = string.Empty;
 
@@ -30,9 +30,11 @@ namespace WebAPI
 			{
 				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
 				var analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,expID);
+				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
 
-				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				result = string.Format("Running test {0}.", testName);
 			}
 			catch (Exception exc)
 			{
@@ -40,26 +42,28 @@ namespace WebAPI
 				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
 
 		[HttpGet]
-		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
+		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
 		{
 			var result = string.Empty;
 
 			try
 			{
-                if(String.IsNullOrEmpty(expID))
+                if (string.IsNullOrEmpty(expID))
                 {
                     expID = solutionName;
                 }
 				solutionPath = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
-				var results = await analysisClient.RunExperiment(GrainClient.GrainFactory,expID);
+				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
 
-				result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+				result = string.Format("Analyzing solution {0}.", solutionName);
 			}
 			catch (Exception exc)
 			{
@@ -67,8 +71,9 @@ namespace WebAPI
 				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
+
         [HttpGet]
         public async Task<string> ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions, string assemblyName, string expID)
         {
@@ -91,6 +96,7 @@ namespace WebAPI
             }
             return resultStr;
         }
+
         [HttpGet]
         public async Task<string> ComputeQueries(int machines, int repetitions, string expID)
         {
@@ -111,6 +117,7 @@ namespace WebAPI
             }
             return resultStr;
         }
+
         //[HttpGet]
         public async Task<string> PerformDeactivationAsync()
 		{
@@ -149,16 +156,19 @@ namespace WebAPI
                     case "Stats":
                         result = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
                         break;
-                        // Unfortunately I cannot run the following scripts from a WebRole
-                        // I can run scripts from Azure PowerShell on the development machine
-                        // or use the Azure Web API
+					case "Status":
+						result = Convert.ToString(AnalysisClient.ExperimentStatus);
+						break;
+
+                    // Unfortunately I cannot run the following scripts from a WebRole
+                    // I can run scripts from Azure PowerShell on the development machine
+                    // or use the Azure Web API
                     //case "Restart":
                     //    result = RunScript("Stop-Start-CloudService.ps1").ToString();
                     //    break;
                     //case "Instances":
                     //    result = RunScript("ChangeNumberOfInstances.ps1", "-Instances", "2").ToString();
                     //    break;
-
                 }
             }
             catch (Exception exc)
@@ -169,26 +179,27 @@ namespace WebAPI
 
             return result;
         }
-        public static Collection<PSObject> RunScript(string scriptfile, string pKey1="", string pValue1="")
-        {
-            RunspaceConfiguration runspaceConfiguration = RunspaceConfiguration.Create();
 
-            Runspace runspace = RunspaceFactory.CreateRunspace(runspaceConfiguration);
+        public static Collection<PSObject> RunScript(string scriptfile, string pKey1 = "", string pValue1 = "")
+        {
+            var runspaceConfiguration = RunspaceConfiguration.Create();
+            var runspace = RunspaceFactory.CreateRunspace(runspaceConfiguration);
             runspace.Open();
 
-            RunspaceInvoke scriptInvoker = new RunspaceInvoke(runspace);
+            var scriptInvoker = new RunspaceInvoke(runspace);
+            var pipeline = runspace.CreatePipeline();
 
-            Pipeline pipeline = runspace.CreatePipeline();
-
-            //Here's how you add a new script with arguments
+            // Here's how you add a new script with arguments
             var rolePath = Environment.GetEnvironmentVariable("RoleRoot");
             var path = Path.Combine(rolePath, "approot", "bin", "scripts");
-            Command myCommand = new Command(Path.Combine(path, scriptfile));
+            var myCommand = new Command(Path.Combine(path, scriptfile));
+
             if (!String.IsNullOrEmpty(pKey1))
             {
-                CommandParameter testParam = new CommandParameter(pKey1, pValue1);
+                var testParam = new CommandParameter(pKey1, pValue1);
                 myCommand.Parameters.Add(testParam);
             }
+
             pipeline.Commands.Add(myCommand);
 
             // Execute PowerShell script

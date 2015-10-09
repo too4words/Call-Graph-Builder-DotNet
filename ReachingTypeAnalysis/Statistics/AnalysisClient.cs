@@ -24,6 +24,15 @@ using System.Text;
 
 namespace ReachingTypeAnalysis.Statistics
 {
+	public enum ExperimentStatus
+	{
+		None,
+		Compiling,
+		Running,
+		ComputingResults,
+		Ready
+	}
+
 	internal class SiloComputedStats
 	{
 		public long TotalRecvNetworkSilo { get; set; }
@@ -52,8 +61,10 @@ namespace ReachingTypeAnalysis.Statistics
 		private Stopwatch stopWatch;
 
 		private SolutionAnalyzer analyzer;
-        private ISolutionGrain solutionManager; 
-		public string ExpID { get; private set; }
+        private ISolutionGrain solutionManager;
+
+		public string ExperimentID { get; private set; }
+		public static ExperimentStatus ExperimentStatus { get; private set; }		
 
 		public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
 		{
@@ -63,6 +74,7 @@ namespace ReachingTypeAnalysis.Statistics
 			this.machines = machines;
 			this.subject = subject;
 		}
+
         /// <summary>
         /// This auxiliary constructor is used only then a SolutionManager (e.g. SolutionGrain, already exists)
         /// This is the case when we want to query an existing system
@@ -80,73 +92,89 @@ namespace ReachingTypeAnalysis.Statistics
 
         public ISolutionGrain SolutionManager
 		{
-			get {
-                if(this.solutionManager==null)
+			get
+			{
+                if (this.solutionManager == null)
                 {
                     this.solutionManager = (ISolutionGrain)analyzer.SolutionManager;
                 }
+
                 return this.solutionManager;
             }
 		}
 
-		//public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> AnalyzeTestAsync(string testFullName)
+		public async void StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		{
+			//Task.Run(async () =>
+			await await Task.Factory.StartNew(async () =>
+			{
+				await this.RunExperiment(grainFactory, expId);
+			});
+		}
+
 		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
-        {
-			this.ExpID = expId;
+		{
+			this.ExperimentID = expId;
 
-            string testFullName = this.subject;
-
-	
 			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
 
 			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
 			await myStatsGrain.ResetStats();
 
-            this.stopWatch = Stopwatch.StartNew();
+			this.stopWatch = Stopwatch.StartNew();
 
-			await this.analyzer.AnalyzeOnDemandOrleans();
-    
+			AnalysisClient.ExperimentStatus = ExperimentStatus.Compiling;
+
+			await this.analyzer.InitializeOnDemandOrleansAnalysis();
+			await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
+
+			AnalysisClient.ExperimentStatus = ExperimentStatus.Running;
+
+			await this.analyzer.ContinueOnDemandOrleansAnalysis();
+
+			AnalysisClient.ExperimentStatus = ExperimentStatus.ComputingResults;
+
 			this.stopWatch.Stop();
-   
+
 			var totalRecvNetwork = 0L;
 			var totalSentLocal = 0L;
 			var totalSentNetwork = 0L;
 			var totalRecvLocal = 0L;
 
-            this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-            await systemManagement.ForceGarbageCollection(null);
-            var orleansStats = await systemManagement.GetRuntimeStatistics(null);
-            var hosts = await systemManagement.GetHosts();
-            //var silos = hosts.Keys.ToArray();
+			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+			await systemManagement.ForceGarbageCollection(null);
+			var orleansStats = await systemManagement.GetRuntimeStatistics(null);
+			var hosts = await systemManagement.GetHosts();
+			//var silos = hosts.Keys.ToArray();
 
-
-            var totalAct = 0L;
+			var totalAct = 0L;
 			var totalDeact = 0L;
 			var time = DateTime.Now;
 
-            var acummulatedPerSiloMemoryUsage = 0L;
-            var maxPerSiloMemoryUsage = 0L;
-            var acummulatedPerSiloCPUUsage = 0D;
-            var maxPerSiloCPUUsage = 0D;
+			var acummulatedPerSiloMemoryUsage = 0L;
+			var maxPerSiloMemoryUsage = 0L;
+			var acummulatedPerSiloCPUUsage = 0D;
+			var maxPerSiloCPUUsage = 0D;
 
-            //this.methods = -1;
+			//this.methods = -1;
 
-            // var messageMetric = new MessageMetrics();			
+			// var messageMetric = new MessageMetrics();			
 
-            var silos = (await  myStatsGrain.GetSilos()).ToArray();
-
+			//var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+			var silosEnumeration = await myStatsGrain.GetSilos();
+			var silos = silosEnumeration.ToArray();
 			var siloComputedStats = new SiloComputedStats[silos.Length];
-						
+
 			for (int i = 0; i < silos.Length; i++)
 			{
 				var silo = silos[i];
 				var addrString = silo; /*/silo.Endpoint.Address.ToString();*/
 				siloComputedStats[i] = new SiloComputedStats();
-                
-                siloComputedStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
-                siloComputedStats[i].TotalRecvLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
 
-                siloComputedStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
+				siloComputedStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
+				siloComputedStats[i].TotalRecvLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
+
+				siloComputedStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
 				siloComputedStats[i].TotalRecvNetworkSilo += await myStatsGrain.GetSiloNetworkReceivedMsgs(addrString);
 				siloComputedStats[i].MemoryUsage += await myStatsGrain.GetSiloMemoryUsage(addrString);
 
@@ -156,79 +184,84 @@ namespace ReachingTypeAnalysis.Statistics
 				var deactivations = deactivationDic.Sum(items => items.Value);
 				siloComputedStats[i].TotalActivations += activations;
 				siloComputedStats[i].TotalDeactivations += deactivations;
-                siloComputedStats[i].TotalClientMessages += await myStatsGrain.GetTotalClientMsgsPerSilo(addrString);		
+				siloComputedStats[i].TotalClientMessages += await myStatsGrain.GetTotalClientMsgsPerSilo(addrString);
 				// totalAct += orleansStats[i].ActivationCount;
 				totalAct += activations;
 				totalDeact += deactivations;
 
 				//AddSiloMetric(silos[i], siloComputedStats[i], time, machines);
 				// Save results in per silo table
-                if(orleansStats.Length<=i)
-                {
-                    throw new IndexOutOfRangeException(String.Format("OrlenasStats Lenght is {0} and silos Lenght is {1}", orleansStats.Length, silos.Length));
-                }
+				if (orleansStats.Length <= i)
+				{
+					throw new IndexOutOfRangeException(String.Format("OrlenasStats Lenght is {0} and silos Lenght is {1}", orleansStats.Length, silos.Length));
+				}
+
 				AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time, machines);
 
-
-				totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo; 
+				totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo;
 				totalRecvNetwork += siloComputedStats[i].TotalRecvNetworkSilo;
 
 				totalSentLocal += siloComputedStats[i].TotalSentLocalSilo;
 				totalRecvLocal += siloComputedStats[i].TotalSentLocalSilo;
 
-                acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
-                acummulatedPerSiloCPUUsage += orleansStats[i].CpuUsage;
-                if(maxPerSiloMemoryUsage<orleansStats[i].MemoryUsage)
-                {
-                    maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
-                }
-                if(maxPerSiloCPUUsage<orleansStats[i].CpuUsage)
-                {
-                    maxPerSiloCPUUsage = orleansStats[i].CpuUsage;
-                }
+				acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
+				acummulatedPerSiloCPUUsage += orleansStats[i].CpuUsage;
+
+				if (maxPerSiloMemoryUsage < orleansStats[i].MemoryUsage)
+				{
+					maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
+				}
+
+				if (maxPerSiloCPUUsage < orleansStats[i].CpuUsage)
+				{
+					maxPerSiloCPUUsage = orleansStats[i].CpuUsage;
+				}
 			}
-			
+
 			var avgLatency = await myStatsGrain.GetAverageLatency();
-            var maxLatency = await myStatsGrain.GetMaxLatency();
-            var maxLatencyMsg = await myStatsGrain.GetMaxLatencyMsg();
+			var maxLatency = await myStatsGrain.GetMaxLatency();
+			var maxLatencyMsg = await myStatsGrain.GetMaxLatencyMsg();
 
-            var totalMessages = await myStatsGrain.GetTotalMessages();
-            var clientMessages = await myStatsGrain.GetTotalClientMessages();
-            var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
+			var totalMessages = await myStatsGrain.GetTotalMessages();
+			var clientMessages = await myStatsGrain.GetTotalClientMessages();
+			var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
 
-            var results = new SubjectExperimentResults()
-            {
+			var testFullName = this.subject;
+
+			var results = new SubjectExperimentResults()
+			{
 				ExpID = expId,
-                Time = time,
-                Subject = testFullName,
-                Machines = machines,
-                Methods = methods,
-                Messages = totalMessages,
-                ClientMessages =  clientMessages, // SolutionAnalyzer.MessageCounter,
-                ElapsedTime = stopWatch.ElapsedMilliseconds,
+				Time = time,
+				Subject = testFullName,
+				Machines = machines,
+				Methods = methods,
+				Messages = totalMessages,
+				ClientMessages = clientMessages, // SolutionAnalyzer.MessageCounter,
+				ElapsedTime = stopWatch.ElapsedMilliseconds,
 				Activations = totalAct,
 				Deactivations = totalDeact,
-                Observations = "From web",
+				Observations = "From web",
 				PartitionKey = expId + " " + testFullName, //  + " " + time.ToFileTime().ToString(),
-                RowKey = testFullName +" "+ time.ToFileTime().ToString(),
+				RowKey = testFullName + " " + time.ToFileTime().ToString(),
 				TotalRecvNetwork = totalRecvNetwork,
 				TotalSentLocal = totalSentLocal,
 				TotalSentNetwork = totalSentNetwork,
 				TotalRecvLocal = totalRecvLocal,
 				AverageLatency = avgLatency,
-                MaxLatency = maxLatency,
-                MaxLatencyMsg = maxLatencyMsg,
-                AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage/ silos.Length,
-                AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
-                MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
-                MaxPerSiloCPUUsage = maxPerSiloCPUUsage
-            };
+				MaxLatency = maxLatency,
+				MaxLatencyMsg = maxLatencyMsg,
+				AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silos.Length,
+				AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
+				MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
+				MaxPerSiloCPUUsage = maxPerSiloCPUUsage
+			};
 
 			// Save results in main table
 			this.AddSubjetResults(results);
 
 			//SaveResults(@"Y:\");
 
+			AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
 			return results;
 		}
 
@@ -287,9 +320,9 @@ namespace ReachingTypeAnalysis.Statistics
 
         public async Task<Tuple<long, long, long>> ComputeRandomQueries(string className, string methodPrejix, int numberOfMethods, int repetitions, string assemblyName = "MyProject", string expId = "DummyExperimentID")
         {
-            if(String.IsNullOrEmpty(this.ExpID))
+            if(String.IsNullOrEmpty(this.ExperimentID))
             {
-                this.ExpID = expId;
+                this.ExperimentID = expId;
             }
 
             var solutionManager = this.SolutionManager; 
@@ -337,7 +370,7 @@ namespace ReachingTypeAnalysis.Statistics
                 var time = DateTime.Now;
                 var results = new QueriesPerSubject()
                 {
-					ExpID = this.ExpID,
+					ExpID = this.ExperimentID,
                     Time = time,
                     Subject = this.subject,
                     Machines = machines,
@@ -347,7 +380,7 @@ namespace ReachingTypeAnalysis.Statistics
                     MaxTime = maxTime,
 					Median = times[repetitions / 2],
                     Observations = "From web",
-                    PartitionKey = this.ExpID,
+                    PartitionKey = this.ExperimentID,
                     RowKey = time.ToFileTime().ToString()
                 };
                 this.AddQueryResults(results);
@@ -361,9 +394,9 @@ namespace ReachingTypeAnalysis.Statistics
 
         public async Task<Tuple<long, long, long>> ComputeRandomQueries(int repetitions, string expId = "DummyExperimentID")
         {
-            if (String.IsNullOrEmpty(this.ExpID))
+            if (String.IsNullOrEmpty(this.ExperimentID))
             {
-                this.ExpID = expId;
+                this.ExperimentID = expId;
             }
 
             var solutionManager = this.SolutionManager;
@@ -424,7 +457,7 @@ namespace ReachingTypeAnalysis.Statistics
                 var time = DateTime.Now;
                 var results = new QueriesPerSubject()
                 {
-                    ExpID = this.ExpID,
+                    ExpID = this.ExperimentID,
                     Time = time,
                     Subject = this.subject,
                     Machines = machines,
@@ -435,7 +468,7 @@ namespace ReachingTypeAnalysis.Statistics
                     StdDev = stdDev,
                     Median = times[repetitions / 2],
                     Observations = "From web",
-                    PartitionKey = this.ExpID,
+                    PartitionKey = this.ExperimentID,
                     RowKey = time.ToFileTime().ToString()
                 };
                 this.AddQueryResults(results);
@@ -488,6 +521,7 @@ namespace ReachingTypeAnalysis.Statistics
 				}
 			}
 		}
+
         public static string TableToCvs<T>(string name) where T : TableEntityCSV, new()
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
@@ -565,7 +599,7 @@ namespace ReachingTypeAnalysis.Statistics
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
-				ExpID = this.ExpID,
+				ExpID = this.ExperimentID,
 				Time = time,
                 Machines = machines, 
 				Address = siloAddr.ToString(),
@@ -576,7 +610,7 @@ namespace ReachingTypeAnalysis.Statistics
 				RecentlyUsedActivations = -1, // siloMetric.RecentlyUsedActivationCount,
 				ReceivedMessages = siloComputedStat.TotalRecvLocalSilo + siloComputedStat.TotalRecvNetworkSilo,
 				SentMessages = siloComputedStat.TotalSentLocalSilo + siloComputedStat.TotalSentNetworkSilo,
-				PartitionKey = this.ExpID,
+				PartitionKey = this.ExperimentID,
 				RowKey = siloAddr.ToString() +":" + time.ToFileTime().ToString(),
 				TotalRecvNetworkSilo = siloComputedStat.TotalRecvNetworkSilo,
 				TotalSentLocalSilo = siloComputedStat.TotalSentLocalSilo,
@@ -598,7 +632,7 @@ namespace ReachingTypeAnalysis.Statistics
 		{
 			var siloStat = new SiloRuntimeStats()
 			{
-                ExpID = this.ExpID,
+                ExpID = this.ExperimentID,
 				Time = time,
                 Machines = machines,
 				Address = siloAddr.ToString(), 
@@ -609,7 +643,7 @@ namespace ReachingTypeAnalysis.Statistics
 				RecentlyUsedActivations = siloMetric.RecentlyUsedActivationCount,
 				ReceivedMessages = siloComputedStat.TotalRecvLocalSilo+siloComputedStat.TotalRecvNetworkSilo,
 				SentMessages = siloComputedStat.TotalSentLocalSilo+siloComputedStat.TotalSentNetworkSilo,
-				PartitionKey = this.ExpID ,
+				PartitionKey = this.ExperimentID ,
                 RowKey = siloAddr.ToString() +":" + time.ToFileTime().ToString(),
 				TotalRecvNetworkSilo = siloComputedStat.TotalRecvNetworkSilo,
 				TotalSentLocalSilo   = siloComputedStat.TotalSentLocalSilo,
