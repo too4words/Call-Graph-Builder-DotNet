@@ -31,7 +31,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Running test {0}.", testName);
@@ -60,7 +60,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Analyzing solution {0}.", solutionName);
