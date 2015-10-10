@@ -104,7 +104,7 @@ namespace ReachingTypeAnalysis.Statistics
             }
 		}
 
-		public async void StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		public async Task  StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
 			//Task.Run(async () =>
 			await Task.Factory.StartNew(async () =>

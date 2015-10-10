@@ -9,6 +9,45 @@ param (
 	[int] $numberOfMethods = 100
 	)
 
+function Check_Status($service)
+{
+	if($env:ISEMULATED -ne $true)  {
+		$port = "45002"
+		$resource = "http://orleansservicedg.cloudapp.net:"+$port+"/"
+	}
+	else
+	{
+		$resource = "http://localhost:49176/"
+	}
+	$controler="api/Experiments"
+	$cmd = "?command=Status"
+	$uri = $resource+$controler+$cmd
+	$result = Invoke-WebRequest -Uri $uri
+	return $result
+}
+
+
+function Wait_For_Ready($timeoutMin)
+{
+	$timeout = new-timespan -Minutes $timeoutMin
+	$sw = [diagnostics.stopwatch]::StartNew()
+	while ($sw.elapsed -lt $timeout){
+		$status = Check_Status("orleansservicedg")
+		Write-Host "Status" $status
+		if ($status -match "Ready")
+		{
+			Write-host "Ready!"
+			return $true
+		
+		}
+		Write-host "Not ready yet! Waiting..."
+		start-sleep -seconds 2
+	}
+ 
+	write-host "Timed out"
+	return $false
+}
+
 # http://orleansservicedg.cloudapp.net:8080/api/Experiments?drive=Y&solutionPath=LongTest2&solutionName=LongTest2&machines=1
 
 if($env:ISEMULATED -ne $true)  {
@@ -25,4 +64,6 @@ $controler="api/Experiments"
 $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines+"&expID="+$expID <#+"&numberOfMethods="+$numberOfMethods#>
 $uri = $resource+$controler+$cmd
 Write-Host "Invoking"  $uri
-Invoke-WebRequest -Uri $uri -TimeoutSec 5000 
+Invoke-WebRequest -Uri $uri -TimeoutSec 5000
+Wait_For_Ready(60*24)
+ 
