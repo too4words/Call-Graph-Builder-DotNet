@@ -153,11 +153,14 @@ namespace WebAPI
                     case "RemoveGrainState":
                         result = AnalysisClient.EmptyTable("OrleansGrainState").ToString();
                         break;
+                    case "RemoveStats":
+                        result = AnalysisClient.EmptyTable("OrleansSiloStatistics").ToString()+" " + AnalysisClient.EmptyTable("OrleansClientStatistics").ToString();
+                        break;
                     case "Stats":
                         result = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
                         break;
 					case "Status":
-						result = Convert.ToString(AnalysisClient.ExperimentStatus);
+						result = Convert.ToString(AnalysisClient.ExperimentStatus) + " Methods:" + await AnalysisClient.CurrentAnalyzedMethodsCount;
 						break;
 
                     // Unfortunately I cannot run the following scripts from a WebRole

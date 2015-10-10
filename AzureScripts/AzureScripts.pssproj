@@ -29,6 +29,8 @@
   <ItemGroup>
     <Compile Include="ChangeNumberOfInstances.ps1" />
     <Compile Include="ConnectToAzure.ps1" />
+    <Compile Include="InvokeRemoveStats.ps1" />
+    <Compile Include="WaitAnalysisReady.ps1" />
     <Compile Include="InvokeSolutionExperiment.ps1" />
     <Compile Include="RunAllTest.ps1" />
     <Compile Include="RunAllTestsForInstance.ps1" />

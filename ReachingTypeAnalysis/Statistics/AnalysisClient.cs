@@ -65,9 +65,28 @@ namespace ReachingTypeAnalysis.Statistics
         private ISolutionGrain solutionManager;
 
 		public string ExperimentID { get; private set; }
-		public static ExperimentStatus ExperimentStatus { get; private set; }		
+		public static ExperimentStatus ExperimentStatus { get; private set; }
 
-		public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
+        private static AnalysisClient instance; 
+
+        public static Task<int> CurrentAnalyzedMethodsCount
+        {
+            get
+            {
+                if(AnalysisClient.instance!=null) return  instance.GetCurrentAnalyzedMethodsCount();
+                return Task.FromResult(0);
+            }
+        }
+
+        private async Task<int> GetCurrentAnalyzedMethodsCount()
+        {
+            if (this.SolutionManager == null) return 0;
+
+            var count = await this.SolutionManager.GetReachableMethodsCountAsync();
+            return count;
+        }
+
+        public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
 		{
 			this.analyzer = analyzer;
             // We want to force the manager to be obtained when is ready
@@ -106,6 +125,7 @@ namespace ReachingTypeAnalysis.Statistics
 
 		public async Task  StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
+            instance = this;
 			//Task.Run(async () =>
 			await Task.Factory.StartNew(async () =>
 			{
