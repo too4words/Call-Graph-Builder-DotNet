@@ -36,7 +36,7 @@ function Wait_For_Ready($timeoutMin)
 		
 		}
 		Write-host "Not ready yet! Waiting..."
-		start-sleep -seconds 2
+		start-sleep -seconds 5
 	}
  
 	write-host "Timed out"
