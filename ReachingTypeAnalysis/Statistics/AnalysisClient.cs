@@ -24,6 +24,7 @@ using System.Text;
 
 namespace ReachingTypeAnalysis.Statistics
 {
+	[Serializable]
 	public enum ExperimentStatus
 	{
 		None,
@@ -106,7 +107,7 @@ namespace ReachingTypeAnalysis.Statistics
 		public async void StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
 			//Task.Run(async () =>
-			await await Task.Factory.StartNew(async () =>
+			await Task.Factory.StartNew(async () =>
 			{
 				await this.RunExperiment(grainFactory, expId);
 			});
