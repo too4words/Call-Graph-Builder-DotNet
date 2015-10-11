@@ -111,7 +111,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath", this.GrainFactory);
 
-			Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter");
+			Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
 
             this.State.ProjectPath = fullPath;            
             this.State.AssemblyName = null;

@@ -301,13 +301,13 @@ namespace WebRole1
 
 		protected async void ButtonStats_Click(object sender, EventArgs e)
 		{
-			var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
-			if (analysisClient != null)
-			{
+			//var analysisClient = (AnalysisClient)Application.Get("AnalysisClient");
+			//if (analysisClient != null)
+			//{
 				// var res = await OrleansManager.Program.RunCommand("fullgrainstats", new string[] { });
 				var res = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
 				this.TextBox1.Text = res;
-			}
+			//}
 		}
     }
 }
