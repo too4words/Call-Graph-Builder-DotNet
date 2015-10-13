@@ -24,7 +24,7 @@ namespace ReachingTypeAnalysis.Tests
     [TestClass]
     public class CallGraphGenerator
     {
-        public static CallGraph<string, int> GenerateCallGraph(int n, bool addCallsFromMain = true)
+        public static CallGraph<string, int> GenerateCallGraph(int n, bool addCallsFromMain = true, int multiplier = 2)
         {
 			Trace.TraceInformation("Adding Nodes");
             var result = new CallGraph<string, int>();
@@ -37,7 +37,8 @@ namespace ReachingTypeAnalysis.Tests
 			Trace.TraceInformation("Adding edges");
 			// now generate the edges
             var rand = new Random();
-            for (var i = 0; i < 5 * n; i++)
+            // multiplier determines how dense the graph is
+            for (var i = 0; i < multiplier * n; i++)
             {
                 var source = rand.Next(n - 1);
                 var dest = rand.Next(n - 1);
@@ -1002,8 +1003,8 @@ namespace ReachingTypeAnalysis.Tests
         public void TestZipSolutionGenerationWithIncreasingSizes()
         {
             // increasing sizes of solutions
-            //int[] sizes = { 100, 1000, 10000, 10000, 100000, 1000000 };
-            int[] sizes = { 1000000 };
+            int[] sizes = { 100, 1000, 10000, 10000, 100000, 1000000 };
+            //int[] sizes = { 1000000 };
             foreach (var solutionSize in sizes)
             {
                 Trace.TraceInformation("Generating a new solution for size {0}", solutionSize);
