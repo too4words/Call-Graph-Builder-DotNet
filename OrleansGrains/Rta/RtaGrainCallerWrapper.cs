@@ -33,8 +33,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			this.SetRequestContext();
 			return rtaGrain.GetInstantiatedTypesAsync();
-		}
-  
-	
+		}	
 	}
 }

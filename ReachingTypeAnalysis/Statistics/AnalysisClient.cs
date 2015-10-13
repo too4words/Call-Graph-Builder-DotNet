@@ -51,13 +51,15 @@ namespace ReachingTypeAnalysis.Statistics
     public class AnalysisClient
     {
 		private const long SYSTEM_MANAGEMENT_ID = 1;
+
+		private static AnalysisClient instance;
+
 		private IManagementGrain systemManagement;
 		private CloudTable analysisTimes;
 		private CloudTable querytimes;
 		private CloudTable siloMetrics;
 
         private int machines;
-        //private int methods;
         private string subject;
 
 		private Stopwatch stopWatch;
@@ -67,46 +69,7 @@ namespace ReachingTypeAnalysis.Statistics
 
 		public string ExperimentID { get; private set; }
 		public static ExperimentStatus ExperimentStatus { get; private set; }
-
-        private static AnalysisClient instance; 
-
-        public static Task<long> CurrentAnalyzedMethodsCount
-        {
-            get
-            {
-                if(AnalysisClient.instance!=null) return  instance.GetCurrentAnalyzedMethodsCount(GrainClient.GrainFactory);
-                return Task.FromResult(0L);
-            }
-        }
-        public static Task<string> LastMessage
-        {
-            get
-            {
-                if (AnalysisClient.instance != null) return instance.GetLastMessage(GrainClient.GrainFactory);
-                return Task.FromResult("");
-            }
-        }
-        public static string ErrorMessage { get; private set; }
-
-
-        private async Task<long> GetCurrentAnalyzedMethodsCount(IGrainFactory grainFactory)
-        {
-            var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
-            var count = await myStatsGrain.GetTotalClientMessages();
-
-            //if (this.SolutionManager == null) return 0;
-
-            //var count = await this.SolutionManager.GetReachableMethodsCountAsync();
-            return count;
-        }
-
-        private async Task<string> GetLastMessage(IGrainFactory grainFactory)
-        {
-            var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
-            var msg = await myStatsGrain.GetLastMessage();
-            //var count = await this.SolutionManager.GetReachableMethodsCountAsync();
-            return msg;
-        }
+		public static string ErrorMessage { get; private set; }
 
         public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
 		{
@@ -145,9 +108,54 @@ namespace ReachingTypeAnalysis.Statistics
             }
 		}
 
-		public async Task  StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		public static Task<long> CurrentAnalyzedMethodsCount
 		{
-            instance = this;
+			get
+			{
+				if (AnalysisClient.instance != null)
+				{
+					return AnalysisClient.instance.GetCurrentAnalyzedMethodsCount(GrainClient.GrainFactory);
+				}
+
+				return Task.FromResult(0L);
+			}
+		}
+
+		public static Task<string> LastMessage
+		{
+			get
+			{
+				if (AnalysisClient.instance != null)
+				{
+					return AnalysisClient.instance.GetLastMessage(GrainClient.GrainFactory);
+				}
+
+				return Task.FromResult("");
+			}
+		}
+
+		private async Task<long> GetCurrentAnalyzedMethodsCount(IGrainFactory grainFactory)
+		{
+			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+			var count = await myStatsGrain.GetTotalClientMessages();
+
+			//if (this.SolutionManager == null) return 0;
+
+			//var count = await this.SolutionManager.GetReachableMethodsCountAsync();
+			return count;
+		}
+
+		private async Task<string> GetLastMessage(IGrainFactory grainFactory)
+		{
+			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+			var msg = await myStatsGrain.GetLastMessage();
+			//var count = await this.SolutionManager.GetReachableMethodsCountAsync();
+			return msg;
+		}
+
+		public async Task StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		{
+			AnalysisClient.instance = this;
 			//Task.Run(async () =>
 			await Task.Factory.StartNew(async () =>
 			{
@@ -161,6 +169,7 @@ namespace ReachingTypeAnalysis.Statistics
 
             // await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
             AnalysisClient.ErrorMessage = "OK so far";
+
             try
             {
                 var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
@@ -210,7 +219,7 @@ namespace ReachingTypeAnalysis.Statistics
                 var silos = silosEnumeration.ToArray();
                 var siloComputedStats = new SiloComputedStats[silos.Length];
 
-                for (int i = 0; i < silos.Length; i++)
+                for (var i = 0; i < silos.Length; i++)
                 {
                     var silo = silos[i];
                     var addrString = silo; /*/silo.Endpoint.Address.ToString();*/
@@ -308,12 +317,11 @@ namespace ReachingTypeAnalysis.Statistics
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
                 AnalysisClient.ErrorMessage = "OK";
-
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                while (exc is AggregateException) exc = exc.InnerException;
-                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+                while (ex is AggregateException) ex = ex.InnerException;
+                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + ex + " at " + DateTime.Now;
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
             }
@@ -343,6 +351,7 @@ namespace ReachingTypeAnalysis.Statistics
 			var result = statValue.Substring(statPrefix.Length,statValue.IndexOf(':')-statPrefix.Length);
 			return result;
 		}
+
 		private static Tuple<string,string> GetAddressesFromStat(string statValue, string statPrefix)
 		{
 			var addrTo= statValue.Substring(statPrefix.Length, statValue.IndexOf(':') - statPrefix.Length);
@@ -350,7 +359,6 @@ namespace ReachingTypeAnalysis.Statistics
 			var addrFrom = statValue.Substring(pos, statValue.IndexOf(':',pos) - pos);
 			return new Tuple<string,string>(addrTo,addrFrom);
 		}
-
 
 		public static async Task<string> PrintGrainStatistics(IGrainFactory grainFactory)
 		{

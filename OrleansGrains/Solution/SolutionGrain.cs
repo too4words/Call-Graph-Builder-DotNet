@@ -47,6 +47,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
+			try
+			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				if (!String.IsNullOrEmpty(this.State.SolutionPath))
@@ -68,6 +70,11 @@ namespace ReachingTypeAnalysis.Analysis
 				//}
 
 				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
+			}
 			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
@@ -153,6 +160,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
+			try
+			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this, this.GrainFactory, this.State.SolutionPath);
@@ -160,6 +169,11 @@ namespace ReachingTypeAnalysis.Analysis
 				//await this.WaitForAllProjects();
 
 				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
+			}
 			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
@@ -181,6 +195,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
+			try
+			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this, this.GrainFactory, this.State.Source);
@@ -188,6 +204,11 @@ namespace ReachingTypeAnalysis.Analysis
 				//await this.WaitForAllProjects();
 
 				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}", ex);
+			}
 			//});
 
             Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Exit");
@@ -209,6 +230,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
+			try
+			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
 				this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this, this.GrainFactory, this.State.TestName);
@@ -216,6 +239,11 @@ namespace ReachingTypeAnalysis.Analysis
 				//await this.WaitForAllProjects();
 
 				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}", ex);
+			}
 			//});
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Exit");

@@ -3,18 +3,19 @@
 	This is a sample client configuration file. 
 -->
 <ClientConfiguration xmlns="urn:orleans">
-  <!--
-  <GatewayProvider ProviderType="Config"/>
-   <Gateway Address="localhost" Port="30000"/>
-   -->
+	<!--
+	<GatewayProvider ProviderType="Config"/>
+	<Gateway Address="localhost" Port="30000"/>
+	-->
 	<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="C:\Temp\{0}-{1}.log" WriteMessagingTraces="false">
     <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning"  TraceToFile="c:\Temp\{0}-{1}.log"/>
     <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Info" />
-    <!--		<TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
-		<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
+    <!--
+	<TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
+	<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
     -->		
   </Tracing>
   <!-- <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Critical"/> -->
   <Statistics WriteLogStatisticsToTable="false"/>
-  <Messaging ResponseTimeout="1hr"/>
+  <Messaging ResponseTimeout="3600s"/>
 </ClientConfiguration>

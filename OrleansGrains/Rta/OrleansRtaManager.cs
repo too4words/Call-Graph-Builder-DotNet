@@ -9,7 +9,6 @@ using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-
     internal class OrleansRtaManager : RtaManager
     {
         public static IRtaGrain GetRtaGrain(IGrainFactory grainFactory)
@@ -21,6 +20,5 @@ namespace ReachingTypeAnalysis.Analysis
 #endif
             return grain;
         }
-
     }
 }

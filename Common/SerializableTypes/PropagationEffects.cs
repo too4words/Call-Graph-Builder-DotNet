@@ -22,6 +22,7 @@ namespace ReachingTypeAnalysis
             this.MoreEffectsToFetch = false;
             this.MethodEntityReady = true;
         }
+
         public PropagationEffects()
         {
             this.MoreEffectsToFetch = false;

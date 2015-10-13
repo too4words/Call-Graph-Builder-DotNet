@@ -25,11 +25,13 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		private ISolutionManager solutionManager;
 		//private ISet<Message> messageWorkList = new HashSet<Message>();
-		private Queue<Message> messageWorkList = new Queue<Message>();
+		private Queue<Message> messageWorkList;
 
 		public AnalysisOrchestator(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
+			this.messageWorkList = new Queue<Message>();
+			//this.messageWorkList = new HashSet<Message>();
 		}
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
@@ -54,11 +56,13 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task<bool> WaitForReady(PropagationEffects propagationEffects, MethodDescriptor method,  int millisecondsDelay = 100)
         {
             var ready = propagationEffects.MethodEntityReady;
+
             if (!ready)
             {
                 Logger.LogS("AnalysisOrchestator", "WaitForReady", "Method {0} not ready", method);
                 await Task.Delay(millisecondsDelay);
             }
+
             return ready;
         }
 
@@ -75,25 +79,29 @@ namespace ReachingTypeAnalysis.Analysis
                     methodEntityGrainStatus = await methodEntityGrain.GetStatusAsync();
                 }
             }
+
             return;
         }
 
-        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, 
-										PropagationKind propKind = PropagationKind.ADD_TYPES)
+        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			Logger.LogS("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
+
 			if (reworkSet == null)
 			{
 				reworkSet = new HashSet<PropGraphNodeDescriptor>();
 			}
+
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
             PropagationEffects propagationEffects = null;
             var ready = true;
-            do
+            
+			do
             {
                 propagationEffects = await methodEntityProc.PropagateAsync(propKind, reworkSet);
                 ready = await WaitForReady(propagationEffects, method);
-            } while (!ready);
+            }
+			while (!ready);
 
             //var propagationEffects = await methodEntityProc.PropagateAsync(propKind, reworkSet);
 			await PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
@@ -110,6 +118,7 @@ namespace ReachingTypeAnalysis.Analysis
 				while (messageWorkList.Count > 0)
 				{
 					var message = messageWorkList.Dequeue();
+
 					if (message is CallerMessage)
 					{
 						var callerMessage = (CallerMessage)message;
@@ -121,8 +130,8 @@ namespace ReachingTypeAnalysis.Analysis
 						var calleeMessage = (CalleeMessage)message;
 						tasks.Add(this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind));
 					}
-
 				}
+
 				await Task.WhenAll(tasks);
 			}
 
@@ -147,6 +156,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind, IMethodEntityWithPropagator methodEntityProp = null)
 		{
             var hasMoreEffects = true;
+
             do
             {
                 Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
@@ -157,12 +167,15 @@ namespace ReachingTypeAnalysis.Analysis
                 {
                     await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
                 }
+
                 hasMoreEffects = propagationEffects.MoreEffectsToFetch;
+
                 if (hasMoreEffects && methodEntityProp!=null)
                 {
                     propagationEffects = await methodEntityProp.GetMoreEffects();
                 }
-            } while (hasMoreEffects);
+            }
+			while (hasMoreEffects);
 		}
 
 		private async Task ProcessCalleesAsync(IEnumerable<CallInfo> calleesInfo, PropagationKind propKind)

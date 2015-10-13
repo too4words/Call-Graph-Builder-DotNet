@@ -15,7 +15,6 @@ namespace ReachingTypeAnalysis
 
     public interface IEntity
     {
-        //IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
     }
 
 	public interface IAnalysisStrategy
@@ -33,8 +32,6 @@ namespace ReachingTypeAnalysis
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
         Task<bool> IsInitializedAsync();
-        //Task<IEntity> GetMethodEntityAsync();
-        //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
 
         Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync();
 		Task<IEnumerable<CallContext>> GetCallersAsync();
@@ -101,6 +98,7 @@ namespace ReachingTypeAnalysis
 		Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync();
 
 		Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
         Task<int> GetReachableMethodsCountAsync();
 
         Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
@@ -113,8 +111,7 @@ namespace ReachingTypeAnalysis
 
 		//The next 2 methods are for RTA: Not currently used
 		//Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
-
-  //      Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+		//Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
 
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 

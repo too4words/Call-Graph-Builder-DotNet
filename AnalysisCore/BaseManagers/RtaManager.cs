@@ -13,7 +13,6 @@ namespace ReachingTypeAnalysis.Analysis
     internal class RtaManager : IRtaManager
     {
 		protected ISet<TypeDescriptor> instantiatedTypes;
-		protected bool useNewFieldsVersion;
 
 		public RtaManager()
 		{
@@ -38,8 +37,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <returns></returns>
         public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
         {
-			return Task.FromResult(instantiatedTypes);
+			return Task.FromResult(this.instantiatedTypes);
         }
-
 	}
 }

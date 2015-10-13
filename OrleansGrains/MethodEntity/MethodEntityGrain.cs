@@ -28,16 +28,18 @@ namespace ReachingTypeAnalysis.Analysis
 	[PreferLocalPlacement]
     public class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
+		private const int WAIT_TIME = 200;
+
         [NonSerialized]
         private IMethodEntityWithPropagator methodEntityPropagator;
         [NonSerialized]
         private MethodEntity methodEntity;
         [NonSerialized]
         private IProjectCodeProvider codeProvider;
-        [NonSerialized]
-        private ISolutionGrain solutionGrain;
+		//[NonSerialized]
+		//private ISolutionGrain solutionGrain;
+		[NonSerialized]
         private EntityGrainStatus status;
-        private static int waitTime = 200;
 
         public override async Task OnActivateAsync()
         {
@@ -56,17 +58,18 @@ namespace ReachingTypeAnalysis.Analysis
                     methodDescriptor = this.State.MethodDescriptor;
                 }
 			}
-            await Task.Factory.StartNew(async () =>
-            {
-                this.status =  (EntityGrainStatus.Busy);
 
-                await CreateMethodEntityAsync(methodDescriptor);
+			//await Task.Factory.StartNew(async () =>
+			//{
+			//	this.status =  (EntityGrainStatus.Busy);
 
-                this.status = (EntityGrainStatus.Ready);
-            });
+			//	await CreateMethodEntityAsync(methodDescriptor);
 
+			//	this.status = EntityGrainStatus.Ready;
+			//});
 
-            //await CreateMethodEntityAsync(methodDescriptor);            
+			this.status = EntityGrainStatus.Ready;
+            await this.CreateMethodEntityAsync(methodDescriptor);            
         }
 
 		public async Task ForceDeactivationAsync()
@@ -97,7 +100,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// This is a private method. We must not register this as a grain callee
 			// await StatsHelper.RegisterMsg("MethodEntityGrain::CreateMethodEntity", this.GrainFactory);
 
-			solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
+			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
@@ -109,15 +112,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.codeProvider = codeProviderGrain;
 
-			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
-			Stopwatch sw = new Stopwatch();
+			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
+			var sw = new Stopwatch();
 			sw.Start();
 
             this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
             sw.Stop();
 
-            Logger.LogInfo(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
+            Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {
@@ -131,6 +134,8 @@ namespace ReachingTypeAnalysis.Analysis
 			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
             await this.WriteStateAsync();
+
+			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit");
 		}
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
@@ -147,65 +152,38 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.GetCalleesInfoAsync();
         }
 
-		///// <summary>
-		///// This method shoudld be removed
-		///// </summary>
-		///// <param name="methodEntity"></param>
-		///// <param name="methodDescriptor"></param>
-		///// <returns></returns>
-		//public async Task SetMethodEntityAsync(IEntity methodEntity, MethodDescriptor methodDescriptor)
-		//{
-		//	Contract.Assert(methodEntity != null);
-		//	this.methodEntity = (MethodEntity)methodEntity;
-
-		//	Contract.Assert(this.State != null);
-		//	this.State.MethodDescriptor = methodDescriptor;
-
-		//	var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
-		//          // this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
-		//	this.codeProvider = codeProviderGrain;
-
-		//	await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
-
-		//	this.methodEntityPropagator = new MethodEntityWithPropagator(this.methodEntity, this.codeProvider);
-
-		//	await this.WriteStateAsync();
-		//}
-
-		//public  Task<IEntity> GetMethodEntityAsync()
-		//{
-		//    // Contract.Assert(this.methodEntity != null);
-		//    return Task.FromResult<IEntity>(this.methodEntity);
-		//}
-		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
-			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            if (status.Equals(EntityGrainStatus.Busy))
-            {
-                await Task.Delay(waitTime);
-                if (status.Equals(EntityGrainStatus.Busy))
-                {
-                    return new PropagationEffects();
-                }
-            }
-            return await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet);
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+
+			//if (status.Equals(EntityGrainStatus.Busy))
+			//{
+			//	await Task.Delay(WAIT_TIME);
+			//	if (status.Equals(EntityGrainStatus.Busy))
+			//	{
+			//		return new PropagationEffects();
+			//	}
+			//}
+
+            return this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet);
 		}
 
 		public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
 			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            if (status.Equals(EntityGrainStatus.Busy))
-            {
-                await Task.Delay(waitTime);
-                if (status.Equals(EntityGrainStatus.Busy))
-                {
-                    return new PropagationEffects();
-                }
-            }
+			
+			//if (status.Equals(EntityGrainStatus.Busy))
+			//{
+			//	await Task.Delay(WAIT_TIME);
+			//	if (status.Equals(EntityGrainStatus.Busy))
+			//	{
+			//		return new PropagationEffects();
+			//	}
+			//}
 
             Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "Propagate", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 
-            Stopwatch sw = new Stopwatch();
+            var sw = new Stopwatch();
             sw.Start();
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(propKind);
             sw.Stop();
@@ -214,34 +192,36 @@ namespace ReachingTypeAnalysis.Analysis
             return propagationEffects;
         }
 
-        public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+        public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
-			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            if (status.Equals(EntityGrainStatus.Busy))
-            {
-                await Task.Delay(waitTime);
-                if (status.Equals(EntityGrainStatus.Busy))
-                {
-                    return new PropagationEffects();
-                }
-            }
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+            
+			//if (status.Equals(EntityGrainStatus.Busy))
+			//{
+			//	await Task.Delay(WAIT_TIME);
+			//	if (status.Equals(EntityGrainStatus.Busy))
+			//	{
+			//		return new PropagationEffects();
+			//	}
+			//}
 
-            return await this.methodEntityPropagator.PropagateAsync(callMessageInfo);
+            return this.methodEntityPropagator.PropagateAsync(callMessageInfo);
         }
 
-        public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
+        public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
-			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            if (status.Equals(EntityGrainStatus.Busy))
-            {
-                await Task.Delay(waitTime);
-                if (status.Equals(EntityGrainStatus.Busy))
-                {
-                    return new PropagationEffects();
-                }
-            }
+			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+            
+			//if (status.Equals(EntityGrainStatus.Busy))
+			//{
+			//	await Task.Delay(WAIT_TIME);
+			//	if (status.Equals(EntityGrainStatus.Busy))
+			//	{
+			//		return new PropagationEffects();
+			//	}
+			//}
 
-            return await this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
+            return this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)
@@ -323,14 +303,15 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<PropagationEffects> GetMoreEffects()
         {
-            StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects"+":"+this.methodEntity.MethodDescriptor, this.GrainFactory);
+            StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
 
             return this.methodEntityPropagator.GetMoreEffects();
         }
 
         public Task<EntityGrainStatus> GetStatusAsync()
         {
-            StatsHelper.RegisterMsg("MethodEntityGrain::GetStatus" + ":" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+            StatsHelper.RegisterMsg("MethodEntityGrain::GetStatus:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+
             return Task.FromResult(this.status);
         }
     }
