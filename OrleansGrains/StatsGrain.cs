@@ -47,6 +47,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private LatencyInfo latencyInfo;
 		private long memoryUsage;
         private long clientMessages;
+        private string lastMessage;
 
         private Task WriteStateAsync()
 		{
@@ -116,7 +117,7 @@ namespace ReachingTypeAnalysis.Analysis
 				this.latencyInfo.MaxLatency= timeDiff;
 				this.latencyInfo.MaxLatencyMsg= message;
 			}
-			
+            this.lastMessage = message;
 
 			return this.WriteStateAsync();
 		}
@@ -327,7 +328,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(this.memoryUsage);
 		}
-	}
+
+        public Task<string> GetLastMessage()
+        {
+            return Task.FromResult(this.lastMessage);
+        }
+    }
 
 	[Serializable]
 	public class StatsContext
@@ -398,7 +404,6 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 #endif
 		}
-
 		public static StatsContext CreateMyIPAddrContext()
 		{
 			var addr = GetMyIPAddr();

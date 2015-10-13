@@ -70,17 +70,17 @@ namespace ReachingTypeAnalysis.Analysis
 			return solutionGrain.GetMethodEntityAsync(methodDescriptor);
 		}
 
-		public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-		{
-			this.SetRequestContext();
-			return solutionGrain.AddInstantiatedTypesAsync(types);
-		}
+		//public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+		//{
+		//	this.SetRequestContext();
+		//	return solutionGrain.AddInstantiatedTypesAsync(types);
+		//}
 
-		public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-		{
-			this.SetRequestContext();
-			return solutionGrain.GetInstantiatedTypesAsync();
-		}
+		//public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+		//{
+		//	this.SetRequestContext();
+		//	return solutionGrain.GetInstantiatedTypesAsync();
+		//}
 
 		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{

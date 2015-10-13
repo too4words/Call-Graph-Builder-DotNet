@@ -183,6 +183,7 @@
     <Compile Include="BaseManagers\DummyProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\MethodEntityPropagator.cs" />
     <Compile Include="BaseManagers\BaseProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\RtaManager.cs" />
     <Compile Include="BaseManagers\SolutionManager.cs" />
     <Compile Include="Graph\Graph.cs" />
     <Compile Include="Graph\GraphAnnotationData.cs" />

@@ -49,8 +49,9 @@ namespace ReachingTypeAnalysis
 		Task<PropagationEffects> RemoveMethodAsync();
 
 		Task UnregisterCallerAsync(CallContext callContext);
-		//Task UnregisterCalleeAsync(CallContext callContext);
-	}
+        Task<PropagationEffects> GetMoreEffects();
+        //Task UnregisterCalleeAsync(CallContext callContext);
+    }
 
     public interface IProjectCodeProvider
     {
@@ -111,14 +112,20 @@ namespace ReachingTypeAnalysis
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		//The next 2 methods are for RTA: Not currently used
-		Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+		//Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
 
-        Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+  //      Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
 
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 
 		Task ReloadAsync();
 	}
+
+    public interface IRtaManager
+    {
+        Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+        Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+    }
 
     public delegate void MessageHandler(IMessage message);
 

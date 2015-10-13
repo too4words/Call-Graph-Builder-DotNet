@@ -59,10 +59,12 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDictionary<DocumentPath, DocumentInfo> newDocumentsInfo;
 		protected bool useNewFieldsVersion;
 		protected ISolutionManager solutionManager;
+        protected IRtaManager rtaManager;
 
-		protected BaseProjectCodeProvider(ISolutionManager solutionManager)
+		protected BaseProjectCodeProvider(ISolutionManager solutionManager, IRtaManager rtaManager)
         {
 			this.solutionManager = solutionManager;
+            this.rtaManager = rtaManager;
 			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();			
         }
 
@@ -120,7 +122,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
 			// this is for RTA analysis
-			await this.solutionManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
+			await this.rtaManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
 			return methodEntity;
         }
 
@@ -245,7 +247,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)
 		{
 			var result = new HashSet<TypeDescriptor>();
-			var instantiatedTypes = await this.solutionManager.GetInstantiatedTypesAsync();
+			var instantiatedTypes = await this.rtaManager.GetInstantiatedTypesAsync();
 
             foreach (var potentialType in instantiatedTypes)
 			{

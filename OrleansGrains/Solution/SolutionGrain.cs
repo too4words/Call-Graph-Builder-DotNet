@@ -242,19 +242,19 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.solutionManager.GetMethodEntityAsync(methodDescriptor);
 		}
 
-		public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-        {
-			StatsHelper.RegisterMsg("SolutionGrain::AddInstantiatedTypes", this.GrainFactory);
+		//public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+  //      {
+		//	StatsHelper.RegisterMsg("SolutionGrain::AddInstantiatedTypes", this.GrainFactory);
 
-            return solutionManager.AddInstantiatedTypesAsync(types);
-        }
+  //          return solutionManager.AddInstantiatedTypesAsync(types);
+  //      }
 
-        public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-        {
-			StatsHelper.RegisterMsg("SolutionGrain::GetInstantiatedTypes", this.GrainFactory);
+  //      public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+  //      {
+		//	StatsHelper.RegisterMsg("SolutionGrain::GetInstantiatedTypes", this.GrainFactory);
 
-			return this.solutionManager.GetInstantiatedTypesAsync();
-        }
+		//	return this.solutionManager.GetInstantiatedTypesAsync();
+  //      }
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {

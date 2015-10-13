@@ -30,5 +30,6 @@ namespace OrleansInterfaces
         //Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
         //Task<int> GetInvocationCountAsync();
 		Task ForceDeactivationAsync();
-	}
+        Task<EntityGrainStatus> GetStatusAsync();
+    }
 }

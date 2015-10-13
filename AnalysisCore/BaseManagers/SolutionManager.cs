@@ -185,26 +185,26 @@ namespace ReachingTypeAnalysis.Analysis
 			return provider;
 		}
 
-        /// <summary>
-        /// For RTA analysis
-        /// </summary>
-        /// <param name="types"></param>
-        /// <returns></returns>
-        public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-        {
-            this.instantiatedTypes.UnionWith(types);
-			return TaskDone.Done;
-        }
+  //      /// <summary>
+  //      /// For RTA analysis
+  //      /// </summary>
+  //      /// <param name="types"></param>
+  //      /// <returns></returns>
+  //      public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+  //      {
+  //          this.instantiatedTypes.UnionWith(types);
+		//	return TaskDone.Done;
+  //      }
 
-		/// <summary>
-		/// For RTA analysis
-		/// </summary>
-		/// <param name="types"></param>
-		/// <returns></returns>
-        public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-        {
-			return Task.FromResult(instantiatedTypes);
-        }
+		///// <summary>
+		///// For RTA analysis
+		///// </summary>
+		///// <param name="types"></param>
+		///// <returns></returns>
+  //      public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+  //      {
+		//	return Task.FromResult(instantiatedTypes);
+  //      }
 
 		public virtual async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{

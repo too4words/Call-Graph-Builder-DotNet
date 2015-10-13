@@ -21,7 +21,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		//private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
 
 		private AsyncProjectCodeProvider(ISolutionManager solutionManager)
-			: base(solutionManager)
+			: base(solutionManager, new RtaManager())
         {
 			this.methodEntities = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}

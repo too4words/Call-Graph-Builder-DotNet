@@ -109,7 +109,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task SetProjectPathAsync(string fullPath)
         {
-			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath", this.GrainFactory);
+			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath"+":"+fullPath , this.GrainFactory);
 
 			Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
 
@@ -234,7 +234,7 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 
             timer.Stop();
-            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntity", "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds, timer.ElapsedTicks);
+            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntity:"+methodDescriptor, "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds, timer.ElapsedTicks);
             return result;
         }
 
@@ -268,7 +268,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-			StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity", this.GrainFactory);
+			StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
 
 			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
         }

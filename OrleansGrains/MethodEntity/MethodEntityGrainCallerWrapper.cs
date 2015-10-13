@@ -131,5 +131,19 @@ namespace ReachingTypeAnalysis.Analysis
 			this.SetRequestContext();
 			return methodEntityGrain.ForceDeactivationAsync();
 		}
-	}
+
+        public Task<PropagationEffects> GetMoreEffects()
+        {
+            this.SetRequestContext();
+
+            return methodEntityGrain.GetMoreEffects();
+        }
+
+        public Task<EntityGrainStatus> GetStatusAsync()
+        {
+            this.SetRequestContext();
+
+            return methodEntityGrain.GetStatusAsync();
+        }
+    }
 }

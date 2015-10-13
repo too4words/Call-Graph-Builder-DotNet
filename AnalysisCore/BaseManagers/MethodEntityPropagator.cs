@@ -21,6 +21,7 @@ namespace ReachingTypeAnalysis.Analysis
     {
         private MethodEntity methodEntity;
         private IProjectCodeProvider codeProvider;
+        private Queue<PropagationEffects> propagationEffectsToSend = new Queue<PropagationEffects>();
         //private Orleans.Runtime.Logger logger = GrainClient.Logger;
 
         /// <summary>
@@ -94,6 +95,26 @@ namespace ReachingTypeAnalysis.Analysis
 
             Logger.LogS("MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
+            if(propagationEffects.CalleesInfo.Count>100)
+            {
+                int index = 0;
+                var count = propagationEffects.CalleesInfo.Count;
+                var callessInfo = propagationEffects.CalleesInfo.ToList();
+                propagationEffects.CalleesInfo = new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count));
+                propagationEffects.MoreEffectsToFetch = true;
+                while(count>100)
+                {
+                    count -= 100;
+                    index += 100;
+                    var propEffect = new PropagationEffects(new HashSet<CallInfo>(callessInfo.GetRange(index, count>100?100:count)), false);
+                    if (count > 100)
+                    {
+                        propEffect.MoreEffectsToFetch = true;
+                    }
+                    this.propagationEffectsToSend.Enqueue(propEffect);                   
+                }
+
+            }
             return propagationEffects;
         }
 
@@ -504,12 +525,17 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		//public Task UnregisterCalleeAsync(CallContext callContext)
-		//{
-		//	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
-		//	var receiverTypes = this.GetTypes(invoInfo.Receiver);
-		//	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
-		//	return TaskDone.Done;
-		//}
-	}
+        public Task<PropagationEffects> GetMoreEffects()
+        {
+            return Task.FromResult(this.propagationEffectsToSend.Dequeue());
+        }
+
+        //public Task UnregisterCalleeAsync(CallContext callContext)
+        //{
+        //	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
+        //	var receiverTypes = this.GetTypes(invoInfo.Receiver);
+        //	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
+        //	return TaskDone.Done;
+        //}
+    }
 }

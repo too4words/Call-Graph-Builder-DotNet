@@ -35,5 +35,7 @@ namespace OrleansInterfaces
         Task<long> GetSiloMemoryUsage(string addrString);
 
 		Task<IEnumerable<string>> GetSilos();
-	}
+        Task<string> GetLastMessage();
+
+    }
 }

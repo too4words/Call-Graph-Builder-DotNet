@@ -31,7 +31,8 @@ namespace ReachingTypeAnalysis.Statistics
 		Compiling,
 		Running,
 		ComputingResults,
-		Ready
+		Ready,
+        Failed
 	}
 
 	internal class SiloComputedStats
@@ -69,21 +70,42 @@ namespace ReachingTypeAnalysis.Statistics
 
         private static AnalysisClient instance; 
 
-        public static Task<int> CurrentAnalyzedMethodsCount
+        public static Task<long> CurrentAnalyzedMethodsCount
         {
             get
             {
-                if(AnalysisClient.instance!=null) return  instance.GetCurrentAnalyzedMethodsCount();
-                return Task.FromResult(0);
+                if(AnalysisClient.instance!=null) return  instance.GetCurrentAnalyzedMethodsCount(GrainClient.GrainFactory);
+                return Task.FromResult(0L);
             }
         }
-
-        private async Task<int> GetCurrentAnalyzedMethodsCount()
+        public static Task<string> LastMessage
         {
-            if (this.SolutionManager == null) return 0;
+            get
+            {
+                if (AnalysisClient.instance != null) return instance.GetLastMessage(GrainClient.GrainFactory);
+                return Task.FromResult("");
+            }
+        }
+        public static string ErrorMessage { get; private set; }
 
-            var count = await this.SolutionManager.GetReachableMethodsCountAsync();
+
+        private async Task<long> GetCurrentAnalyzedMethodsCount(IGrainFactory grainFactory)
+        {
+            var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+            var count = await myStatsGrain.GetTotalClientMessages();
+
+            //if (this.SolutionManager == null) return 0;
+
+            //var count = await this.SolutionManager.GetReachableMethodsCountAsync();
             return count;
+        }
+
+        private async Task<string> GetLastMessage(IGrainFactory grainFactory)
+        {
+            var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+            var msg = await myStatsGrain.GetLastMessage();
+            //var count = await this.SolutionManager.GetReachableMethodsCountAsync();
+            return msg;
         }
 
         public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
@@ -133,157 +155,170 @@ namespace ReachingTypeAnalysis.Statistics
 			});
 		}
 
-		public async Task<SubjectExperimentResults> RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		public async Task RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
 			this.ExperimentID = expId;
 
-			// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+            // await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+            AnalysisClient.ErrorMessage = "OK so far";
+            try
+            {
+                var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+                await myStatsGrain.ResetStats();
 
-			var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
-			await myStatsGrain.ResetStats();
+                this.stopWatch = Stopwatch.StartNew();
 
-			this.stopWatch = Stopwatch.StartNew();
+                AnalysisClient.ExperimentStatus = ExperimentStatus.Compiling;
 
-			AnalysisClient.ExperimentStatus = ExperimentStatus.Compiling;
+                await this.analyzer.InitializeOnDemandOrleansAnalysis();
+                await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 
-			await this.analyzer.InitializeOnDemandOrleansAnalysis();
-			await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
+                AnalysisClient.ExperimentStatus = ExperimentStatus.Running;
 
-			AnalysisClient.ExperimentStatus = ExperimentStatus.Running;
+                await this.analyzer.ContinueOnDemandOrleansAnalysis();
 
-			await this.analyzer.ContinueOnDemandOrleansAnalysis();
+                AnalysisClient.ExperimentStatus = ExperimentStatus.ComputingResults;
 
-			AnalysisClient.ExperimentStatus = ExperimentStatus.ComputingResults;
+                this.stopWatch.Stop();
 
-			this.stopWatch.Stop();
+                var totalRecvNetwork = 0L;
+                var totalSentLocal = 0L;
+                var totalSentNetwork = 0L;
+                var totalRecvLocal = 0L;
 
-			var totalRecvNetwork = 0L;
-			var totalSentLocal = 0L;
-			var totalSentNetwork = 0L;
-			var totalRecvLocal = 0L;
+                this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+                await systemManagement.ForceGarbageCollection(null);
+                var orleansStats = await systemManagement.GetRuntimeStatistics(null);
+                var hosts = await systemManagement.GetHosts();
+                //var silos = hosts.Keys.ToArray();
 
-			this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-			await systemManagement.ForceGarbageCollection(null);
-			var orleansStats = await systemManagement.GetRuntimeStatistics(null);
-			var hosts = await systemManagement.GetHosts();
-			//var silos = hosts.Keys.ToArray();
+                var totalAct = 0L;
+                var totalDeact = 0L;
+                var time = DateTime.Now;
 
-			var totalAct = 0L;
-			var totalDeact = 0L;
-			var time = DateTime.Now;
+                var acummulatedPerSiloMemoryUsage = 0L;
+                var maxPerSiloMemoryUsage = 0L;
+                var acummulatedPerSiloCPUUsage = 0D;
+                var maxPerSiloCPUUsage = 0D;
 
-			var acummulatedPerSiloMemoryUsage = 0L;
-			var maxPerSiloMemoryUsage = 0L;
-			var acummulatedPerSiloCPUUsage = 0D;
-			var maxPerSiloCPUUsage = 0D;
+                //this.methods = -1;
 
-			//this.methods = -1;
+                // var messageMetric = new MessageMetrics();			
 
-			// var messageMetric = new MessageMetrics();			
+                //var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+                var silosEnumeration = await myStatsGrain.GetSilos();
+                var silos = silosEnumeration.ToArray();
+                var siloComputedStats = new SiloComputedStats[silos.Length];
 
-			//var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
-			var silosEnumeration = await myStatsGrain.GetSilos();
-			var silos = silosEnumeration.ToArray();
-			var siloComputedStats = new SiloComputedStats[silos.Length];
+                for (int i = 0; i < silos.Length; i++)
+                {
+                    var silo = silos[i];
+                    var addrString = silo; /*/silo.Endpoint.Address.ToString();*/
+                    siloComputedStats[i] = new SiloComputedStats();
 
-			for (int i = 0; i < silos.Length; i++)
-			{
-				var silo = silos[i];
-				var addrString = silo; /*/silo.Endpoint.Address.ToString();*/
-				siloComputedStats[i] = new SiloComputedStats();
+                    siloComputedStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
+                    siloComputedStats[i].TotalRecvLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
 
-				siloComputedStats[i].TotalSentLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
-				siloComputedStats[i].TotalRecvLocalSilo += await myStatsGrain.GetSiloLocalMsgs(addrString);
+                    siloComputedStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
+                    siloComputedStats[i].TotalRecvNetworkSilo += await myStatsGrain.GetSiloNetworkReceivedMsgs(addrString);
+                    siloComputedStats[i].MemoryUsage += await myStatsGrain.GetSiloMemoryUsage(addrString);
 
-				siloComputedStats[i].TotalSentNetworkSilo += await myStatsGrain.GetSiloNetworkSentMsgs(addrString);
-				siloComputedStats[i].TotalRecvNetworkSilo += await myStatsGrain.GetSiloNetworkReceivedMsgs(addrString);
-				siloComputedStats[i].MemoryUsage += await myStatsGrain.GetSiloMemoryUsage(addrString);
+                    var activationDic = await myStatsGrain.GetActivationsPerSilo(addrString);
+                    var deactivationDic = await myStatsGrain.GetDeactivationsPerSilo(addrString);
+                    var activations = activationDic.Sum(items => items.Value);
+                    var deactivations = deactivationDic.Sum(items => items.Value);
+                    siloComputedStats[i].TotalActivations += activations;
+                    siloComputedStats[i].TotalDeactivations += deactivations;
+                    siloComputedStats[i].TotalClientMessages += await myStatsGrain.GetTotalClientMsgsPerSilo(addrString);
+                    // totalAct += orleansStats[i].ActivationCount;
+                    totalAct += activations;
+                    totalDeact += deactivations;
 
-				var activationDic = await myStatsGrain.GetActivationsPerSilo(addrString);
-				var deactivationDic = await myStatsGrain.GetDeactivationsPerSilo(addrString);
-				var activations = activationDic.Sum(items => items.Value);
-				var deactivations = deactivationDic.Sum(items => items.Value);
-				siloComputedStats[i].TotalActivations += activations;
-				siloComputedStats[i].TotalDeactivations += deactivations;
-				siloComputedStats[i].TotalClientMessages += await myStatsGrain.GetTotalClientMsgsPerSilo(addrString);
-				// totalAct += orleansStats[i].ActivationCount;
-				totalAct += activations;
-				totalDeact += deactivations;
+                    //AddSiloMetric(silos[i], siloComputedStats[i], time, machines);
+                    // Save results in per silo table
+                    if (orleansStats.Length <= i)
+                    {
+                        throw new IndexOutOfRangeException(String.Format("OrlenasStats Lenght is {0} and silos Lenght is {1}", orleansStats.Length, silos.Length));
+                    }
 
-				//AddSiloMetric(silos[i], siloComputedStats[i], time, machines);
-				// Save results in per silo table
-				if (orleansStats.Length <= i)
-				{
-					throw new IndexOutOfRangeException(String.Format("OrlenasStats Lenght is {0} and silos Lenght is {1}", orleansStats.Length, silos.Length));
-				}
+                    AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time, machines);
 
-				AddSiloMetricWithOrleans(silos[i], orleansStats[i], siloComputedStats[i], time, machines);
+                    totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo;
+                    totalRecvNetwork += siloComputedStats[i].TotalRecvNetworkSilo;
 
-				totalSentNetwork += siloComputedStats[i].TotalSentNetworkSilo;
-				totalRecvNetwork += siloComputedStats[i].TotalRecvNetworkSilo;
+                    totalSentLocal += siloComputedStats[i].TotalSentLocalSilo;
+                    totalRecvLocal += siloComputedStats[i].TotalSentLocalSilo;
 
-				totalSentLocal += siloComputedStats[i].TotalSentLocalSilo;
-				totalRecvLocal += siloComputedStats[i].TotalSentLocalSilo;
+                    acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
+                    acummulatedPerSiloCPUUsage += orleansStats[i].CpuUsage;
 
-				acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
-				acummulatedPerSiloCPUUsage += orleansStats[i].CpuUsage;
+                    if (maxPerSiloMemoryUsage < orleansStats[i].MemoryUsage)
+                    {
+                        maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
+                    }
 
-				if (maxPerSiloMemoryUsage < orleansStats[i].MemoryUsage)
-				{
-					maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
-				}
+                    if (maxPerSiloCPUUsage < orleansStats[i].CpuUsage)
+                    {
+                        maxPerSiloCPUUsage = orleansStats[i].CpuUsage;
+                    }
+                }
 
-				if (maxPerSiloCPUUsage < orleansStats[i].CpuUsage)
-				{
-					maxPerSiloCPUUsage = orleansStats[i].CpuUsage;
-				}
-			}
+                var avgLatency = await myStatsGrain.GetAverageLatency();
+                var maxLatency = await myStatsGrain.GetMaxLatency();
+                var maxLatencyMsg = await myStatsGrain.GetMaxLatencyMsg();
 
-			var avgLatency = await myStatsGrain.GetAverageLatency();
-			var maxLatency = await myStatsGrain.GetMaxLatency();
-			var maxLatencyMsg = await myStatsGrain.GetMaxLatencyMsg();
+                var totalMessages = await myStatsGrain.GetTotalMessages();
+                var clientMessages = await myStatsGrain.GetTotalClientMessages();
+                var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
 
-			var totalMessages = await myStatsGrain.GetTotalMessages();
-			var clientMessages = await myStatsGrain.GetTotalClientMessages();
-			var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
+                var testFullName = this.subject;
 
-			var testFullName = this.subject;
+                var results = new SubjectExperimentResults()
+                {
+                    ExpID = expId,
+                    Time = time,
+                    Subject = testFullName,
+                    Machines = machines,
+                    Methods = methods,
+                    Messages = totalMessages,
+                    ClientMessages = clientMessages, // SolutionAnalyzer.MessageCounter,
+                    ElapsedTime = stopWatch.ElapsedMilliseconds,
+                    Activations = totalAct,
+                    Deactivations = totalDeact,
+                    Observations = "From web",
+                    PartitionKey = expId + " " + testFullName, //  + " " + time.ToFileTime().ToString(),
+                    RowKey = testFullName + " " + time.ToFileTime().ToString(),
+                    TotalRecvNetwork = totalRecvNetwork,
+                    TotalSentLocal = totalSentLocal,
+                    TotalSentNetwork = totalSentNetwork,
+                    TotalRecvLocal = totalRecvLocal,
+                    AverageLatency = avgLatency,
+                    MaxLatency = maxLatency,
+                    MaxLatencyMsg = maxLatencyMsg,
+                    AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silos.Length,
+                    AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
+                    MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
+                    MaxPerSiloCPUUsage = maxPerSiloCPUUsage
+                };
 
-			var results = new SubjectExperimentResults()
-			{
-				ExpID = expId,
-				Time = time,
-				Subject = testFullName,
-				Machines = machines,
-				Methods = methods,
-				Messages = totalMessages,
-				ClientMessages = clientMessages, // SolutionAnalyzer.MessageCounter,
-				ElapsedTime = stopWatch.ElapsedMilliseconds,
-				Activations = totalAct,
-				Deactivations = totalDeact,
-				Observations = "From web",
-				PartitionKey = expId + " " + testFullName, //  + " " + time.ToFileTime().ToString(),
-				RowKey = testFullName + " " + time.ToFileTime().ToString(),
-				TotalRecvNetwork = totalRecvNetwork,
-				TotalSentLocal = totalSentLocal,
-				TotalSentNetwork = totalSentNetwork,
-				TotalRecvLocal = totalRecvLocal,
-				AverageLatency = avgLatency,
-				MaxLatency = maxLatency,
-				MaxLatencyMsg = maxLatencyMsg,
-				AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silos.Length,
-				AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
-				MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
-				MaxPerSiloCPUUsage = maxPerSiloCPUUsage
-			};
+                // Save results in main table
+                this.AddSubjetResults(results);
 
-			// Save results in main table
-			this.AddSubjetResults(results);
+                //SaveResults(@"Y:\");
 
-			//SaveResults(@"Y:\");
+                AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
+                AnalysisClient.ErrorMessage = "OK";
 
-			AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
-			return results;
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+
+                AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
+            }
+
+			return;
 		}
 
 		public static void SaveResults(string path)
@@ -328,9 +363,12 @@ namespace ReachingTypeAnalysis.Statistics
             var silos = hosts.Keys.ToArray();
 
             var output = new StringBuilder();
-            foreach (var s in stats)
-				output.AppendFormat("Act;{0};  Mem;{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / 1024, s.CpuUsage,
-					s.ReceiveQueueLength, s.SendQueueLength);
+            for (var i = 0; i < stats.Length; i++)
+            {
+                var s = stats[i];
+                output.AppendFormat("Silo {5}; Act;{0};  Mem (M);{1}; CPU;{2}; Rec;{3}; Sent;{4} \n", s.ActivationCount, s.MemoryUsage / (1024*1014), s.CpuUsage,
+                    s.ReceiveQueueLength, s.SendQueueLength, silos[i]);
+            }
             return output.ToString();
 		}
 		
