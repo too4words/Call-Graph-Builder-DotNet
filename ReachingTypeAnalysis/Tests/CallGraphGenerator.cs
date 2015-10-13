@@ -77,6 +77,58 @@ namespace ReachingTypeAnalysis.Tests
             return result;
         }
 
+        public static CallGraph<string, int> GenerateConnectedCallGraph(int n)
+        {
+			Trace.TraceInformation("Adding Nodes");
+            var result = new CallGraph<string, int>();
+            for (var i = 0; i < n; i++)
+            {
+                result.Add(string.Format("N{0}", i));
+            }
+
+            result.Add("Main");
+            result.AddRootMethod("Main");
+
+            var current = "Main";
+			Trace.TraceInformation("Adding edges");
+			// now generate the edges
+            var rand = new Random();
+            var used = new HashSet<string>();
+            used.Add("Main");
+            // multiplier determines how dense the graph is
+            //for (var i = 0; i < multiplier * n; i++)
+            while (used.Count() < n)
+            {
+                var dest = string.Empty;
+                do
+                {
+                    dest = string.Format("N{0}", rand.Next(n - 1));
+                } while (used.Contains(dest));
+                Contract.Assert(dest.Length > 0);
+                used.Add(dest);
+                // preserve connectivity
+                result.AddCall(current, dest);
+
+                for (var i = 0; i < 10; i++)
+                {
+                    var source = rand.Next(n - 1);
+
+                    if (i % 500 == 0)
+                    {
+                        Trace.TraceInformation("Adding edge {0} -> {1}", string.Format("N{0}", source), dest);
+                    }
+
+                    Contract.Assert(dest != null);
+                    result.AddCall(string.Format("N{0}", source), dest);
+                }
+                current = dest;
+            } 
+
+            result.Compress();
+
+            return result;
+        }
+
 
         public static Solution GenerateSolution(int nodes, int maxCalls)
         {
@@ -946,7 +998,7 @@ namespace ReachingTypeAnalysis.Tests
                 var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
                 Trace.TraceInformation("Writing to {0}", writingTo);
 
-                var callgraph = GenerateCallGraph(1000);
+                var callgraph = GenerateConnectedCallGraph(1000);
                 var numProjects = 30;
                 var syntaxes = GenerateCodeWithDifferentProjects(callgraph, numProjects);
                 int index = 0;
@@ -1019,7 +1071,7 @@ namespace ReachingTypeAnalysis.Tests
                     var writingTo = Path.Combine(Directory.GetCurrentDirectory(), TestConstants.TestDirectory);
                     Trace.TraceInformation("Writing to {0}", writingTo);
 
-                    var callgraph = GenerateCallGraph(solutionSize);
+                    var callgraph = GenerateConnectedCallGraph(solutionSize);
                     Trace.TraceInformation("Call graph generation succeeded.");
                     var numProjects = (int)Math.Ceiling((decimal)solutionSize / 1000);
                     Assert.IsTrue(numProjects > 0);
