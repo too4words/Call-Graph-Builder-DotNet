@@ -248,7 +248,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
-            Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
+            //Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
             this.messageWorkList.Enqueue(callerMessage);
             //this.messageWorkList.Add(callerMessage);
             return TaskDone.Done;
