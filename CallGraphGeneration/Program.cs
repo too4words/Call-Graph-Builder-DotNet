@@ -31,7 +31,8 @@ namespace CallGraphGeneration
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-                @"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
+                //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
+				@"C:\Users\Edgar\Projects\Call-Graph-Builder\TestsSolutions\synthetic-1000\test.sln", "OnDemandOrleans"
                 //@"c:\Users\diegog\Temp\Projects3\test.sln", "OnDemandOrleans"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandOrleans"
@@ -80,10 +81,12 @@ namespace CallGraphGeneration
 
 			var reachableMethods = callgraph.GetReachableMethods();
 			Console.WriteLine("Reachable methods={0}", reachableMethods.Count);
-            if(strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
-            {
-                var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
-            }
+
+			//if (strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
+			//{
+			//	var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
+			//}
+
             return callgraph;
         }
 

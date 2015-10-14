@@ -132,18 +132,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntityGrain.ForceDeactivationAsync();
 		}
 
-        public Task<PropagationEffects> GetMoreEffects()
-        {
-            this.SetRequestContext();
+		//public Task<PropagationEffects> GetMoreEffects()
+		//{
+		//	this.SetRequestContext();
 
-            return methodEntityGrain.GetMoreEffects();
-        }
+		//	return methodEntityGrain.GetMoreEffects();
+		//}
 
-        public Task<EntityGrainStatus> GetStatusAsync()
-        {
-            this.SetRequestContext();
+		//public Task<EntityGrainStatus> GetStatusAsync()
+		//{
+		//	this.SetRequestContext();
 
-            return methodEntityGrain.GetStatusAsync();
-        }
+		//	return methodEntityGrain.GetStatusAsync();
+		//}
     }
 }

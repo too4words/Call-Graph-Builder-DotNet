@@ -37,7 +37,6 @@ namespace ReachingTypeAnalysis
 
         ////////////////////////////////////////////////////////////////////////
 
-
 		public static void LongGeneratedTestAsync1(AnalysisStrategyKind strategy)
 		{
 			#region Test Source Code

@@ -74,6 +74,7 @@ namespace ReachingTypeAnalysis.Analysis
 			catch (Exception ex)
 			{
 				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
+				throw ex;
 			}
 			//});
 
@@ -173,6 +174,7 @@ namespace ReachingTypeAnalysis.Analysis
 			catch (Exception ex)
 			{
 				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
+				throw ex;
 			}
 			//});
 
@@ -208,6 +210,7 @@ namespace ReachingTypeAnalysis.Analysis
 			catch (Exception ex)
 			{
 				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}", ex);
+				throw ex;
 			}
 			//});
 
@@ -243,6 +246,7 @@ namespace ReachingTypeAnalysis.Analysis
 			catch (Exception ex)
 			{
 				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}", ex);
+				throw ex;
 			}
 			//});
 
@@ -265,24 +269,25 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			StatsHelper.RegisterMsg("SolutionGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
+			//StatsHelper.RegisterMsg("SolutionGrain::GetMethodEntity:"+methodDescriptor, this.GrainFactory);
+			StatsHelper.RegisterMsg("SolutionGrain::GetMethodEntity", this.GrainFactory);
 
 			return this.solutionManager.GetMethodEntityAsync(methodDescriptor);
 		}
 
 		//public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-  //      {
+		//{
 		//	StatsHelper.RegisterMsg("SolutionGrain::AddInstantiatedTypes", this.GrainFactory);
 
-  //          return solutionManager.AddInstantiatedTypesAsync(types);
-  //      }
+		//	return solutionManager.AddInstantiatedTypesAsync(types);
+		//}
 
-  //      public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-  //      {
+		//public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+		//{
 		//	StatsHelper.RegisterMsg("SolutionGrain::GetInstantiatedTypes", this.GrainFactory);
 
 		//	return this.solutionManager.GetInstantiatedTypesAsync();
-  //      }
+		//}
 
         public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
         {

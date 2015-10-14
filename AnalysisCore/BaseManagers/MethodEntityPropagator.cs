@@ -21,31 +21,32 @@ namespace ReachingTypeAnalysis.Analysis
     {
         private MethodEntity methodEntity;
         private IProjectCodeProvider codeProvider;
-        private Queue<PropagationEffects> propagationEffectsToSend = new Queue<PropagationEffects>();
+        //private Queue<PropagationEffects> propagationEffectsToSend;
         //private Orleans.Runtime.Logger logger = GrainClient.Logger;
 
-        /// <summary>
-        /// This build a MethodEntityPropagator with a solution
-        /// The solution provides its CodeProvicer
-        /// </summary>
-        /// <param name="methodDescriptor"></param>
-        /// <param name="solutionManager"></param>
-        public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, IProjectCodeProvider codeProvider)
-        {
-            var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
-
-            this.codeProvider = codeProvider;
-            this.methodEntity =  (MethodEntity) this.codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch).Result;
-
-            //var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptorToSearch, solutionManager.Solution).Result;
-            //this.methodEntity = providerEntity.Item2;
-            //this.codeProvider = providerEntity.Item1;
-
-            if (methodDescriptor.IsAnonymousDescriptor)
-            {
-                this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
-            }            
-        }
+		///// <summary>
+		///// This build a MethodEntityPropagator with a solution
+		///// The solution provides its CodeProvicer
+		///// </summary>
+		///// <param name="methodDescriptor"></param>
+		///// <param name="solutionManager"></param>
+		//public MethodEntityWithPropagator(MethodDescriptor methodDescriptor, IProjectCodeProvider codeProvider)
+		//{
+		//	var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
+		//
+		//	this.codeProvider = codeProvider;
+		//	this.propagationEffectsToSend = new Queue<PropagationEffects>();
+		//	this.methodEntity = (MethodEntity)this.codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch).Result;
+		//
+		//	//var providerEntity = ProjectCodeProvider.FindCodeProviderAndEntity(methodDescriptorToSearch, solutionManager.Solution).Result;
+		//	//this.methodEntity = providerEntity.Item2;
+		//	//this.codeProvider = providerEntity.Item1;
+		//
+		//	if (methodDescriptor.IsAnonymousDescriptor)
+		//	{
+		//		this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+		//	}            
+		//}
 
         /// <summary>
         /// Creates the Propagator using directly an entity and a provider
@@ -57,15 +58,18 @@ namespace ReachingTypeAnalysis.Analysis
         {
             this.codeProvider = provider;
             this.methodEntity = methodEntity;
+			//this.propagationEffectsToSend = new Queue<PropagationEffects>();
         }
 
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
 			Contract.Requires(reWorkSet != null);
+
 			foreach(var node in reWorkSet) 
 			{
 				methodEntity.PropGraph.AddToWorkList(node);
 			}
+
 			return PropagateAsync(propKind);
 		}
 
@@ -95,26 +99,31 @@ namespace ReachingTypeAnalysis.Analysis
 
             Logger.LogS("MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
-            if(propagationEffects.CalleesInfo.Count>100)
-            {
-                int index = 0;
-                var count = propagationEffects.CalleesInfo.Count;
-                var callessInfo = propagationEffects.CalleesInfo.ToList();
-                propagationEffects.CalleesInfo = new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count));
-                propagationEffects.MoreEffectsToFetch = true;
-                while(count>100)
-                {
-                    count -= 100;
-                    index += 100;
-                    var propEffect = new PropagationEffects(new HashSet<CallInfo>(callessInfo.GetRange(index, count>100?100:count)), false);
-                    if (count > 100)
-                    {
-                        propEffect.MoreEffectsToFetch = true;
-                    }
-                    this.propagationEffectsToSend.Enqueue(propEffect);                   
-                }
 
-            }
+			//if (propagationEffects.CalleesInfo.Count > 100)
+			//{
+			//	int index = 0;
+			//	var count = propagationEffects.CalleesInfo.Count;
+			//	var callessInfo = propagationEffects.CalleesInfo.ToList();
+			//	propagationEffects.CalleesInfo = new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count));
+			//	propagationEffects.MoreEffectsToFetch = true;
+            //
+			//	while (count > 100)
+			//	{
+			//		count -= 100;
+			//		index += 100;
+			//
+			//		var propEffect = new PropagationEffects(new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count)), false);
+            //
+			//		if (count > 100)
+			//		{
+			//			propEffect.MoreEffectsToFetch = true;
+			//		}
+			//
+			//		this.propagationEffectsToSend.Enqueue(propEffect);                   
+			//	}
+			//}
+
             return propagationEffects;
         }
 
@@ -165,7 +174,6 @@ namespace ReachingTypeAnalysis.Analysis
                     calleeInfo.ArgumentsPossibleTypes.Add(potentialTypes);
                 }
             }
-
         }
 
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
@@ -196,7 +204,6 @@ namespace ReachingTypeAnalysis.Analysis
             var context = new CallContext(callMessageInfo.Caller, callMessageInfo.LHS, callMessageInfo.CallNode);
             this.methodEntity.AddToCallers(context);
 
-
             var effects = await PropagateAsync(callMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "End Propagation for {0} ", callMessageInfo.Callee);
             return effects;
@@ -206,10 +213,12 @@ namespace ReachingTypeAnalysis.Analysis
         {
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "Propagation for {0} ", returnMessageInfo.Caller);
             //PropGraph.Add(lhs, retValues);
+
             if (returnMessageInfo.LHS != null)
             {
                 await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes, returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
             }
+
             /// We need to recompute possible calless 
             var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
@@ -249,6 +258,7 @@ namespace ReachingTypeAnalysis.Analysis
 					return callNode;
 				}
 			}
+
 			throw new ArgumentException();
 			//return null;
 		}
@@ -321,7 +331,7 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForDelegateCallAsync(DelegateCallInfo delegateCallInfo, IProjectCodeProvider codeProvider)
         {
             var possibleCallees = new HashSet<MethodDescriptor>();
-            var possibleDelegateMethods = GetPossibleMethodsForDelegate(delegateCallInfo.Delegate);
+            var possibleDelegateMethods = this.GetPossibleMethodsForDelegate(delegateCallInfo.Delegate);
 
             foreach (var method in possibleDelegateMethods)
             {
@@ -370,6 +380,7 @@ namespace ReachingTypeAnalysis.Analysis
                 return new HashSet<TypeDescriptor>();
             }
         }
+
         private ISet<TypeDescriptor> GetTypes(PropGraphNodeDescriptor node, PropagationKind prop)
         {
             switch (prop)
@@ -382,6 +393,7 @@ namespace ReachingTypeAnalysis.Analysis
                     return GetTypes(node);
             }
         }
+
         internal ISet<TypeDescriptor> GetDeletedTypes(PropGraphNodeDescriptor node)
         {
             if (node != null)
@@ -423,6 +435,7 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
 			var calleesPerEntity = new Dictionary<AnalysisCallNode, ISet<MethodDescriptor>>();
+
 			foreach (var calleeNode in this.methodEntity.PropGraph.CallNodes)
 			{
 				calleesPerEntity[calleeNode] = await GetCalleesAsync(calleeNode);
@@ -434,17 +447,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task<ISet<MethodDescriptor>> GetCalleesAsync(AnalysisCallNode node)
         {
-
-            ISet<MethodDescriptor> result;
-            var calleesForNode = new HashSet<MethodDescriptor>();
+			var result = new HashSet<MethodDescriptor>();
             var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
 
             var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
 
-
-            calleesForNode.UnionWith(calleeResult);
-
-            result = calleesForNode;
+            result.UnionWith(calleeResult);
             return result;
         }
 
@@ -489,6 +497,7 @@ namespace ReachingTypeAnalysis.Analysis
 				var invocationInfo = Roslyn.CodeGraphHelper.GetMethodInvocationInfo(this.methodEntity.MethodDescriptor, callNode);
 				result.Add(invocationInfo);
 			}
+
 			foreach(var anonymousEntity in this.methodEntity.GetAnonymousMethodEntities())
 			{
 				foreach (var callNode in anonymousEntity.PropGraph.CallNodes)
@@ -525,11 +534,6 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-        public Task<PropagationEffects> GetMoreEffects()
-        {
-            return Task.FromResult(this.propagationEffectsToSend.Dequeue());
-        }
-
         //public Task UnregisterCalleeAsync(CallContext callContext)
         //{
         //	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
@@ -537,5 +541,10 @@ namespace ReachingTypeAnalysis.Analysis
         //	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
         //	return TaskDone.Done;
         //}
+
+		//public Task<PropagationEffects> GetMoreEffects()
+		//{
+		//	return Task.FromResult(this.propagationEffectsToSend.Dequeue());
+		//}
     }
 }

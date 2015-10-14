@@ -126,6 +126,7 @@ namespace ReachingTypeAnalysis.Analysis
             {
                 await this.rtaManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
             }
+
 			return methodEntity;
         }
 

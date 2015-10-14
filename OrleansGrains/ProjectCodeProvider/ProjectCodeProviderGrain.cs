@@ -141,6 +141,7 @@ namespace ReachingTypeAnalysis.Analysis
 				catch (Exception ex)
 				{
 					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Error:\n{0}", ex);
+					throw ex;
 				}
 			});
 			
@@ -174,6 +175,7 @@ namespace ReachingTypeAnalysis.Analysis
 				catch (Exception ex)
 				{
 					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Error:\n{0}", ex);
+					throw ex;
 				}
 			});
 
@@ -207,6 +209,7 @@ namespace ReachingTypeAnalysis.Analysis
 				catch (Exception ex)
 				{
 					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Error:\n{0}", ex);
+					throw ex;
 				}
 			});
 

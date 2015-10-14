@@ -28,7 +28,7 @@ namespace ReachingTypeAnalysis.Analysis
 	[PreferLocalPlacement]
     public class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
     {
-		private const int WAIT_TIME = 200;
+		//private const int WAIT_TIME = 200;
 
         [NonSerialized]
         private IMethodEntityWithPropagator methodEntityPropagator;
@@ -61,7 +61,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//await Task.Factory.StartNew(async () =>
 			//{
-			//	this.status =  (EntityGrainStatus.Busy);
+			//	this.status = EntityGrainStatus.Busy;
 
 			//	await CreateMethodEntityAsync(methodDescriptor);
 
@@ -301,18 +301,20 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.GetCallersAsync();
 		}
 
-        public Task<PropagationEffects> GetMoreEffects()
-        {
-            StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+		//public Task<PropagationEffects> GetMoreEffects()
+		//{
+		//	//StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+		//	StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects", this.GrainFactory);
 
-            return this.methodEntityPropagator.GetMoreEffects();
-        }
+		//	return this.methodEntityPropagator.GetMoreEffects();
+		//}
 
-        public Task<EntityGrainStatus> GetStatusAsync()
-        {
-            StatsHelper.RegisterMsg("MethodEntityGrain::GetStatus:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+		//public Task<EntityGrainStatus> GetStatusAsync()
+		//{
+		//	//StatsHelper.RegisterMsg("MethodEntityGrain::GetStatus:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
+		//	StatsHelper.RegisterMsg("MethodEntityGrain::GetStatus", this.GrainFactory);
 
-            return Task.FromResult(this.status);
-        }
+		//	return Task.FromResult(this.status);
+		//}
     }
 }
