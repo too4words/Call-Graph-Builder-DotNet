@@ -112,12 +112,6 @@ namespace ReachingTypeAnalysis.Tests
                 for (var i = 0; i < 10; i++)
                 {
                     var source = rand.Next(n - 1);
-
-                    if (i % 500 == 0)
-                    {
-                        Trace.TraceInformation("Adding edge {0} -> {1}", string.Format("N{0}", source), dest);
-                    }
-
                     Contract.Assert(dest != null);
                     result.AddCall(string.Format("N{0}", source), dest);
                 }
@@ -128,7 +122,6 @@ namespace ReachingTypeAnalysis.Tests
 
             return result;
         }
-
 
         public static Solution GenerateSolution(int nodes, int maxCalls)
         {
@@ -268,8 +261,7 @@ namespace ReachingTypeAnalysis.Tests
                         m =>
                         string.Format("C{0}.{1}", Math.Abs(m.GetHashCode()) % projectCount, m));
                 var method = GetMethod(vertex, filteredCallees);
-                
-                
+                                
                 Contract.Assert(fileForThisMethod >= 0);
                 Contract.Assert(fileForThisMethod < projectCount);
 
@@ -1056,7 +1048,7 @@ namespace ReachingTypeAnalysis.Tests
         {
             // increasing sizes of solutions
             int[] sizes = { 100, 1000, 10000, 10000, 100000, 1000000 };
-            //int[] sizes = { 1000000 };
+            //int[] sizes = { 10000 };
             foreach (var solutionSize in sizes)
             {
                 Trace.TraceInformation("Generating a new solution for size {0}", solutionSize);
@@ -1075,6 +1067,7 @@ namespace ReachingTypeAnalysis.Tests
                     Trace.TraceInformation("Call graph generation succeeded.");
                     var numProjects = (int)Math.Ceiling((decimal)solutionSize / 1000);
                     Assert.IsTrue(numProjects > 0);
+                    Trace.TraceInformation("Creating {0} projects", numProjects);
                     var syntaxes = GenerateCodeWithDifferentProjects(callgraph, numProjects);
                     int index = 0;
                     var descriptors = new List<ProjectDescriptor>();

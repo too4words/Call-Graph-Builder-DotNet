@@ -281,9 +281,11 @@ EndGlobalSection");
                 File.WriteAllText(csProjFile, csprojText);
             }
 
-            File.WriteAllText(Path.Combine(baseDirectory, solutionFileName), text);
+            var solutionPath = Path.Combine(baseDirectory, solutionFileName);
+            Trace.TraceInformation("Writing solution file to {0}", solutionFileName);
+            File.WriteAllText(solutionPath, text);
 
-            return Utils.ReadSolution(solutionFileName);
+            return Utils.ReadSolution(solutionPath);
         }
 
         /// <summary>
