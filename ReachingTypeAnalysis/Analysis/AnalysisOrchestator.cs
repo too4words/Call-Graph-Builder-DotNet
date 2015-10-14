@@ -10,6 +10,7 @@ using System.Linq;
 using Orleans;
 using System.Diagnostics;
 using System;
+using System.Collections.Concurrent;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -25,14 +26,15 @@ namespace ReachingTypeAnalysis.Analysis
 	{
 		private ISolutionManager solutionManager;
 		//private ISet<Message> messageWorkList = new HashSet<Message>();
-		private Queue<Message> messageWorkList;
-
+		//private Queue<Message> messageWorkList;
+        private ConcurrentQueue<Message> messageWorkList;
 		public AnalysisOrchestator(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
-			this.messageWorkList = new Queue<Message>();
-			//this.messageWorkList = new HashSet<Message>();
-		}
+            //this.messageWorkList = new Queue<Message>();
+            this.messageWorkList = new ConcurrentQueue<Message>();
+            //this.messageWorkList = new HashSet<Message>();
+        }
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
@@ -117,19 +119,23 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				while (messageWorkList.Count > 0)
 				{
-					var message = messageWorkList.Dequeue();
+                    //var message = messageWorkList.Dequeue();
+                    Message message = null;
+                    if (messageWorkList.TryDequeue(out message))
+                    {
 
-					if (message is CallerMessage)
-					{
-						var callerMessage = (CallerMessage)message;
-						var callerMessageInfo = callerMessage.CallMessageInfo;
-						tasks.Add(this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind));
-					}
-					else if (message is CalleeMessage)
-					{
-						var calleeMessage = (CalleeMessage)message;
-						tasks.Add(this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind));
-					}
+                        if (message is CallerMessage)
+                        {
+                            var callerMessage = (CallerMessage)message;
+                            var callerMessageInfo = callerMessage.CallMessageInfo;
+                            tasks.Add(this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind));
+                        }
+                        else if (message is CalleeMessage)
+                        {
+                            var calleeMessage = (CalleeMessage)message;
+                            tasks.Add(this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind));
+                        }
+                    }
 				}
 
 				await Task.WhenAll(tasks);
@@ -242,6 +248,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
+            Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
             this.messageWorkList.Enqueue(callerMessage);
             //this.messageWorkList.Add(callerMessage);
             return TaskDone.Done;

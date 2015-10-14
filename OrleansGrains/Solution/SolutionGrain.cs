@@ -265,7 +265,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
-			StatsHelper.RegisterMsg("SolutionGrain::GetMethodEntity", this.GrainFactory);
+			StatsHelper.RegisterMsg("SolutionGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
 
 			return this.solutionManager.GetMethodEntityAsync(methodDescriptor);
 		}

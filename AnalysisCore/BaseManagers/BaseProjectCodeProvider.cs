@@ -121,8 +121,11 @@ namespace ReachingTypeAnalysis.Analysis
                 methodEntity = methodEntityGenerator.ParseMethod();
             }
 
-			// this is for RTA analysis
-			await this.rtaManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
+            // this is for RTA analysis
+            if (methodEntity.InstantiatedTypes.Count > 0)
+            {
+                await this.rtaManager.AddInstantiatedTypesAsync(methodEntity.InstantiatedTypes);
+            }
 			return methodEntity;
         }
 

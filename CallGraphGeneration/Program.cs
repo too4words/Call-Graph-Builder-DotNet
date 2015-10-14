@@ -80,6 +80,10 @@ namespace CallGraphGeneration
 
 			var reachableMethods = callgraph.GetReachableMethods();
 			Console.WriteLine("Reachable methods={0}", reachableMethods.Count);
+            if(strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
+            {
+                var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
+            }
             return callgraph;
         }
 
