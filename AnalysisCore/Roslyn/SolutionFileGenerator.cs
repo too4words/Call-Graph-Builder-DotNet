@@ -283,7 +283,7 @@ EndGlobalSection");
 
             File.WriteAllText(Path.Combine(baseDirectory, solutionFileName), text);
 
-            return Utils.ReadSolution(solutionFileName);
+            return Utils.ReadSolution(Path.Combine(baseDirectory, solutionFileName));
         }
 
         /// <summary>
