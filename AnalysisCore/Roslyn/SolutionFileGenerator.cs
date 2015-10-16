@@ -106,7 +106,7 @@ namespace ReachingTypeAnalysis
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -115,7 +115,7 @@ namespace ReachingTypeAnalysis
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -136,30 +136,53 @@ namespace ReachingTypeAnalysis
                 result.AppendFormat("    <Compile Include=\"{0}\" />\n", file);
             }
             result.Append("</ItemGroup>\n");
-            if (project.Dependencies.Count() > 0)
-            {
-                result.Append("<ItemGroup>\n");
-                foreach (var dependency in project.Dependencies)
-                {
-                    // skip ourselves to avoid cycles
-                    if (!dependency.Name.Equals(project.Name))
-                    {
-                        result.AppendFormat(@"    <ProjectReference Include = ""{0}"">",
-                            Path.GetDirectoryName(dependency.AbsolutePath).Equals(Path.GetDirectoryName(project.AbsolutePath)) ?
-                            Path.GetFileName(dependency.AbsolutePath) : dependency.AbsolutePath
-                            );
-                        result.Append("\n");
-                        result.AppendFormat(@"        <Project>{0}</Project>", "{" + dependency.ProjectGuid + "}");
-                        result.Append("\n");
-                        result.AppendFormat(@"        <Name>{0}</Name>", dependency.Name);
-                        result.Append("\n");
-                        result.Append("    </ProjectReference>");
-                        result.Append("\n");
-                    }
-                }
-                result.Append("</ItemGroup>\n");
-            }
-            result.Append(
+
+			//if (project.Dependencies.Count() > 0)
+			//{
+			//    result.Append("<ItemGroup>\n");
+			//    foreach (var dependency in project.Dependencies)
+			//    {
+			//        // skip ourselves to avoid cycles
+			//        if (!dependency.Name.Equals(project.Name))
+			//        {
+			//            result.AppendFormat(@"    <ProjectReference Include = ""{0}"">",
+			//                Path.GetDirectoryName(dependency.AbsolutePath).Equals(Path.GetDirectoryName(project.AbsolutePath)) ?
+			//                Path.GetFileName(dependency.AbsolutePath) : dependency.AbsolutePath
+			//                );
+			//            result.Append("\n");
+			//            result.AppendFormat(@"        <Project>{0}</Project>", "{" + dependency.ProjectGuid + "}");
+			//            result.Append("\n");
+			//            result.AppendFormat(@"        <Name>{0}</Name>", dependency.Name);
+			//            result.Append("\n");
+			//            result.Append("    </ProjectReference>");
+			//            result.Append("\n");
+			//        }
+			//    }
+			//    result.Append("</ItemGroup>\n");
+			//}
+
+			if (project.Dependencies.Count() > 0)
+			{
+				result.Append("<ItemGroup>\n");
+				foreach (var dependency in project.Dependencies)
+				{
+					// skip ourselves to avoid cycles
+					if (!dependency.Name.Equals(project.Name))
+					{
+						result.AppendFormat(@"    <Reference Include = ""{0}{1}, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"">", TestConstants.TemporaryNamespace, dependency.Name);
+						result.Append("\n");
+						result.Append(@"        <SpecificVersion>False</SpecificVersion>");
+						result.Append("\n");
+						result.AppendFormat(@"        <HintPath>..\bin\Debug\{0}{1}.dll</HintPath>", TestConstants.TemporaryNamespace, dependency.Name);
+						result.Append("\n");
+						result.Append("    </Reference>");
+						result.Append("\n");
+					}
+				}
+				result.Append("</ItemGroup>\n");
+			}
+
+			result.Append(
 @"<Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -198,23 +221,57 @@ Global
 EndGlobal
 ");
             var solutionGuid = Guid.NewGuid().ToString();
-            //Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = 
-            //    "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
-            //EndProject
-            foreach (var project in projects)
-            {
-                result.Append("Project(\"{");
-                result.Append(solutionGuid);
-                result.Append("}");
-                result.AppendFormat("\") = \"{0}\", \"{1}\", \"",
-                    project.Name, project.AbsolutePath);
-                result.Append("{");
-                result.Append(project.ProjectGuid);
-                result.Append("}\"\n");
-                result.Append("EndProject\n");
-            }
+            ////Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = 
+            ////    "ReachingTypeAnalysis", "ReachingTypeAnalysis\ReachingTypeAnalysis.csproj", "{31E6307F-30AF-46D4-B9B5-195C54408204}"
+            ////EndProject
+            //foreach (var project in projects)
+            //{
+            //    result.Append("Project(\"{");
+            //    result.Append(solutionGuid);
+            //    result.Append("}");
+            //    result.AppendFormat("\") = \"{0}\", \"{1}\", \"",
+            //        project.Name, project.AbsolutePath);
+            //    result.Append("{");
+            //    result.Append(project.ProjectGuid);
+            //    result.Append("}\"\n");
+            //    result.Append("EndProject\n");
+            //}
 
-            result.Append(@"
+			//Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P0", "test\P0.csproj", "{855E5A99-3464-4125-A10C-49659AD4FC53}"
+			//	ProjectSection(ProjectDependencies) = postProject
+			//		{BA8D132B-C4EA-4B3E-80B8-11F313E5AEB6} = {BA8D132B-C4EA-4B3E-80B8-11F313E5AEB6}
+			//		{CA8FA030-A78E-46D5-98A1-BCD6E7ED4EC1} = {CA8FA030-A78E-46D5-98A1-BCD6E7ED4EC1}
+			//		{EF0FE84D-8A48-4DEE-9718-A0C87CF4187C} = {EF0FE84D-8A48-4DEE-9718-A0C87CF4187C}
+			//		{8C5BD27F-3112-4F0D-A8EA-90A3F1C2D537} = {8C5BD27F-3112-4F0D-A8EA-90A3F1C2D537}
+			//	EndProjectSection
+			//EndProject
+			foreach (var project in projects)
+			{
+				result.Append("Project(\"{");
+				result.Append(solutionGuid);
+				result.Append("}");
+				result.AppendFormat("\") = \"{0}\", \"{1}\", \"",
+					project.Name, project.AbsolutePath);
+				result.Append("{");
+				result.Append(project.ProjectGuid);
+				result.Append("}\"\n");
+
+				if (project.Dependencies.Any())
+				{
+					result.Append("	ProjectSection(ProjectDependencies) = postProject\n");
+
+					foreach (var dependency in project.Dependencies)
+					{
+						result.AppendFormat("		{0} = {0}\n", "{" + dependency.ProjectGuid + "}");
+					}
+
+					result.Append("	EndProjectSection\n");
+				}
+
+				result.Append("EndProject\n");
+			}
+
+			result.Append(@"
 GlobalSection(SolutionConfigurationPlatforms) = preSolution
     Debug|Any CPU = Debug|Any CPU
     Release|Any CPU = Release|Any CPU
