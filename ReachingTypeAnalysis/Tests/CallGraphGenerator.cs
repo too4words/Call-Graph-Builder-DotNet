@@ -201,7 +201,7 @@ namespace ReachingTypeAnalysis.Tests
         [TestCategory("Generation")]
         public void GenerateSyntheticSolution()
         {
-			var generator = new SyntheticSolution(100000, 500, 50);
+			var generator = new SyntheticSolution(100000, 100, 100);
             generator.Generate();
 			generator.Save("synthetic-100000");
         }
