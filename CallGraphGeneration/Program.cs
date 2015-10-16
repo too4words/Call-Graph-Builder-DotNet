@@ -27,7 +27,7 @@ namespace CallGraphGeneration
 
         static void Main(string[] args)
         {
-			// This is to generate big synthetic tests in x64 to avoid getting OutofMemory exceptions
+			//// This is to generate big synthetic tests in x64 to avoid getting OutofMemory exceptions
 			//var a = new ReachingTypeAnalysis.Tests.CallGraphGenerator();
 			//a.GenerateSyntheticSolution();
 			//Console.WriteLine("Done!");
