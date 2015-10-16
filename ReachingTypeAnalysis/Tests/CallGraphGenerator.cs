@@ -23,16 +23,200 @@ namespace ReachingTypeAnalysis.Tests
     /// </summary>
     [TestClass]
     public class CallGraphGenerator
-    {
+	{
+		#region New synthetic generator
+
+		private class SyntheticSolution
+		{
+			private int totalMethodsCount;
+			private int totalProjectsCount;
+			private int maxCalleesPerMethod;
+			private IDictionary<int, ISet<int>> methodsPerProject;
+			private IDictionary<int, ISet<int>> calleesPerMethod;
+			private IDictionary<int, int> projectOfMethod;
+
+			public SyntheticSolution(int totalMethodsCount, int totalProjectsCount, int maxCalleesPerMethod)
+			{
+				this.totalMethodsCount = totalMethodsCount;
+				this.totalProjectsCount = totalProjectsCount;
+				this.maxCalleesPerMethod = maxCalleesPerMethod;
+				this.methodsPerProject = new Dictionary<int, ISet<int>>();
+				this.calleesPerMethod = new Dictionary<int, ISet<int>>();
+				this.projectOfMethod = new Dictionary<int, int>();
+            }
+
+			public void Generate()
+			{
+				var rand = new Random();
+				var maxMethodsPerProject = this.totalMethodsCount / this.totalProjectsCount;
+				var method = 1;
+				var caller = 0;
+
+				this.methodsPerProject.Clear();
+				this.calleesPerMethod.Clear();
+				this.projectOfMethod.Clear();
+
+				// Initializing Main method
+				this.calleesPerMethod.Add(0, new HashSet<int>());
+				this.projectOfMethod.Add(0, 0);
+
+				for (var project = 0; project < this.totalProjectsCount; ++project)
+				{
+					var methods = new HashSet<int>();
+					var firstMethodInProject = method;
+					var lastMethodInProject = Math.Min(method + maxMethodsPerProject, this.totalMethodsCount);
+
+					for (; method < lastMethodInProject; ++method)
+					{
+						var callees = new HashSet<int>();
+
+						// Add method to project
+						this.projectOfMethod.Add(method, project);
+						methods.Add(method);
+
+						// Make caller invoke this method
+						calleesPerMethod[caller].Add(method);
+						caller = method;
+
+						// Calculate how many callees we can invoke
+						var maxCalleeCount = Math.Min(this.maxCalleesPerMethod, this.totalMethodsCount - firstMethodInProject);
+
+						if (maxCalleeCount > 0)
+						{
+							// Choose how many random invocations to add
+							var calleesCount = rand.Next(1, maxCalleeCount);
+
+							// Add invocations to methods belonging to the same or greater projects
+							// to avoid circular dependencies
+							while (callees.Count < calleesCount)
+							{
+								var callee = rand.Next(firstMethodInProject, this.totalMethodsCount - 1);
+
+								// Add callee
+								callees.Add(callee);
+							}
+						}
+
+						// Make method invoke callees
+						this.calleesPerMethod.Add(method, callees);
+					}
+
+					// Add methods to project
+					this.methodsPerProject.Add(project, methods);
+				}
+
+				// Adding Main method to first project
+				this.methodsPerProject[0].Add(0);
+			}
+
+			public void Save(string solutionName)
+			{
+				var projectDescriptors = new List<ProjectDescriptor>();
+
+				for (var project = 0; project < this.totalProjectsCount; ++project)
+				{
+					var projectDescriptor = this.GenerateProject(project, projectDescriptors);
+					projectDescriptors.Add(projectDescriptor);
+				}
+
+				var zipFile = SolutionFileGenerator.GenerateSolutionWithProjectsAsAZip(TestConstants.SolutionPath, projectDescriptors, solutionName);
+
+				Trace.TraceInformation("Writing a solution of size {0} with {1} projects to {2}", this.totalMethodsCount, this.totalProjectsCount, zipFile);
+			}
+
+			private ProjectDescriptor GenerateProject(int projectIndex, IEnumerable<ProjectDescriptor> projectDescriptors)
+			{
+				var projectPath = Path.Combine(TestConstants.TemporarySolutionDirectory, TestConstants.TestDirectory);
+				Directory.CreateDirectory(projectPath);
+
+				var fileName = this.GenerateClass(projectPath, projectIndex);
+
+				var result = new ProjectDescriptor
+				{
+					AbsolutePath = string.Format("{0}\\P{1}.csproj", TestConstants.TestDirectory, projectIndex),
+					Name = string.Format("P{0}", projectIndex),
+					ProjectGuid = Guid.NewGuid().ToString(),
+					Files = new[] { fileName },
+					Type = projectIndex == 0 ? ProjectType.Executable : ProjectType.Library,
+					Dependencies = projectDescriptors.Skip(projectIndex + 1),
+				};
+
+				return result;
+            }
+
+			private string GenerateClass(string projectPath, int classIndex)
+			{
+				var source = new StringBuilder();
+
+				for (var project = classIndex + 1; project < this.totalProjectsCount; ++project)
+				{
+					source.AppendFormat("using N{0};\n", project);
+				}
+
+				source.Append("using System;\n\n");
+				source.AppendFormat("namespace N{0}\n{{\n", classIndex);
+				source.AppendFormat("public class C{0}\n{{\n", classIndex);
+
+				var methods = this.methodsPerProject[classIndex];
+
+				foreach (var method in methods)
+				{
+					this.GenerateMethod(source, method);
+				}
+
+				source.AppendFormat("}}\n");
+				source.AppendFormat("}}\n");
+
+				var fileName = string.Format("file{0}.cs", classIndex);
+				var csFileName = Path.Combine(projectPath, fileName);
+				File.WriteAllText(csFileName, source.ToString());
+				return fileName;
+			}
+
+			private void GenerateMethod(StringBuilder source, int methodIndex)
+			{
+				if (methodIndex == 0)
+				{
+					source.Append("public static void Main(string[] args)\n{\n");
+				}
+				else
+				{
+					source.AppendFormat("public static void M{0}()\n{{\n", methodIndex);
+				}
+
+				var callees = this.calleesPerMethod[methodIndex];
+
+				foreach (var callee in callees)
+				{
+					var calleeProject = this.projectOfMethod[callee];
+
+					source.AppendFormat("C{0}.M{1}();\n", calleeProject, callee);
+				}
+
+				source.Append("}\n");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Generation")]
+        public void GenerateSyntheticSolution()
+        {
+			var generator = new SyntheticSolution(100000, 500, 50);
+            generator.Generate();
+			generator.Save("synthetic-100000");
+        }
+
+        #endregion
+
         public static CallGraph<string, int> GenerateCallGraph(int n, bool addCallsFromMain = true, int multiplier = 2)
         {
 			Trace.TraceInformation("Adding Nodes");
             var result = new CallGraph<string, int>();
+
             for (var i = 0; i < n; i++)
             {
                 result.Add(string.Format("N{0}", i));
             }
-
 
 			Trace.TraceInformation("Adding edges");
 			// now generate the edges
