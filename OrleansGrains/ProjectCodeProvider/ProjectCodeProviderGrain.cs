@@ -45,7 +45,9 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
-			this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
+            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "OnActivate", "Entering Project: {0}", this.GetPrimaryKeyString());
+
+            this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
             this.State.AssemblyName = this.GetPrimaryKeyString();
 
 			//Task.Run(async () =>
@@ -140,7 +142,7 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Error:\n{0}", ex);
+					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Error:\n{0}", ex);
 					throw ex;
 				}
 			});
