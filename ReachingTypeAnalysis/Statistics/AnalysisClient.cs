@@ -166,13 +166,13 @@ namespace ReachingTypeAnalysis.Statistics
 
 		public async Task RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
-			this.ExperimentID = expId;
+			try
+			{
+				this.ExperimentID = expId;
 
-            // await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
-            AnalysisClient.ErrorMessage = "OK so far";
+				// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+				AnalysisClient.ErrorMessage = "OK so far";
 
-            try
-            {
                 var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
                 await myStatsGrain.ResetStats();
 
@@ -183,7 +183,7 @@ namespace ReachingTypeAnalysis.Statistics
                 await this.analyzer.InitializeOnDemandOrleansAnalysis();
                 await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 
-                if(AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
+                if (AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
                 {
                     AnalysisClient.ErrorMessage = "Cancelled by user";
                     return;
@@ -337,8 +337,6 @@ namespace ReachingTypeAnalysis.Statistics
 
                 throw ex;
             }
-
-			return;
 		}
 
 		public static void SaveResults(string path)
