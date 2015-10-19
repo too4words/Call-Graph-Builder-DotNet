@@ -16,6 +16,7 @@ using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.CallGraph;
 using Microsoft.CodeAnalysis.MSBuild;
+using ReachingTypeAnalysis.Statistics;
 
 namespace ReachingTypeAnalysis
 {
@@ -193,8 +194,10 @@ namespace ReachingTypeAnalysis
 			else if (this.solutionPath != null)
 			{
 				await solutionGrain.SetSolutionPathAsync(this.solutionPath);
-			}
-			else
+                Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "InitializeOnDemandOrleansAsync", "Exit SetSolutionPath");
+
+            }
+            else
 			{
 				throw new Exception("We need a solutionPath, source code or testName to analyze");
 			}
@@ -211,7 +214,7 @@ namespace ReachingTypeAnalysis
 			var solutionGrain = this.SolutionManager as ISolutionGrain;
 			var solutionGrainStatus = await solutionGrain.GetStatusAsync();
 
-			while (solutionGrainStatus != EntityGrainStatus.Ready)
+			while (solutionGrainStatus != EntityGrainStatus.Ready && AnalysisClient.ExperimentStatus != ExperimentStatus.Cancelled)
 			{
 				await Task.Delay(millisecondsDelay);
 				solutionGrainStatus = await solutionGrain.GetStatusAsync();

@@ -78,13 +78,16 @@ namespace OrleansSilosInAzure
                     orleansAzureSilo.Run(); // Call will block until silo is shutdown
 
                     Trace.TraceInformation("OrleansSilosInAzure stop running");
-                    SaveErrorToBlob("Orleans Silo stops!");
+                    WriteToTempFile("OrleansSilosInAzure stop running");
+
+                    //SaveErrorToBlob("Orleans Silo stops!");
                 }
-				else
+                else
 				{
 					Trace.TraceError("Orleans Silo could not start");
-                    SaveErrorToBlob("Orleans Silo could not start");
-				}
+                    WriteToTempFile("Orleans Silo could not start");
+                    //SaveErrorToBlob("Orleans Silo could not start");
+                }
 
 			}
 			catch (Exception exc)
@@ -92,8 +95,8 @@ namespace OrleansSilosInAzure
 				while (exc is AggregateException) exc = exc.InnerException;
 				Trace.TraceError("Error dutring initialization of WorkerRole {0}",exc.ToString());
                 var excString = exc.ToString();
-
-                SaveErrorToBlob(excString);                
+                WriteToTempFile(excString);
+                //SaveErrorToBlob(excString);                
                 throw exc;
 			}
             //try
@@ -108,6 +111,8 @@ namespace OrleansSilosInAzure
 
         private void SaveErrorToBlob(string excString)
         {
+            WriteToTempFile(excString);
+
             var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
@@ -123,7 +128,17 @@ namespace OrleansSilosInAzure
             using (Stream s = GenerateStreamFromString(excString))
             {
                 blockBlob.UploadFromStream(s);
-                
+
+            }
+        }
+
+        private static void WriteToTempFile(string excString)
+        {
+            var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Temp\"+errorFile+".txt"))
+            {
+                file.WriteLine("Logging:" + excString);
             }
         }
 
@@ -159,9 +174,10 @@ namespace OrleansSilosInAzure
 				{
 					while (exc is AggregateException) exc = exc.InnerException;
 					Trace.TraceError("Error trying to mount Azure File {0}", exc.ToString());
-				}
+                    WriteToTempFile(exc.ToString());
+                }
 
-			}
+            }
 			// Unmount a drive.
 			//FilesMappedDrive.Unmount("P:");
 
@@ -233,6 +249,7 @@ namespace OrleansSilosInAzure
             this.runCompleteEvent.WaitOne();
 
             orleansAzureSilo.Stop();
+            WriteToTempFile("OrleansSilosInAzure has stopped");
 
             base.OnStop();
 

@@ -29,6 +29,7 @@ namespace ReachingTypeAnalysis
             this.MethodEntityReady = false;
         }
 
+        public string SiloAddress { get; set; }
         public ISet<CallInfo> CalleesInfo { get; set; }
 		public bool ResultChanged { get; set; }
         public ISet<ReturnInfo> CallersInfo { get; set; }  

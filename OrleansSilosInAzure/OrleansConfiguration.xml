@@ -19,7 +19,7 @@
 			  <Deactivation AgeLimit="24hr"/>
 		  </Defaults>
 	  </Application>
-    <Messaging ResponseTimeout="2hr"/>
+    <Messaging ResponseTimeout="3600s"/>
     <!-- <Statistics WriteLogStatisticsToTable="false"/> -->
     <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="300s" LogWriteInterval="300s"
                 WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Critical"/>

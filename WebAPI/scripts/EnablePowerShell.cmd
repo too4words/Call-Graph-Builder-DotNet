@@ -17,4 +17,7 @@ IF "%IsEmulated%"=="true" goto :EOF
 
 reg add HKLM\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /d Unrestricted /f
 
+md c:\temp
+icacls c:\temp /grant Everyone:F
+
 Exit /b 

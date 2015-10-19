@@ -46,7 +46,7 @@ namespace WebAPI
 		}
 
 		[HttpGet]
-		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
+		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
 		{
 			var result = string.Empty;
 
@@ -60,7 +60,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
+				await analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Analyzing solution {0}.", solutionName);
@@ -71,7 +71,7 @@ namespace WebAPI
 				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 			}
 
-			return Task.FromResult(result);
+			return result;
 		}
 
         [HttpGet]
@@ -167,16 +167,20 @@ namespace WebAPI
                             result += " Message:" + await AnalysisClient.LastMessage +"\n"+ AnalysisClient.ErrorMessage ; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
 						break;
+                    case "Cancel":
+                        await AnalysisClient.CancelExperimentAsync();
+                        result = "Cancelled";
+                        break;
 
-                    // Unfortunately I cannot run the following scripts from a WebRole
-                    // I can run scripts from Azure PowerShell on the development machine
-                    // or use the Azure Web API
-                    //case "Restart":
-                    //    result = RunScript("Stop-Start-CloudService.ps1").ToString();
-                    //    break;
-                    //case "Instances":
-                    //    result = RunScript("ChangeNumberOfInstances.ps1", "-Instances", "2").ToString();
-                    //    break;
+                        // Unfortunately I cannot run the following scripts from a WebRole
+                        // I can run scripts from Azure PowerShell on the development machine
+                        // or use the Azure Web API
+                        //case "Restart":
+                        //    result = RunScript("Stop-Start-CloudService.ps1").ToString();
+                        //    break;
+                        //case "Instances":
+                        //    result = RunScript("ChangeNumberOfInstances.ps1", "-Instances", "2").ToString();
+                        //    break;
                 }
             }
             catch (Exception exc)

@@ -91,7 +91,7 @@
       <InputEndpoint name="Endpoint1" protocol="http" port="80" />
     </Endpoints>
   </WebRole>
-  <WebRole name="WebAPI" vmsize="Large">
+  <WebRole name="WebAPI" vmsize="ExtraLarge">
     <Sites>
       <Site name="Web">
         <Bindings>

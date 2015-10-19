@@ -17,6 +17,7 @@ set SourceKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1S
 :START
 
 md c:\temp
+icacls c:\temp /grant Everyone:F
 
 cd %ROLEROOT%\approot\scripts
 md %ROLEROOT%\approot\scripts\external

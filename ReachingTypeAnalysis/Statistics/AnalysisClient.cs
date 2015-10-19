@@ -32,7 +32,8 @@ namespace ReachingTypeAnalysis.Statistics
 		Running,
 		ComputingResults,
 		Ready,
-        Failed
+        Failed,
+        Cancelled
 	}
 
 	internal class SiloComputedStats
@@ -182,6 +183,12 @@ namespace ReachingTypeAnalysis.Statistics
                 await this.analyzer.InitializeOnDemandOrleansAnalysis();
                 await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 
+                if(AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
+                {
+                    AnalysisClient.ErrorMessage = "Cancelled by user";
+                    return;
+                }
+
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Running;
 
                 await this.analyzer.ContinueOnDemandOrleansAnalysis();
@@ -324,6 +331,7 @@ namespace ReachingTypeAnalysis.Statistics
                 AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + ex + " at " + DateTime.Now;
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
+                throw ex;
             }
 
 			return;
@@ -345,6 +353,12 @@ namespace ReachingTypeAnalysis.Statistics
 
 			// EmptyTable("OrleansGrainState");
 		}
+
+        public static Task CancelExperimentAsync()
+        {
+            ExperimentStatus = ExperimentStatus.Cancelled;
+            return TaskDone.Done;
+        }
 
 		private static string GetAddressFromStat(string statValue, string statPrefix)
 		{

@@ -10,6 +10,7 @@ namespace WebAPI
 {
     public class WebRole : RoleEntryPoint
     {
+
         public override bool OnStart()
         {
             Trace.WriteLine("WebAPI-OnStart");
@@ -21,25 +22,31 @@ namespace WebAPI
 			var ok = base.OnStart();
 
 			Trace.WriteLine("WebAPI-OnStart completed with OK=" + ok);
-
-			return ok;
+            WriteToTempFile("WebAPI-OnStart completed with OK=" + ok);
+            return ok;
         }
 
         public override void OnStop()
         {
             Trace.WriteLine("WebAPI-OnStop");
+            WriteToTempFile("WebAPI-OnStop");
+
             base.OnStop();
         }
 
         public override void Run()
         {
             Trace.WriteLine("WebAPI-Run");
+            WriteToTempFile("WebAPI-Run");
+
             try
             {
                 base.Run();
             }
             catch (Exception exc)
             {
+                WriteToTempFile("Run() failed with " + exc.ToString());
+                
                 Trace.WriteLine("Run() failed with " + exc.ToString());
             }
         }
@@ -58,5 +65,15 @@ namespace WebAPI
             //    e.Cancel = true;
             //}
         }
+        private static void WriteToTempFile(string excString)
+        {
+            var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Temp\" + errorFile + ".txt"))
+            {
+                file.WriteLine("Logging:" + excString);
+            }
+        }
+
     }
 }

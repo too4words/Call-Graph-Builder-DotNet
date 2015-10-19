@@ -133,9 +133,9 @@ namespace ReachingTypeAnalysis.Analysis
 			// This take cares of doing the progation of types
 			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
-            await this.WriteStateAsync();
+            /*await */ this.WriteStateAsync();
 
-			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit");
+			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
 		}
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()
@@ -187,12 +187,13 @@ namespace ReachingTypeAnalysis.Analysis
             sw.Start();
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(propKind);
             sw.Stop();
+            propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
 
             Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} Effects size: {2}", this.methodEntity.MethodDescriptor,sw.Elapsed, propagationEffects.CalleesInfo.Count);
             return propagationEffects;
         }
 
-        public Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+        public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
 			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
             
@@ -205,23 +206,27 @@ namespace ReachingTypeAnalysis.Analysis
 			//	}
 			//}
 
-            return this.methodEntityPropagator.PropagateAsync(callMessageInfo);
+            var propagationEffects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo);
+            propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
+            return propagationEffects;
         }
 
-        public Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
+        public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
 			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            
-			//if (status.Equals(EntityGrainStatus.Busy))
-			//{
-			//	await Task.Delay(WAIT_TIME);
-			//	if (status.Equals(EntityGrainStatus.Busy))
-			//	{
-			//		return new PropagationEffects();
-			//	}
-			//}
 
-            return this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
+            //if (status.Equals(EntityGrainStatus.Busy))
+            //{
+            //	await Task.Delay(WAIT_TIME);
+            //	if (status.Equals(EntityGrainStatus.Busy))
+            //	{
+            //		return new PropagationEffects();
+            //	}
+            //}
+
+            var propagationEffects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
+            propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
+            return propagationEffects;
         }
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)

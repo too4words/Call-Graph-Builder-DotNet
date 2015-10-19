@@ -9,7 +9,7 @@
 	-->
 	<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="C:\Temp\{0}-{1}.log" WriteMessagingTraces="false">
     <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning"  TraceToFile="c:\Temp\{0}-{1}.log"/>
-    <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Info" />
+    <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Warning" TraceToFile="C:\Temp\{0}-{1}.log"/>
     <!--
 	<TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
 	<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
