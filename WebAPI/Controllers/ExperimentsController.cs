@@ -46,7 +46,7 @@ namespace WebAPI
 		}
 
 		[HttpGet]
-		public async Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
+		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
 		{
 			var result = string.Empty;
 
@@ -60,7 +60,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				await analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Analyzing solution {0}.", solutionName);
@@ -71,7 +71,7 @@ namespace WebAPI
 				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
 			}
 
-			return result;
+			return Task.FromResult(result);
 		}
 
         [HttpGet]
@@ -145,7 +145,7 @@ namespace WebAPI
             var result = string.Empty;
             try
             {
-                switch(command)
+                switch (command)
                 {
                     case "Deactivate":
                         result = await PerformDeactivationAsync();
@@ -154,7 +154,6 @@ namespace WebAPI
                         result = AnalysisClient.EmptyTable("OrleansGrainState").ToString();
                         break;
                     case "RemoveStats":
-
                         result = AnalysisClient.EmptyTable("OrleansSiloStatistics").ToString()+" " + AnalysisClient.EmptyTable("OrleansClientStatistics").ToString();
                         break;
                     case "Stats":
@@ -162,7 +161,7 @@ namespace WebAPI
                         break;
 					case "Status":
                         result = Convert.ToString(AnalysisClient.ExperimentStatus);
-                        if (!result.Equals("None"))
+                        if (AnalysisClient.ExperimentStatus != ExperimentStatus.None)
                         {
                             result += " Message:" + await AnalysisClient.LastMessage +"\n"+ AnalysisClient.ErrorMessage ; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
