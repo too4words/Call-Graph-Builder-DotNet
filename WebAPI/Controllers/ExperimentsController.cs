@@ -161,7 +161,8 @@ namespace WebAPI
                         break;
 					case "Status":
                         result = Convert.ToString(AnalysisClient.ExperimentStatus);
-                        if (AnalysisClient.ExperimentStatus != ExperimentStatus.None)
+                        if (AnalysisClient.ExperimentStatus != ExperimentStatus.None
+                            && AnalysisClient.ExperimentStatus != ExperimentStatus.Ready)
                         {
                             result += " Message:" + await AnalysisClient.LastMessage +"\n"+ AnalysisClient.ErrorMessage ; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }

@@ -40,6 +40,11 @@ function Wait_For_Ready($timeoutMin)
 			return $true
 		
 		}
+		if ($status -match "None")
+		{
+			Write-host "Excecution Failed"
+			return $true		
+		}
 		Write-host "Not ready yet! Waiting..."
 		start-sleep -seconds 5
 	}
@@ -65,5 +70,6 @@ $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutio
 $uri = $resource+$controler+$cmd
 Write-Host "Invoking"  $uri
 Invoke-WebRequest -Uri $uri -TimeoutSec 5000
+start-sleep -seconds 5
 Wait_For_Ready(60*24)
  
