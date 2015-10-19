@@ -324,13 +324,17 @@ namespace ReachingTypeAnalysis.Statistics
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
                 AnalysisClient.ErrorMessage = "OK";
+                Logger.LogWarning(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished OK");
             }
             catch (Exception ex)
             {
-                while (ex is AggregateException) ex = ex.InnerException;
-                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + ex + " at " + DateTime.Now;
+                var innerEx = ex;
+                while (innerEx is AggregateException) innerEx = innerEx.InnerException;
+                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + innerEx + " at " + DateTime.Now;
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
+                Logger.LogWarning(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished with ERRORS {0}",ex);
+
                 throw ex;
             }
 

@@ -89,7 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			StatsHelper.RegisterDeactivation("MethodEntityGrain", this.GrainFactory);
 
-			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
+			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "OnDeactivate", "Deactivation for {0} ", this.GetPrimaryKeyString());
 
 			this.methodEntity = null;
 			return TaskDone.Done;
