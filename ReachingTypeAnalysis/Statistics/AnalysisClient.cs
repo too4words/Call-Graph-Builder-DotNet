@@ -333,7 +333,7 @@ namespace ReachingTypeAnalysis.Statistics
                 AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + innerEx + " at " + DateTime.Now;
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
-                Logger.LogWarning(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished with ERRORS {0}",ex);
+                Logger.LogError(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished with ERRORS {0}",ex);
 
                 throw ex;
             }

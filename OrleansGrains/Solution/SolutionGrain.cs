@@ -73,7 +73,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
+				Logger.LogError(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
 				throw ex;
 			}
 			//});
@@ -173,7 +173,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
+				Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
 				throw ex;
 			}
 			//});
@@ -209,7 +209,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}", ex);
+				Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}", ex);
 				throw ex;
 			}
 			//});
@@ -245,7 +245,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}", ex);
+				Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}", ex);
 				throw ex;
 			}
 			//});

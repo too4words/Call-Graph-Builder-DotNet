@@ -112,7 +112,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.codeProvider = codeProviderGrain;
 
-			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
+			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
 			var sw = new Stopwatch();
 			sw.Start();
 
@@ -120,7 +120,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             sw.Stop();
 
-            Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
+            Logger.LogInfo(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
 
             if (methodDescriptor.IsAnonymousDescriptor)
             {
@@ -135,7 +135,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             /*await */ this.WriteStateAsync();
 
-			Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
+			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
 		}
 
         public Task<ISet<MethodDescriptor>> GetCalleesAsync()

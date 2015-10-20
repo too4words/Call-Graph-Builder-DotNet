@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.OrleansLogger = this.GetLogger();
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
-            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "OnActivate", "Entering Project: {0}", this.GetPrimaryKeyString());
+            // Logger.LogWarning(this.GetLogger(), "ProjectGrain", "OnActivate", "Entering Project: {0}", this.GetPrimaryKeyString());
 
             this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
             this.State.AssemblyName = this.GetPrimaryKeyString();
@@ -78,7 +78,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning(this.GetLogger(), "ProjectGrain", "OnActivate", "Error:\n{0}", ex);
+				Logger.LogError(this.GetLogger(), "ProjectGrain", "OnActivate", "Error:\n{0}", ex);
 			}
 			//});
 
@@ -120,7 +120,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath"+":"+fullPath , this.GrainFactory);
 
-			Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
+			//Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
 
             this.State.ProjectPath = fullPath;            
             this.State.AssemblyName = null;
@@ -176,7 +176,7 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Error:\n{0}", ex);
+					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Error:\n{0}", ex);
 					throw ex;
 				}
 			});
@@ -210,7 +210,7 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Error:\n{0}", ex);
+					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Error:\n{0}", ex);
 					throw ex;
 				}
 			});
@@ -267,7 +267,7 @@ namespace ReachingTypeAnalysis.Analysis
             var result = this.projectCodeProvider.CreateMethodEntityAsync(methodDescriptor);
 
             timer.Stop();
-            Logger.LogWarning(this.GetLogger(), "ProjectGrain", "CreateMethodEntity:"+methodDescriptor, "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds, timer.ElapsedTicks);
+            Logger.LogInfo(this.GetLogger(), "ProjectGrain", "CreateMethodEntity:"+methodDescriptor, "Exit; took;{0};ms;{1};ticks", timer.ElapsedMilliseconds, timer.ElapsedTicks);
             return result;
         }
 
