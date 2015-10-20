@@ -42,7 +42,10 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			foreach (var method in rootMethods)
 			{
-                Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
+				if (GrainClient.IsInitialized)
+				{
+					Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
+				}
 
                 var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
 
@@ -100,16 +103,17 @@ namespace ReachingTypeAnalysis.Analysis
         {
             while (this.messageWorkList.Count>threshold)
             {
-                Logger.LogWarning(GrainClient.Logger,"AnalysisOrchestator", "WaitQueue", "Size {0}", this.messageWorkList.Count);
+				if (GrainClient.IsInitialized)
+				{
+					Logger.LogWarning(GrainClient.Logger, "AnalysisOrchestator", "WaitQueue", "Size {0}", this.messageWorkList.Count);
+				}
+
                 await ProcessMessages();
                 // await Task.Delay(millisecondsDelay);
             }
 
             return;
         }
-
-
-
 
         public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
@@ -197,9 +201,13 @@ namespace ReachingTypeAnalysis.Analysis
             //do
             //{
                 //Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
-                Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
 
-            await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
+				if (GrainClient.IsInitialized)
+				{
+					Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
+				}
+
+				await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
                 if (propagationEffects.ResultChanged)
                 {
@@ -291,8 +299,6 @@ namespace ReachingTypeAnalysis.Analysis
 			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
-
-
 		/// <summary>
 		/// This method "replaces" the send + dispatch + processCallMessage for calless that used the methodProcessor and dispatcher
 		/// The idea is trying to avoid reentrant calls to grains
@@ -304,7 +310,11 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <returns></returns>
 		private async Task AnalyzeCalleeAsync(MethodDescriptor callee, CallerMessage callerMessage, PropagationKind propKind)
 		{
-            Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
+			if (GrainClient.IsInitialized)
+			{
+				Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
+			}
+
             //Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);

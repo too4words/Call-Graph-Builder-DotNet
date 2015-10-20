@@ -294,7 +294,10 @@ namespace ReachingTypeAnalysis
                 // I replaced the invocation for a local call to mark that functionality is missing
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)
                 //    .Select(t => this.Callee.FindMethodImplementation(t));
-                foreach (var type in await this.GetPotentialTypesAsync(callInfo.Receiver, callInfo, codeProvider))
+
+				var potentialTypes = await this.GetPotentialTypesAsync(callInfo.Receiver, callInfo, codeProvider);
+
+				foreach (var type in potentialTypes)
                 {
                     Contract.Assert(type != null);
                     Contract.Assert(callInfo != null);

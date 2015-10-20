@@ -50,6 +50,10 @@ namespace ReachingTypeAnalysis
 			{
 				assemblyName = type.ContainingAssembly.Name;
 			}
+			else if (type.TypeKind == TypeKind.Array && type.BaseType != null)
+			{
+				assemblyName = type.BaseType.ContainingAssembly.Name;
+			}
 
 			return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
 		}
