@@ -53,6 +53,8 @@ namespace WebAPI
 
         private void RoleEnvironmentChanging(object sender, RoleEnvironmentChangingEventArgs e)
         {
+            WriteToTempFile("RoleEnvironmentChanging:" + e.Cancel);
+
             foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentTopologyChange))
             {
                 e.Cancel = true;

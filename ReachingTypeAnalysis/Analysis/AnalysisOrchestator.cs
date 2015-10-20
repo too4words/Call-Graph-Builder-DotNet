@@ -42,7 +42,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			foreach (var method in rootMethods)
 			{
-                Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
+                Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
 
                 var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
 
@@ -153,7 +153,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                     if (messageWorkList.TryDequeue(out message))
                     {
-                        Logger.LogWarning(GrainClient.Logger, "Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
+                        // Logger.LogWarning(GrainClient.Logger, "Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
 
                         if (message is CallerMessage)
                         {
@@ -196,8 +196,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             //do
             //{
-                Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
-                Logger.LogWarning(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
+                //Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
+                Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
 
             await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
@@ -304,7 +304,7 @@ namespace ReachingTypeAnalysis.Analysis
 		/// <returns></returns>
 		private async Task AnalyzeCalleeAsync(MethodDescriptor callee, CallerMessage callerMessage, PropagationKind propKind)
 		{
-            Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
+            Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
             //Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);

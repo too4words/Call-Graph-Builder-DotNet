@@ -195,7 +195,6 @@ namespace ReachingTypeAnalysis
 			{
 				await solutionGrain.SetSolutionPathAsync(this.solutionPath);
                 Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "InitializeOnDemandOrleansAsync", "Exit SetSolutionPath");
-
             }
             else
 			{

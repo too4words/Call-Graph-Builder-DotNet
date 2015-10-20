@@ -99,7 +99,7 @@ namespace ReachingTypeAnalysis.Analysis
             //}
             this.memoryUsage = 0;
 
-            Logger.LogWarning(this.GetLogger(), "StatGrain", "Register Msg", "Addr1:{0} Addr2:{1} {2}" ,senderAddr,receiverAddr,message);
+            Logger.LogInfo(this.GetLogger(), "StatGrain", "Register Msg", "Addr1:{0} Addr2:{1} {2}" ,senderAddr,receiverAddr,message);
 			AddToMap(this.State.SiloSentMsgs, senderAddr, receiverAddr);
 			AddToMap(this.State.SiloRecvMsgs, receiverAddr, senderAddr);
      		IncrementCounter(message, this.operationCounter);

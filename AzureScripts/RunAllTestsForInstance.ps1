@@ -9,9 +9,9 @@ param (
 	[int] $repetitions = 50
 	)
 
-$solutionPaths = @("synthetic100","synthetic1000","synthetic10000")
+$solutionPaths = @("new\synthetic100","new\synthetic1000","new\synthetic10000","new\synthetic100000")
 $solutionNames = @("test","test","test")
-$expIDs= @("test100","test1000","test10000")
+$expIDs= @("test100","test1000","test10000","test100000")
 
 #$solutionPaths = @("synthetic100","synthetic1000")
 #$solutionNames = @("test","test")

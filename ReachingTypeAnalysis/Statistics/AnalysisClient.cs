@@ -166,13 +166,13 @@ namespace ReachingTypeAnalysis.Statistics
 
 		public async Task RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
 		{
-			this.ExperimentID = expId;
+			try
+			{
+				this.ExperimentID = expId;
 
-            // await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
-            AnalysisClient.ErrorMessage = "OK so far";
+				// await systemManagement.ForceActivationCollection(System.TimeSpan.MaxValue);
+				AnalysisClient.ErrorMessage = "OK so far";
 
-            try
-            {
                 var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
                 await myStatsGrain.ResetStats();
 
@@ -183,7 +183,7 @@ namespace ReachingTypeAnalysis.Statistics
                 await this.analyzer.InitializeOnDemandOrleansAnalysis();
                 await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 
-                if(AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
+                if (AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
                 {
                     AnalysisClient.ErrorMessage = "Cancelled by user";
                     return;
@@ -324,17 +324,19 @@ namespace ReachingTypeAnalysis.Statistics
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Ready;
                 AnalysisClient.ErrorMessage = "OK";
+                Logger.LogWarning(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished OK");
             }
             catch (Exception ex)
             {
-                while (ex is AggregateException) ex = ex.InnerException;
-                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + ex + " at " + DateTime.Now;
+                var innerEx = ex;
+                while (innerEx is AggregateException) innerEx = innerEx.InnerException;
+                AnalysisClient.ErrorMessage = "Error connecting to Orleans: " + innerEx + " at " + DateTime.Now;
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Failed;
+                Logger.LogError(GrainClient.Logger, "AnalysisClient", "RunExperiment", "Finished with ERRORS {0}",ex);
+
                 throw ex;
             }
-
-			return;
 		}
 
 		public static void SaveResults(string path)
