@@ -69,6 +69,13 @@ namespace ReachingTypeAnalysis
             BasicTests.TestSolution1Local(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
+		[TestMethod]
+		[TestCategory("Solutions")]
+		public void TestRealSolutionOnDemandAsync()
+		{
+			BasicTests.TestRealSolutionLocal(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
         [TestMethod]
         [TestCategory("Solutions")]
         public void TestSolution1ShareOnDemandAsync()
@@ -78,13 +85,25 @@ namespace ReachingTypeAnalysis
 		
         public static void TestSolution1Local(AnalysisStrategyKind strategy)
         {
-            string currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            string solutionPath = Path.Combine(
+            var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var solutionPath = Path.Combine(
                 Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(currentSolutionPath).FullName).FullName).FullName).FullName, 
                 ConfigurationManager.AppSettings["Solution1"]);
             //string solutionPath = ConfigurationManager.AppSettings["TestSolutionsPath"]+  ConfigurationManager.AppSettings["Solution1"];
             TestSolution1(strategy, solutionPath);
         }
+
+		public static void TestRealSolutionLocal(AnalysisStrategyKind strategy)
+		{
+			var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+			currentSolutionPath = Path.GetDirectoryName(currentSolutionPath);
+
+			var solutionPath = @"..\..\..\RealExamples\de4dot\de4dot.sln";
+			solutionPath = Path.Combine(currentSolutionPath, solutionPath);
+			solutionPath = Path.GetFullPath(solutionPath);
+
+			TestRealSolution(strategy, solutionPath);
+		}
 
 		[TestMethod]
 		[TestCategory("Solutions")]
@@ -124,6 +143,15 @@ namespace ReachingTypeAnalysis
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("ConsoleApplication1", "Test", "ConsoleApplication1"), "CallBar"), callgraph)); // ConsoleApplication1
             }, strategy);
         }
+
+		private static void TestRealSolution(AnalysisStrategyKind strategy, string solutionPath)
+		{
+			AnalyzeSolution(solutionPath, (s, callgraph) =>
+			{
+				var reachableMethods = callgraph.GetReachableMethods();
+				Assert.IsTrue(reachableMethods.Count > 0);
+			}, strategy);
+		}
 
 		private static IEnumerable<string> CopyFiles(string sourceFolder, string destinationFolder)
 		{

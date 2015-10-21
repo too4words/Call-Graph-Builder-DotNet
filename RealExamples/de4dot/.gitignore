@@ -1,0 +1,10 @@
+*~
+*/obj/
+*.csproj.user
+*.sdf
+*.opensdf
+*.suo
+/Debug/
+/Release/
+/deobfuscator.*/
+!/deobfuscator.Template/
