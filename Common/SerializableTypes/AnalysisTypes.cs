@@ -76,6 +76,7 @@ namespace ReachingTypeAnalysis
 
         public TypeDescriptor ContainerType { get; protected set; }
         public string MethodName { get; protected set; }
+		public IList<string> TypeParameters { get; protected set; }
         public IList<TypeDescriptor> Parameters { get; protected set; }
         public TypeDescriptor ReturnType { get; protected set; }
         public bool IsStatic { get; protected set; }
@@ -138,6 +139,7 @@ namespace ReachingTypeAnalysis
         public MethodDescriptor(TypeDescriptor typeDescriptor, string methodName,
                                     bool isStatic = false,
                                     IEnumerable<TypeDescriptor> parameters = null,
+									IEnumerable<string> typeParameters = null,
                                     TypeDescriptor returnType = null)
         {
             this.ContainerType = typeDescriptor;
@@ -148,15 +150,21 @@ namespace ReachingTypeAnalysis
             this.ReturnType = returnType;
             this.IsAnonymousDescriptor = false;
 
-            if (parameters != null)
+            if (typeParameters != null)
             {
-                this.Parameters = new List<TypeDescriptor>(parameters);
+				this.TypeParameters = new List<string>(typeParameters);
             }
+
+			if (parameters != null)
+			{
+				this.Parameters = new List<TypeDescriptor>(parameters);
+			}
         }
 
         public MethodDescriptor(string namespaceName, string className, string methodName,
                                     bool isStatic = false,
                                     IEnumerable<TypeDescriptor> parameters = null,
+									IEnumerable<string> typeParameters = null,
                                     TypeDescriptor returnType = null)
         {
             this.ContainerType = new TypeDescriptor(namespaceName, className, isReferenceType: true);
@@ -166,6 +174,11 @@ namespace ReachingTypeAnalysis
             this.IsStatic = isStatic;
             this.ReturnType = returnType;
             this.IsAnonymousDescriptor = false;
+
+			if (typeParameters != null)
+			{
+				this.TypeParameters = new List<string>(typeParameters);
+			}
 
             if (parameters != null)
             {
@@ -194,6 +207,7 @@ namespace ReachingTypeAnalysis
         //        return result;
         //    }
         //}
+
         public MethodDescriptor(MethodDescriptor original)
         {
             this.ContainerType = original.ContainerType;
@@ -201,6 +215,7 @@ namespace ReachingTypeAnalysis
             //this.NamespaceName = original.NamespaceName;
             this.MethodName = original.MethodName;
             this.Parameters = original.Parameters;
+			this.TypeParameters = original.TypeParameters;
             this.ReturnType = original.ReturnType;
             this.IsStatic = original.IsStatic;
             // this.ThisType = original.ThisType;
@@ -217,8 +232,9 @@ namespace ReachingTypeAnalysis
             var mEq = this.MethodName.Equals(md.MethodName);
             var staticEq = this.IsStatic == md.IsStatic;
             var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
+			var tpEq = this.TypeParameters == null || md.TypeParameters == null || this.TypeParameters.SequenceEqual(md.TypeParameters);
 
-            return /*nEq && cEq*/ tEq && mEq && staticEq && pEq;
+            return /*nEq && cEq*/ tEq && mEq && staticEq && pEq && tpEq;
         }
 
         //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
@@ -255,15 +271,39 @@ namespace ReachingTypeAnalysis
             result.Append(this.MethodName);
             result.Append("-");
             result.Append(this.IsStatic);
+			result.Append("-");
 
             if (this.Parameters != null && this.Parameters.Count > 0)
-            {
+            {				
+				result.Append(this.Parameters.Count);
+
                 foreach (var parameterType in this.Parameters)
                 {
                     result.Append("-");
                     result.Append(parameterType.Marshall());
                 }
             }
+			else
+			{
+				result.Append(0);
+			}
+
+			result.Append("-");
+
+			if (this.TypeParameters != null && this.TypeParameters.Count > 0)
+			{				
+				result.Append(this.TypeParameters.Count);
+
+				foreach (var typeParameter in this.TypeParameters)
+				{
+					result.Append("-");
+					result.Append(typeParameter);
+				}
+			}
+			else
+			{
+				result.Append(0);
+			}
 
             return result.ToString();
         }
@@ -272,6 +312,7 @@ namespace ReachingTypeAnalysis
         {
             var anonymousMD = "";
             var i = md.IndexOf(':');
+
             if (i >= 0)
             {
                 anonymousMD = md.Substring(0, i);
@@ -299,17 +340,32 @@ namespace ReachingTypeAnalysis
             var isStatic = Convert.ToBoolean(tokens[2]);
             var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic);
             methodDescriptor.Parameters = new List<TypeDescriptor>();
+			methodDescriptor.TypeParameters = new List<string>();
 
             if (tokens.Length > 3 && tokens[3].Length > 0)
             {
-                //methodDescriptor.Parameters = new List<TypeDescriptor>();
+				var parametersIndex = 3;
+				var parametersCount = Convert.ToInt32(tokens[parametersIndex++]);
 
-                for (var i = 3; i < tokens.Length; ++i)
+				for (var i = 0; i < parametersCount; ++i)
                 {
-                    var typeName = tokens[i];
+					var typeName = tokens[parametersIndex + i];
                     var typeDescriptor = TypeDescriptor.DeMarshall(typeName);
                     methodDescriptor.Parameters.Add(typeDescriptor);
                 }
+
+				parametersIndex += parametersCount;
+
+				if (tokens.Length > parametersIndex && tokens[parametersIndex].Length > 0)
+				{
+					parametersCount = Convert.ToInt32(tokens[parametersIndex++]);
+
+					for (var i = 0; i < parametersCount; ++i)
+					{
+						var typeName = tokens[parametersIndex + i];
+						methodDescriptor.TypeParameters.Add(typeName);
+					}
+				}
             }
 
             return methodDescriptor;

@@ -25,6 +25,7 @@ namespace ReachingTypeAnalysis
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
+				method.TypeParameters.Select(parameter => parameter.Name),
 				Utils.CreateTypeDescriptor(method.ReturnType));
 
 			return result;
@@ -64,6 +65,12 @@ namespace ReachingTypeAnalysis
 			else if (type is IArrayTypeSymbol)
 			{
 				var arrayType = type as IArrayTypeSymbol;
+
+				while (arrayType.ElementType is IArrayTypeSymbol)
+				{
+					arrayType = arrayType.ElementType as IArrayTypeSymbol;
+				}
+
 				assemblyName = arrayType.ElementType.ContainingAssembly.Name;
 				namespaceName = Utils.GetFullNamespaceName(arrayType.ElementType);
 				typeName = arrayType.ElementType.Name;
@@ -264,7 +271,6 @@ namespace ReachingTypeAnalysis
 			var displayString = symbol.ToDisplayString();
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
-
 
 		public static Task<Project> ReadProjectAsync(string path)
 		{
