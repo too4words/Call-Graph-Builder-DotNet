@@ -43,19 +43,39 @@ namespace ReachingTypeAnalysis
 		{
 			Contract.Assert(type != null);
 			var assemblyName = "Unknown";
-			var namespaceName = Utils.GetFullNamespaceName(type);
+			var namespaceName = "Unknown";
+			var typeName = "Unknown";
 			var kind = Utils.Convert(type.TypeKind);
 
-			if (type.ContainingAssembly != null)
+			if (type is INamedTypeSymbol)
 			{
-				assemblyName = type.ContainingAssembly.Name;
+				var namedType = type as INamedTypeSymbol;
+				assemblyName = namedType.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(namedType);
+				typeName = namedType.Name;
 			}
-			else if (type.TypeKind == TypeKind.Array && type.BaseType != null)
+			else if (type is ITypeParameterSymbol)
 			{
-				assemblyName = type.BaseType.ContainingAssembly.Name;
+				var typeParameter = type as ITypeParameterSymbol;
+				assemblyName = typeParameter.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(typeParameter);
+				typeName = typeParameter.Name;
+			}
+			else if (type is IArrayTypeSymbol)
+			{
+				var arrayType = type as IArrayTypeSymbol;
+				assemblyName = arrayType.ElementType.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(arrayType.ElementType);
+				typeName = arrayType.ElementType.Name;
+			}
+			else
+			{
+				var message = string.Format("Unsupported type: {0}", type);
+				throw new Exception(message);
 			}
 
-			return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
+			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, type.IsReferenceType, kind, isConcrete);
+			return result;
 		}
 
 		private static string GetFullNamespaceName(ISymbol symbol)
