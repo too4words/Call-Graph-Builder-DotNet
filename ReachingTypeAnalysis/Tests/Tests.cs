@@ -85,12 +85,14 @@ namespace ReachingTypeAnalysis
 		
         public static void TestSolution1Local(AnalysisStrategyKind strategy)
         {
-            var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var solutionPath = Path.Combine(
-                Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(currentSolutionPath).FullName).FullName).FullName).FullName, 
-                ConfigurationManager.AppSettings["Solution1"]);
-            //string solutionPath = ConfigurationManager.AppSettings["TestSolutionsPath"]+  ConfigurationManager.AppSettings["Solution1"];
-            TestSolution1(strategy, solutionPath);
+			var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+			currentSolutionPath = Path.GetDirectoryName(currentSolutionPath);
+			
+            var solutionPath = ConfigurationManager.AppSettings["Solution1"];
+			solutionPath = Path.Combine(currentSolutionPath, @"..\..\..\TestsSolutions", solutionPath);
+			solutionPath = Path.GetFullPath(solutionPath);
+
+			TestSolution1(strategy, solutionPath);
         }
 
 		public static void TestRealSolutionLocal(AnalysisStrategyKind strategy)
@@ -98,8 +100,8 @@ namespace ReachingTypeAnalysis
 			var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 			currentSolutionPath = Path.GetDirectoryName(currentSolutionPath);
 
-			var solutionPath = @"..\..\..\RealExamples\de4dot\de4dot.sln";
-			solutionPath = Path.Combine(currentSolutionPath, solutionPath);
+			var solutionPath = @"de4dot\de4dot.sln";
+			solutionPath = Path.Combine(currentSolutionPath, @"..\..\..\RealSolutions", solutionPath);
 			solutionPath = Path.GetFullPath(solutionPath);
 
 			TestRealSolution(strategy, solutionPath);

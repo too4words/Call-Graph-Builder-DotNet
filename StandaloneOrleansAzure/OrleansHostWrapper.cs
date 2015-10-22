@@ -2,7 +2,7 @@
 using System.Net;
 using Orleans.Runtime.Host;
 
-namespace StandAloneOrlansAzure
+namespace StandaloneOrleansAzure
 {
     internal class OrleansHostWrapper : IDisposable
     {
