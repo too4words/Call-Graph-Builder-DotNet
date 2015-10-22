@@ -3,66 +3,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ReachingTypeAnalysis
 {
-    public partial class BasicTests 
+	[TestClass]
+	public class BasicTests 
 	 {
-	    public static void TestSimpleCall(AnalysisStrategyKind strategy)
-        {
-			#region source code
-			var source = @"
-using System;
-public class D:C
-{
-    public override void m2(C b)
-    {
-    }
-}
-public class C 
-{
-    int f = 0;
-    C g;
-    public C m1(C a)
-    {
-         f = 0;
-         g = this;
-         this.m2(a);
-         m2(g);
-         return a;
-    }
-    public virtual void m2(C b)
-    {
-        Console.WriteLine(f);
-    }
-}
-class Program
-{
-
-    public static void Main()
-    {
-        C d = new D();
-        C c;
-        c = new C();
-        C h = d.m1(d);
-        h.m2(c);
-        d.Equals(c);
-    }
-}";
-			#endregion
-
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object","mscorlib"), "Equals", false), callgraph));
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-                Assert.IsTrue(s.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
-
-                // Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountAsync(result.Strategy, new MethodDescriptor("C", "m1")).Result == 2);
-                // I don't know why I started numbering by 1
-                //var callees = CallGraphQueryInterface.GetCalleesAsync(result.Strategy, new MethodDescriptor("C", "m1"), 1).Result;
-                //Assert.IsTrue(callees.Contains(new MethodDescriptor("D", "m2")));
-            }, strategy);
-        }
-
 		public static void TestRemoveMethodSimpleCall(AnalysisStrategyKind strategy)
 		{
 			#region original source code
@@ -155,9 +98,9 @@ class Program
         k.m3();
     }
 }";
-            #endregion
+			#endregion
 
-			AnalyzeExample(source,
+			TestUtils.AnalyzeExample(source,
 				(s, callgraph) =>
 				{
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
@@ -226,7 +169,7 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source,
+			TestUtils.AnalyzeExample(source,
 				(s, callgraph) =>
 				{
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
@@ -342,7 +285,7 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source,
+			TestUtils.AnalyzeExample(source,
 				(s, callgraph) =>
 				{
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
@@ -369,6 +312,66 @@ class Program
 					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "M1"), callgraph));
 					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "M2"), callgraph));
 					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "M2"), callgraph));
+				},
+				strategy);
+		}
+
+		public static void TestSimpleCall(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+public class D:C
+{
+    public override void m2(C b)
+    {
+    }
+}
+public class C 
+{
+    int f = 0;
+    C g;
+    public C m1(C a)
+    {
+         f = 0;
+         g = this;
+         this.m2(a);
+         m2(g);
+         return a;
+    }
+    public virtual void m2(C b)
+    {
+        Console.WriteLine(f);
+    }
+}
+class Program
+{
+
+    public static void Main()
+    {
+        C d = new D();
+        C c;
+        c = new C();
+        C h = d.m1(d);
+        h.m2(c);
+        d.Equals(c);
+    }
+}";
+			#endregion
+
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor(new TypeDescriptor("System", "Object", "mscorlib"), "Equals", false), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+					Assert.IsTrue(s.IsCaller(new MethodDescriptor("C", "m1"), new MethodDescriptor("D", "m2"), callgraph));
+
+					// Assert.IsTrue(CallGraphQueryInterface.GetInvocationCountAsync(result.Strategy, new MethodDescriptor("C", "m1")).Result == 2);
+					// I don't know why I started numbering by 1
+					//var callees = CallGraphQueryInterface.GetCalleesAsync(result.Strategy, new MethodDescriptor("C", "m1"), 1).Result;
+					//Assert.IsTrue(callees.Contains(new MethodDescriptor("D", "m2")));
 				},
 				strategy);
 		}
@@ -405,15 +408,17 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r", true), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "r", true), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "q", true), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "q", true), new MethodDescriptor("C", "r", true), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "q", true), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("Program", "Main", true), new MethodDescriptor("C", "r", true), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "r", true), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "r", true), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "r", true), new MethodDescriptor("C", "q", true), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "q", true), new MethodDescriptor("C", "r", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "q", true), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("Program", "Main", true), new MethodDescriptor("C", "r", true), callgraph));
+				},
+				strategy);
         }
 
         public static void TestIf(AnalysisStrategyKind strategy)
@@ -451,11 +456,13 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m1"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m1"), callgraph));
+				},
+				strategy);
         }
 
         public static void TestVirtualCallViaSuperClass(AnalysisStrategyKind strategy)
@@ -480,10 +487,12 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
-            },strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
+				},
+				strategy);
         }
 
         public static  void TestCallViaInterface(AnalysisStrategyKind strategy)
@@ -507,11 +516,13 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("MainClass", "Main", true), new MethodDescriptor("SubClass", "M"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "M"), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("MainClass", "Main", true), new MethodDescriptor("SubClass", "M"), callgraph));
+				},
+				strategy);
         }
 
         public static void TestForLoop(AnalysisStrategyKind strategy)
@@ -548,12 +559,14 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s,callgraph) =>
-            {
-                // Need to include support for properties
-                // Assert.IsTrue(s.IsReachable("C", "Inc"));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s,callgraph) =>
+				{
+					// Need to include support for properties
+					// Assert.IsTrue(s.IsReachable("C", "Inc"));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
+				},
+				strategy);
         }
 
         public static void TestForLoopQueuing(AnalysisStrategyKind strategy)
@@ -593,14 +606,16 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                // Need to include support for properties
-                // Assert.IsTrue(s.IsReachable("C", "Inc"));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Main", true), new MethodDescriptor("C", "Bound"), callgraph));
-                Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Bound"), new MethodDescriptor("C", "testMethod"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					// Need to include support for properties
+					// Assert.IsTrue(s.IsReachable("C", "Inc"));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Main", true), new MethodDescriptor("C", "Bound"), callgraph));
+					Assert.IsTrue(s.IsCalled(new MethodDescriptor("C", "Bound"), new MethodDescriptor("C", "testMethod"), callgraph));
+				},
+				strategy);
         }
 
         public static void TestFieldAccess(AnalysisStrategyKind strategy)
@@ -655,18 +670,20 @@ class C
 }";
 			#endregion
 
-			AnalyzeExample(source, (s,callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", ".ctor"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", ".ctor"), callgraph));
-                Assert.IsTrue(s.IsCalled(
-                    new MethodDescriptor("C", "Main", true),
-                    new MethodDescriptor("C", "Bound"), callgraph));
-                Assert.IsTrue(!s.IsCalled(
-                    new MethodDescriptor("C", "Main", true),
-                    new MethodDescriptor("D", "testMethod"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s,callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bound"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", ".ctor"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", ".ctor"), callgraph));
+					Assert.IsTrue(s.IsCalled(
+						new MethodDescriptor("C", "Main", true),
+						new MethodDescriptor("C", "Bound"), callgraph));
+					Assert.IsTrue(!s.IsCalled(
+						new MethodDescriptor("C", "Main", true),
+						new MethodDescriptor("D", "testMethod"), callgraph));
+				},
+				strategy);
         }
 
 		// Test to ensure that static methods called via delegates are reachable
@@ -694,14 +711,16 @@ class C
 }";
 			#endregion
 
-			AnalyzeExample(source, (s,callgraph) =>
-            {
-                // Should not fail but it wrongly computes MainClass.HasS.S
-                // This is because it does not understand "s" in "s.S"
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("M", "S", true), callgraph));
+			TestUtils.AnalyzeExample(source,
+				(s,callgraph) =>
+				{
+					// Should not fail but it wrongly computes MainClass.HasS.S
+					// This is because it does not understand "s" in "s.S"
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("M", "S", true), callgraph));
 
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("M", "Unreachable", true), callgraph));
-            }, strategy);
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("M", "Unreachable", true), callgraph));
+				},
+				strategy);
         }
 
         // Test to ensure that interface methods called via interfaces are reachable
@@ -729,12 +748,14 @@ class C
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "S"), callgraph));
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("SubClass", "S"), callgraph));
 
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("SubClass", "Unreachable"), callgraph));
-            }, strategy);
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("SubClass", "Unreachable"), callgraph));
+				},
+				strategy);
         }
 
         public static void TestClassesWithSameFieldName(AnalysisStrategyKind strategy)
@@ -778,12 +799,14 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+				},
+				strategy);
         }
         public static  void TestFieldLoadInCallee(AnalysisStrategyKind strategy)
         {
@@ -817,13 +840,15 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                callgraph.Save("cg.dot");
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					callgraph.Save("cg.dot");
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2"), callgraph));
+				},
+				strategy);
         }
 
         public static  void TestProperty(AnalysisStrategyKind strategy)
@@ -865,14 +890,16 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-            {
-                Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
-                // This should be reachable
-                //Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
-                // This is reachable because of the problem with loadnodes
-                // Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2")));
-            }, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "m1"), callgraph));
+					// This should be reachable
+					//Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "m2"), callgraph));
+					// This is reachable because of the problem with loadnodes
+					// Assert.IsFalse(s.IsReachable(new MethodDescriptor("C", "m2")));
+				},
+				strategy);
         }
 
 		public static void TestArrowMethodBody(AnalysisStrategyKind strategy)
@@ -891,12 +918,14 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-			{
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-				// This should be reachable
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
-			}, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+				},
+				strategy);
 		}
 
 		public static void TestLambda(AnalysisStrategyKind strategy)
@@ -917,14 +946,16 @@ class Program
         var result = lambda(2);     
     }
 }";
-            #endregion
+			#endregion
 
-            AnalyzeExample(source, (s, callgraph) =>
-            {
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-				// This should be reachable
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
-			}, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+				},
+				strategy);
         }
 
 		public static void TestNamedParameters(AnalysisStrategyKind strategy)
@@ -973,13 +1004,15 @@ class Program
 }";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
-			{
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
-				// This should be reachable
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
-				Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "GetValue"), callgraph));
-			}, strategy);
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("D", "GetValue"), callgraph));
+				},
+				strategy);
 		}
 	}
 }

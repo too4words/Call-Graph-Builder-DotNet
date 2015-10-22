@@ -295,10 +295,11 @@
     <Compile Include="Tests\QueryTests.cs" />
     <Compile Include="Tests\Incremental.cs" />
     <Compile Include="Tests\LongTests.cs" />
+    <Compile Include="Tests\TestUtils.cs" />
     <Compile Include="Tests\SoundnessEntireAsync.cs" />
     <Compile Include="Tests\SoundnessOnDemandOrleans.cs" />
     <Compile Include="Tests\SoundnessOnDemandAsync.cs" />
-    <Compile Include="Tests\Tests.cs" />
+    <Compile Include="Tests\SolutionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
