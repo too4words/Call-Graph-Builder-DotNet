@@ -316,6 +316,47 @@ class Program
 				strategy);
 		}
 
+		public static void TestGenericMethod(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+class Program
+{
+	public static void error()
+	{
+	}
+
+	public static void target()
+	{
+	}
+
+	public static void m1(bool p)
+	{
+		error();
+	}
+
+	public static void m1<T>(T p)
+	{
+		target();
+	}
+
+    public static void Main()
+    {
+        m1(5);
+    }
+}";
+			#endregion
+
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "target", true), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("Program", "error", true), callgraph));
+				},
+				strategy);
+		}
+
 		public static void TestSimpleCall(AnalysisStrategyKind strategy)
 		{
 			#region source code

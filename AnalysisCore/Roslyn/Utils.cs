@@ -21,6 +21,12 @@ namespace ReachingTypeAnalysis
 		public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
 		{
 			Contract.Assert(method != null);
+
+			if (method.IsGenericMethod)
+			{
+				method = method.OriginalDefinition;
+			}
+
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,

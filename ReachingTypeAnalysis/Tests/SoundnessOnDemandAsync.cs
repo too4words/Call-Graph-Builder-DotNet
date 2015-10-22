@@ -126,5 +126,13 @@ namespace ReachingTypeAnalysis
 		{
 			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_ASYNC);
 		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestGenericMethodOnDemandAsync()
+		{
+			BasicTests.TestGenericMethod(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
 	}
 }
