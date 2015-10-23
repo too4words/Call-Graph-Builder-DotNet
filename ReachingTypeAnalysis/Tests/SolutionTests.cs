@@ -35,8 +35,7 @@ namespace ReachingTypeAnalysis
 			TestSolution1Incremental(AnalysisStrategyKind.ONDEMAND_ASYNC);
 		}
 
-        [TestMethod]
-		[TestCategory("Solutions")]	
+		// This is not a test method to run directly, use the above methods instead
 		public static void TestSolution1(AnalysisStrategyKind strategy)
         {
 			var solutionPath = @"ConsoleApplication1\base\ConsoleApplication1.sln";
@@ -45,8 +44,7 @@ namespace ReachingTypeAnalysis
 			TestSolution1(solutionPath, strategy);
         }
 
-        [TestMethod]
-		[TestCategory("Solutions")]		
+		// This is not a test method to run directly, use the above methods instead
 		public static void TestRealSolution1(AnalysisStrategyKind strategy)
 		{
 			//var solutionPath = @"buildtools\src\BuildTools.sln";
@@ -56,8 +54,7 @@ namespace ReachingTypeAnalysis
 			TestRealSolution(solutionPath, strategy);
 		}
 
-        [TestMethod]
-		[TestCategory("Solutions")]
+		// This is not a test method to run directly, use the above methods instead
 		public static void TestSolution1Incremental(AnalysisStrategyKind strategy)
 		{
 			var solutionPath = @"ConsoleApplication1\base\ConsoleApplication1.sln";
