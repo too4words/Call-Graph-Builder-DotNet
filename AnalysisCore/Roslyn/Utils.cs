@@ -21,10 +21,17 @@ namespace ReachingTypeAnalysis
 		public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
 		{
 			Contract.Assert(method != null);
+
+			if (method.IsGenericMethod)
+			{
+				method = method.OriginalDefinition;
+			}
+
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
+				method.TypeParameters.Select(parameter => parameter.Name),
 				Utils.CreateTypeDescriptor(method.ReturnType));
 
 			return result;
@@ -64,6 +71,12 @@ namespace ReachingTypeAnalysis
 			else if (type is IArrayTypeSymbol)
 			{
 				var arrayType = type as IArrayTypeSymbol;
+
+				while (arrayType.ElementType is IArrayTypeSymbol)
+				{
+					arrayType = arrayType.ElementType as IArrayTypeSymbol;
+				}
+
 				assemblyName = arrayType.ElementType.ContainingAssembly.Name;
 				namespaceName = Utils.GetFullNamespaceName(arrayType.ElementType);
 				typeName = arrayType.ElementType.Name;
@@ -265,14 +278,10 @@ namespace ReachingTypeAnalysis
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
 
-
 		public static Task<Project> ReadProjectAsync(string path)
 		{
-			var props = new Dictionary<string, string>() {
-                {"CheckForSystemRuntimeDependency", "true" }, //Error occurs with or without this property
-                { "DesignTimeBuild", "true" }, 
-                { "BuildingInsideVisualStudio", "true" }
-            };
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenProjectAsync(path);
 		}
@@ -281,12 +290,8 @@ namespace ReachingTypeAnalysis
 		{
 			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
 
-            var props = new Dictionary<string, string>() {
-                {"CheckForSystemRuntimeDependency", "true" }, //Error occurs with or without this property
-                { "DesignTimeBuild", "true" }, 
-                { "BuildingInsideVisualStudio", "true" }
-            };
-
+			var props = new Dictionary<string, string>();
+			props["CheckForSystemRuntimeDependency"] = "true";
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenSolutionAsync(path);
 		}

@@ -9,7 +9,7 @@ using System.IO.Compression;
 
 namespace ReachingTypeAnalysis
 {
-	public partial class BasicTests
+	public class LongTests
     {
         [TestMethod]
         [TestCategory("Generated")]
@@ -148,7 +148,7 @@ namespace ReachingTypeAnalysis
             var solutionPath = Path.Combine(destinationDirectory, TestConstants.SolutionPath);
             Assert.IsTrue(File.Exists(solutionPath));
 
-			AnalyzeSolution(solutionPath, (s, callgraph) =>
+			TestUtils.AnalyzeSolution(solutionPath, (s, callgraph) =>
             {
                 //var reachable = s.GetReachableMethods(callgraph);
                 //Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main", true)));
@@ -287,7 +287,7 @@ class C
 ";
 			#endregion
 
-			AnalyzeExample(source, (s, callgraph) =>
+			TestUtils.AnalyzeExample(source, (s, callgraph) =>
 			{
 				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main", true), callgraph));
 				Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0", true), callgraph));
@@ -323,7 +323,7 @@ class C
 		{
             var source = BasicTestsSources.Test["LongGeneratedTest2"];
 
-			AnalyzeExample(source, (s, callgraph) =>
+			TestUtils.AnalyzeExample(source, (s, callgraph) =>
             {
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Main", true), callgraph));
                 Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "N0", true), callgraph));
@@ -358,8 +358,8 @@ class C
 		public static void LongGeneratedTestAsync3(AnalysisStrategyKind strategy)
 		{
             var source = BasicTestsSources.Test["LongGeneratedTest3"];
-			
-            AnalyzeExample(source, (s, callgraph) =>
+
+			TestUtils.AnalyzeExample(source, (s, callgraph) =>
             {
                 var reachable = s.GetReachableMethods(callgraph);
                 Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main", true)));
@@ -396,7 +396,7 @@ class C
 		{
             var source = BasicTestsSources.Test["LongGeneratedTest4"];
 
-			AnalyzeExample(source, (s, callgraph) =>
+			TestUtils.AnalyzeExample(source, (s, callgraph) =>
             {
                 var reachable = s.GetReachableMethods(callgraph);
                 Assert.IsTrue(reachable.Contains(new MethodDescriptor("C", "Main", true)));

@@ -2057,6 +2057,8 @@ namespace OrleansInterfacesSerializers
         
         private static System.Reflection.FieldInfo fieldInfo7;
         
+        private static System.Reflection.FieldInfo fieldInfo8;
+        
         static ReachingTypeAnalysis_MethodDescriptorSerialization()
         {
             Register();
@@ -2080,8 +2082,10 @@ namespace OrleansInterfacesSerializers
             fieldInfo5.SetValue(objResult, temp5);
             object temp6 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.ReturnType)));
             fieldInfo6.SetValue(objResult, temp6);
-            object temp7 = fieldInfo7.GetValue(input);
+            object temp7 = ((System.Collections.Generic.IList<System.String>)(Orleans.Serialization.SerializationManager.DeepCopyInner(input.TypeParameters)));
             fieldInfo7.SetValue(objResult, temp7);
+            object temp8 = fieldInfo8.GetValue(input);
+            fieldInfo8.SetValue(objResult, temp8);
             return objResult;
         }
         
@@ -2094,7 +2098,8 @@ namespace OrleansInterfacesSerializers
             Orleans.Serialization.SerializationManager.SerializeInner(input.MethodName, stream, typeof(string));
             Orleans.Serialization.SerializationManager.SerializeInner(input.Parameters, stream, typeof(System.Collections.Generic.IList<ReachingTypeAnalysis.TypeDescriptor>));
             Orleans.Serialization.SerializationManager.SerializeInner(input.ReturnType, stream, typeof(ReachingTypeAnalysis.TypeDescriptor));
-            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo7.GetValue(input), stream, typeof(string));
+            Orleans.Serialization.SerializationManager.SerializeInner(input.TypeParameters, stream, typeof(System.Collections.Generic.IList<System.String>));
+            Orleans.Serialization.SerializationManager.SerializeInner(fieldInfo8.GetValue(input), stream, typeof(string));
         }
         
         public static object Deserializer(System.Type expected, global::Orleans.Serialization.BinaryTokenStreamReader stream)
@@ -2113,8 +2118,10 @@ namespace OrleansInterfacesSerializers
             fieldInfo5.SetValue(objResult, temp5);
             object temp6 = ((ReachingTypeAnalysis.TypeDescriptor)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(ReachingTypeAnalysis.TypeDescriptor), stream)));
             fieldInfo6.SetValue(objResult, temp6);
-            object temp7 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            object temp7 = ((System.Collections.Generic.IList<System.String>)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(System.Collections.Generic.IList<System.String>), stream)));
             fieldInfo7.SetValue(objResult, temp7);
+            object temp8 = ((string)(Orleans.Serialization.SerializationManager.DeserializeInner(typeof(string), stream)));
+            fieldInfo8.SetValue(objResult, temp8);
             return objResult;
         }
         
@@ -2133,7 +2140,9 @@ namespace OrleansInterfacesSerializers
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
             fieldInfo6 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<ReturnType>k__BackingField", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
-            fieldInfo7 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("name", (System.Reflection.BindingFlags.Instance 
+            fieldInfo7 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("<TypeParameters>k__BackingField", (System.Reflection.BindingFlags.Instance 
+                            | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
+            fieldInfo8 = typeof(ReachingTypeAnalysis.MethodDescriptor).GetField("name", (System.Reflection.BindingFlags.Instance 
                             | (System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)));
         }
     }

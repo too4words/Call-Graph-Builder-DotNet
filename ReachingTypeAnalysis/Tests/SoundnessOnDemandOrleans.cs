@@ -138,47 +138,61 @@ namespace ReachingTypeAnalysis
 		}
 
 		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
+		public void TestGenericMethodOnDemandOrleans()
+		{
+			BasicTests.TestGenericMethod(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
 		[TestCategory("Generated")]
 		public void LongGeneratedTestOrleansAsync1()
 		{
-			BasicTests.LongGeneratedTestAsync1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			LongTests.LongGeneratedTestAsync1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
 		}
 
         [TestMethod]
         [TestCategory("Generated")]
         public void LongGeneratedTestOrleansAsync2()
         {
-            BasicTests.LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			LongTests.LongGeneratedTestAsync2(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
         [TestCategory("Generated")]
         public void LongGeneratedTestOrleansAsync3()
         {
-            BasicTests.LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			LongTests.LongGeneratedTestAsync3(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
         [TestCategory("VeryLongRunning")]
         public void LongGeneratedTestOrleansAsync4()
         {
-            BasicTests.LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			LongTests.LongGeneratedTestAsync4(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
         [TestMethod]
         [TestCategory("Solutions")]
         public void TestSolution1OnDemandOrleans()
         {
-            BasicTests.TestSolution1Local(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+			SolutionTests.TestSolution1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
         }
 
-        [TestMethod]
-        [TestCategory("Solutions")]
-        public void TestSolution1OnShareOnDemandOrleans()
-        {
-            BasicTests.TestSolution1Share(AnalysisStrategyKind.ONDEMAND_ORLEANS);
-        }
+		[TestMethod]
+		[TestCategory("Solutions")]
+		public void TestRealSolution1OnDemandOrleans()
+		{
+			SolutionTests.TestRealSolution1(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
 
-
-    }
+		[TestMethod]
+		[TestCategory("Solutions")]
+		[TestCategory("IncrementalOrleans")]
+		public void TestSolution1IncrementalOnDemandOrleans()
+		{
+			SolutionTests.TestSolution1Incremental(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+	}
 }

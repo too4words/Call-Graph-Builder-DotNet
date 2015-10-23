@@ -1,57 +1,40 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
+﻿using Orleans;
+using Orleans.Runtime.Host;
 using ReachingTypeAnalysis;
 using SolutionTraversal.CallGraph;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Configuration;
-using Orleans;
-using System.Diagnostics;
-using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace CallGraphGeneration
+namespace StandaloneOrleansAzure
 {
-    class Program
-    {
+	class Program
+	{
 		private AnalysisStrategyKind strategyKind;
 		private AppDomain hostDomain;
 		private static OrleansHostWrapper hostWrapper;
-
 		public Program(AnalysisStrategyKind strategyKind)
 		{
 			this.strategyKind = strategyKind;
 		}
 
-        static void Main(string[] args)
-        {
-			//// This is to generate big synthetic tests in x64 to avoid getting OutofMemory exceptions
-			//var a = new ReachingTypeAnalysis.Tests.CallGraphGenerator();
-			//a.GenerateSyntheticSolution();
-			//Console.WriteLine("Done!");
-			//return;
-
-			args = new string[]
+		static void Main(string[] args)
+		{
+			if (args.Length == 0)
 			{
-				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
-				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-                //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
-				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\TestsSolutions\synthetic-1000\test.sln", "OnDemandOrleans"
-                //@"c:\Users\diegog\Temp\Projects3\test.sln", "OnDemandOrleans"
-				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
-				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandOrleans"
-				//@"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\Coby\Coby.sln", "OnDemandAsync"
-                //@"C:\Users\t-digarb\Source\Coby\Coby.sln", "OnDemandAsync"
-                //@"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\Coby\Coby.sln", "OnDemandOrleans"
-				
-				//@"C:\Users\Edgar\Projects\Test projects\de4dot\de4dot.sln", "OnDemandAsync"
-				//@"C:\Users\Edgar\Projects\Test projects\RestSharp\RestSharp.sln", "OnDemandAsync"
-				@"C:\Users\Edgar\Projects\Test projects\codeformatter\src\CodeFormatter.sln", "OnDemandAsync" // works!
-				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
-			};
-			
+				args = new string[]
+				{
+					@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+					//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+					//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
+					//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandOrleans"
+				};
+			}
+
 			if (args.Length == 2)
 			{
 				try
@@ -73,15 +56,15 @@ namespace CallGraphGeneration
 
 			Console.WriteLine("Done!");
 			Console.ReadKey();
-        }
+		}
 
 		private CallGraph<MethodDescriptor, LocationDescriptor> BuildCallGraph(string solutionPath)
-        {
+		{
 			Console.WriteLine("Analyzing solution...");
 
 			this.Initialize();
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-            var callgraph = analyzer.Analyze(strategyKind);
+			var callgraph = analyzer.Analyze(strategyKind);
 			this.Cleanup();
 
 			//// TODO: remove this assert, it is just for debugging
@@ -89,17 +72,11 @@ namespace CallGraphGeneration
 
 			var reachableMethods = callgraph.GetReachableMethods();
 			Console.WriteLine("Reachable methods={0}", reachableMethods.Count);
-
-			//if (strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
-			//{
-			//	var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
-			//}
-
-            return callgraph;
-        }
-
+			return callgraph;
+		}
 		private void Initialize()
 		{
+
 			if (strategyKind != AnalysisStrategyKind.ONDEMAND_ORLEANS) return;
 			Console.WriteLine("Initializing Orleans silo...");
 
@@ -109,15 +86,15 @@ namespace CallGraphGeneration
 			{
 				AppDomainInitializer = InitSilo,
 				ApplicationBase = applicationPath,
-				ApplicationName = "CallGraphGeneration",
+				ApplicationName = "ZOrleansAzure",
 				AppDomainInitializerArguments = new string[] { },
-				ConfigurationFile = "CallGraphGeneration.exe.config"
+				ConfigurationFile = "ZOrleansAzure.exe.config"
 			};
 
 			// set up the Orleans silo
 			hostDomain = AppDomain.CreateDomain("OrleansHost", null, appDomainSetup);
 
-			var xmlConfig = "ClientConfigurationForTesting.xml";
+			var xmlConfig = "ClientConfiguration.xml";
 			Contract.Assert(File.Exists(xmlConfig), "Can't find " + xmlConfig);
 
 			GrainClient.Initialize(xmlConfig);
@@ -151,5 +128,6 @@ namespace CallGraphGeneration
 				GC.SuppressFinalize(hostWrapper);
 			}
 		}
-    }
+
+	}
 }

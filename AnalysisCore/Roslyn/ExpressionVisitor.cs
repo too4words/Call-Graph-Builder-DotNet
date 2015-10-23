@@ -752,7 +752,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			Call call = null;
 			// Analyze if it is actually a chain of invocations
 			// in Roslyn rc1 they use Kind() instead of CSharpKind...
-			if (node.Expression.Kind() == (SyntaxKind.SimpleMemberAccessExpression))
+			if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
 			{
 				var simpleAccessMemberExpression = node.Expression as MemberAccessExpressionSyntax;
 				// Analyze the expresion that can be an invocation or an access path
