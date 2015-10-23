@@ -45,7 +45,8 @@ namespace ReachingTypeAnalysis
 
 		public static void TestRealSolution1(AnalysisStrategyKind strategy)
 		{
-			var solutionPath = @"buildtools\src\BuildTools.sln";
+			//var solutionPath = @"buildtools\src\BuildTools.sln";
+			var solutionPath = @"azure-powershell\src\ResourceManager.ForRefactoringOnly.sln";
 			solutionPath = TestUtils.GetRealTestSolutionPath(solutionPath);
 
 			TestRealSolution(solutionPath, strategy);
