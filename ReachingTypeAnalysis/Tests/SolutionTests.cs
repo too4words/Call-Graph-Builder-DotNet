@@ -45,7 +45,7 @@ namespace ReachingTypeAnalysis
 
 		public static void TestRealSolution1(AnalysisStrategyKind strategy)
 		{
-			var solutionPath = @"Roslyn\Roslyn.sln";
+			var solutionPath = @"buildtools\src\BuildTools.sln";
 			solutionPath = TestUtils.GetRealTestSolutionPath(solutionPath);
 
 			TestRealSolution(solutionPath, strategy);
