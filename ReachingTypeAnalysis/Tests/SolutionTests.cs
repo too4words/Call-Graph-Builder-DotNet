@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Orleans;
-using ReachingTypeAnalysis.Analysis;
-using SolutionTraversal.CallGraph;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ReachingTypeAnalysis
 {
