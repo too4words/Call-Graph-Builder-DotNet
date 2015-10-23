@@ -268,8 +268,11 @@ namespace ReachingTypeAnalysis
 
 		public static Task<Project> ReadProjectAsync(string path)
 		{
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
+			var props = new Dictionary<string, string>() {
+                {"CheckForSystemRuntimeDependency", "true" }, //Error occurs with or without this property
+                { "DesignTimeBuild", "true" }, 
+                { "BuildingInsideVisualStudio", "true" }
+            };
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenProjectAsync(path);
 		}
@@ -278,8 +281,12 @@ namespace ReachingTypeAnalysis
 		{
 			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
 
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
+            var props = new Dictionary<string, string>() {
+                {"CheckForSystemRuntimeDependency", "true" }, //Error occurs with or without this property
+                { "DesignTimeBuild", "true" }, 
+                { "BuildingInsideVisualStudio", "true" }
+            };
+
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenSolutionAsync(path);
 		}

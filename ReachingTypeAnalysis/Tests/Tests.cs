@@ -83,6 +83,8 @@ namespace ReachingTypeAnalysis
             BasicTests.TestSolution1Share(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 		
+        [TestMethod]
+        [TestCategory("Solutions")]
         public static void TestSolution1Local(AnalysisStrategyKind strategy)
         {
             var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -93,6 +95,8 @@ namespace ReachingTypeAnalysis
             TestSolution1(strategy, solutionPath);
         }
 
+        [TestMethod]
+        [TestCategory("Solutions")]
 		public static void TestRealSolutionLocal(AnalysisStrategyKind strategy)
 		{
 			var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
