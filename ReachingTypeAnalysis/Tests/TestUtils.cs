@@ -103,10 +103,10 @@ namespace ReachingTypeAnalysis
 			var currentSolutionPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 			currentSolutionPath = Path.GetDirectoryName(currentSolutionPath);
 
-			solutionPath = Path.Combine(currentSolutionPath, @"..\..\..\RealSolutions", solutionPath);
+			solutionPath = Path.Combine(currentSolutionPath, @"..\..\..\..\RealSolutions", solutionPath);
 			solutionPath = Path.GetFullPath(solutionPath);
 
-			Assert.IsTrue(File.Exists(solutionPath));
+            Assert.IsTrue(File.Exists(solutionPath), "Can't find " + solutionPath);
 			return solutionPath;
 		}
 
