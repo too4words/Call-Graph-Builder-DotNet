@@ -43,7 +43,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await StatsHelper.RegisterActivation("ProjectCodeProviderGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
-            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
+            Logger.LogInfo(this.GetLogger(), "ProjectGrain", "OnActivate", "Enter");
 
             // Logger.LogWarning(this.GetLogger(), "ProjectGrain", "OnActivate", "Entering Project: {0}", this.GetPrimaryKeyString());
 
@@ -82,7 +82,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			//});
 
-            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
+            Logger.LogInfo(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
 
 		public override Task OnDeactivateAsync()
@@ -120,7 +120,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			await StatsHelper.RegisterMsg("ProjectGrain::SetProjectPath"+":"+fullPath , this.GrainFactory);
 
-			//Logger.LogWarning(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
+			Logger.LogInfo(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Enter:"+fullPath);
 
             this.State.ProjectPath = fullPath;            
             this.State.AssemblyName = null;
@@ -147,7 +147,7 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			});
 			
-            Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
+            Logger.LogInfo(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
 
         public async Task SetProjectSourceAsync(string source)

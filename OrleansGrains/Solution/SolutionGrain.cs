@@ -39,7 +39,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await StatsHelper.RegisterActivation("SolutionGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
-            Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
+            Logger.LogInfo(this.GetLogger(), "SolutionGrain", "OnActivate","Enter");
 
 			this.observers = new ObserverSubscriptionManager<IEntityGrainObserverNotifications>();
 			this.projectsReadyCount = 0;
@@ -78,7 +78,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			//});
 
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
+			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
 		}
 
 		public override Task OnDeactivateAsync()
@@ -149,7 +149,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			await StatsHelper.RegisterMsg("SolutionGrain::SetSolutionPath", this.GrainFactory);
 
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Enter");
+			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Enter");
 
             this.State.SolutionPath = solutionPath;
 			this.State.Source = null;
@@ -178,7 +178,7 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			//});
 
-			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
+			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
 		}
 
         public async Task SetSolutionSourceAsync(string source)
