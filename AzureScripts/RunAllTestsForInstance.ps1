@@ -9,9 +9,17 @@ param (
 	[int] $repetitions = 50
 	)
 
-$solutionPaths = @("new\synthetic100","new\synthetic1000","new\synthetic10000","new\synthetic100000")
-$solutionNames = @("test","test","test")
-$expIDs= @("test100","test1000","test10000","test100000")
+#$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000","new\synthetic-100000")
+#$solutionNames = @("Longtest1", "test","test","test","test")
+#$expIDs= @("test1","test100","test1000","test10000","test100000")
+
+$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
+$solutionNames = @("Longtest1", "test")
+$expIDs= @("test01", "test1000000")
+
+#$solutionPaths = @("LongTest1", "new\newer\synthetic-100", "new\newer\synthetic-1000")
+#$solutionNames = @("Longtest1", "test", "test")
+#$expIDs= @("test01", "test0100", "test01000")
 
 #$solutionPaths = @("synthetic100","synthetic1000")
 #$solutionNames = @("test","test")
@@ -26,7 +34,7 @@ Write-Host "Machines: " $machines
 for ($i=0; $i -lt $solutionNames.length; $i++) {
 	$solutionPath = $solutionPaths[$i]
     $solutionName = $solutionNames[$i]
-    $expID = $solutionName
+    $expID =$expIDs[$i]
 
     echo "Invoke analysis on" + $expID
 

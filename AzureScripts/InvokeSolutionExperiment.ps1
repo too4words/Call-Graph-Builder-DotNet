@@ -40,9 +40,15 @@ function Wait_For_Ready($timeoutMin)
 			return $true
 		
 		}
-		if ($status -match "None")
+		if ($status -match "Failed")
 		{
 			Write-host "Excecution Failed"
+			return $true		
+		}
+
+		if ($status -match "None")
+		{
+			Write-host "Excecution finished abnormaly"
 			return $true		
 		}
 		Write-host "Not ready yet! Waiting..."

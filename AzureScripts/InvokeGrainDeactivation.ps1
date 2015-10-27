@@ -11,4 +11,4 @@ else
 $controler="api/Experiments"
 $cmd = "?command=Deactivate"
 $uri = $resource+$controler+$cmd
-Invoke-WebRequest -Uri $uri 
+Invoke-WebRequest -Uri $uri -TimeoutSec 5000
