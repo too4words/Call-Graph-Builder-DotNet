@@ -66,7 +66,10 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
+					var inner = ex;
+					while (inner is AggregateException) inner = inner.InnerException;
+
+					Logger.LogError(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}\nInner:\n{1}", ex, inner);
 					throw ex;
 				}
 			});
@@ -141,7 +144,10 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
+					var inner = ex;
+					while (inner is AggregateException) inner = inner.InnerException;
+
+					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}\nInner:\n{1}", ex, inner);
 					throw ex;
 				}
 			});
@@ -173,7 +179,10 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}", ex);
+					var inner = ex;
+					while (inner is AggregateException) inner = inner.InnerException;
+
+					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionSource", "Error:\n{0}\nInner:\n{1}", ex, inner);
 					throw ex;
 				}
 			});
@@ -205,7 +214,10 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}", ex);
+					var inner = ex;
+					while (inner is AggregateException) inner = inner.InnerException;
+
+					Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionFromTest", "Error:\n{0}\nInner:\n{1}", ex, inner);
 					throw ex;
 				}
 			});

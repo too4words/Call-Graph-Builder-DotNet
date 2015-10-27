@@ -51,8 +51,8 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.AssemblyName = this.GetPrimaryKeyString();
 
 			//Task.Run(async () =>
-			await Task.Factory.StartNew(async () =>
-			{
+			//await Task.Factory.StartNew(async () =>
+			//{
 				try
 				{
 					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
@@ -81,7 +81,7 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogError(this.GetLogger(), "ProjectGrain", "OnActivate", "Error:\n{0}", ex);
 					throw ex;
 				}
-			});
+			//});
 
             Logger.LogInfo(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
@@ -131,8 +131,8 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			await Task.Factory.StartNew(async () =>
-			{
+			//await Task.Factory.StartNew(async () =>
+			//{
 				try
 				{
 					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
@@ -146,7 +146,7 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Error:\n{0}", ex);
 					throw ex;
 				}
-			});
+			//});
 			
             Logger.LogInfo(this.GetLogger(), "ProjectGrain", "SetProjectPath", "Exit");
         }
@@ -165,8 +165,8 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			await Task.Factory.StartNew(async () =>
-			{
+			//await Task.Factory.StartNew(async () =>
+			//{
 				try
 				{
 					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
@@ -180,7 +180,7 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Error:\n{0}", ex);
 					throw ex;
 				}
-			});
+			//});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectSource", "Exit");
         }
@@ -199,8 +199,8 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 
 			//Task.Run(async () =>
-			await Task.Factory.StartNew(async () =>
-			{
+			//await Task.Factory.StartNew(async () =>
+			//{
 				try
 				{
 					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
@@ -214,7 +214,7 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogError(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Error:\n{0}", ex);
 					throw ex;
 				}
-			});
+			//});
 
             Logger.LogVerbose(this.GetLogger(), "ProjectGrain", "SetProjectFromTest", "Exit");
         }
