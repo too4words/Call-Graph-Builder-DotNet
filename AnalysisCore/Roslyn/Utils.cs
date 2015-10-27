@@ -21,10 +21,17 @@ namespace ReachingTypeAnalysis
 		public static MethodDescriptor CreateMethodDescriptor(IMethodSymbol method)
 		{
 			Contract.Assert(method != null);
+
+			if (method.IsGenericMethod)
+			{
+				method = method.OriginalDefinition;
+			}
+
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
+				method.TypeParameters.Select(parameter => parameter.Name),
 				Utils.CreateTypeDescriptor(method.ReturnType));
 
 			return result;
@@ -43,15 +50,45 @@ namespace ReachingTypeAnalysis
 		{
 			Contract.Assert(type != null);
 			var assemblyName = "Unknown";
-			var namespaceName = Utils.GetFullNamespaceName(type);
+			var namespaceName = "Unknown";
+			var typeName = "Unknown";
 			var kind = Utils.Convert(type.TypeKind);
 
-			if (type.ContainingAssembly != null)
+			if (type is INamedTypeSymbol)
 			{
-				assemblyName = type.ContainingAssembly.Name;
+				var namedType = type as INamedTypeSymbol;
+				assemblyName = namedType.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(namedType);
+				typeName = namedType.Name;
+			}
+			else if (type is ITypeParameterSymbol)
+			{
+				var typeParameter = type as ITypeParameterSymbol;
+				assemblyName = typeParameter.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(typeParameter);
+				typeName = typeParameter.Name;
+			}
+			else if (type is IArrayTypeSymbol)
+			{
+				var arrayType = type as IArrayTypeSymbol;
+
+				while (arrayType.ElementType is IArrayTypeSymbol)
+				{
+					arrayType = arrayType.ElementType as IArrayTypeSymbol;
+				}
+
+				assemblyName = arrayType.ElementType.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(arrayType.ElementType);
+				typeName = arrayType.ElementType.Name;
+			}
+			else
+			{
+				var message = string.Format("Unsupported type: {0}", type);
+				throw new Exception(message);
 			}
 
-			return new TypeDescriptor(namespaceName, type.Name, assemblyName, type.IsReferenceType, kind, isConcrete);
+			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, type.IsReferenceType, kind, isConcrete);
+			return result;
 		}
 
 		private static string GetFullNamespaceName(ISymbol symbol)
@@ -103,7 +140,7 @@ namespace ReachingTypeAnalysis
 		{
 			var res = type != null &&
 				(type.IsReferenceType ||
-					type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);    // || t.SpecialType==SpecialType.System_Void);
+					type.TypeKind == TypeKind.TypeParameter); // || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
 
@@ -241,11 +278,16 @@ namespace ReachingTypeAnalysis
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
 
-
 		public static Task<Project> ReadProjectAsync(string path)
 		{
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
+			var props = new Dictionary<string, string>()
+			{
+				{ "CheckForSystemRuntimeDependency", "true" },
+				//{ "DesignTimeBuild", "true" },
+				//{ "IntelliSenseBuild", "true" },
+				//{ "BuildingInsideVisualStudio", "true" }
+			};
+
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenProjectAsync(path);
 		}
@@ -254,8 +296,14 @@ namespace ReachingTypeAnalysis
 		{
 			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
 
-			var props = new Dictionary<string, string>();
-			props["CheckForSystemRuntimeDependency"] = "true";
+			var props = new Dictionary<string, string>()
+			{
+				{ "CheckForSystemRuntimeDependency", "true" },
+				//{ "DesignTimeBuild", "true" },
+				//{ "IntelliSenseBuild", "true" },
+				//{ "BuildingInsideVisualStudio", "true" }
+			};
+
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenSolutionAsync(path);
 		}

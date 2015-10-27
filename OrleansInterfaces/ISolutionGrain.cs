@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OrleansInterfaces
 {
-	public interface ISolutionGrain : IGrainWithStringKey, ISolutionManager, IObservableEntityGrain, IEntityGrainObserver
+	public interface ISolutionGrain : IGrainWithStringKey, ISolutionManager, IEntityGrainObserver
     {
         Task SetSolutionPathAsync(string solutionPath);
         Task SetSolutionSourceAsync(string solutionSource);

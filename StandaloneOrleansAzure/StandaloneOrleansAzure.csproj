@@ -7,8 +7,8 @@
     <ProjectGuid>{FCB9990B-1879-4972-8E01-D44FB943DE00}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StandAloneOrlansAzure</RootNamespace>
-    <AssemblyName>ZOrleansAzure</AssemblyName>
+    <RootNamespace>StandaloneOrleansAzure</RootNamespace>
+    <AssemblyName>StandaloneOrleansAzure</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
