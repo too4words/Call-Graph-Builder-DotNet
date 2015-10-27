@@ -45,8 +45,8 @@ namespace ReachingTypeAnalysis.Analysis
 			this.projectsReadyCount = 0;
 
 			//Task.Run(async () =>
-			//await Task.Factory.StartNew(async () =>
-			//{
+			await Task.Factory.StartNew(async () =>
+			{
 			try
 			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
@@ -76,7 +76,7 @@ namespace ReachingTypeAnalysis.Analysis
 				Logger.LogError(this.GetLogger(), "SolutionGrain", "OnActivate", "Error:\n{0}", ex);
 				throw ex;
 			}
-			//});
+			});
 
 			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
 		}
@@ -158,10 +158,10 @@ namespace ReachingTypeAnalysis.Analysis
             await this.WriteStateAsync();
 			this.projectsReadyCount = 0;
 
-			//Task.Run(async () =>
-			//await Task.Factory.StartNew(async () =>
-			//{
-			try
+            //Task.Run(async () =>
+            await Task.Factory.StartNew(async () =>
+            {
+                try
 			{
 				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
@@ -173,12 +173,15 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0}", ex);
+                 var inner = ex;
+                 while (inner is AggregateException) inner = inner.InnerException;
+
+                Logger.LogError(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Error:\n{0} \nInner{1}", ex, inner);
 				throw ex;
 			}
-			//});
+            });
 
-			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
+            Logger.LogInfo(this.GetLogger(), "SolutionGrain", "SetSolutionPath", "Exit");
 		}
 
         public async Task SetSolutionSourceAsync(string source)
