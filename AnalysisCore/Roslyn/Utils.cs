@@ -298,10 +298,10 @@ namespace ReachingTypeAnalysis
 
 			var props = new Dictionary<string, string>()
 			{
-				{ "CheckForSystemRuntimeDependency", "true" },
-				{ "DesignTimeBuild", "true" },
-				{ "IntelliSenseBuild", "true" },
-				{ "BuildingInsideVisualStudio", "true" }
+				//{ "CheckForSystemRuntimeDependency", "true" },
+				//{ "DesignTimeBuild", "true" },
+				//{ "IntelliSenseBuild", "true" },
+				//{ "BuildingInsideVisualStudio", "true" }
 			};
 
 			var ws = MSBuildWorkspace.Create(props);
