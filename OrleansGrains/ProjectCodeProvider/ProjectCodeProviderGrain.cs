@@ -51,36 +51,37 @@ namespace ReachingTypeAnalysis.Analysis
             this.State.AssemblyName = this.GetPrimaryKeyString();
 
 			//Task.Run(async () =>
-			//Task.Factory.StartNew(async () =>
-			//{
-			try
+			await Task.Factory.StartNew(async () =>
 			{
-				this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
+				try
+				{
+					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
-				if (!String.IsNullOrEmpty(this.State.ProjectPath))
-				{
-					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
-				}
-				else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
-				{
-					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
-				}
-				else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
-				{
-					this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
-				}
-				else if (this.State.AssemblyName.Equals("DUMMY"))
-				{
-					this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
-				}
+					if (!String.IsNullOrEmpty(this.State.ProjectPath))
+					{
+						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
+					}
+					else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+					{
+						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
+					}
+					else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
+					{
+						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
+					}
+					else if (this.State.AssemblyName.Equals("DUMMY"))
+					{
+						this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+					}
 
-				this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(this.GetLogger(), "ProjectGrain", "OnActivate", "Error:\n{0}", ex);
-			}
-			//});
+					this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(this.GetLogger(), "ProjectGrain", "OnActivate", "Error:\n{0}", ex);
+					throw ex;
+				}
+			});
 
             Logger.LogInfo(this.GetLogger(), "ProjectGrain", "OnActivate", "Exit");
         }
@@ -94,7 +95,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
-			// TODO: Hack to avoid subscribing the same observer twice
+			// TODO: Hack to avoid subscribing the solution grain observer twice
 			if (this.observers.Count == 0)
 			{
 				this.observers.Subscribe(observer);

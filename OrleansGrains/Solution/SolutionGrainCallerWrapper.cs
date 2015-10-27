@@ -124,16 +124,6 @@ namespace ReachingTypeAnalysis.Analysis
            return solutionGrain.GetMethodDescriptorByIndexAsync(index);
         }
 
-		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
-		{
-			return solutionGrain.AddObserverAsync(observer);
-		}
-
-		public Task RemoveObserverAsync(IEntityGrainObserverNotifications observer)
-		{
-			return solutionGrain.RemoveObserverAsync(observer);
-		}
-
 		public Task<EntityGrainStatus> GetStatusAsync()
 		{
 			return solutionGrain.GetStatusAsync();
