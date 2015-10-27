@@ -30,7 +30,7 @@ Write-Host "Result:" $result1
 echo "Invoke query"
 #$job = Start-Job { 
 	#$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -className $className -methodPrefix $methodPrefix -machines $machines -numberOfMethods $numberOfMethods -repetitions $repetitions -assemblyName $assemblyName -expID $solutionName | Write-Output
-	$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -machines $machines -repetitions $repetitions -expID $solutionName | Write-Output
+	$result2 = & "$ScriptPath\InvokeRandomQueries.ps1" -machines $machines -repetitions $repetitions -expID $expID | Write-Output
 #}
 #Wait-Job $job
 #Receive-Job $job
