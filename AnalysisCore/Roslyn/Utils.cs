@@ -140,7 +140,7 @@ namespace ReachingTypeAnalysis
 		{
 			var res = type != null &&
 				(type.IsReferenceType ||
-					type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter);    // || t.SpecialType==SpecialType.System_Void);
+					type.TypeKind == TypeKind.TypeParameter); // || t.SpecialType==SpecialType.System_Void);
 			return res;
 		}
 
@@ -283,9 +283,9 @@ namespace ReachingTypeAnalysis
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
-				{ "DesignTimeBuild", "true" },
-				{ "IntelliSenseBuild", "true" },
-				{ "BuildingInsideVisualStudio", "true" }
+				//{ "DesignTimeBuild", "true" },
+				//{ "IntelliSenseBuild", "true" },
+				//{ "BuildingInsideVisualStudio", "true" }
 			};
 
 			var ws = MSBuildWorkspace.Create(props);
@@ -298,7 +298,7 @@ namespace ReachingTypeAnalysis
 
 			var props = new Dictionary<string, string>()
 			{
-				//{ "CheckForSystemRuntimeDependency", "true" },
+				{ "CheckForSystemRuntimeDependency", "true" },
 				//{ "DesignTimeBuild", "true" },
 				//{ "IntelliSenseBuild", "true" },
 				//{ "BuildingInsideVisualStudio", "true" }
