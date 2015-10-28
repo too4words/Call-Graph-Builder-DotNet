@@ -506,45 +506,81 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			var symbol = this.model.GetSymbolInfo(node).Symbol;
 			var type = GetTypeSymbol(node);
+
+			if (symbol == null && type.TypeKind == TypeKind.Dynamic)
+			{
+				return null;
+			}
+
 			switch (symbol.Kind)
 			{
 				case SymbolKind.Field:
-					return new Field(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
-					// Do you need to add a thisRef? 
-					// In the current version no because a node is C.f
-				case SymbolKind.Method:
-					return new Method(node, type, (IMethodSymbol)symbol, this.roslynMethodVisitor.DeclarationNode);
-				case SymbolKind.Property:
-					// For the special case of propery setter, e.g. this.a.b.c = value, a and b are getters but c is setter
-					var isSetter = this.leftHandSide && 
-						( (node.Parent is AssignmentExpressionSyntax) || 
-						  (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
-					return new Property(node, type, symbol, isSetter, this.roslynMethodVisitor.DeclarationNode);
-				case SymbolKind.Local:
-					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
-				case SymbolKind.Parameter:
-					// I need to return the already created parameter node
-					var i = 0;
-					foreach (var parameterNode in this.statementProcessor.ParameterNodes)
 					{
-						Contract.Assert(parameterNode != null);
-						if (parameterNode.Name.Equals(symbol.Name))
-						{
-							return new Parameter(i, node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
-						}
-						i++;
+						return new Field(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
 					}
-					Contract.Assert(false, "Can't find parameter by name " + symbol.Name);
-					return null;
+
+				case SymbolKind.Method:
+					{
+						// Do you need to add a thisRef? 
+						// In the current version no because a node is C.f
+						return new Method(node, type, (IMethodSymbol)symbol, this.roslynMethodVisitor.DeclarationNode);
+					}
+
+				case SymbolKind.Property:
+					{
+						// For the special case of propery setter, e.g. this.a.b.c = value, a and b are getters but c is setter
+						var isSetter = this.leftHandSide &&
+							((node.Parent is AssignmentExpressionSyntax) ||
+							 (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+
+						return new Property(node, type, symbol, isSetter, this.roslynMethodVisitor.DeclarationNode);
+					}
+
+				case SymbolKind.Local:
+					{
+						return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+					}
+
+				case SymbolKind.Parameter:
+					{
+						// I need to return the already created parameter node
+						var i = 0;
+
+						foreach (var parameterNode in this.statementProcessor.ParameterNodes)
+						{
+							Contract.Assert(parameterNode != null);
+							if (parameterNode.Name.Equals(symbol.Name))
+							{
+								return new Parameter(i, node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+							}
+							i++;
+						}
+
+						if (this.statementProcessor.Method.IsAnonymousDescriptor)
+						{
+							goto case SymbolKind.Local;
+						}
+
+						Contract.Assert(false, "Can't find parameter by name " + symbol.Name);
+						return null;
+					}
+
 				case SymbolKind.NamedType:
-					// Todo create a NamedType type?
-					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+					{
+						// Todo create a NamedType type?
+						return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+					}
+
 				//case SymbolKind.Namespace:
 				//	break;
+
 				default:
-					return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+					{
+						return new Identifier(node, type, symbol, this.roslynMethodVisitor.DeclarationNode);
+					}
 			}
-			throw new System.ArgumentException();
+
+			throw new ArgumentException();
 		}
 
         #region allocation
@@ -1012,46 +1048,51 @@ namespace ReachingTypeAnalysis.Roslyn
             PropGraphNodeDescriptor receiverArg = null;
             // A MemberExpression looks like reference.Name, reference can be a path and Name is an identifier of a Field or Delegate
             var nameExpresssion = Visit(node.Name);
-            var symbol = this.model.GetSymbolInfo(node.Name).Symbol;
-            
-            //if (nameExpresssion == null)
-            //{
-            //    // If is a namespace, that means that the reference expression is the prexif of the namespace
-            //    if (symbol.Kind == SymbolKind.Namespace)
-            //    {
-            //        return CreateUnsupportedExpression(node);
-            //    }
-            //}
 
-			// If it is a type, the reference is a namespace
-            if (symbol.Kind == SymbolKind.NamedType)
+			if (nameExpresssion != null)
 			{
-				return CreateUnsupportedExpression(node);
-			}
-            var referenceExpression = Visit(node.Expression);
- 
-            if (referenceExpression != null)
-            {                
-                if (nameExpresssion is Property)
-                {
-					// The property getter is analyzed here, but the setters are analyzed in the assigments (and converted to call set(value))
-					var property = (Property)nameExpresssion;
-					if (property.RoslynMethod.MethodKind == MethodKind.PropertyGet)
+				var symbol = this.model.GetSymbolInfo(node.Name).Symbol;
+
+				//if (nameExpresssion == null)
+				//{
+				//    // If is a namespace, that means that the reference expression is the prexif of the namespace
+				//    if (symbol.Kind == SymbolKind.Namespace)
+				//    {
+				//        return CreateUnsupportedExpression(node);
+				//    }
+				//}
+
+				// If it is a type, the reference is a namespace
+				if (symbol.Kind == SymbolKind.NamedType)
+				{
+					return CreateUnsupportedExpression(node);
+				}
+				var referenceExpression = Visit(node.Expression);
+
+				if (referenceExpression != null)
+				{
+					if (nameExpresssion is Property)
 					{
-						res = AnalyzePropertyGetter(node, receiverArg, referenceExpression, property);
+						// The property getter is analyzed here, but the setters are analyzed in the assigments (and converted to call set(value))
+						var property = (Property)nameExpresssion;
+						if (property.RoslynMethod.MethodKind == MethodKind.PropertyGet)
+						{
+							res = AnalyzePropertyGetter(node, receiverArg, referenceExpression, property);
+						}
 					}
-                }
-                //else if (nameExpresssion is Method)
-                //{
-                //    // Is it a delegate because is not an invocation
-                //    var methodExpression = nameExpresssion as Method;
-                //    var delegateMethod = methodExpression.RoslynMethod;
-                //    //this.StatementProcessor.RegisterDelegateAssignment(lhsAnalysisNode, new AMethod(delegateMethod));
-                //}
-                return new MemberAccess(node, referenceExpression, node.Expression,
-                                        (Identifier)nameExpresssion, node.Name, 
-										nameExpresssion.Type, this.roslynMethodVisitor.DeclarationNode);
-            }
+					//else if (nameExpresssion is Method)
+					//{
+					//    // Is it a delegate because is not an invocation
+					//    var methodExpression = nameExpresssion as Method;
+					//    var delegateMethod = methodExpression.RoslynMethod;
+					//    //this.StatementProcessor.RegisterDelegateAssignment(lhsAnalysisNode, new AMethod(delegateMethod));
+					//}
+					return new MemberAccess(node, referenceExpression, node.Expression,
+											(Identifier)nameExpresssion, node.Name,
+											nameExpresssion.Type, this.roslynMethodVisitor.DeclarationNode);
+				}
+			}
+
             return CreateUnsupportedExpression(node);
         }
 

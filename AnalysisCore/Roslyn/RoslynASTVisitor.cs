@@ -597,9 +597,16 @@ namespace ReachingTypeAnalysis
         /// <returns></returns>
         public override object VisitForStatement(ForStatementSyntax node)
         {
-            // Should do the same as LocalDeclarations
-            AnalyzeDeclaration(node.Declaration);
-            Visit(node.Statement);
+			if (node.Declaration != null)
+			{
+				// Should do the same as LocalDeclarations
+				AnalyzeDeclaration(node.Declaration);
+			}
+
+			if (node.Statement != null)
+			{
+				Visit(node.Statement);
+			}
 
 			if (node.Condition != null)
 			{

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
 
 namespace ReachingTypeAnalysis
 {
@@ -35,31 +36,7 @@ namespace ReachingTypeAnalysis
 			var solutionPath = @"ConsoleApplication1\base\ConsoleApplication1.sln";
 			solutionPath = TestUtils.GetTestSolutionPath(solutionPath);
 
-			TestSolution1(solutionPath, strategy);
-        }
-
-		// This is not a test method to run directly, use the above methods instead
-		public static void TestRealSolution1(AnalysisStrategyKind strategy)
-		{
-			//var solutionPath = @"buildtools\src\BuildTools.sln";
-			var solutionPath = @"azure-powershell\src\ResourceManager.ForRefactoringOnly.sln";
-			solutionPath = TestUtils.GetRealTestSolutionPath(solutionPath);
-
-			TestRealSolution(solutionPath, strategy);
-		}
-
-		// This is not a test method to run directly, use the above methods instead
-		public static void TestSolution1Incremental(AnalysisStrategyKind strategy)
-		{
-			var solutionPath = @"ConsoleApplication1\base\ConsoleApplication1.sln";
-			solutionPath = TestUtils.GetTestSolutionPath(solutionPath);
-
-			TestSolution1Incremental(solutionPath, strategy);
-		}
-
-        private static void TestSolution1(string solutionPath, AnalysisStrategyKind strategy)
-		{
-            TestUtils.AnalyzeSolution(solutionPath,
+			TestUtils.AnalyzeSolution(solutionPath,
 				(s, callgraph) =>
 				{
 					//callgraph.Save("solution1.dot");
@@ -72,19 +49,30 @@ namespace ReachingTypeAnalysis
 				strategy);
         }
 
-		private static void TestRealSolution(string solutionPath, AnalysisStrategyKind strategy)
+		// This is not a test method to run directly, use the above methods instead
+		public static void TestRealSolution1(AnalysisStrategyKind strategy)
 		{
+			//var solutionPath = @"buildtools\src\BuildTools.sln";
+			var solutionPath = @"codeformatter\src\CodeFormatter.sln";
+			//var solutionPath = @"azure-powershell\src\ResourceManager.ForRefactoringOnly.sln";
+			solutionPath = TestUtils.GetRealTestSolutionPath(solutionPath);
+
 			TestUtils.AnalyzeSolution(solutionPath,
 				(s, callgraph) =>
 				{
 					var reachableMethods = callgraph.GetReachableMethods();
+					Debug.WriteLine("Reachable methods: {0}", reachableMethods.Count);
 					Assert.IsTrue(reachableMethods.Count > 0);
 				},
 				strategy);
 		}
 
-		private static void TestSolution1Incremental(string solutionPath, AnalysisStrategyKind strategy)
+		// This is not a test method to run directly, use the above methods instead
+		public static void TestSolution1Incremental(AnalysisStrategyKind strategy)
 		{
+			var solutionPath = @"ConsoleApplication1\base\ConsoleApplication1.sln";
+			solutionPath = TestUtils.GetTestSolutionPath(solutionPath);
+
 			var baseFolder = Path.GetDirectoryName(solutionPath);
 			var testRootFolder = Directory.GetParent(baseFolder).FullName;
 			var currentFolder= Path.Combine(testRootFolder, "current");

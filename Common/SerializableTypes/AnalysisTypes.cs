@@ -430,8 +430,9 @@ namespace ReachingTypeAnalysis
         public string NamespaceName { get; private set; }
         public string ClassName { get; private set; }
         public string AssemblyName { get; private set; }
+		public IList<string> TypeParameters { get; private set; }
 
-        public TypeDescriptor(string namespaceName, string className, string assemblyName = TestConstants.ProjectAssemblyName, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
+		public TypeDescriptor(string namespaceName, string className, string assemblyName = TestConstants.ProjectAssemblyName, IEnumerable<string> typeParameters = null, bool isReferenceType = true, SerializableTypeKind kind = SerializableTypeKind.Undefined, bool isConcrete = true)
         {
             this.NamespaceName = namespaceName;
             this.ClassName = className;
@@ -439,7 +440,13 @@ namespace ReachingTypeAnalysis
             this.Kind = kind;
             this.IsConcreteType = isConcrete;
             this.AssemblyName = assemblyName;
-        }
+
+			if (typeParameters != null)
+			{
+				this.TypeParameters = new List<string>(typeParameters);
+			}
+		}
+
         public TypeDescriptor(TypeDescriptor typeDescriptor, bool isConcrete = true)
         {
             this.NamespaceName = typeDescriptor.NamespaceName;
@@ -447,17 +454,30 @@ namespace ReachingTypeAnalysis
             this.IsReferenceType = typeDescriptor.IsReferenceType;
             this.Kind = typeDescriptor.Kind;
             this.AssemblyName = typeDescriptor.AssemblyName;
-            this.IsConcreteType = isConcrete;
+			this.TypeParameters = typeDescriptor.TypeParameters;
+			this.IsConcreteType = isConcrete;
         }
 
         public string TypeName
         {
             get
             {
-                var typeName = this.ClassName;
-                if (!String.IsNullOrEmpty(this.NamespaceName))
-                    typeName = this.NamespaceName + '.' + this.ClassName;
-                return typeName;
+				var typeName = new StringBuilder();				
+
+				if (!string.IsNullOrEmpty(this.NamespaceName))
+				{
+					typeName.AppendFormat("{0}.", this.NamespaceName);
+				}
+
+				typeName.Append(this.ClassName);
+
+				if (this.TypeParameters != null && this.TypeParameters.Count > 0)
+				{
+					var parameters = string.Join(",", this.TypeParameters);
+					typeName.AppendFormat("<{0}>", parameters);
+				}
+
+                return typeName.ToString();
             }
         }
 
@@ -469,16 +489,17 @@ namespace ReachingTypeAnalysis
         // TODO: Fix the equals, but we need to resolve the default values
         public override bool Equals(object obj)
         {
-            var typeDescriptor = (TypeDescriptor)obj;
-            var eqKind = typeDescriptor.Kind.Equals(SerializableTypeKind.Undefined) ||
+            var td = (TypeDescriptor)obj;
+            var eqKind = td.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(SerializableTypeKind.Undefined) ||
-                          this.Kind.Equals(typeDescriptor.Kind);
-            var eqRef = this.IsReferenceType == typeDescriptor.IsReferenceType;
-            var eqConcrete = this.IsConcreteType == typeDescriptor.IsConcreteType;
+                          this.Kind.Equals(td.Kind);
+            var eqRef = this.IsReferenceType == td.IsReferenceType;
+            var eqConcrete = this.IsConcreteType == td.IsConcreteType;
+			var eqTP = this.TypeParameters == null || td.TypeParameters == null || this.TypeParameters.SequenceEqual(td.TypeParameters);
 
-            return this.FullTypeName.Equals(typeDescriptor.FullTypeName)
+			return this.FullTypeName.Equals(td.FullTypeName)
                     //       && eqRef && eqConcrete
-                    && eqKind;
+                    && eqKind && eqTP;
         }
 
         // TODO: Fix the equals, but we need to resolve the default values
@@ -495,30 +516,52 @@ namespace ReachingTypeAnalysis
 
         public bool IsDelegate
         {
-            get
-            {
-                return this.Kind.Equals(SerializableTypeKind.Delegate);
-            }
+            get { return this.Kind.Equals(SerializableTypeKind.Delegate); }
         }
 
         internal string Marshall()
         {
             var result = new StringBuilder();
+
             result.Append(this.AssemblyName);
             result.Append("=");
             result.Append(this.NamespaceName);
             result.Append("=");
             result.Append(this.ClassName);
+			result.Append("=");			
 
-            return result.ToString();
+			if (this.TypeParameters != null && this.TypeParameters.Count > 0)
+			{
+				var parameters = string.Join("=", this.TypeParameters);
+
+				result.Append(this.TypeParameters.Count);
+				result.Append("=");
+				result.Append(parameters);
+			}
+			else
+			{
+				result.Append(0);
+			}
+
+			return result.ToString();
         }
+
         internal static TypeDescriptor DeMarshall(string typeString)
         {
             var tokens = typeString.Split('=');
             var assemblyName = tokens[0];
             var namespaceName = tokens[1];
             var className = tokens[2];
-            return new TypeDescriptor(namespaceName, className, assemblyName, true, SerializableTypeKind.Undefined, true);
+			var parametersCount = Convert.ToInt32(tokens[3]);
+			var parametersType = new List<string>();
+
+			for (var i = 0; i < parametersCount; ++i)
+			{
+				var paramName = tokens[i + 4];
+				parametersType.Add(paramName);
+			}
+
+            return new TypeDescriptor(namespaceName, className, assemblyName, parametersType, true, SerializableTypeKind.Undefined, true);
         }
     }
 
@@ -609,7 +652,7 @@ namespace ReachingTypeAnalysis
 
         public override string ToString()
         {
-            return string.Format("{0}:{1}", this.Name, this.Type);
+            return string.Format("{0}: {1}", this.Name, this.Type);
             //string tString = "Dummy";
             //if (this.DeclaredType != null)
             //    tString = this.DeclaredType.TypeName;
@@ -719,7 +762,7 @@ namespace ReachingTypeAnalysis
         { }
         public override string ToString()
         {
-            return "Delegate: " + base.ToString();
+            return "delegate: " + base.ToString();
         }
     }
 

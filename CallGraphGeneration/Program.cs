@@ -37,9 +37,10 @@ namespace CallGraphGeneration
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
+				//@"..\..\..\TestsSolutions\LongTest2\LongTest2.sln", "OnDemandOrleans"
                 //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\TestsSolutions\synthetic-1000\test.sln", "OnDemandOrleans"
-                @"C:\Users\diegog\Temp\newSynthetic\synthetic-1000000\test.sln", "OnDemandOrleans"
+                //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000000\test.sln", "OnDemandOrleans"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandAsync"
 				//@"C:\Users\t-edzopp\Desktop\Roslyn\Roslyn.sln", "OnDemandOrleans"
 				//@"C:\Users\t-edzopp\Desktop\ArcusClientPrototype\src\ArcusClient\data\Coby\Coby.sln", "OnDemandAsync"
@@ -50,8 +51,8 @@ namespace CallGraphGeneration
 				//@"C:\Users\Edgar\Projects\Test projects\RestSharp\RestSharp.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Test projects\buildtools\src\BuildTools.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Test projects\codeformatter\src\CodeFormatter.sln", "OnDemandAsync" // works!
-
 				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
+				@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandAsync"
 			};
 			
 			if (args.Length == 2)

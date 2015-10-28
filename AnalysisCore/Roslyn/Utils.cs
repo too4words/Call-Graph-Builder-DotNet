@@ -52,12 +52,14 @@ namespace ReachingTypeAnalysis
 			var assemblyName = "Unknown";
 			var namespaceName = "Unknown";
 			var typeName = "Unknown";
+			var typeParameters = Enumerable.Empty<string>();
 			var kind = Utils.Convert(type.TypeKind);
 
 			if (type is INamedTypeSymbol)
 			{
 				var namedType = type as INamedTypeSymbol;
-				assemblyName = namedType.ContainingAssembly.Name;
+				typeParameters = namedType.TypeParameters.Select(parameter => parameter.Name);
+                assemblyName = namedType.ContainingAssembly.Name;
 				namespaceName = Utils.GetFullNamespaceName(namedType);
 				typeName = namedType.Name;
 			}
@@ -81,13 +83,31 @@ namespace ReachingTypeAnalysis
 				namespaceName = Utils.GetFullNamespaceName(arrayType.ElementType);
 				typeName = arrayType.ElementType.Name;
 			}
+			else if (type is IPointerTypeSymbol)
+			{
+				var pointerType = type as IPointerTypeSymbol;
+
+				while (pointerType.PointedAtType is IPointerTypeSymbol)
+				{
+					pointerType = pointerType.PointedAtType as IPointerTypeSymbol;
+				}
+
+				assemblyName = pointerType.PointedAtType.ContainingAssembly.Name;
+				namespaceName = Utils.GetFullNamespaceName(pointerType.PointedAtType);
+				typeName = pointerType.PointedAtType.Name;
+			}
+			else if (type is IDynamicTypeSymbol)
+			{
+				var dynamicType = type as IDynamicTypeSymbol;
+				typeName = "dynamic";
+			}
 			else
 			{
 				var message = string.Format("Unsupported type: {0}", type);
 				throw new Exception(message);
 			}
 
-			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, type.IsReferenceType, kind, isConcrete);
+			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, typeParameters, type.IsReferenceType, kind, isConcrete);
 			return result;
 		}
 
@@ -151,7 +171,7 @@ namespace ReachingTypeAnalysis
 
 			// Diego: Need to provide the complete signature
 			//var candidates = rType.GetMembers().Where(s => s.Name.Equals(method.Name));
-			do
+			while (result == null && rType != null)
 			{
 				var candidates = rType.GetMembers(methodOrProperty.Name);
 				//var m2 = method.ReduceExtensionMethod(rType);
@@ -180,7 +200,7 @@ namespace ReachingTypeAnalysis
 					}
 				}
 				rType = rType.BaseType;
-			} while (result == null && rType != null);
+			}
 			return result;
 		}
 
