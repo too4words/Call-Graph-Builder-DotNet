@@ -94,20 +94,33 @@ namespace ReachingTypeAnalysis.Roslyn
         public static INamedTypeSymbol GetTypeByName(TypeDescriptor typeDescriptor, Compilation compilation)
         {
             //return GetTypeByName(typeDescriptor.TypeName, compilation);
-			var type = compilation.GetTypeByMetadataName(typeDescriptor.TypeName);
+			var type = compilation.GetTypeByMetadataName(typeDescriptor.QualifiedTypeName);
+			
 			// Another way to access the info
 			if (type == null)
 			{
-				Func<string, bool> pred = s => { return s.Equals(typeDescriptor.ClassName); };
+				//var references = compilation.References
+				//					.OfType<CompilationReference>()
+				//					.ToDictionary(r => r.Compilation.AssemblyName, r => r.Compilation);
+
+				//if (references.ContainsKey(typeDescriptor.AssemblyName))
+				//{
+				//	compilation = references[typeDescriptor.AssemblyName];
+				//}
+
+				Func<string, bool> pred = s => s.Equals(typeDescriptor.ClassName);
 				var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type).OfType<INamedTypeSymbol>();
+
 				if (symbols.Count() > 0)
 				{
-					type = symbols.Single( t => Utils.CreateTypeDescriptor(t).Equals(typeDescriptor)) ;
+					type = symbols.SingleOrDefault(t => typeDescriptor.Equals(Utils.CreateTypeDescriptor(t)));
 				}
 			}
+
 			return type;
         }
-        public static INamedTypeSymbol GetTypeByName(string className, Compilation compilation)
+
+		public static INamedTypeSymbol GetTypeByName(string className, Compilation compilation)
         {
             var type = compilation.GetTypeByMetadataName(className);
             // Another way to access the info

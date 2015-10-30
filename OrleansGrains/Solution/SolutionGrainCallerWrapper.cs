@@ -23,16 +23,10 @@ namespace ReachingTypeAnalysis.Analysis
 			RequestContext.Set(StatsHelper.CALLER_ADDR_CONTEXT, StatsHelper.CreateMyIPAddrContext());
 		}
 
-		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
 			this.SetRequestContext();
-			return solutionGrain.GetRootsAsync();
-		}
-
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			this.SetRequestContext();
-			return solutionGrain.GetPublicMethodsAsync();
+			return solutionGrain.GetRootsAsync(rootKind);
 		}
 
 		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()

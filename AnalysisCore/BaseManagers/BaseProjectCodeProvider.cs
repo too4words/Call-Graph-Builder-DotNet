@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using DocumentPath = System.String;
 using Orleans;
+using System.Text;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -180,12 +181,42 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
         public abstract Task<int> GetReachableMethodsCountAsync();
 
-        public virtual Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
+        public virtual async Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {
-            var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
-            var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
+			var result = false;
 
-            return Task.FromResult(TypeHelper.InheritsByName(roslynType1, roslynType2));
+			if (typeDescriptor1.Equals(typeDescriptor2))
+			{
+				result = true;
+			}
+			else
+			{
+				var roslynType1 = RoslynSymbolFactory.GetTypeByName(typeDescriptor1, this.Compilation);
+
+				if (roslynType1 == null && typeDescriptor1.AssemblyName != this.Project.AssemblyName)
+				{
+					// We assume if T1 <= T2, then the project (compilation) where T1 is declared must know T2 also
+					var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(typeDescriptor1.AssemblyName);
+					result = await projectProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+				}
+				else
+				{
+					var roslynType2 = RoslynSymbolFactory.GetTypeByName(typeDescriptor2, this.Compilation);
+
+					if (roslynType2 == null)
+					{
+						// We assume if this project (compilation) knows T1 but don't know T2,
+						// then it cannot be T1 <= T2
+						result = false;
+					}
+					else
+					{
+						result = TypeHelper.InheritsByName(roslynType1, roslynType2);
+					}
+				}
+			}
+
+			return result;
         }
 
 		public async Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor)
@@ -199,8 +230,12 @@ namespace ReachingTypeAnalysis.Analysis
 				var roslynMethod = methodParserInfo.MethodSymbol;
 				var roslynType = RoslynSymbolFactory.GetTypeByName(typeDescriptor, this.Compilation);
 				var implementedMethod = Utils.FindMethodImplementation(roslynMethod, roslynType);
-				Contract.Assert(implementedMethod != null);
-				methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+				//Contract.Assert(implementedMethod != null);
+
+				if (implementedMethod != null)
+				{
+					methodDescriptor = Utils.CreateMethodDescriptor(implementedMethod);
+				}
 			}
 			else
 			{
@@ -253,7 +288,21 @@ namespace ReachingTypeAnalysis.Analysis
 			var result = new HashSet<TypeDescriptor>();
 			var instantiatedTypes = await this.rtaManager.GetInstantiatedTypesAsync();
 
-            foreach (var potentialType in instantiatedTypes)
+			//if (type.QualifiedTypeName == "System.Threading.Tasks.Task<AnalysisEngine>")
+			//{
+			//	var line = new StringBuilder();
+
+			//	foreach (var potentialType in instantiatedTypes)
+			//	{
+			//		line.AppendLine(potentialType.QualifiedTypeName);
+			//	}
+
+			//	line.AppendLine();
+
+			//	File.AppendAllText(@"C:\Users\Edgar\Downloads\log.txt", line.ToString());
+			//}
+			
+			foreach (var potentialType in instantiatedTypes)
 			{
 				var isSubtype = await this.IsSubtypeAsync(potentialType, type);
 
@@ -266,7 +315,32 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
+		{
+			IEnumerable<MethodDescriptor> result = null;
+
+			switch (rootKind)
+			{
+				case AnalysisRootKind.MainMethods:
+					result = await this.GetMainMethodsAsync();
+					break;
+
+				case AnalysisRootKind.TestMethods:
+					result = await this.GetTestMethodsAsync();
+					break;
+
+				case AnalysisRootKind.PublicMethods:
+					result = await this.GetPublicMethodsAsync();
+					break;
+
+				default:
+					throw new ArgumentException("rootKind");
+			}
+
+			return result;
+		}
+
+		private Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync()
         {
             var result = new HashSet<MethodDescriptor>();
             var cancellationTokenSource = new CancellationTokenSource();
@@ -278,25 +352,69 @@ namespace ReachingTypeAnalysis.Analysis
                 var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
                 result.Add(methodDescriptor);
             }
+
             return Task.FromResult(result.AsEnumerable());
         }
 
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		private Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
 		{
 			var result = new HashSet<MethodDescriptor>();
-			Func<string, bool> pred = (s) => true;
-			var symbols = compilation.GetSymbolsWithName(pred, SymbolFilter.Type).OfType<INamedTypeSymbol>();
-			foreach (var type in symbols.Where(s => s.DeclaredAccessibility == Accessibility.Public))
+			var symbols = this.Compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+										  .OfType<INamedTypeSymbol>()
+										  .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+
+			foreach (var type in symbols)
 			{
-				foreach (var methodSymbol in type.GetMembers().OfType<IMethodSymbol>())
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+
+				foreach (var methodSymbol in methods)
 				{
-					if (methodSymbol.DeclaredAccessibility == Accessibility.Public)
-					{
-						var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
-						result.Add(methodDescriptor);
-					}
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
 				}
 			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private Task<IEnumerable<MethodDescriptor>> GetTestMethodsAsync()
+		{
+			var classAttributes = new string[] { "TestClassAttribute" };
+			var methodAttributes = new string[] { "TestMethodAttribute", "TestInitializeAttribute",
+												  "TestCleanupAttribute", "FactAttribute" };
+
+			Func<INamedTypeSymbol, bool> classPred = s => s.DeclaredAccessibility == Accessibility.Public; //&&
+														  //s.GetAttributes()
+														  // .Select(a => a.AttributeClass.Name)
+														  // .Intersect(classAttributes)
+														  // .Any();
+
+			Func<IMethodSymbol, bool> methodPred = s => s.DeclaredAccessibility == Accessibility.Public &&
+														s.GetAttributes()
+														 .Select(a => a.AttributeClass.Name)
+														 .Intersect(methodAttributes)
+														 .Any();
+
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = this.Compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+										  .OfType<INamedTypeSymbol>()
+										  .Where(classPred);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(methodPred);
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
 			return Task.FromResult(result.AsEnumerable());
 		}
 

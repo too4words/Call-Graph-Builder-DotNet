@@ -52,7 +52,8 @@ namespace CallGraphGeneration
 				//@"C:\Users\Edgar\Projects\Test projects\buildtools\src\BuildTools.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Test projects\codeformatter\src\CodeFormatter.sln", "OnDemandAsync" // works!
 				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
-				@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandAsync"
+				@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandOrleans"
+                //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandOrleans"
 			};
 			
 			if (args.Length == 2)
@@ -84,7 +85,14 @@ namespace CallGraphGeneration
 
 			this.Initialize();
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-            var callgraph = analyzer.Analyze(strategyKind);
+            analyzer.AnalyzeAsync(strategyKind).Wait();
+
+			var reachableMethodsCount = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
+			Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
+
+			Console.WriteLine("Generating call graph...");
+
+			var callgraph = analyzer.GenerateCallGraphAsync().Result;
 			this.Cleanup();
 
 			//// TODO: remove this assert, it is just for debugging

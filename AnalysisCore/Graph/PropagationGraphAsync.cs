@@ -79,7 +79,6 @@ namespace ReachingTypeAnalysis
 			return Task.FromResult(false);
 		}
 
-
         internal async Task<bool> IsAssignableAsync(TypeDescriptor t1, PropGraphNodeDescriptor analysisNode)
         {
             // Contract.Assert(this.codeProvider!=null);
@@ -90,11 +89,11 @@ namespace ReachingTypeAnalysis
 
             var res = true;
             // Ugly
-            TypeDescriptor type1 = t1;
-
+            var type1 = t1;
             var type2 = analysisNode.Type;
+			var isSubType = await this.codeProvider.IsSubtypeAsync(type1, type2);
 
-            if (!(await this.codeProvider.IsSubtypeAsync(type1, type2)))
+			if (!isSubType)
             {
                 if (!type2.IsDelegate)
                 {
@@ -104,6 +103,7 @@ namespace ReachingTypeAnalysis
                     }
                 }
             }
+
             return res;
         }
 
@@ -249,25 +249,7 @@ namespace ReachingTypeAnalysis
             }
             return result;
         }
-        internal  ISet<MethodDescriptor> ComputeCalleesForCallNode(MethodCallInfo callInfo, IProjectCodeProvider codeProvider)
-        {
-            return ComputeCalleesForCallNodeAsync(callInfo, codeProvider).Result;
-            //var calleesForNode = new HashSet<MethodDescriptor>();
-            //if (callInfo.Receiver != null)
-            //{
-            //    // I replaced the invocation for a local call to mark that functionality is missing
-            //    //var callees = GetPotentialTypes(this.Receiver, propGraph)
-            //    //    .Select(t => this.Callee.FindMethodImplementation(t));
-            //    var callees = GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider)
-            //            .Select(t => codeProvider.FindMethodImplementation(callInfo.Method, t));
-            //    calleesForNode.UnionWith(callees);
-            //}
-            //else
-            //{
-            //    calleesForNode.Add(callInfo.Method);
-            //}
-            //return calleesForNode;
-        }
+
         /// <summary>
         ///  C
         /// </summary>

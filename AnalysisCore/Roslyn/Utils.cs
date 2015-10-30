@@ -13,6 +13,7 @@ using System.Configuration;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Roslyn;
 using System.Threading;
+using System.Text;
 
 namespace ReachingTypeAnalysis
 {
@@ -31,7 +32,7 @@ namespace ReachingTypeAnalysis
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
-				method.TypeParameters.Select(parameter => parameter.Name),
+				method.TypeParameters.Length,
 				Utils.CreateTypeDescriptor(method.ReturnType));
 
 			return result;
@@ -52,16 +53,23 @@ namespace ReachingTypeAnalysis
 			var assemblyName = "Unknown";
 			var namespaceName = "Unknown";
 			var typeName = "Unknown";
-			var typeParameters = Enumerable.Empty<string>();
+			var typeParametersCount = 0;
+            var typeArguments = new List<TypeDescriptor>();
 			var kind = Utils.Convert(type.TypeKind);
 
 			if (type is INamedTypeSymbol)
 			{
 				var namedType = type as INamedTypeSymbol;
-				typeParameters = namedType.TypeParameters.Select(parameter => parameter.Name);
                 assemblyName = namedType.ContainingAssembly.Name;
 				namespaceName = Utils.GetFullNamespaceName(namedType);
 				typeName = namedType.Name;
+				typeParametersCount = namedType.TypeParameters.Length;
+
+				foreach (var argument in namedType.TypeArguments)
+				{
+					var argumentDescriptor = Utils.CreateTypeDescriptor(argument, isConcrete);
+					typeArguments.Add(argumentDescriptor);
+				}
 			}
 			else if (type is ITypeParameterSymbol)
 			{
@@ -107,20 +115,43 @@ namespace ReachingTypeAnalysis
 				throw new Exception(message);
 			}
 
-			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, typeParameters, type.IsReferenceType, kind, isConcrete);
+			var result = new TypeDescriptor(namespaceName, typeName, assemblyName, typeParametersCount, typeArguments, type.IsReferenceType, kind, isConcrete);
+			return result;
+		}
+
+		private static string GetFullContainingTypeName(ISymbol symbol)
+		{
+			var result = string.Empty;
+
+			while (symbol.ContainingType != null)
+			{
+				symbol = symbol.ContainingType;
+				result = string.Format("{0}.{1}", symbol.Name, result);
+			}
+
+			result = result.TrimEnd('.');
 			return result;
 		}
 
 		private static string GetFullNamespaceName(ISymbol symbol)
 		{
-			var namespaceName = string.Empty;
+			var result = new StringBuilder();
 
 			if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
 			{
-				namespaceName = symbol.ContainingNamespace.ToDisplayString();
+				var namespaceName = symbol.ContainingNamespace.ToDisplayString();
+				result.Append(namespaceName);
 			}
 
-			return namespaceName;
+			var containingTypeName = Utils.GetFullContainingTypeName(symbol);
+
+			if (!string.IsNullOrEmpty(containingTypeName))
+			{
+				result.Append('.');
+				result.Append(containingTypeName);
+			}
+
+			return result.ToString();
 		}
 
 		private static SerializableTypeKind Convert(TypeKind kind)
@@ -175,7 +206,7 @@ namespace ReachingTypeAnalysis
 			{
 				var candidates = rType.GetMembers(methodOrProperty.Name);
 				//var m2 = method.ReduceExtensionMethod(rType);
-				if (candidates.Count() > 0)
+				if (candidates.Length > 0)
 				{
 					foreach (var candidate in candidates)
 					{
@@ -184,12 +215,14 @@ namespace ReachingTypeAnalysis
 							var property = (IPropertySymbol)candidate;
 							result = method.MethodKind == MethodKind.PropertyGet ? property.GetMethod : property.SetMethod;
 						}
-						else
+						else if (candidate.Kind == SymbolKind.Method)
 						{
 							result = (IMethodSymbol)candidate;
 						}
 
-						if (result.Parameters.Count() == method.Parameters.Count())
+						if (result != null &&
+							result.Parameters.Length == method.Parameters.Length &&
+							result.TypeParameters.Length == method.TypeParameters.Length)
 						{
 							break;
 						}
@@ -199,8 +232,10 @@ namespace ReachingTypeAnalysis
 						}
 					}
 				}
+
 				rType = rType.BaseType;
 			}
+
 			return result;
 		}
 

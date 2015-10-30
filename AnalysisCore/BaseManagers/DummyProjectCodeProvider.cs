@@ -33,7 +33,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult<IEntity>(methodEntity);
 		}
 
-		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
 			var result = new HashSet<MethodDescriptor>();
 			return Task.FromResult(result.AsEnumerable());
@@ -81,7 +81,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath=null)
+		public Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null)
 		{
 			return TaskDone.Done;
 		}
@@ -95,11 +95,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task ReloadAsync()
 		{
 			return TaskDone.Done;
-		}
-
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
 		}
 
 		public Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type)

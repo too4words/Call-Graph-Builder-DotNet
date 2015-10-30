@@ -91,16 +91,10 @@ namespace ReachingTypeAnalysis.Analysis
 			return providerGrain.GetModificationsAsync(modifiedDocuments);
 		}
 
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
 			this.SetRequestContext();
-			return providerGrain.GetPublicMethodsAsync();
-		}
-
-		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
-		{
-			this.SetRequestContext();
-			return providerGrain.GetRootsAsync();
+			return providerGrain.GetRootsAsync(rootKind);
 		}
 
 		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()

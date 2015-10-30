@@ -248,11 +248,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
         {
 			StatsHelper.RegisterMsg("ProjectGrain::GetRoots", this.GrainFactory);
 
-			return this.projectCodeProvider.GetRootsAsync();
+			return this.projectCodeProvider.GetRootsAsync(rootKind);
         }
 
 		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
@@ -265,9 +265,9 @@ namespace ReachingTypeAnalysis.Analysis
         public Task<int> GetReachableMethodsCountAsync()
         {
             StatsHelper.RegisterMsg("ProjectGrain::GetReachableMethods", this.GrainFactory);
+
             return this.projectCodeProvider.GetReachableMethodsCountAsync();
         }
-
 
         public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
@@ -384,13 +384,6 @@ namespace ReachingTypeAnalysis.Analysis
             this.DeactivateOnIdle();
         }
 
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			StatsHelper.RegisterMsg("ProjectGrain::GetPublicMethods", this.GrainFactory);
-
-			return Task.FromResult(new HashSet<MethodDescriptor>().AsEnumerable());
-		}
-
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
 		{
 			StatsHelper.RegisterMsg("ProjectGrain::AddMethod", this.GrainFactory);
@@ -404,6 +397,5 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.projectCodeProvider.GetCompatibleInstantiatedTypesAsync(type);
 		}
-
     }
 }

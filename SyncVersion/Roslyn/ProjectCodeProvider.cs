@@ -174,7 +174,7 @@ namespace ReachingTypeAnalysis.Roslyn
             return RoslynSymbolFactory.FindMethodInCompilation(methodDescriptor, this.Compilation);
         }
 
-        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
         {
             var result = new HashSet<MethodDescriptor>();
             var cancellationTokenSource = new CancellationTokenSource();
@@ -361,17 +361,11 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			throw new NotImplementedException();
 		}
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			throw new NotImplementedException(); 
-		}
-
 
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)
 		{
 			throw new NotImplementedException();
 		}
-
 
 		public Task<CodeGraphModel.SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor)
 		{

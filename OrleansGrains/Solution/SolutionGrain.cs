@@ -261,15 +261,15 @@ namespace ReachingTypeAnalysis.Analysis
 		//	return this.solutionManager.GetInstantiatedTypesAsync();
 		//}
 
-        public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
         {
 			await StatsHelper.RegisterMsg("SolutionGrain::GetRoots", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "SolutionGrain", "GetRoots", "Enter");
 		
-			Stopwatch sw = new Stopwatch();
+			var sw = new Stopwatch();
 			sw.Start();
-            var roots = await this.solutionManager.GetRootsAsync();
+            var roots = await this.solutionManager.GetRootsAsync(rootKind);
 
 			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "GetRoots", "End Time elapsed {0}", sw.Elapsed);
 			
@@ -296,13 +296,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.solutionManager.ReloadAsync();
         }
-
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			StatsHelper.RegisterMsg("SolutionGrain::GetPublicMethods", this.GrainFactory);
-
-			return this.solutionManager.GetPublicMethodsAsync();
-		}
 
 		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
 		{

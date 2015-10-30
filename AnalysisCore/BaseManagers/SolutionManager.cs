@@ -19,7 +19,6 @@ namespace ReachingTypeAnalysis.Analysis
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
 		protected IEnumerable<MethodDescriptor> rootMethods;
-		protected IEnumerable<MethodDescriptor> publicMethods;
 
 		protected SolutionManager()
 		{
@@ -80,30 +79,9 @@ namespace ReachingTypeAnalysis.Analysis
 		protected abstract Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName);
 		protected abstract Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName);
 
-        public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+        public async Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
         {
 			if (this.rootMethods == null)
-			{
-				var cancellationTokenSource = new CancellationTokenSource();
-				var result = new List<MethodDescriptor>();
-
-				foreach (var project in this.Projects)
-				{
-					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
-					var rootMethods = await provider.GetRootsAsync();
-
-					result.AddRange(rootMethods);
-				}
-
-				this.rootMethods = result;
-			}
-
-			return this.rootMethods;
-        }
-
-		public async Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			if (this.publicMethods == null)
 			{
 				var cancellationTokenSource = new CancellationTokenSource();
 				var result = new HashSet<MethodDescriptor>();
@@ -111,18 +89,23 @@ namespace ReachingTypeAnalysis.Analysis
 				foreach (var project in this.Projects)
 				{
 					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
-					var publicMethods = await provider.GetPublicMethodsAsync();
-					var rootMethods = await provider.GetRootsAsync();
+					var rootMethods = await provider.GetRootsAsync(rootKind);
 
 					result.UnionWith(rootMethods);
-					result.UnionWith(publicMethods);
+
+					if (rootKind != AnalysisRootKind.MainMethods)
+					{
+						var mainMethods = await provider.GetRootsAsync(AnalysisRootKind.MainMethods);
+
+						result.UnionWith(mainMethods);
+					}
 				}
-				
-				this.publicMethods = result;
+
+				this.rootMethods = result;
 			}
 
-			return this.publicMethods;
-		}
+			return this.rootMethods;
+        }
 
 		public virtual async Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
 		{
@@ -138,6 +121,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return result;
 		}
+
         public virtual async Task<int> GetReachableMethodsCountAsync()
         {
             var result = 0;
@@ -147,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
                 var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
                 var reachableMethodsCount = await provider.GetReachableMethodsCountAsync();
 
-                result+= reachableMethodsCount;
+                result += reachableMethodsCount;
             }
 
             return result;
@@ -247,7 +231,6 @@ namespace ReachingTypeAnalysis.Analysis
 			if (newProjects != null)
 			{
 				this.rootMethods = null;
-				this.publicMethods = null;
 
 				var tasks = new List<Task>();
 

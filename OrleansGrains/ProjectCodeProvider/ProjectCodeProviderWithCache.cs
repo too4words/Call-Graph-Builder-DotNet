@@ -84,9 +84,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.CreateMethodEntityAsync(methodDescriptor);
 		}
 
-		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync()
+		public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
-			return codeProvider.GetRootsAsync();
+			return codeProvider.GetRootsAsync(rootKind);
 		}
 
 		public Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
@@ -137,11 +137,6 @@ namespace ReachingTypeAnalysis.Analysis
 		public Task ReloadAsync()
 		{
 			return codeProvider.ReloadAsync();
-		}
-
-		public Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync()
-		{
-			return codeProvider.GetPublicMethodsAsync();
 		}
 
 		public Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd)

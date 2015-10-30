@@ -149,20 +149,28 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        private async Task AnalyzeOnDemandAsync(bool allPublic = true)
+        private async Task AnalyzeOnDemandAsync()
         {
             if (this.source != null)
             {
                 this.SolutionManager = await AsyncSolutionManager.CreateFromSourceAsync(this.source);
             }
-            else
+			else if (this.testName != null)
+			{
+				this.SolutionManager = await AsyncSolutionManager.CreateFromTestAsync(this.testName);
+			}
+			else if(this.solutionPath != null)
             {
                 this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
             }
+			else
+			{
+				throw new Exception("We need a solutionPath, source code or testName to analyze");
+			}
 
-            var mainMethods = allPublic ? (await this.SolutionManager.GetPublicMethodsAsync()) : (await this.SolutionManager.GetRootsAsync());
-            var orchestator = new AnalysisOrchestator(this.SolutionManager);
-            await orchestator.AnalyzeAsync(mainMethods);
+			var roots = await this.SolutionManager.GetRootsAsync();
+			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+            await orchestator.AnalyzeAsync(roots);
         }
 
 		public async Task AnalyzeOnDemandOrleans()
@@ -222,9 +230,9 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
-			var mainMethods = await this.SolutionManager.GetRootsAsync();
+			var roots = await this.SolutionManager.GetRootsAsync();
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
-			await orchestator.AnalyzeAsync(mainMethods);
+			await orchestator.AnalyzeAsync(roots);
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "Analyze", "Message count {0}", MessageCounter);
 			//return callGraph;
@@ -233,8 +241,8 @@ namespace ReachingTypeAnalysis
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
 		{
 			Logger.LogS("SolutionAnalyzer", "GenerateCallGraphAsync", "Start building CG");
-			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();		
-			var roots = await SolutionManager.GetRootsAsync();
+			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
+			var roots = await this.SolutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
 			var visited = new HashSet<MethodDescriptor>();
 

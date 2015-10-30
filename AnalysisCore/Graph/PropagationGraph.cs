@@ -622,8 +622,28 @@ namespace ReachingTypeAnalysis
             return ComputeCalleesForDelegateNode((DelegateCallInfo)invoInfo, codeProvider);
         }
 
+		internal ISet<MethodDescriptor> ComputeCalleesForCallNode(MethodCallInfo callInfo, IProjectCodeProvider codeProvider)
+		{
+			return ComputeCalleesForCallNodeAsync(callInfo, codeProvider).Result;
 
-        internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, IProjectCodeProvider codeProvider)
+			//var calleesForNode = new HashSet<MethodDescriptor>();
+			//if (callInfo.Receiver != null)
+			//{
+			//    // I replaced the invocation for a local call to mark that functionality is missing
+			//    //var callees = GetPotentialTypes(this.Receiver, propGraph)
+			//    //    .Select(t => this.Callee.FindMethodImplementation(t));
+			//    var callees = GetPotentialTypes(callInfo.Receiver, callInfo, codeProvider)
+			//            .Select(t => codeProvider.FindMethodImplementation(callInfo.Method, t));
+			//    calleesForNode.UnionWith(callees);
+			//}
+			//else
+			//{
+			//    calleesForNode.Add(callInfo.Method);
+			//}
+			//return calleesForNode;
+		}
+
+		internal ISet<MethodDescriptor> ComputeCalleesForDelegateNode(DelegateCallInfo callInfo, IProjectCodeProvider codeProvider)
         {
             return GetDelegateCallees(callInfo.Delegate, codeProvider);
         }

@@ -17,11 +17,12 @@ namespace ReachingTypeAnalysis.Analysis
 	[Reentrant]
 	public class RtaGrain : Grain, IRtaGrain
     {
-        private RtaManager rtaManager;
+        private OrleansRtaManager rtaManager;
+
         public override async Task OnActivateAsync()
         {
 			await StatsHelper.RegisterActivation("RTAGrain", this.GrainFactory);
-            rtaManager = new OrleansRtaManager();
+            this.rtaManager = new OrleansRtaManager();
 		}
 
 		public override Task OnDeactivateAsync()
@@ -33,7 +34,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			StatsHelper.RegisterMsg("RtaGrain::AddInstantiatedTypes", this.GrainFactory);
 
-            return rtaManager.AddInstantiatedTypesAsync(types);
+            return this.rtaManager.AddInstantiatedTypesAsync(types);
         }
 
         public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
@@ -42,6 +43,5 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.rtaManager.GetInstantiatedTypesAsync();
         }
-
 	}    
 }
