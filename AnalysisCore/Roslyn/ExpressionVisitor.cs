@@ -507,7 +507,8 @@ namespace ReachingTypeAnalysis.Roslyn
 			var symbol = this.model.GetSymbolInfo(node).Symbol;
 			var type = GetTypeSymbol(node);
 
-			if (symbol == null && type.TypeKind == TypeKind.Dynamic)
+			//if (symbol == null && type.TypeKind == TypeKind.Dynamic)
+			if (symbol == null)
 			{
 				return null;
 			}
