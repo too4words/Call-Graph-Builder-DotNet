@@ -144,20 +144,23 @@ namespace ReachingTypeAnalysis.Analysis
 				//await task;
                 tasks.Add(task);
             }
+
             await Task.WhenAll(tasks);
-			//this.instantiatedTypes = new HashSet<TypeDescriptor>();
-			//this.projects = null;
-			//this.solutionPath = null;
         }
-        public override Task<int> GetReachableMethodsCountAsync()
-        {
+
+#if COMPUTE_STATS
+		public override Task<int> GetReachableMethodsCountAsync()
+		{
             return Task.FromResult(this.methodDescriptors.Count);
-        }
-        public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
-        {
-            return Task.FromResult(this.methodDescriptors.AsEnumerable());
-        }
-        public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(this.methodDescriptors.AsEnumerable());
+		}
+#endif
+
+		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
         {
             //HashSet<MethodDescriptor> set = (HashSet<MethodDescriptor>) this.methodDescriptors;
             return Task.FromResult(this.methodDescriptors.ElementAt(methodNumber));

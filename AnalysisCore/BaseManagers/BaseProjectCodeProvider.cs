@@ -179,6 +179,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
         public abstract Task<int> GetReachableMethodsCountAsync();
 
         public virtual async Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)

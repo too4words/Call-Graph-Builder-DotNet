@@ -136,11 +136,6 @@ namespace ReachingTypeAnalysis.Analysis
 
             return result;
         }
-        public virtual Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
-        {
-            throw new NotImplementedException();
-        }
-
 
         public async Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync()
 		{

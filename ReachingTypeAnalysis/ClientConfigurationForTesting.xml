@@ -3,10 +3,10 @@
 	<Gateway Address="localhost" Port="40000"/>
 	<!-- To turn tracing off, set DefaultTraceLevel="Off" and have no overrides.
          For the trace log file name, {0} is replaced by "Client" and {1} is the current time. -->
-	<Tracing DefaultTraceLevel="Error" TraceToConsole="true" TraceToFile="{0}-{1}.log" WriteMessagingTraces="false" BulkMessageLimit="1000">
-		<TraceLevelOverride LogPrefix="Runtime" TraceLevel="Error" />
-		<TraceLevelOverride LogPrefix="Application" TraceLevel="Error" />
-		<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Error" />
+	<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" WriteMessagingTraces="false" BulkMessageLimit="1000">
+		<TraceLevelOverride LogPrefix="Runtime" TraceLevel="Warning" />
+		<TraceLevelOverride LogPrefix="Application" TraceLevel="Warning" />
+		<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
 	</Tracing>
 	<Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
 	<Messaging ResponseTimeout="3600s" ClientSenderBuckets="8192" MaxResendCount="0"/>
