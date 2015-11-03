@@ -16,21 +16,23 @@ using Orleans.Core;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    public interface IMethodState : IGrainState
-    {
-        MethodDescriptor MethodDescriptor { get; set; }
+	//public interface IMethodState : IGrainState
+	public class MethodState
+	{
+		public MethodDescriptor MethodDescriptor { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
-	[StorageProvider(ProviderName = "AzureStore")]
+	//[StorageProvider(ProviderName = "AzureStore")]
     //[Reentrant]
 	[PreferLocalPlacement]
-    public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
-    {
+	//public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
+	public class MethodEntityGrain : Grain, IMethodEntityGrain
+	{
 		//private const int WAIT_TIME = 200;
 
-        [NonSerialized]
+		[NonSerialized]
         private IMethodEntityWithPropagator methodEntityPropagator;
         [NonSerialized]
         private MethodEntity methodEntity;
@@ -39,10 +41,24 @@ namespace ReachingTypeAnalysis.Analysis
 		//[NonSerialized]
 		//private ISolutionGrain solutionGrain;
 		//[NonSerialized]
-        //private EntityGrainStatus status;
+		//private EntityGrainStatus status;
 
-        public override async Task OnActivateAsync()
+		private MethodState State;
+
+		private Task WriteStateAsync()
+		{
+			return TaskDone.Done;
+		}
+
+		private Task ClearStateAsync()
+		{
+			return TaskDone.Done;
+		}
+
+		public override async Task OnActivateAsync()
         {
+			this.State = new MethodState();
+
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();

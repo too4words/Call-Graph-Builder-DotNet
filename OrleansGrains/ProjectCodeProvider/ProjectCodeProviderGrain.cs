@@ -19,12 +19,13 @@ using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    public interface IProjectState : IGrainState
-    {
-        string ProjectPath { get; set; }
-        string AssemblyName { get; set; }
-        string Source { get; set; }
-        string TestName { get; set; }
+	public interface IProjectState : IGrainState
+	//public class ProjectState
+	{
+        /*public*/ string ProjectPath { get; set; }
+        /*public*/ string AssemblyName { get; set; }
+        /*public*/ string Source { get; set; }
+		/*public*/ string TestName { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
@@ -32,14 +33,29 @@ namespace ReachingTypeAnalysis.Analysis
     [StorageProvider(ProviderName = "AzureStore")]
     [Reentrant]
 	public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
+	//public class ProjectCodeProviderGrain : Grain, IProjectCodeProviderGrain
     {
-        [NonSerialized]
+		[NonSerialized]
         private IProjectCodeProvider projectCodeProvider;
 		[NonSerialized]
 		private ObserverSubscriptionManager<IEntityGrainObserverNotifications> observers;
 
-        public override async Task OnActivateAsync()
+		//private ProjectState State;
+
+		//private Task WriteStateAsync()
+		//{
+		//	return TaskDone.Done;
+		//}
+
+		//private Task ClearStateAsync()
+		//{
+		//	return TaskDone.Done;
+		//}
+
+		public override async Task OnActivateAsync()
         {
+			//this.State = new ProjectState();
+
 			await StatsHelper.RegisterActivation("ProjectCodeProviderGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();

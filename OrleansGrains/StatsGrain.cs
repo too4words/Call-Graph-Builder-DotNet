@@ -15,7 +15,8 @@ using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	public class StatsState  //interface IStatsState : IGrainState
+	//public interface IStatsState : IGrainState
+	public class StatsState
 	{
 		public Dictionary<string,Dictionary<string, long>> SiloSentMsgs { get; set; }
 		public Dictionary<string,Dictionary<string, long>> SiloRecvMsgs { get; set; }
@@ -37,11 +38,12 @@ namespace ReachingTypeAnalysis.Analysis
 		public double MaxLatency  { get; set; }
 		public string MaxLatencyMsg { get; set; }
 	}
+
 	//[StorageProvider(ProviderName = "AzureStore")]
 	//public class StatsGrain : Grain<IStatsState>, IStatsGrain
 	public class StatsGrain : Grain, IStatsGrain
     {
-		internal  StatsState State;
+		private StatsState State;
 		private Dictionary<string,long> operationCounter;
 		private long messages;
 		private LatencyInfo latencyInfo;
@@ -53,12 +55,13 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return TaskDone.Done;
 		}
+
 		private Task ClearStateAsync()
 		{
 			return TaskDone.Done;
 		}
 
-        public override  Task OnActivateAsync()
+        public override Task OnActivateAsync()
         {
 			this.State = new StatsState();
 
@@ -121,6 +124,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.WriteStateAsync();
 		}
+
 		public Task RegisterActivation(string grainClass, string calleeAddr)
 		{
 			AddToMap(this.State.SiloActivations, calleeAddr, grainClass);

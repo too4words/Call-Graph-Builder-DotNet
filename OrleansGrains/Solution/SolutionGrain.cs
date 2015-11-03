@@ -12,12 +12,13 @@ using Orleans.Concurrency;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    // TODO: Add instantiated types
-    public interface ISolutionState : IGrainState
+	// TODO: Add instantiated types
+	public interface ISolutionState : IGrainState
+    //public class SolutionState
     {
-        string SolutionPath { get; set; }
-        string Source { get; set; }
-		string TestName { get; set; }
+		/*public*/ string SolutionPath { get; set; }
+		/*public*/ string Source { get; set; }
+		/*public*/ string TestName { get; set; }
 	}
 
     //[StorageProvider(ProviderName = "FileStore")]
@@ -25,15 +26,30 @@ namespace ReachingTypeAnalysis.Analysis
 	[StorageProvider(ProviderName = "AzureStore")]
 	[Reentrant]
 	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserverNotifications
-    {
+	//public class SolutionGrain : Grain, ISolutionGrain, IEntityGrainObserverNotifications
+	{
         [NonSerialized]
         //private ISolutionManager solutionManager;
         private OrleansSolutionManager solutionManager;
 		[NonSerialized]
 		private int projectsReadyCount;
 
-        public override async Task OnActivateAsync()
+		//private SolutionState State;
+
+		//private Task WriteStateAsync()
+		//{
+		//	return TaskDone.Done;
+		//}
+
+		//private Task ClearStateAsync()
+		//{
+		//	return TaskDone.Done;
+		//}
+
+		public override async Task OnActivateAsync()
         {
+			//this.State = new SolutionState();
+
 			await StatsHelper.RegisterActivation("SolutionGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
