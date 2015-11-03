@@ -510,18 +510,21 @@ class Program
         {
 			#region source code
 			var source =
-@"class MainClass {
-    class SuperClass {
-        public virtual void M() {
+@"
+class SuperClass
+{
+    public virtual void M() { }
+}
 
-        }
-    }
-    class SubClass : SuperClass {
-        public override void M() {
-        }
-    }
-    
-    static void Main(string[] argv) {
+class SubClass : SuperClass
+{
+    public override void M() { }
+}
+
+class MainClass
+{    
+    static void Main(string[] argv)
+	{
         SuperClass oSub = new SubClass();
         oSub.M(); // SubClass.M() should be reachable.
     } 
@@ -540,20 +543,24 @@ class Program
         {
 			#region source code
 			var source =
-@"class MainClass {
-    interface Interface {
-        void M(int x);
-    }
-    class SubClass : Interface {
-        public void M(int x) {
+@"
+interface Interface
+{
+	void M(int x);
+}
 
-        }
-    }
-    
-    static void Main(string[] argv) {
-        var oSub = new SubClass();
-        oSub.M(4); // SubClass.M() should be reachable.
-    } 
+class SubClass : Interface
+{
+	public void M(int x) { }
+}
+
+class MainClass
+{    
+	static void Main(string[] argv)
+	{
+		var oSub = new SubClass();
+		oSub.M(4); // SubClass.M() should be reachable.
+	} 
 }";
 			#endregion
 
@@ -732,23 +739,25 @@ class C
         {			
 			#region source code
 			var source =
-      @"class MainClass {
-  delegate void DoSomethingDelegate();
- 
-  class M {
-      public static void S() {}
-      public static void Unreachable() {}
-   }
-    static void Test()
-    {
-    }
+@" 
+class M
+{
+	public static void S() { }
+	public static void Unreachable() { }
+}
 
-    static void Main(string[] argv) {
-       DoSomethingDelegate d = M.S;
-       DoSomethingDelegate d2 = Test;
+class MainClass
+{
+	delegate void DoSomethingDelegate();
 
-       d();
-    }
+	static void Test() { }
+
+	static void Main(string[] argv)
+	{
+		DoSomethingDelegate d = M.S;
+		DoSomethingDelegate d2 = Test;
+		d();
+	}
 }";
 			#endregion
 
@@ -769,23 +778,28 @@ class C
         {
 			#region source code
 			var source =
-      @"class MainClass {
-  delegate void DoSomethingDelegate();
-  interface HasS {
-     void S();
-  }
-  class SubClass : HasS {
-      public void S() {}
-      public void Unreachable() {}
-   }
+@"
+interface HasS
+{
+	void S();
+}
 
-    static void Main(string[] argv) {
-      HasS s = new SubClass();
-  
-       DoSomethingDelegate d = s.S;
+class SubClass : HasS
+{
+	public void S() { }
+	public void Unreachable() { }
+}
 
-       d();
-    }
+class MainClass
+{
+	delegate void DoSomethingDelegate();
+
+	static void Main(string[] argv)
+	{
+		HasS s = new SubClass();
+		DoSomethingDelegate d = s.S;
+		d();
+	}
 }";
 			#endregion
 
