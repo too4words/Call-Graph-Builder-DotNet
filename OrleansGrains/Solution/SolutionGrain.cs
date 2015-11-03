@@ -46,15 +46,15 @@ namespace ReachingTypeAnalysis.Analysis
 			//{
 				try
 				{
-					if (!String.IsNullOrEmpty(this.State.SolutionPath))
+					if (!string.IsNullOrEmpty(this.State.SolutionPath))
 					{
 						this.solutionManager = await OrleansSolutionManager.CreateFromSolutionAsync(this, this.GrainFactory, this.State.SolutionPath);
 					}
-					else if (!String.IsNullOrEmpty(this.State.Source))
+					else if (!string.IsNullOrEmpty(this.State.Source))
 					{
 						this.solutionManager = await OrleansSolutionManager.CreateFromSourceAsync(this, this.GrainFactory, this.State.Source);
 					}
-					else if (!String.IsNullOrEmpty(this.State.TestName))
+					else if (!string.IsNullOrEmpty(this.State.TestName))
 					{
 						this.solutionManager = await OrleansSolutionManager.CreateFromTestAsync(this, this.GrainFactory, this.State.TestName);
 					}

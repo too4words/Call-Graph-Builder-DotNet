@@ -57,15 +57,15 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					this.RaiseStateChangedEvent(EntityGrainStatus.Busy);
 
-					if (!String.IsNullOrEmpty(this.State.ProjectPath))
+					if (!string.IsNullOrEmpty(this.State.ProjectPath))
 					{
 						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromProjectAsync(this.GrainFactory, this.State.ProjectPath);
 					}
-					else if (!String.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
+					else if (!string.IsNullOrEmpty(this.State.Source) && !String.IsNullOrEmpty(this.State.AssemblyName))
 					{
 						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromSourceAsync(this.GrainFactory, this.State.Source, this.State.AssemblyName);
 					}
-					else if (!String.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
+					else if (!string.IsNullOrEmpty(this.State.TestName) && !String.IsNullOrEmpty(this.State.AssemblyName))
 					{
 						this.projectCodeProvider = await OrleansProjectCodeProvider.CreateFromTestAsync(this.GrainFactory, this.State.TestName, this.State.AssemblyName);
 					}

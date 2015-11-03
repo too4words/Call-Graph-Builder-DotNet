@@ -16,7 +16,7 @@ using Orleans.Core;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    public interface IOrleansEntityState : IGrainState
+    public interface IMethodState : IGrainState
     {
         MethodDescriptor MethodDescriptor { get; set; }
     }
@@ -26,7 +26,7 @@ namespace ReachingTypeAnalysis.Analysis
 	[StorageProvider(ProviderName = "AzureStore")]
     //[Reentrant]
 	[PreferLocalPlacement]
-    public class MethodEntityGrain : Grain<IOrleansEntityState>, IMethodEntityGrain
+    public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
     {
 		//private const int WAIT_TIME = 200;
 
@@ -38,8 +38,8 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProvider codeProvider;
 		//[NonSerialized]
 		//private ISolutionGrain solutionGrain;
-		[NonSerialized]
-        private EntityGrainStatus status;
+		//[NonSerialized]
+        //private EntityGrainStatus status;
 
         public override async Task OnActivateAsync()
         {
@@ -50,26 +50,31 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
 
-			// Shold not be null..
-			if (this.State.Etag != null)
-			{
-                if (this.State.MethodDescriptor != null && !this.State.MethodDescriptor.Name.Equals("."))
-                {
-                    methodDescriptor = this.State.MethodDescriptor;
-                }
-			}
+			//if (this.State.MethodDescriptor != null && !this.State.MethodDescriptor.Name.Equals("."))
+			//{
+			//    methodDescriptor = this.State.MethodDescriptor;
+			//}
 
+			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
-			//	this.status = EntityGrainStatus.Busy;
+				try
+				{
+					//this.status = EntityGrainStatus.Busy;
 
-			//	await CreateMethodEntityAsync(methodDescriptor);
+					await this.CreateMethodEntityAsync(methodDescriptor);
 
-			//	this.status = EntityGrainStatus.Ready;
+					//this.status = EntityGrainStatus.Ready;
+				}
+				catch (Exception ex)
+				{
+					var inner = ex;
+					while (inner is AggregateException) inner = inner.InnerException;
+
+					Logger.LogError(this.GetLogger(), "MethodEntityGrain", "OnActivate", "Error:\n{0}\nInner:\n{1}", ex, inner);
+					throw ex;
+				}
 			//});
-
-			this.status = EntityGrainStatus.Ready;
-            await this.CreateMethodEntityAsync(methodDescriptor);            
         }
 
 		public async Task ForceDeactivationAsync()
@@ -133,7 +138,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// This take cares of doing the progation of types
 			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
-            /*await */ this.WriteStateAsync();
+            await this.WriteStateAsync();
 
 			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
 		}
@@ -195,7 +200,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
             
 			//if (status.Equals(EntityGrainStatus.Busy))
 			//{
@@ -213,7 +218,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
 
             //if (status.Equals(EntityGrainStatus.Busy))
             //{
