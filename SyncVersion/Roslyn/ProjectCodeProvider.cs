@@ -244,7 +244,7 @@ namespace ReachingTypeAnalysis.Roslyn
         /// <param name="tree"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-		internal Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAndSymbolAsync(SyntaxTree tree, MethodDescriptor method)
+		internal Task<Tuple<SyntaxNode, IMethodSymbol>> FindMethodSyntaxAndSymbolAsync(SyntaxTree tree, MethodDescriptor method)
         {
             var model = this.Compilation.GetSemanticModel(tree);
             return ProjectCodeProvider.FindMethodSyntaxAsync(model, tree, method);
@@ -257,7 +257,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		/// <param name="tree"></param>
 		/// <param name="method"></param>
 		/// <returns></returns>
-		public static async Task<Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>> FindMethodSyntaxAsync(SemanticModel model, SyntaxTree tree, MethodDescriptor method)
+		public static async Task<Tuple<SyntaxNode, IMethodSymbol>> FindMethodSyntaxAsync(SemanticModel model, SyntaxTree tree, MethodDescriptor method)
         {
             var root = await tree.GetRootAsync();
             var visitor = new MethodFinder(method, model);
@@ -265,7 +265,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
             if (visitor.Result != null)
             {
-				return new Tuple<BaseMethodDeclarationSyntax, IMethodSymbol>(visitor.Result.DeclarationNode, visitor.Result.MethodSymbol);
+				return new Tuple<SyntaxNode, IMethodSymbol>(visitor.Result.DeclarationSyntaxNode, visitor.Result.MethodSymbol);
             }
             else
             {
