@@ -862,13 +862,20 @@ namespace ReachingTypeAnalysis.Roslyn
 				// Delegate? 
 				if (methodInvokedSymbol.MethodKind == MethodKind.DelegateInvoke)
 				{
+					var delegateNode = node.Expression;
+					var memberAccess = delegateNode as MemberAccessExpressionSyntax;
+
+					if (memberAccess != null && memberAccess.Name.Identifier.ValueText == "Invoke")
+					{
+						delegateNode = memberAccess.Expression;
+                    }
+
 					// Get the delegate variable (SHOULD use a cache!)
-					var delegateVarNode = roslynMethodVisitor.RegisterVariable(node.Expression);
-                    var span = node.SyntaxTree.GetLineSpan(node.Expression.Span);
+					var delegateVarNode = roslynMethodVisitor.RegisterVariable(delegateNode);
  
 					var callNode = new AnalysisCallNode(methodInvokedSymbol.Name,
                         Utils.CreateTypeDescriptor(methodInvokedSymbol.ReturnType),
-                        this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, node.Expression),
+                        this.CreateLocationDescriptor(this.roslynMethodVisitor.InvocationPosition, delegateNode),
 						Utils.CreateAnalysisCallNodeAdditionalInfo(methodInvokedSymbol)); //node.GetLocation()
 
                     statementProcessor.RegisterStaticDelegateCall(methodDescriptor, args, lh, (DelegateVariableNode)delegateVarNode, callNode);
