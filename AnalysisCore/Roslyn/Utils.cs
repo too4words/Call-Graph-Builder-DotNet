@@ -333,8 +333,13 @@ namespace ReachingTypeAnalysis
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
 
-		public static Task<Project> ReadProjectAsync(string path)
+		public static Task<Project> ReadProjectAsync(string projectPath)
 		{
+			if (!File.Exists(projectPath))
+			{
+				throw new ArgumentException("Missing " + projectPath);
+			}
+
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
@@ -344,12 +349,15 @@ namespace ReachingTypeAnalysis
 			};
 
 			var ws = MSBuildWorkspace.Create(props);
-			return ws.OpenProjectAsync(path);
+			return ws.OpenProjectAsync(projectPath);
 		}
 
-		public static Task<Solution> ReadSolutionAsync(string path)
+		public static Task<Solution> ReadSolutionAsync(string solutionPath)
 		{
-			if (!File.Exists(path)) throw new ArgumentException("Missing " + path);
+			if (!File.Exists(solutionPath))
+			{
+				throw new ArgumentException("Missing " + solutionPath);
+			}
 
 			var props = new Dictionary<string, string>()
 			{
@@ -360,7 +368,7 @@ namespace ReachingTypeAnalysis
 			};
 
 			var ws = MSBuildWorkspace.Create(props);
-			return ws.OpenSolutionAsync(path);
+			return ws.OpenSolutionAsync(solutionPath);
 		}
 
 		public static Solution ReadSolution(string path)
@@ -400,6 +408,186 @@ namespace ReachingTypeAnalysis
 			}
 
 			return compilation;
+		}
+
+		public static async Task<IEnumerable<MethodDescriptor>> GetRootsAsync(Compilation compilation, AnalysisRootKind rootKind = AnalysisRootKind.Default)
+		{
+			IEnumerable<MethodDescriptor> result = null;
+
+			switch (rootKind)
+			{
+				case AnalysisRootKind.MainMethods:
+					result = await Utils.GetMainMethodsAsync(compilation);
+					break;
+
+				case AnalysisRootKind.TestMethods:
+					result = await Utils.GetTestMethodsAsync(compilation);
+					break;
+
+				case AnalysisRootKind.PublicMethods:
+					result = await Utils.GetPublicMethodsAsync(compilation);
+					break;
+
+				default:
+					throw new ArgumentException("rootKind");
+			}
+
+			return result;
+		}
+
+		private static Task<IEnumerable<MethodDescriptor>> GetMainMethodsAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+			var cancellationTokenSource = new CancellationTokenSource();
+			var mainMethod = compilation.GetEntryPoint(cancellationTokenSource.Token);
+
+			if (mainMethod != null)
+			{
+				// only return if there's a main method
+				var methodDescriptor = Utils.CreateMethodDescriptor(mainMethod);
+				result.Add(methodDescriptor);
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private static Task<IEnumerable<MethodDescriptor>> GetAllMethodsAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+									 .OfType<INamedTypeSymbol>();
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>();
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private static Task<IEnumerable<MethodDescriptor>> GetPublicMethodsAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+									 .OfType<INamedTypeSymbol>()
+									 .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private static Task<IEnumerable<MethodDescriptor>> GetTestMethodsAsync(Compilation compilation)
+		{
+			var classAttributes = new string[] { "TestClassAttribute" };
+			var methodAttributes = new string[] { "TestMethodAttribute", "TestInitializeAttribute",
+												  "TestCleanupAttribute", "FactAttribute" };
+
+			Func<INamedTypeSymbol, bool> classPred = s => s.DeclaredAccessibility == Accessibility.Public; //&&
+														//s.GetAttributes()
+														// .Select(a => a.AttributeClass.Name)
+														// .Intersect(classAttributes)
+														// .Any();
+
+			Func<IMethodSymbol, bool> methodPred = s => s.DeclaredAccessibility == Accessibility.Public &&
+														s.GetAttributes()
+														 .Select(a => a.AttributeClass.Name)
+														 .Intersect(methodAttributes)
+														 .Any();
+
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+									 .OfType<INamedTypeSymbol>()
+									 .Where(classPred);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(methodPred);
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		public static async Task ComputeSolutionStatsAsync(string solutionPath)
+		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
+			var solution = await Utils.ReadSolutionAsync(solutionPath);
+			var projects = Utils.FilterProjects(solution);
+
+			var projectsCount = projects.Count;
+			var currentProjectNumber = 1;
+			var totalMethods = 0;
+			var publicMethods = 0;
+			var testMethods = 0;
+			var mainMethods = 0;
+
+			foreach (var project in projects)
+			{
+				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
+
+				var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
+
+				var methods = await Utils.GetAllMethodsAsync(compilation);
+				var methodsCount = methods.Count();
+				totalMethods += methodsCount;
+
+				Console.WriteLine("\tMethods: {0}", methodsCount);
+
+				methods = await Utils.GetPublicMethodsAsync(compilation);
+				methodsCount = methods.Count();
+				publicMethods += methodsCount;
+
+				Console.WriteLine("\tPublic methods: {0}", methodsCount);
+
+				methods = await Utils.GetTestMethodsAsync(compilation);
+				methodsCount = methods.Count();
+				testMethods += methodsCount;
+
+				Console.WriteLine("\tTest methods: {0}", methodsCount);
+
+				methods = await Utils.GetMainMethodsAsync(compilation);
+				methodsCount = methods.Count();
+				mainMethods += methodsCount;
+
+				Console.WriteLine("\tMain methods: {0}", methodsCount);
+				Console.WriteLine();
+			}
+
+			Console.WriteLine();
+			Console.WriteLine("Solution {0}", solutionName);
+			Console.WriteLine("\tProjects: {0}", projectsCount);
+			Console.WriteLine("\tMethods: {0}", totalMethods);
+			Console.WriteLine("\tPublic methods: {0}", publicMethods);
+			Console.WriteLine("\tTest methods: {0}", testMethods);
+			Console.WriteLine("\tMain methods: {0}", mainMethods);
+			Console.WriteLine();
 		}
 	}
 

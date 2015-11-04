@@ -27,10 +27,11 @@ namespace CallGraphGeneration
 
         static void Main(string[] args)
         {
-			//// This is to generate big synthetic tests in x64 to avoid getting OutofMemory exceptions
+			//// This is to generate big synthetic tests in x64 to avoid getting OutOfMemory exceptions
 			//var a = new ReachingTypeAnalysis.Tests.CallGraphGenerator();
 			//a.GenerateSyntheticSolution();
 			//Console.WriteLine("Done!");
+			//Console.ReadKey();
 			//return;
 
 			args = new string[]
@@ -52,10 +53,17 @@ namespace CallGraphGeneration
 				//@"C:\Users\Edgar\Projects\Test projects\buildtools\src\BuildTools.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Test projects\codeformatter\src\CodeFormatter.sln", "OnDemandAsync" // works!
 				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
-				@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandOrleans"
+				//@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandOrleans"
                 //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandOrleans"
+				@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
 			};
-			
+
+			//// This is to compute solution statistics
+			//ReachingTypeAnalysis.Statistics.SolutionStats.ComputeSolutionStats(args[0]);
+			//Console.WriteLine("Done!");
+			//Console.ReadKey();
+			//return;
+
 			if (args.Length == 2)
 			{
 				try
@@ -86,6 +94,9 @@ namespace CallGraphGeneration
 			this.Initialize();
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
             analyzer.AnalyzeAsync(strategyKind).Wait();
+
+			var rootMethods = analyzer.SolutionManager.GetRootsAsync().Result;
+			Console.WriteLine("Root methods={0} ({1})", rootMethods.Count(), AnalysisRootKind.Default);
 
 			var reachableMethodsCount = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
 			Console.WriteLine("Reachable methods={0}", reachableMethodsCount);

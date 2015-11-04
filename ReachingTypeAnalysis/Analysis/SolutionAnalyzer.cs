@@ -232,7 +232,7 @@ namespace ReachingTypeAnalysis
 		{
 			var roots = await this.SolutionManager.GetRootsAsync();
 
-			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), AnalysisRootKind.Default);
+			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), AnalysisRootKind.Default);
 
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
 			await orchestator.AnalyzeAsync(roots);
