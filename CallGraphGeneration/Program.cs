@@ -55,7 +55,8 @@ namespace CallGraphGeneration
 				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
 				//@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandOrleans"
                 //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandOrleans"
-				@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
+				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
+				@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandOrleans"
 			};
 
 			//// This is to compute solution statistics
@@ -98,8 +99,8 @@ namespace CallGraphGeneration
 			var rootMethods = analyzer.SolutionManager.GetRootsAsync().Result;
 			Console.WriteLine("Root methods={0} ({1})", rootMethods.Count(), AnalysisRootKind.Default);
 
-			var reachableMethodsCount = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
-			Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
+			var reachableMethods = analyzer.SolutionManager.GetReachableMethodsAsync().Result;
+			Console.WriteLine("Reachable methods={0}", reachableMethods.Count());
 
 			Console.WriteLine("Generating call graph...");
 
@@ -109,15 +110,18 @@ namespace CallGraphGeneration
 			//// TODO: remove this assert, it is just for debugging
 			//Debug.Assert(false);
 
-			var reachableMethods = callgraph.GetReachableMethods();
-			Console.WriteLine("Reachable methods={0}", reachableMethods.Count);
+			var reachableMethods2 = callgraph.GetReachableMethods();
+			Console.WriteLine("Reachable methods={0}", reachableMethods2.Count);
+
+			var newMethods = reachableMethods2.Except(reachableMethods).ToList();
+			var missingMethods = reachableMethods.Except(reachableMethods2).ToList();
 
 			//if (strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
 			//{
 			//	var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
 			//}
 
-            return callgraph;
+			return callgraph;
         }
 
 		private void Initialize()

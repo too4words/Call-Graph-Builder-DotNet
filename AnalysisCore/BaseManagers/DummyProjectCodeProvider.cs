@@ -26,7 +26,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(methodDescriptor);
 		}
 
-		public Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
+		public virtual Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			var libraryMethodVisitor = new LibraryMethodParser(methodDescriptor);
 			var methodEntity = libraryMethodVisitor.ParseMethod();
@@ -64,6 +64,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
 		public abstract Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
         public abstract Task<int> GetReachableMethodsCountAsync();
 
         public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
