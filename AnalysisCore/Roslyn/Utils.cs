@@ -7,13 +7,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 using System.IO;
 using System.Configuration;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis.Roslyn;
 using System.Threading;
 using System.Text;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ReachingTypeAnalysis
 {
@@ -333,7 +333,7 @@ namespace ReachingTypeAnalysis
 			return new AnalysisCallNodeAdditionalInfo(methodDescriptor, declarationPath, displayString);
         }
 
-		public static Task<Project> ReadProjectAsync(string projectPath)
+		public static async Task<Project> ReadProjectAsync(string projectPath)
 		{
 			if (!File.Exists(projectPath))
 			{
@@ -349,7 +349,30 @@ namespace ReachingTypeAnalysis
 			};
 
 			var ws = MSBuildWorkspace.Create(props);
-			return ws.OpenProjectAsync(projectPath);
+			var project = await ws.OpenProjectAsync(projectPath);
+
+			//var facadesDir = @"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\"; // \Facades\
+			//var facades = Directory.EnumerateFiles(facadesDir, "*.dll", SearchOption.AllDirectories);
+
+			//project = project.AddMetadataReference(MetadataReference.CreateFromAssembly(typeof(object).Assembly));
+
+			//foreach (var assemblyPath in facades)
+			//{
+			//	var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+
+			//	if (assemblyName == "System.EnterpriseServices.Wrapper" ||
+			//		assemblyName == "System.EnterpriseServices.Thunk")
+			//	{
+			//		continue;
+			//	}
+
+			//	//if (project.MetadataReferences.Any(r => r.Display.Contains(assemblyName)))
+			//	{
+			//		project = project.AddMetadataReference(MetadataReference.CreateFromFile(assemblyPath));
+			//	}
+			//}
+
+			return project;
 		}
 
 		public static Task<Solution> ReadSolutionAsync(string solutionPath)
