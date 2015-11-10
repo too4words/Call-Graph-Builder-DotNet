@@ -958,7 +958,8 @@ namespace ReachingTypeAnalysis.Roslyn
             //var tmpExp = SyntaxFactory.ParseName("T_" + tempLH.Count);
             if (!roslynMethod.ReturnsVoid && Utils.IsTypeForAnalysis(roslynMethod.ReturnType))
             {
-				tempRV = this.CreateAndRegisterTemporaryLHVar(node, roslynMethod.ReceiverType);
+				// Watch out this: Before it was roslynMethod.ReceiverType
+				tempRV = this.CreateAndRegisterTemporaryLHVar(node, roslynMethod.ReturnType);
             }
 
             return tempRV;
