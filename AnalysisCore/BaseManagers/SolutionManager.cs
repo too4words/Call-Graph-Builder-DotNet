@@ -25,14 +25,14 @@ namespace ReachingTypeAnalysis.Analysis
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 
-		public int ProjectsCount
-		{
-			get { return this.Projects.Count; }
-		}
-
 		protected IList<Project> Projects
 		{
 			get { return useNewFieldsVersion ? newProjects : projects; }
+		}
+
+		public int ProjectsCount
+		{
+			get { return this.Projects.Count; }
 		}
 
 		protected async Task LoadSolutionAsync(string solutionPath)
@@ -164,26 +164,26 @@ namespace ReachingTypeAnalysis.Analysis
 			return provider;
 		}
 
-  //      /// <summary>
-  //      /// For RTA analysis
-  //      /// </summary>
-  //      /// <param name="types"></param>
-  //      /// <returns></returns>
-  //      public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
-  //      {
-  //          this.instantiatedTypes.UnionWith(types);
+		///// <summary>
+		///// For RTA analysis
+		///// </summary>
+		///// <param name="types"></param>
+		///// <returns></returns>
+		//public Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types)
+		//{
+		//	this.instantiatedTypes.UnionWith(types);
 		//	return TaskDone.Done;
-  //      }
+		//}
 
 		///// <summary>
 		///// For RTA analysis
 		///// </summary>
 		///// <param name="types"></param>
 		///// <returns></returns>
-  //      public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
-  //      {
+		//public Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync()
+		//{
 		//	return Task.FromResult(instantiatedTypes);
-  //      }
+		//}
 
 		public virtual async Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{

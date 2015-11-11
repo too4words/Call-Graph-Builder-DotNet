@@ -46,9 +46,12 @@ namespace ReachingTypeAnalysis
 		Task<PropagationEffects> RemoveMethodAsync();
 
 		Task UnregisterCallerAsync(CallContext callContext);
-        //Task UnregisterCalleeAsync(CallContext callContext);
+		Task UseDeclaredTypesForParameters();
+		Task<MethodCalleesInfo> FixUnknownCalleesAsync();
+
+		//Task UnregisterCalleeAsync(CallContext callContext);
 		//Task<PropagationEffects> GetMoreEffects();
-    }
+	}
 
     public interface IProjectCodeProvider
     {

@@ -7,19 +7,25 @@ using Orleans.Runtime;
 using System.Threading;
 using OrleansInterfaces;
 
+using AssemblyName = System.String;
+
 namespace ReachingTypeAnalysis.Analysis
 {
     internal class OrleansSolutionManager : SolutionManager
     {
 		private SolutionGrain solutionGrain;
         private IGrainFactory grainFactory;
-        private ISet<MethodDescriptor> methodDescriptors;
+		private ISet<AssemblyName> projectProviders;
+		private ISet<AssemblyName> newProjectProviders;
+		private ISet<MethodDescriptor> methodDescriptors;
+		private ISet<MethodDescriptor> newMethodDescriptors;
 
 		private OrleansSolutionManager(SolutionGrain solutionGrain, IGrainFactory grainFactory)
 		{
 			this.solutionGrain = solutionGrain;
 			this.grainFactory = grainFactory;
-			this.methodDescriptors = new HashSet<MethodDescriptor>();
+			this.projectProviders = new HashSet<AssemblyName>();
+            this.methodDescriptors = new HashSet<MethodDescriptor>();
 		}
 
 		public static ISolutionGrain GetSolutionGrain(IGrainFactory grainFactory)
@@ -53,7 +59,17 @@ namespace ReachingTypeAnalysis.Analysis
             return manager;
         }
 
-        protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
+		private ISet<AssemblyName> ProjectProviders
+		{
+			get { return useNewFieldsVersion ? newProjectProviders : projectProviders; }
+		}
+
+		private ISet<MethodDescriptor> MethodDescriptors
+		{
+			get { return useNewFieldsVersion ? newMethodDescriptors : methodDescriptors; }
+		}
+
+		protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
         {
 			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 			var projectGrainReference = projectGrain;
@@ -66,6 +82,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await solutionGrain.StartObservingAsync(projectGrainReference);
             await projectGrain.SetProjectPathAsync(projectFilePath);
+
+			this.ProjectProviders.Add(assemblyName);
         }
 
         protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
@@ -81,7 +99,9 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await solutionGrain.StartObservingAsync(projectGrainReference);
             await projectGrain.SetProjectSourceAsync(source);
-        }
+
+			this.ProjectProviders.Add(assemblyName);
+		}
 
 		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
 		{
@@ -96,12 +116,14 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await solutionGrain.StartObservingAsync(projectGrainReference);
 			await projectGrain.SetProjectFromTestAsync(testName);
+
+			this.ProjectProviders.Add(assemblyName);
 		}
 
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {
 			IProjectCodeProvider provider = null;
-			var isExistingProject = this.Projects.Any(pro => pro.AssemblyName.Equals(assemblyName));
+			var isExistingProject = this.ProjectProviders.Contains(assemblyName);
 
 			if (isExistingProject)
 			{
@@ -110,6 +132,7 @@ namespace ReachingTypeAnalysis.Analysis
 			else
 			{
 				provider = this.GetDummyProjectCodeProvider();
+				//this.ProjectProviders.Add(assemblyName);
 			}
 
             return Task.FromResult(provider);
@@ -121,49 +144,71 @@ namespace ReachingTypeAnalysis.Analysis
 			// for each unknown project in the solution instead of having only one
 			// representing all of them.
             var provider = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, "DUMMY");
-            return provider;
+			this.ProjectProviders.Add("DUMMY");
+			return provider;
         }
 
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-#if COMPUTE_STATS
-            methodDescriptors.Add(methodDescriptor);
-#endif
+//#if COMPUTE_STATS
+            this.MethodDescriptors.Add(methodDescriptor);
+//#endif
             var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
 
-        public async Task ForceDeactivationOfProjects()
+//#if COMPUTE_STATS
+		public override Task<int> GetReachableMethodsCountAsync()
+		{
+			return Task.FromResult(this.MethodDescriptors.Count);
+		}
+
+		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		{
+			return Task.FromResult(this.MethodDescriptors.AsEnumerable());
+		}
+//#endif
+
+		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
+		{
+			//HashSet<MethodDescriptor> set = (HashSet<MethodDescriptor>) this.methodDescriptors;
+			return Task.FromResult(this.MethodDescriptors.ElementAt(methodNumber));
+		}
+
+		public override Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
+		{
+			this.newProjectProviders = new HashSet<AssemblyName>(this.ProjectProviders);
+			this.newMethodDescriptors = new HashSet<MethodDescriptor>(this.MethodDescriptors);
+			return base.GetModificationsAsync(modifiedDocuments);
+		}
+
+		public override async Task ReloadAsync()
+		{
+			if (newProjectProviders != null)
+			{
+				this.projectProviders = newProjectProviders;
+				this.newProjectProviders = null;
+
+				this.methodDescriptors = newMethodDescriptors;
+				this.newMethodDescriptors = null;
+			}
+
+			await base.ReloadAsync();
+		}
+
+		public async Task ForceDeactivationOfProjects()
         {
             var tasks = new List<Task>();
 
-            foreach (var project in this.Projects)
+            foreach (var assemblyName in this.ProjectProviders)
             {
-                var provider = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, project.AssemblyName);
+                var provider = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 				var task = provider.ForceDeactivationAsync();
 				//await task;
                 tasks.Add(task);
             }
 
             await Task.WhenAll(tasks);
-        }
-
-#if COMPUTE_STATS
-		public override Task<int> GetReachableMethodsCountAsync()
-		{
-            return Task.FromResult(this.methodDescriptors.Count);
-		}
-
-		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
-		{
-			return Task.FromResult(this.methodDescriptors.AsEnumerable());
-		}
-#endif
-
-		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)
-        {
-            //HashSet<MethodDescriptor> set = (HashSet<MethodDescriptor>) this.methodDescriptors;
-            return Task.FromResult(this.methodDescriptors.ElementAt(methodNumber));
         }
     }
 }

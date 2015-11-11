@@ -419,13 +419,12 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
-            var codeProvider = this.codeProvider;
-            Contract.Assert(codeProvider != null);
 			var result = new HashSet<MethodDescriptor>();
 
 			foreach (var callNode in methodEntity.PropGraph.CallNodes)
 			{
-				result.UnionWith(await GetCalleesAsync( callNode));
+				var callees = await GetCalleesAsync(callNode);
+                result.UnionWith(callees);
 			}
 
 			return result;
@@ -448,7 +447,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task<ISet<MethodDescriptor>> GetCalleesAsync(AnalysisCallNode node)
         {
 			var result = new HashSet<MethodDescriptor>();
-            var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)node);
+            var invExp = methodEntity.PropGraph.GetInvocationInfo(node);
 
             var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);
 
@@ -534,17 +533,41 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-        //public Task UnregisterCalleeAsync(CallContext callContext)
-        //{
-        //	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
-        //	var receiverTypes = this.GetTypes(invoInfo.Receiver);
-        //	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
-        //	return TaskDone.Done;
-        //}
+		public Task UseDeclaredTypesForParameters()
+		{
+			foreach (var parameterNode in this.methodEntity.ParameterNodes)
+			{
+                this.methodEntity.PropGraph.Add(parameterNode, parameterNode.Type);
+            }
+
+			if (this.methodEntity.ThisRef != null)
+			{
+				this.methodEntity.PropGraph.Add(this.methodEntity.ThisRef, this.methodEntity.ThisRef.Type);
+			}
+
+			return TaskDone.Done;
+		}
+
+		public Task<MethodCalleesInfo> FixUnknownCalleesAsync()
+		{
+			var resolvedCallees = new HashSet<MethodDescriptor>();
+			var unknownCallees = new HashSet<MethodDescriptor>();
+
+			var result = methodEntity.PropGraph.FixUnknownCalleesAsync(codeProvider);
+            return result;
+		}
+
+		//public Task UnregisterCalleeAsync(CallContext callContext)
+		//{
+		//	var invoInfo = this.methodEntity.PropGraph.GetInvocationInfo(callContext.CallNode);
+		//	var receiverTypes = this.GetTypes(invoInfo.Receiver);
+		//	//this.methodEntity.PropGraph.CallNodes.Remove(callContext.CallNode);
+		//	return TaskDone.Done;
+		//}
 
 		//public Task<PropagationEffects> GetMoreEffects()
 		//{
 		//	return Task.FromResult(this.propagationEffectsToSend.Dequeue());
 		//}
-    }
+	}
 }

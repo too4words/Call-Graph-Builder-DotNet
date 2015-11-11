@@ -327,6 +327,20 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.methodEntityPropagator.GetCallersAsync();
 		}
 
+		public Task UseDeclaredTypesForParameters()
+		{
+			StatsHelper.RegisterMsg("MethodEntityGrain::UseDeclaredTypesForParameters", this.GrainFactory);
+
+			return this.methodEntityPropagator.UseDeclaredTypesForParameters();
+		}
+
+		public Task<MethodCalleesInfo> FixUnknownCalleesAsync()
+		{
+			StatsHelper.RegisterMsg("MethodEntityGrain::FixUnknownCalleesAsync", this.GrainFactory);
+
+			return this.methodEntityPropagator.FixUnknownCalleesAsync();
+		}
+
 		//public Task<PropagationEffects> GetMoreEffects()
 		//{
 		//	//StatsHelper.RegisterMsg("MethodEntityGrain::GetMoreEffects:" + this.methodEntity.MethodDescriptor, this.GrainFactory);
@@ -342,5 +356,5 @@ namespace ReachingTypeAnalysis.Analysis
 
 		//	return Task.FromResult(this.status);
 		//}
-    }
+	}
 }

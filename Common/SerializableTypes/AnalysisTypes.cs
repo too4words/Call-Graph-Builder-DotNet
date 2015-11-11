@@ -8,22 +8,22 @@ using CodeGraphModel;
 
 namespace ReachingTypeAnalysis
 {
-    public static class TestConstants
-    {
-        public const string ProjectName = "MyProject";
-        public const string ProjectAssemblyName = "MyProject";
-        public const string DocumentName = "MyFile.cs";
-        public const string DocumentPath = @"C:\MyFile.cs";
-        public const string SolutionPath = @"test.sln";
-        public const string TestDirectory = "test";
-        public const string TemporarySolutionDirectory = "temp";
-        public const string TemporaryNamespace = "Temporary";
-    }
+	public static class TestConstants
+	{
+		public const string ProjectName = "MyProject";
+		public const string ProjectAssemblyName = "MyProject";
+		public const string DocumentName = "MyFile.cs";
+		public const string DocumentPath = @"C:\MyFile.cs";
+		public const string SolutionPath = @"test.sln";
+		public const string TestDirectory = "test";
+		public const string TemporarySolutionDirectory = "temp";
+		public const string TemporaryNamespace = "Temporary";
+	}
 
 	[Serializable]
 	public enum AnalysisRootKind
 	{
-        MainMethods,
+		MainMethods,
 		TestMethods,
 		PublicMethods,
 		Default = TestMethods
@@ -36,11 +36,24 @@ namespace ReachingTypeAnalysis
 		Ready
 	}
 
-    [Serializable]
-    public enum ModificationKind
-    {
-        MethodAdded, MethodRemoved, MethodUpdated
-    }
+	[Serializable]
+	public enum ModificationKind
+	{
+		MethodAdded, MethodRemoved, MethodUpdated
+	}
+
+	[Serializable]
+	public class MethodCalleesInfo
+	{
+		public ISet<MethodDescriptor> ResolvedCallees { get; private set; }
+		public ISet<PropGraphNodeDescriptor> UnknownCallees { get; private set; }
+
+		public MethodCalleesInfo(IEnumerable<MethodDescriptor> resolvedCallees, IEnumerable<PropGraphNodeDescriptor> unknownCallees)
+		{
+			this.ResolvedCallees = new HashSet<MethodDescriptor>(resolvedCallees);
+			this.UnknownCallees = new HashSet<PropGraphNodeDescriptor>(unknownCallees);
+		}
+	}
 
     [Serializable]
     public class MethodModification
@@ -249,7 +262,7 @@ namespace ReachingTypeAnalysis
         public override int GetHashCode()
         {
             //return NamespaceName.GetHashCode() + ClassName.GetHashCode() + MethodName.GetHashCode();
-            return ContainerType.GetHashCode() + MethodName.GetHashCode();
+            return this.ContainerType.GetHashCode() + this.MethodName.GetHashCode();
         }
 
         public override string ToString()

@@ -14,29 +14,29 @@ using System.Collections.Concurrent;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-    /// <summary>
-    /// This class is a prototype version of the propagation analysis avoiding the rentrancy in grains.
-    /// All methods are static.
-    /// Essentially, now the MethodGrain only performs the Propagation within its graph but doesn't trigger the 
-    /// propagation to other methods. This is done by this orchestator
-    /// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
-    /// This should be improved in next versions.
-    /// </summary>
-    internal class AnalysisOrchestator
+	/// <summary>
+	/// This class is a prototype version of the propagation analysis avoiding the rentrancy in grains.
+	/// All methods are static.
+	/// Essentially, now the MethodGrain only performs the Propagation within its graph but doesn't trigger the 
+	/// propagation to other methods. This is done by this orchestator
+	/// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
+	/// This should be improved in next versions.
+	/// </summary>
+	internal class AnalysisOrchestator
 	{
-        public static long QueueThreshold = 10000;
+		private const long QUEUE_THRESHOLD = 10000;
 		private ISolutionManager solutionManager;
 		//private ISet<Message> messageWorkList;
 		//private Queue<Message> messageWorkList;
-        private ConcurrentQueue<Message> messageWorkList;
+		private ConcurrentQueue<Message> messageWorkList;
 
 		public AnalysisOrchestator(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
 			//this.messageWorkList = new HashSet<Message>();
-            //this.messageWorkList = new Queue<Message>();
-            this.messageWorkList = new ConcurrentQueue<Message>();
-        }
+			//this.messageWorkList = new Queue<Message>();
+			this.messageWorkList = new ConcurrentQueue<Message>();
+		}
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
@@ -47,9 +47,11 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
 				}
 
-                var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
+				var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
 
-                //PropagationEffects propagationEffects = null;
+				await methodEntityProc.UseDeclaredTypesForParameters();
+
+				//PropagationEffects propagationEffects = null;
 				//var ready = true;
 				//
 				//do
@@ -67,55 +69,92 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			await this.ProcessMessages();
+			//await this.PropagateUsingDeclaredTypes();
+			//await this.ProcessMessages();
 		}
 
-        //private async Task<bool> WaitForReady(PropagationEffects propagationEffects, MethodDescriptor method,  int millisecondsDelay = 100)
-        //{
-        //	var ready = propagationEffects.MethodEntityReady;
+		private async Task PropagateUsingDeclaredTypes()
+		 {
+			var roots = await this.solutionManager.GetRootsAsync();
+			var worklist = new Queue<MethodDescriptor>(roots);
+			var visited = new HashSet<MethodDescriptor>();
 
-        //	if (!ready)
-        //	{
-        //		Logger.LogS("AnalysisOrchestator", "WaitForReady", "Method {0} not ready", method);
-        //		await Task.Delay(millisecondsDelay);
-        //	}
+			while (worklist.Count > 0)
+			{
+				var currentMethodDescriptor = worklist.Dequeue();
+				visited.Add(currentMethodDescriptor);
 
-        //	return ready;
-        //}
+				var methodEntity = await this.solutionManager.GetMethodEntityAsync(currentMethodDescriptor);
+				var calleesInfo = await methodEntity.FixUnknownCalleesAsync();
 
-        //public async Task WaitMethodEntityGrainToBeReady(IMethodEntityWithPropagator methodEntityProp,  int millisecondsDelay = 100)
-        //{
-        //	if (methodEntityProp is IMethodEntityGrain)
-        //	{
-        //		var methodEntityGrain = (IMethodEntityGrain)methodEntityProp;
-        //		var methodEntityGrainStatus = await methodEntityGrain.GetStatusAsync();
+				if (calleesInfo.UnknownCallees.Count > 0)
+				{
+					var propagationEffects = await methodEntity.PropagateAsync(PropagationKind.ADD_TYPES);
+					await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntity);
+				}
 
-        //		while (methodEntityGrainStatus!= EntityGrainStatus.Ready)
-        //		{
-        //			await Task.Delay(millisecondsDelay);
-        //			methodEntityGrainStatus = await methodEntityGrain.GetStatusAsync();
-        //		}
-        //	}
+				//var propagationEffects = await methodEntity.PropagateAsync(PropagationKind.ADD_TYPES, calleesInfo.UnknownCallees);
+				//await PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntity);
 
-        //	return;
-        //}
+				//await this.ProcessCalleesAsync(calleesInfo.UnknownCallees, PropagationKind.ADD_TYPES);
 
-        private async Task WaitQueue(long threshold, int millisecondsDelay = 100)
-        {
-            while (this.messageWorkList.Count>threshold)
-            {
+				foreach (var calleeDescriptor in calleesInfo.ResolvedCallees)
+				{
+					if (!visited.Contains(calleeDescriptor) && !worklist.Contains(calleeDescriptor))
+					{
+						worklist.Enqueue(calleeDescriptor);
+					}
+				}
+			}
+		}
+
+		//private async Task<bool> WaitForReady(PropagationEffects propagationEffects, MethodDescriptor method,  int millisecondsDelay = 100)
+		//{
+		//	var ready = propagationEffects.MethodEntityReady;
+
+		//	if (!ready)
+		//	{
+		//		Logger.LogS("AnalysisOrchestator", "WaitForReady", "Method {0} not ready", method);
+		//		await Task.Delay(millisecondsDelay);
+		//	}
+
+		//	return ready;
+		//}
+
+		//public async Task WaitMethodEntityGrainToBeReady(IMethodEntityWithPropagator methodEntityProp,  int millisecondsDelay = 100)
+		//{
+		//	if (methodEntityProp is IMethodEntityGrain)
+		//	{
+		//		var methodEntityGrain = (IMethodEntityGrain)methodEntityProp;
+		//		var methodEntityGrainStatus = await methodEntityGrain.GetStatusAsync();
+
+		//		while (methodEntityGrainStatus!= EntityGrainStatus.Ready)
+		//		{
+		//			await Task.Delay(millisecondsDelay);
+		//			methodEntityGrainStatus = await methodEntityGrain.GetStatusAsync();
+		//		}
+		//	}
+
+		//	return;
+		//}
+
+		private async Task WaitQueue(long threshold, int millisecondsDelay = 100)
+		{
+			while (this.messageWorkList.Count > threshold)
+			{
 				if (GrainClient.IsInitialized)
 				{
 					Logger.LogWarning(GrainClient.Logger, "AnalysisOrchestator", "WaitQueue", "Size {0}", this.messageWorkList.Count);
 				}
 
-                await ProcessMessages();
-                // await Task.Delay(millisecondsDelay);
-            }
+				await ProcessMessages();
+				// await Task.Delay(millisecondsDelay);
+			}
 
-            return;
-        }
+			return;
+		}
 
-        public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, PropagationKind propKind = PropagationKind.ADD_TYPES)
+		public async Task AnalyzeAsync(MethodDescriptor method, IEnumerable<PropGraphNodeDescriptor> reworkSet = null, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			Logger.LogS("AnalysisOrchestator", "AnalyzeAsync", "Analyzing {0} ", method);
 
@@ -125,10 +164,10 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
-            
+
 			//PropagationEffects propagationEffects = null;
 			//var ready = true;
-            //
+			//
 			//do
 			//{
 			//	propagationEffects = await methodEntityProc.PropagateAsync(propKind, reworkSet);
@@ -145,32 +184,37 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessMessages()
 		{
-            // TODO: This version is much faster, works well with orleans but there are some data races for the async case
+			// TODO: This version is much faster, works well with orleans but there are some data races for the async case
 			var tasks = new List<Task>();
 
 			while (messageWorkList.Count > 0)
 			{
 				while (messageWorkList.Count > 0)
 				{
-                    //var message = messageWorkList.Dequeue();
-                    Message message = null;
+					//var message = messageWorkList.Dequeue();
+					Message message = null;
 
-                    if (messageWorkList.TryDequeue(out message))
-                    {
-                        // Logger.LogWarning(GrainClient.Logger, "Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
+					if (messageWorkList.TryDequeue(out message))
+					{
+						// Logger.LogWarning(GrainClient.Logger, "Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
 
-                        if (message is CallerMessage)
-                        {
-                            var callerMessage = (CallerMessage)message;
-                            var callerMessageInfo = callerMessage.CallMessageInfo;
-                            tasks.Add(this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind));
-                        }
-                        else if (message is CalleeMessage)
-                        {
-                            var calleeMessage = (CalleeMessage)message;
-                            tasks.Add(this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind));
-                        }
-                    }
+						if (message is CallerMessage)
+						{
+							var callerMessage = (CallerMessage)message;
+							var callerMessageInfo = callerMessage.CallMessageInfo;
+							var task = this.AnalyzeCalleeAsync(callerMessageInfo.Callee, callerMessage, callerMessageInfo.PropagationKind);
+							//await task;
+							tasks.Add(task);
+						}
+						else if (message is CalleeMessage)
+						{
+							var calleeMessage = (CalleeMessage)message;
+							var calleeMessageInfo = calleeMessage.ReturnMessageInfo;
+                            var task = this.AnalyzeReturnAsync(calleeMessageInfo.Caller, calleeMessage, calleeMessageInfo.PropagationKind);
+							//await task;
+							tasks.Add(task);
+						}
+					}
 				}
 
 				await Task.WhenAll(tasks);
@@ -189,37 +233,38 @@ namespace ReachingTypeAnalysis.Analysis
 			//	else if (message is CalleeMessage)
 			//	{
 			//		var calleeMessage = (CalleeMessage)message;
-			//		await this.AnalyzeReturnAsync(calleeMessage.ReturnMessageInfo.Caller, calleeMessage, calleeMessage.ReturnMessageInfo.PropagationKind);
+			//		var calleeMessageInfo = calleeMessage.ReturnMessageInfo;
+			//		await this.AnalyzeReturnAsync(calleeMessageInfo.Caller, calleeMessage, calleeMessageInfo.PropagationKind);
 			//	}
 			//}
 		}
 
 		private async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind, IMethodEntityWithPropagator methodEntityProp = null)
 		{
-            //var hasMoreEffects = true;
+			//var hasMoreEffects = true;
 
-            //do
-            //{
-                //Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
+			//do
+			//{
+			//Logger.LogS("AnalysisOrchestator", "DoPropagationOfEffects", "");
 
-				if (GrainClient.IsInitialized)
-				{
-					Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
-				}
+			if (GrainClient.IsInitialized)
+			{
+				Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
+			}
 
-				await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
+			await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
-                if (propagationEffects.ResultChanged)
-                {
-                    await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
-                }
+			if (propagationEffects.ResultChanged)
+			{
+				await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
+			}
 
-				//hasMoreEffects = propagationEffects.MoreEffectsToFetch;
+			//hasMoreEffects = propagationEffects.MoreEffectsToFetch;
 
-				//if (hasMoreEffects && methodEntityProp != null)
-				//{
-				//	propagationEffects = await methodEntityProp.GetMoreEffects();
-				//}
+			//if (hasMoreEffects && methodEntityProp != null)
+			//{
+			//	propagationEffects = await methodEntityProp.GetMoreEffects();
+			//}
 			//}
 			//while (hasMoreEffects);
 		}
@@ -237,7 +282,7 @@ namespace ReachingTypeAnalysis.Analysis
 					// But actually for some reason the ordering is affecting the result
 					// I think the problem is the conservative treatment when types(receiver).Count = 0 
 					// (FIXED??)
-                    
+
 					var task = this.DispatchCallMessageForMethodCallAsync(calleeInfo as MethodCallInfo, propKind);
 					//await task;
 					tasks.Add(task);
@@ -289,13 +334,13 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
 
-            //Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
+			//Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
 
-            await WaitQueue(QueueThreshold);
-            this.messageWorkList.Enqueue(callerMessage);
-            //this.messageWorkList.Add(callerMessage);
+			await WaitQueue(QUEUE_THRESHOLD);
+			this.messageWorkList.Enqueue(callerMessage);
+			//this.messageWorkList.Add(callerMessage);
 
-            return;
+			return;
 			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
@@ -315,7 +360,7 @@ namespace ReachingTypeAnalysis.Analysis
 				Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
 			}
 
-            //Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
+			//Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "Analyzing call to {0} ", callee);
 
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
 
@@ -331,10 +376,10 @@ namespace ReachingTypeAnalysis.Analysis
 			//
 			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
 
-            var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-            await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+			var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
+			await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
 
-            Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
+			Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
 		}
 
 		private async Task ProcessReturnAsync(IEnumerable<ReturnInfo> callersInfo, PropagationKind propKind)
@@ -354,7 +399,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private Task DispachReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
 			return this.CreateAndSendReturnMessageAsync(returnInfo, propKind);
-        }
+		}
 
 		private async Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
@@ -364,11 +409,11 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
 			var calleeMessage = new CalleeMessage(source, returnMessageInfo);
 
-            await WaitQueue(QueueThreshold);
-            this.messageWorkList.Enqueue(calleeMessage);
-            //this.messageWorkList.Add(calleeMessage);
+			await WaitQueue(QUEUE_THRESHOLD);
+			this.messageWorkList.Enqueue(calleeMessage);
+			//this.messageWorkList.Add(calleeMessage);
 
-            return ;
+			return;
 			//return AnalyzeReturnAsync(returnMessageInfo.Caller, calleeMessage, propKind);
 		}
 
@@ -399,10 +444,10 @@ namespace ReachingTypeAnalysis.Analysis
 			//
 			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
 
-            var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-            await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
+			await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
 
-            Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
+			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 
 		#region Incremental Analysis
@@ -414,7 +459,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
 			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
-            await this.ProcessMessages();
+			await this.ProcessMessages();
 			await this.UnregisterCallerAsync(propagationEffects.CalleesInfo);
 
 			await projectProvider.ReplaceDocumentSourceAsync(newSource, TestConstants.DocumentPath);
@@ -462,7 +507,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task UpdateMethodAsync(MethodDescriptor method, string newSource)
 		{
 			var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-			
+
 			var propagationEffects = await projectProvider.RemoveMethodAsync(method);
 
 			await this.PropagateEffectsAsync(propagationEffects, PropagationKind.REMOVE_TYPES);
@@ -476,7 +521,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.PropagateFromCallersAsync(propagationEffects.CallersInfo);
 
 			await this.AddMethodAsync(method, newSource);
-			
+
 			// await this.UnregisterCallee(propagationEffects.CallersInfo);
 		}
 
@@ -565,7 +610,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await this.solutionManager.ReloadAsync();
 
 			// Don't propagate from modified callers since their call nodes may no longer exist
-			callersInfo.RemoveAll(callerInfo => methodsRemovedOrUpdated.Contains(callerInfo.CallerContext.Caller));			
+			callersInfo.RemoveAll(callerInfo => methodsRemovedOrUpdated.Contains(callerInfo.CallerContext.Caller));
 			await this.PropagateFromCallersAsync(callersInfo);
 
 			// If there is no caller (e.g., main or in the future public methods) you should call yourself

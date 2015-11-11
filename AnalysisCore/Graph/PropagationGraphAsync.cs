@@ -210,7 +210,7 @@ namespace ReachingTypeAnalysis
             var result = new HashSet<TypeDescriptor>();
             var types = this.GetTypes(n);
 
-            if (types.Count() == 0)
+            if (types.Count == 0)
             {
 				var instantiatedTypes = await codeProvider.GetCompatibleInstantiatedTypesAsync(callInfo.Receiver.Type);
 				types.UnionWith(instantiatedTypes);
@@ -223,7 +223,7 @@ namespace ReachingTypeAnalysis
                 //    }
                 //}
             }
-            if (types.Count() == 0)
+            if (types.Count == 0)
             {
                 types.Add(callInfo.Receiver.Type);
             }
@@ -267,7 +267,7 @@ namespace ReachingTypeAnalysis
             return ComputeCalleesForDelegateNodeAsync((DelegateCallInfo)invoInfo, codeProvider);
         }
 
-        internal async  Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(MethodCallInfo callInfo, IProjectCodeProvider codeProvider)
+        internal async Task<ISet<MethodDescriptor>> ComputeCalleesForCallNodeAsync(MethodCallInfo callInfo, IProjectCodeProvider codeProvider)
         {
             Contract.Assert(codeProvider != null);
             var calleesForNode = new HashSet<MethodDescriptor>();
@@ -329,5 +329,50 @@ namespace ReachingTypeAnalysis
             return callees;
         }
 
-    }
+		public async Task<MethodCalleesInfo> FixUnknownCalleesAsync(IProjectCodeProvider codeProvider)
+		{
+			var resolvedCallees = new HashSet<MethodDescriptor>();
+			var unknownCallees = new HashSet<PropGraphNodeDescriptor>();
+
+			foreach (var callNode in this.CallNodes)
+			{
+				var invInfo = this.GetInvocationInfo(callNode);
+
+				if (invInfo is MethodCallInfo)
+				{
+					var callInfo = invInfo as MethodCallInfo;
+
+					if (callInfo.Receiver != null)
+					{
+						var potentialTypes = this.GetTypes(callInfo.Receiver);
+
+						if (potentialTypes.Count == 0)
+						{
+							potentialTypes = await this.GetPotentialTypesAsync(callInfo.Receiver, callInfo, codeProvider);
+
+							this.Add(callInfo.Receiver, potentialTypes);
+							this.AddToWorkList(callInfo.Receiver);
+							unknownCallees.Add(callInfo.Receiver);
+						}
+						else
+						{
+							var callees = await ComputeCalleesForCallNodeAsync(callInfo, codeProvider);
+							resolvedCallees.UnionWith(callees);
+						}
+					}
+					else
+					{
+						resolvedCallees.Add(callInfo.Method);
+					}
+				}
+				//else if (invInfo is DelegateCallInfo)
+				//{
+				//	var callInfo = invInfo as DelegateCallInfo;
+				//}
+			}
+
+			var result = new MethodCalleesInfo(resolvedCallees, unknownCallees);
+			return result;
+		}
+	}
 }

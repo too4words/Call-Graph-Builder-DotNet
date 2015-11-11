@@ -766,6 +766,11 @@ namespace ReachingTypeAnalysis.Roslyn
 		/// <returns></returns>
 		public override AnalysisExpression VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
+			//// TODO: Remove these lines
+			//if (node.ToString() == "Parse(\"/rules\")")
+			//{
+			//}
+
             this.roslynMethodVisitor.InvocationPosition++;
 
 			// CHECK
@@ -912,6 +917,7 @@ namespace ReachingTypeAnalysis.Roslyn
 
 								if (methodInvokedSymbol.IsExtensionMethod)
 								{
+									// We adapt the method as it is an extension
 									if (methodInvokedSymbol.IsExtensionMethod)
 									{
 										methodInvokedSymbol = methodInvokedSymbol.ReducedFrom;
@@ -921,8 +927,7 @@ namespace ReachingTypeAnalysis.Roslyn
 									args.Insert(0, receiverArg);
 									statementProcessor.RegisterStaticCall(methodDescriptor, args, lh, callNode);
 									result = new Call(node, methodInvokedSymbol.ReturnType, methodInvokedSymbol, callNode, lh,			
-														this.roslynMethodVisitor.DeclarationNode);
-									// We adapt the method as it is an extension
+														this.roslynMethodVisitor.DeclarationNode);									
 								}
 								else
 								{

@@ -14,12 +14,12 @@ namespace ReachingTypeAnalysis.Analysis
 {
 	internal class AsyncSolutionManager : SolutionManager
 	{
-		private IDictionary<AssemblyName, IProjectCodeProvider> projectsCache;
-		private IDictionary<AssemblyName, IProjectCodeProvider> newProjectsCache;
+		private IDictionary<AssemblyName, IProjectCodeProvider> projectProviders;
+		private IDictionary<AssemblyName, IProjectCodeProvider> newProjectProviders;
 
 		private AsyncSolutionManager() : base()
 		{
-			this.projectsCache = new Dictionary<AssemblyName, IProjectCodeProvider>();
+			this.projectProviders = new Dictionary<AssemblyName, IProjectCodeProvider>();
 		}
 
 		public static async Task<AsyncSolutionManager> CreateFromSolutionAsync(string solutionPath)
@@ -43,14 +43,14 @@ namespace ReachingTypeAnalysis.Analysis
 			return manager;
 		}
 
-		private IDictionary<AssemblyName, IProjectCodeProvider> ProjectsCache
+		private IDictionary<AssemblyName, IProjectCodeProvider> ProjectProviders
 		{
-			get { return useNewFieldsVersion ? newProjectsCache : projectsCache; }
+			get { return useNewFieldsVersion ? newProjectProviders : projectProviders; }
 		}
 
 		protected override async Task CreateProjectCodeProviderAsync(string projectPath, string assemblyName)
 		{
-			if (this.ProjectsCache.ContainsKey(assemblyName))
+			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
 				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
 				Console.WriteLine(message);
@@ -60,15 +60,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath, this);
 
-            lock (this.ProjectsCache)
+            lock (this.ProjectProviders)
             {
-                this.ProjectsCache.Add(assemblyName, provider);
+                this.ProjectProviders.Add(assemblyName, provider);
             }
 		}
 
 		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
 		{
-			if (this.ProjectsCache.ContainsKey(assemblyName))
+			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
 				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
 				Console.WriteLine(message);
@@ -77,12 +77,12 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName, this);
-			this.ProjectsCache.Add(assemblyName, provider);
+			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
 		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
 		{
-			if (this.ProjectsCache.ContainsKey(assemblyName))
+			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
 				var message = string.Format("Same assembly name used in more than one project: {0}", assemblyName);
 				Console.WriteLine(message);
@@ -91,17 +91,17 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName, this);
-			this.ProjectsCache.Add(assemblyName, provider);
+			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
 		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
 		{
 			IProjectCodeProvider provider = null;
 
-			if (!this.ProjectsCache.TryGetValue(assemblyName, out provider))
+			if (!this.ProjectProviders.TryGetValue(assemblyName, out provider))
 			{
 				provider = this.GetDummyProjectCodeProvider();
-				this.ProjectsCache.Add(assemblyName, provider);
+				this.ProjectProviders.Add(assemblyName, provider);
 			}
 
 			return Task.FromResult(provider);
@@ -123,16 +123,16 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
-			this.newProjectsCache = new Dictionary<AssemblyName, IProjectCodeProvider>(this.ProjectsCache);
+			this.newProjectProviders = new Dictionary<AssemblyName, IProjectCodeProvider>(this.ProjectProviders);
 			return base.GetModificationsAsync(modifiedDocuments);
 		}
 
 		public override async Task ReloadAsync()
 		{
-			if (newProjectsCache != null)
+			if (newProjectProviders != null)
 			{
-				this.projectsCache = newProjectsCache;
-				this.newProjectsCache = null;
+				this.projectProviders = newProjectProviders;
+				this.newProjectProviders = null;
 			}
 
 			await base.ReloadAsync();

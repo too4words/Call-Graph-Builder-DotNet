@@ -833,7 +833,7 @@ namespace ReachingTypeAnalysis
 	//	}
 	//}
 	#endregion
-
+	
 	internal class MethodFinder : CSharpSyntaxWalker
 	{
 		private MethodDescriptor MethodDescriptor;

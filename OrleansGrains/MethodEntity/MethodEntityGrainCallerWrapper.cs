@@ -132,6 +132,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntityGrain.ForceDeactivationAsync();
 		}
 
+		public Task UseDeclaredTypesForParameters()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.UseDeclaredTypesForParameters();
+		}
+
+		public Task<MethodCalleesInfo> FixUnknownCalleesAsync()
+		{
+			this.SetRequestContext();
+			return methodEntityGrain.FixUnknownCalleesAsync();
+		}
+
 		//public Task<PropagationEffects> GetMoreEffects()
 		//{
 		//	this.SetRequestContext();
@@ -145,5 +157,5 @@ namespace ReachingTypeAnalysis.Analysis
 
 		//	return methodEntityGrain.GetStatusAsync();
 		//}
-    }
+	}
 }
