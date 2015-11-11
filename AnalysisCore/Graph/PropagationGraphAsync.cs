@@ -332,7 +332,8 @@ namespace ReachingTypeAnalysis
 		public async Task<MethodCalleesInfo> FixUnknownCalleesAsync(IProjectCodeProvider codeProvider)
 		{
 			var resolvedCallees = new HashSet<MethodDescriptor>();
-			var unknownCallees = new HashSet<PropGraphNodeDescriptor>();
+			//var unknownCallees = new HashSet<PropGraphNodeDescriptor>();
+			var hasUnknownCallees = false;
 
 			foreach (var callNode in this.CallNodes)
 			{
@@ -352,7 +353,8 @@ namespace ReachingTypeAnalysis
 
 							this.Add(callInfo.Receiver, potentialTypes);
 							this.AddToWorkList(callInfo.Receiver);
-							unknownCallees.Add(callInfo.Receiver);
+							//unknownCallees.Add(callInfo.Receiver);
+							hasUnknownCallees = true;
 						}
 						else
 						{
@@ -371,7 +373,7 @@ namespace ReachingTypeAnalysis
 				//}
 			}
 
-			var result = new MethodCalleesInfo(resolvedCallees, unknownCallees);
+			var result = new MethodCalleesInfo(resolvedCallees, hasUnknownCallees);
 			return result;
 		}
 	}

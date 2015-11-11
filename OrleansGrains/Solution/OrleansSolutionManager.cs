@@ -69,7 +69,7 @@ namespace ReachingTypeAnalysis.Analysis
 			get { return useNewFieldsVersion ? newMethodDescriptors : methodDescriptors; }
 		}
 
-		protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, string assemblyName)
+		protected override async Task CreateProjectCodeProviderAsync(string projectFilePath, AssemblyName assemblyName)
         {
 			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 			var projectGrainReference = projectGrain;
@@ -86,7 +86,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.ProjectProviders.Add(assemblyName);
         }
 
-        protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
+        protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, AssemblyName assemblyName)
         {
 			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 			var projectGrainReference = projectGrain;
@@ -103,7 +103,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.ProjectProviders.Add(assemblyName);
 		}
 
-		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
+		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, AssemblyName assemblyName)
 		{
 			var projectGrain = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 			var projectGrainReference = projectGrain;
@@ -120,7 +120,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.ProjectProviders.Add(assemblyName);
 		}
 
-        public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
+        public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(AssemblyName assemblyName)
         {
 			IProjectCodeProvider provider = null;
 			var isExistingProject = this.ProjectProviders.Contains(assemblyName);

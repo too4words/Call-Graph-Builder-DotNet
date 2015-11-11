@@ -59,12 +59,39 @@ namespace ReachingTypeAnalysis.Roslyn
             return FindMethodInCompilation(methodDescriptor, compilation);
         }
 
-        public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
-        {
-            var type = GetTypeByName(methodDescriptor.ContainerType, compilation);
+		private static INamedTypeSymbol GetSpecializedTypeByName(TypeDescriptor typeDescriptor, Compilation compilation)
+		{
+			var type = GetTypeByName(typeDescriptor, compilation);
 
-            if (type != null)
+			if (type != null)
+			{
+				if (type.IsGenericType)
+				{
+					var typeArguments = from t in typeDescriptor.TypeArguments
+										select GetSpecializedTypeByName(t, compilation);
+
+					type = type.Construct(typeArguments.ToArray());
+				}
+			}
+
+			return type;
+		}
+
+		public static IMethodSymbol FindMethodInCompilation(MethodDescriptor methodDescriptor, Compilation compilation)
+        {
+			var type = GetTypeByName(methodDescriptor.ContainerType, compilation);
+			//var type = GetSpecializedTypeByName(methodDescriptor.ContainerType, compilation);
+
+			if (type != null)
             {
+				//if (type.IsGenericType)
+				//{
+				//	var typeArguments = from t in methodDescriptor.ContainerType.TypeArguments
+				//						select GetTypeByName(t, compilation);
+
+				//	type = type.Construct(typeArguments.ToArray());
+				//}
+
                 var members = type.GetMembers(methodDescriptor.MethodName);
 
                 if (members.Count() > 0)
@@ -72,7 +99,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					var methods = from member in members
 								  let methodSymbol = member as IMethodSymbol
 								  let descriptor = Utils.CreateMethodDescriptor(methodSymbol)
-								  where descriptor.Equals(methodDescriptor)
+								  where descriptor.EqualsIgnoringTypeArguments(methodDescriptor)
 								  select methodSymbol;
 
 					if (methods.Count() != 1)
@@ -94,7 +121,7 @@ namespace ReachingTypeAnalysis.Roslyn
         public static INamedTypeSymbol GetTypeByName(TypeDescriptor typeDescriptor, Compilation compilation)
         {
             //return GetTypeByName(typeDescriptor.TypeName, compilation);
-			var type = compilation.GetTypeByMetadataName(typeDescriptor.QualifiedTypeName);
+			var type = compilation.GetTypeByMetadataName(typeDescriptor.QualifiedMetadataTypeName);
 			
 			// Another way to access the info
 			if (type == null)

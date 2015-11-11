@@ -48,7 +48,7 @@ namespace ReachingTypeAnalysis.Analysis
 			get { return useNewFieldsVersion ? newProjectProviders : projectProviders; }
 		}
 
-		protected override async Task CreateProjectCodeProviderAsync(string projectPath, string assemblyName)
+		protected override async Task CreateProjectCodeProviderAsync(string projectPath, AssemblyName assemblyName)
 		{
 			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
@@ -66,7 +66,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
 		}
 
-		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, string assemblyName)
+		protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, AssemblyName assemblyName)
 		{
 			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
@@ -80,7 +80,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
-		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, string assemblyName)
+		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, AssemblyName assemblyName)
 		{
 			if (this.ProjectProviders.ContainsKey(assemblyName))
 			{
@@ -94,7 +94,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
-		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
+		public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(AssemblyName assemblyName)
 		{
 			IProjectCodeProvider provider = null;
 

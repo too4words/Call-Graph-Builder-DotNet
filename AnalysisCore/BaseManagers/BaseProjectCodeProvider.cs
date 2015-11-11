@@ -198,7 +198,15 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					// We assume if T1 <= T2, then the project (compilation) where T1 is declared must know T2 also
 					var projectProvider = await this.solutionManager.GetProjectCodeProviderAsync(typeDescriptor1.AssemblyName);
-					result = await projectProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+
+					if (projectProvider is DummyProjectCodeProvider)
+					{
+						result = false;
+					}
+					else
+					{
+						result = await projectProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
+					}
 				}
 				else
 				{

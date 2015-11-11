@@ -69,12 +69,12 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 
 			await this.ProcessMessages();
-			//await this.PropagateUsingDeclaredTypes();
-			//await this.ProcessMessages();
+			await this.PropagateUsingDeclaredTypes();
+			await this.ProcessMessages();
 		}
 
 		private async Task PropagateUsingDeclaredTypes()
-		 {
+		{
 			var roots = await this.solutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
 			var visited = new HashSet<MethodDescriptor>();
@@ -87,7 +87,7 @@ namespace ReachingTypeAnalysis.Analysis
 				var methodEntity = await this.solutionManager.GetMethodEntityAsync(currentMethodDescriptor);
 				var calleesInfo = await methodEntity.FixUnknownCalleesAsync();
 
-				if (calleesInfo.UnknownCallees.Count > 0)
+				if (calleesInfo.HasUnknownCallees)
 				{
 					var propagationEffects = await methodEntity.PropagateAsync(PropagationKind.ADD_TYPES);
 					await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntity);

@@ -46,12 +46,21 @@ namespace ReachingTypeAnalysis
 	public class MethodCalleesInfo
 	{
 		public ISet<MethodDescriptor> ResolvedCallees { get; private set; }
-		public ISet<PropGraphNodeDescriptor> UnknownCallees { get; private set; }
 
-		public MethodCalleesInfo(IEnumerable<MethodDescriptor> resolvedCallees, IEnumerable<PropGraphNodeDescriptor> unknownCallees)
+		//public ISet<PropGraphNodeDescriptor> UnknownCallees { get; private set; }
+
+		public bool HasUnknownCallees { get; private set; }
+
+		//public MethodCalleesInfo(IEnumerable<MethodDescriptor> resolvedCallees, IEnumerable<PropGraphNodeDescriptor> unknownCallees)
+		//{
+		//	this.ResolvedCallees = new HashSet<MethodDescriptor>(resolvedCallees);
+		//	this.UnknownCallees = new HashSet<PropGraphNodeDescriptor>(unknownCallees);
+		//}
+
+		public MethodCalleesInfo(IEnumerable<MethodDescriptor> resolvedCallees, bool hasUnknownCallees)
 		{
 			this.ResolvedCallees = new HashSet<MethodDescriptor>(resolvedCallees);
-			this.UnknownCallees = new HashSet<PropGraphNodeDescriptor>(unknownCallees);
+			this.HasUnknownCallees = hasUnknownCallees;
 		}
 	}
 
@@ -248,18 +257,49 @@ namespace ReachingTypeAnalysis
             return /*nEq && cEq*/ tEq && mEq && staticEq && pEq && tpEq;
         }
 
-        //private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
-        //{
-        //    if(params1.Count()!=params2.Count()) return false;
-        //    for(var i = 0; i< params1.Count(); i++)
-        //    {
-        //        if(!params1[i].Equals(params2[i]))
-        //            return false;
-        //    }
-        //    return true;
-        //}
+		public bool EqualsIgnoringTypeArguments(object obj)
+		{
+			var md = obj as MethodDescriptor;
+			if (md == null) return false;
 
-        public override int GetHashCode()
+			//var nEq = this.NamespaceName == "" || md.NamespaceName == "" || this.NamespaceName.Equals(md.NamespaceName);
+			//var cEq = this.ClassName.Equals(md.ClassName);
+			var tEq = this.ContainerType.EqualsIgnoringTypeArguments(md.ContainerType);
+			var mEq = this.MethodName.Equals(md.MethodName);
+			var staticEq = this.IsStatic == md.IsStatic;
+			//var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.SequenceEqual(md.Parameters);
+			var pEq = this.Parameters == null || md.Parameters == null || this.Parameters.Count == md.Parameters.Count;
+			var tpEq = this.TypeParametersCount == md.TypeParametersCount;
+
+			if (pEq)
+			{
+				for (var i = 0; i < this.Parameters.Count; ++i)
+				{
+					var thisParam = this.Parameters[i];
+					var mdParam = md.Parameters[i];
+
+					if (thisParam.Kind != SerializableTypeKind.TypeParameter)
+					{
+						pEq = pEq && thisParam.EqualsIgnoringTypeArguments(mdParam);
+					}
+				}
+			}
+
+			return /*nEq && cEq*/ tEq && mEq && staticEq && pEq && tpEq;
+		}
+
+		//private static bool CompareParameters(IList<TypeDescriptor> params1, IList<TypeDescriptor> params2)
+		//{
+		//    if(params1.Count()!=params2.Count()) return false;
+		//    for(var i = 0; i< params1.Count(); i++)
+		//    {
+		//        if(!params1[i].Equals(params2[i]))
+		//            return false;
+		//    }
+		//    return true;
+		//}
+
+		public override int GetHashCode()
         {
             //return NamespaceName.GetHashCode() + ClassName.GetHashCode() + MethodName.GetHashCode();
             return this.ContainerType.GetHashCode() + this.MethodName.GetHashCode();
@@ -458,6 +498,23 @@ namespace ReachingTypeAnalysis
             }
         }
 
+		public string MetadataTypeName
+		{
+			get
+			{
+				var result = new StringBuilder();
+
+				result.Append(this.ClassName);
+
+				if (this.TypeParametersCount > 0)
+				{
+					result.AppendFormat("`{0}", this.TypeParametersCount);
+				}
+
+				return result.ToString();
+			}
+		}
+
 		public string QualifiedTypeName
 		{
 			get
@@ -474,13 +531,34 @@ namespace ReachingTypeAnalysis
 			}
 		}
 
+		public string QualifiedMetadataTypeName
+		{
+			get
+			{
+				var result = new StringBuilder();
+
+				if (!string.IsNullOrEmpty(this.NamespaceName))
+				{
+					result.AppendFormat("{0}.", this.NamespaceName);
+				}
+
+				result.Append(this.MetadataTypeName);
+				return result.ToString();
+			}
+		}
+
 		public string FullTypeName
         {
             get { return string.Format("{0}: {1}", this.AssemblyName, this.QualifiedTypeName); }
         }
 
-        // TODO: Fix the equals, but we need to resolve the default values
-        public override bool Equals(object obj)
+		public string FullMetadataTypeName
+		{
+			get { return string.Format("{0}: {1}", this.AssemblyName, this.QualifiedMetadataTypeName); }
+		}
+
+		// TODO: Fix the equals, but we need to resolve the default values
+		public override bool Equals(object obj)
         {
             var td = (TypeDescriptor)obj;
             var eqKind = td.Kind.Equals(SerializableTypeKind.Undefined) ||
@@ -496,8 +574,23 @@ namespace ReachingTypeAnalysis
                     && eqKind && eqTPC && eqTA;
         }
 
-        // TODO: Fix the equals, but we need to resolve the default values
-        public override int GetHashCode()
+		public bool EqualsIgnoringTypeArguments(object obj)
+		{
+			var td = (TypeDescriptor)obj;
+			var eqKind = this.Kind.Equals(SerializableTypeKind.Undefined) ||
+						  td.Kind.Equals(SerializableTypeKind.Undefined) ||
+                          this.Kind.Equals(td.Kind);
+			var eqRef = this.IsReferenceType == td.IsReferenceType;
+			var eqConcrete = this.IsConcreteType == td.IsConcreteType;
+			var eqTPC = this.TypeParametersCount == td.TypeParametersCount;
+
+			return this.FullMetadataTypeName.Equals(td.FullMetadataTypeName)
+					//       && eqRef && eqConcrete
+					&& eqKind && eqTPC;
+		}
+
+		// TODO: Fix the equals, but we need to resolve the default values
+		public override int GetHashCode()
         {
             return this.FullTypeName.GetHashCode()
                 + (this.Kind.Equals(SerializableTypeKind.Undefined) ? 0 : this.Kind.GetHashCode());
