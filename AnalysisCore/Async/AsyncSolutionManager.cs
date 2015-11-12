@@ -43,6 +43,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return manager;
 		}
 
+		protected override ICollection<AssemblyName> Assemblies
+		{
+			get { return this.ProjectProviders.Keys; }
+		}
+
 		private IDictionary<AssemblyName, IProjectCodeProvider> ProjectProviders
 		{
 			get { return useNewFieldsVersion ? newProjectProviders : projectProviders; }

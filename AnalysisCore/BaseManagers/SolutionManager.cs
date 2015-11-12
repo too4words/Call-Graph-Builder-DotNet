@@ -8,6 +8,8 @@ using Orleans;
 using ReachingTypeAnalysis;
 using System.Threading;
 
+using AssemblyName = System.String;
+
 namespace ReachingTypeAnalysis.Analysis
 {
     internal abstract class SolutionManager : ISolutionManager
@@ -24,6 +26,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
+
+		protected abstract ICollection<AssemblyName> Assemblies { get; }
 
 		protected IList<Project> Projects
 		{
@@ -111,9 +115,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var result = new HashSet<MethodDescriptor>();
 
-			foreach (var project in this.Projects)
+			foreach (var assemblyName in this.Assemblies)
 			{
-				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+				var provider = await this.GetProjectCodeProviderAsync(assemblyName);
 				var reachableMethods = await provider.GetReachableMethodsAsync();
 
 				result.UnionWith(reachableMethods);
@@ -126,9 +130,9 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var result = 0;
 
-            foreach (var project in this.Projects)
+            foreach (var assemblyName in this.Assemblies)
             {
-                var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+                var provider = await this.GetProjectCodeProviderAsync(assemblyName);
                 var reachableMethodsCount = await provider.GetReachableMethodsCountAsync();
 
                 result += reachableMethodsCount;
@@ -142,16 +146,16 @@ namespace ReachingTypeAnalysis.Analysis
 			var cancellationTokenSource = new CancellationTokenSource();
 			var result = new List<IProjectCodeProvider>();
 
-			foreach (var project in this.Projects)
+			foreach (var assemblyName in this.Assemblies)
 			{
-				var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+				var provider = await this.GetProjectCodeProviderAsync(assemblyName);
 				result.Add(provider);
 			}
 
 			return result;
 		}
 
-		public abstract Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
+		public abstract Task<IProjectCodeProvider> GetProjectCodeProviderAsync(AssemblyName assemblyName);
 
 		public abstract Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 
@@ -232,9 +236,9 @@ namespace ReachingTypeAnalysis.Analysis
 				this.projects = newProjects;
 				this.newProjects = null;
 
-				foreach (var project in this.Projects)
+				foreach (var assemblyName in this.Assemblies)
 				{
-					var provider = await this.GetProjectCodeProviderAsync(project.AssemblyName);
+					var provider = await this.GetProjectCodeProviderAsync(assemblyName);
 					var task = provider.ReloadAsync();
 					//await task;
 					tasks.Add(task);

@@ -15,8 +15,8 @@ namespace ReachingTypeAnalysis.Analysis
     {
 		private SolutionGrain solutionGrain;
         private IGrainFactory grainFactory;
-		private ISet<AssemblyName> projectProviders;
-		private ISet<AssemblyName> newProjectProviders;
+		private ISet<AssemblyName> assemblies;
+		private ISet<AssemblyName> newAssemblies;
 		private ISet<MethodDescriptor> methodDescriptors;
 		private ISet<MethodDescriptor> newMethodDescriptors;
 
@@ -24,7 +24,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			this.solutionGrain = solutionGrain;
 			this.grainFactory = grainFactory;
-			this.projectProviders = new HashSet<AssemblyName>();
+			this.assemblies = new HashSet<AssemblyName>();
             this.methodDescriptors = new HashSet<MethodDescriptor>();
 		}
 
@@ -59,9 +59,9 @@ namespace ReachingTypeAnalysis.Analysis
             return manager;
         }
 
-		private ISet<AssemblyName> ProjectProviders
+		protected override ICollection<AssemblyName> Assemblies
 		{
-			get { return useNewFieldsVersion ? newProjectProviders : projectProviders; }
+			get { return useNewFieldsVersion ? newAssemblies : assemblies; }
 		}
 
 		private ISet<MethodDescriptor> MethodDescriptors
@@ -83,7 +83,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await solutionGrain.StartObservingAsync(projectGrainReference);
             await projectGrain.SetProjectPathAsync(projectFilePath);
 
-			this.ProjectProviders.Add(assemblyName);
+			this.Assemblies.Add(assemblyName);
         }
 
         protected override async Task CreateProjectCodeProviderFromSourceAsync(string source, AssemblyName assemblyName)
@@ -100,7 +100,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await solutionGrain.StartObservingAsync(projectGrainReference);
             await projectGrain.SetProjectSourceAsync(source);
 
-			this.ProjectProviders.Add(assemblyName);
+			this.Assemblies.Add(assemblyName);
 		}
 
 		protected override async Task CreateProjectCodeProviderFromTestAsync(string testName, AssemblyName assemblyName)
@@ -117,13 +117,13 @@ namespace ReachingTypeAnalysis.Analysis
 			await solutionGrain.StartObservingAsync(projectGrainReference);
 			await projectGrain.SetProjectFromTestAsync(testName);
 
-			this.ProjectProviders.Add(assemblyName);
+			this.Assemblies.Add(assemblyName);
 		}
 
         public override Task<IProjectCodeProvider> GetProjectCodeProviderAsync(AssemblyName assemblyName)
         {
 			IProjectCodeProvider provider = null;
-			var isExistingProject = this.ProjectProviders.Contains(assemblyName);
+			var isExistingProject = this.Assemblies.Contains(assemblyName);
 
 			if (isExistingProject)
 			{
@@ -144,7 +144,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// for each unknown project in the solution instead of having only one
 			// representing all of them.
             var provider = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, "DUMMY");
-			this.ProjectProviders.Add("DUMMY");
+			this.Assemblies.Add("DUMMY");
 			return provider;
         }
 
@@ -177,17 +177,17 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public override Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
-			this.newProjectProviders = new HashSet<AssemblyName>(this.ProjectProviders);
+			this.newAssemblies = new HashSet<AssemblyName>(this.Assemblies);
 			this.newMethodDescriptors = new HashSet<MethodDescriptor>(this.MethodDescriptors);
 			return base.GetModificationsAsync(modifiedDocuments);
 		}
 
 		public override async Task ReloadAsync()
 		{
-			if (newProjectProviders != null)
+			if (newAssemblies != null)
 			{
-				this.projectProviders = newProjectProviders;
-				this.newProjectProviders = null;
+				this.assemblies = newAssemblies;
+				this.newAssemblies = null;
 
 				this.methodDescriptors = newMethodDescriptors;
 				this.newMethodDescriptors = null;
@@ -200,7 +200,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var tasks = new List<Task>();
 
-            foreach (var assemblyName in this.ProjectProviders)
+            foreach (var assemblyName in this.Assemblies)
             {
                 var provider = OrleansProjectCodeProvider.GetProjectGrain(grainFactory, assemblyName);
 				var task = provider.ForceDeactivationAsync();
