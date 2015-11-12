@@ -148,6 +148,14 @@ namespace ReachingTypeAnalysis
 		[TestMethod]
 		[TestCategory("Soundness")]
 		[TestCategory("OnDemandOrleans")]
+		public void TestInterfaceMethodCallOnDemandOrleans()
+		{
+			BasicTests.TestInterfaceMethodCall(AnalysisStrategyKind.ONDEMAND_ORLEANS);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandOrleans")]
 		public void TestLambdaOnDemandOrleans()
 		{
 			BasicTests.TestLambda(AnalysisStrategyKind.ONDEMAND_ORLEANS);

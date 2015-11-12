@@ -175,7 +175,7 @@ namespace ReachingTypeAnalysis
             //this.ClassName = typeDescriptor.ClassName;
             this.MethodName = methodName;
             this.IsStatic = isStatic;
-			this.IsVirtual = IsVirtual;
+			this.IsVirtual = isVirtual;
             this.ReturnType = returnType;
             this.IsAnonymousDescriptor = false;
 			this.TypeParametersCount = typeParametersCount;

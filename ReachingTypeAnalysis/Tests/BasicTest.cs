@@ -1115,6 +1115,46 @@ class Program
 				strategy);
 		}
 
+		public static void TestInterfaceMethodCall(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+interface IC
+{
+	void Bar();
+}
+
+class C : IC
+{
+	public void Bar()
+	{
+		Console.ReadKey();
+	}
+}
+
+class Program
+{
+    public static void Main()
+	{
+		IC c = new C();
+		c.Bar();
+	}
+}";
+			#endregion
+			
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "Bar"), callgraph));
+					Assert.IsFalse(s.IsReachable(new MethodDescriptor("IC", "Bar"), callgraph));
+				},
+				strategy);
+		}
+
 		public static void TestLambda(AnalysisStrategyKind strategy)
         {
             #region source code
