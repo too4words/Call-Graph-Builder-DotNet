@@ -983,6 +983,138 @@ class Program
 				strategy);
 		}
 
+		public static void TestExtensionMethodCall(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+static class Extension
+{
+	public static void Foo(this int x)
+	{
+		Console.WriteLine(x);
+	}
+}
+
+class Program
+{
+    public static void Main()
+	{
+		var num = 5;
+		num.Foo();
+	}
+}";
+			#endregion
+
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Extension", "Foo", true), callgraph));
+				},
+				strategy);
+		}
+
+		public static void TestStaticMethodCall(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+static class StaticClass
+{
+	private static field;
+
+	public static void Foo(int x)
+	{
+		Console.WriteLine(x);
+	}
+
+	public static int Field
+	{
+		get { return field; }
+		set { field = value; }
+	}
+}
+
+class Program
+{
+	private static void Foo()
+	{
+		Console.Clear();
+	}
+
+	private static void Bar()
+	{
+		Console.ReadKey();
+	}
+
+    public static void Main()
+	{
+		Foo();
+		Program.Bar();
+		StaticClass.Foo(3);
+		var a = StaticClass.Field;
+		StaticClass.Field = 4;
+	}
+}";
+			#endregion
+
+            TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Foo", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Bar", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("StaticClass", "Foo", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("StaticClass", "get_Field", true), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("StaticClass", "set_Field", true), callgraph));
+				},
+				strategy);
+		}
+
+		public static void TestPropertyCall(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+class C
+{
+	private field;
+
+	public int Field
+	{
+		get { return field; }
+		set { field = value; }
+	}
+}
+
+class Program
+{
+    public static void Main()
+	{
+		var c = new C();
+		var a = c.Field;
+		c.Field = 4;
+	}
+}";
+			#endregion
+
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "get_Field"), callgraph));
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("C", "set_Field"), callgraph));
+				},
+				strategy);
+		}
+
 		public static void TestLambda(AnalysisStrategyKind strategy)
         {
             #region source code

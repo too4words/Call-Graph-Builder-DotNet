@@ -133,14 +133,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (this.methodEntity.ReturnVariable != null || propKind == PropagationKind.REMOVE_TYPES)
 			{
-				foreach (var callerContext in this.methodEntity.Callers)
-				{
-					var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
-					returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
-					returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
-
-					propagationEffects.CallersInfo.Add(returnInfo);
-				}
+				this.PopulateCallersInfo(propagationEffects.CallersInfo);
 			}
 		}
 
@@ -176,7 +169,19 @@ namespace ReachingTypeAnalysis.Analysis
             }
         }
 
-        public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
+		private void PopulateCallersInfo(ISet<ReturnInfo> callersInfo)
+		{
+			foreach (var callerContext in this.methodEntity.Callers)
+			{
+				var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
+				returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
+				returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+
+				callersInfo.Add(returnInfo);
+			}
+		}
+
+		public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
             Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "Propagation for {0} ", callMessageInfo.Callee);
 

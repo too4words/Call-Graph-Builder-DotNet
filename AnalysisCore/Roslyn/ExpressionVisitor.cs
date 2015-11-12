@@ -445,28 +445,19 @@ namespace ReachingTypeAnalysis.Roslyn
             return Visit(node.Condition);
         }
 
-        public override AnalysisExpression VisitAssignmentExpression(AssignmentExpressionSyntax node)
-        {
-			//var lhsExp = Visit(node.Left);
-			//var rhsExp = Visit(node.Right);
-			if (Utils.IsTypeForAnalysis(this.model, node.Left) && Utils.IsTypeForAnalysis(this.model, node.Right))
+		public override AnalysisExpression VisitAssignmentExpression(AssignmentExpressionSyntax node)
+		{
+			this.leftHandSide = true;
+			var lhs = Visit(node.Left);
+			this.leftHandSide = false;
+			var rhs = Visit(node.Right);
+
+			if (lhs != null)
 			{
-                this.leftHandSide = true;
-				var lhs = Visit(node.Left);
-                this.leftHandSide = false;
-                var rhs = Visit(node.Right);
-
-				if (lhs == null || rhs == null)
-				{
-					return CreateUnsupportedExpression(node.Right);
-				}
-
 				this.statementProcessor.RegisterLocalVariable(lhs.GetAnalysisNode());
 				//this.roslynMethodVisitor.RegisterVariable(lhs.GetSynTaxExpression(),
 				//                                          lhs.GetAnalysisType().RoslynType,
 				//                                          lhs.GetRoslynSymbol());
-
-                Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
 
 				if (lhs is MemberAccess)
 				{
@@ -476,31 +467,39 @@ namespace ReachingTypeAnalysis.Roslyn
 						var property = memberAccess.NameExpresion as Property;
 						if (property.RoslynMethod.MethodKind == MethodKind.PropertySet)
 						{
-							/// TODO : Process Property Setter
-							AnalyzePropertySetter(node, memberAccess.ReferenceExpresion.GetAnalysisNode(), memberAccess.ReferenceExpresion, property, rhs.GetAnalysisNode());
+							// TODO : Process Property Setter
+							AnalyzePropertySetter(node, null, memberAccess.ReferenceExpresion, property, rhs);
 						}
 					}
 				}
-				rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
 
-				//if (rhs is Allocation)
-				//{
-				//    // Get the type of the allocation 
-				//    var allocType = rhs.GetAnalysisType();
-				//    statementProcessor.RegisterNewExpressionAssignment(lhs.GetAnalysisNode(), allocType);
-				//}
-				//else
-				//{
-				//    rhs.ProcessAssignment(lhs.GetAnalysisNode(), this.roslynMethodVisitor);
-				//    statementProcessor.RegisterAssignment(lhs.GetAnalysisNode(), rhs.GetAnalysisNode());
-				//}
-				return rhs;
+				if (rhs != null)
+				{
+					Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
+
+					rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
+
+					//if (rhs is Allocation)
+					//{
+					//    // Get the type of the allocation 
+					//    var allocType = rhs.GetAnalysisType();
+					//    statementProcessor.RegisterNewExpressionAssignment(lhs.GetAnalysisNode(), allocType);
+					//}
+					//else
+					//{
+					//    rhs.ProcessAssignment(lhs.GetAnalysisNode(), this.roslynMethodVisitor);
+					//    statementProcessor.RegisterAssignment(lhs.GetAnalysisNode(), rhs.GetAnalysisNode());
+					//}
+				}
 			}
-			else
+			
+			if (rhs == null)
 			{
-				return CreateUnsupportedExpression(node.Right);
+				rhs = CreateUnsupportedExpression(node.Right);
 			}
-        }
+
+			return rhs;
+		}
 
 		public override AnalysisExpression VisitIdentifierName(IdentifierNameSyntax node)
 		{
@@ -1133,7 +1132,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
             var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
 
-            if (receiverArg == null)
+			//if (receiverArg == null)
+			if (receiverArg == null && !methodDescriptor.IsStatic)
             {
                 if (referenceAnalysisExpression != null)
                 {
@@ -1151,7 +1151,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		internal Call AnalyzePropertySetter(ExpressionSyntax node,
 					PropGraphNodeDescriptor receiverArg,
 					 AnalysisExpression referenceAnalysisExpression, 
-					 Property property, PropGraphNodeDescriptor rhsNode)
+					 Property property, AnalysisExpression rhs)
 		{
 			this.roslynMethodVisitor.InvocationPosition++;
 			var roslynMethod = property.RoslynMethod;
@@ -1163,8 +1163,8 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			var methodDescriptor = Utils.CreateMethodDescriptor(roslynMethod);
 
-
-			if (receiverArg == null)
+			//if (receiverArg == null)
+			if (receiverArg == null && !methodDescriptor.IsStatic)
 			{
 				if (referenceAnalysisExpression != null)
 				{
@@ -1174,7 +1174,9 @@ namespace ReachingTypeAnalysis.Roslyn
 
 			var lhs = CreateAndRegisterTemporaryLHVar(node, roslynMethod);
 			var args = new List<PropGraphNodeDescriptor>();
-			args.Add(rhsNode);
+			var arg = rhs == null ? null : rhs.GetAnalysisNode();
+
+			args.Add(arg);
 			statementProcessor.RegisterPropertyCall(methodDescriptor, receiverArg, args, lhs, callNode);
 
 			return new Call(node, roslynMethod.ReturnType, roslynMethod, callNode, lhs, this.roslynMethodVisitor.DeclarationNode);

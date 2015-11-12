@@ -110,7 +110,8 @@ namespace ReachingTypeAnalysis
 			v.Value.Elems.Add(t);
 		}
 
-		public void AddDelegate(DelegateVariableNode delegateVariableNode, MethodDescriptor methodDescriptor)
+		//public void AddDelegate(DelegateVariableNode delegateVariableNode, MethodDescriptor methodDescriptor)
+		public void AddDelegate(VariableNode delegateVariableNode, MethodDescriptor methodDescriptor)
 		{
 			var v = AddVertex(delegateVariableNode);
 

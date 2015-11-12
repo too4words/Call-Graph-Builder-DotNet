@@ -116,10 +116,11 @@ namespace ReachingTypeAnalysis.Analysis
 			Contract.Requires(arguments != null);
 			//var argumentValues = arguments.Select(a => a!=null?worker.GetTypes(a):new HashSet<Type>());
 
-			var callExp = new MethodCallInfo(this.Method, callNode, callee, lhs ,arguments, lhs, true);
+			var callExp = new MethodCallInfo(this.Method, callNode, callee, lhs, arguments, lhs, true);
 
 			PropagationGraph.AddCall(callExp, callNode);
 			PropagationGraph.AddToWorkList(callNode);
+
 			foreach (var argument in arguments)
 			{
 				if (argument != null)
@@ -129,13 +130,14 @@ namespace ReachingTypeAnalysis.Analysis
 			}
 		}
 
-		internal void RegisterDelegateAssignment(DelegateVariableNode lhs, MethodDescriptor m)
+		//internal void RegisterDelegateAssignment(DelegateVariableNode lhs, MethodDescriptor m)
+        internal void RegisterDelegateAssignment(VariableNode lhs, MethodDescriptor m)
 		{
 			PropagationGraph.AddDelegate(lhs, m);
 			PropagationGraph.AddToWorkList(lhs);
 		}
 
-        internal void RegisterAnonymousMethod(AnonymousMethodDescriptor methodDescriptor, MethodEntity methodEntity)
+		internal void RegisterAnonymousMethod(AnonymousMethodDescriptor methodDescriptor, MethodEntity methodEntity)
         {
             this.anonymousMethods[methodDescriptor] = methodEntity;
         }
@@ -150,7 +152,6 @@ namespace ReachingTypeAnalysis.Analysis
 			var callExp = new MethodCallInfo(this.Method, callNode, callee, arguments, lhs, false);
 
 			RegisterInvocation(arguments, callNode, callExp);
-
 		}
 
 		public void RegisterVirtualCall(MethodDescriptor callee, VariableNode receiver,
@@ -163,11 +164,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var callExp = new MethodCallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
 			RegisterInvocation(arguments, callNode, callExp);
+
 			if (receiver != null)
 			{
 				PropagationGraph.AddEdge(receiver, callNode);
 			}
-
 		}
 
 		public void RegisterPropertyCall(MethodDescriptor callee, PropGraphNodeDescriptor receiver, IList<PropGraphNodeDescriptor> arguments, 
@@ -178,6 +179,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var callExp = new MethodCallInfo(this.Method, callNode, callee, receiver, arguments, lhs, false);
 			RegisterInvocation(arguments, callNode, callExp);
+
 			if (receiver != null)
 			{
 				PropagationGraph.AddEdge(receiver, callNode);

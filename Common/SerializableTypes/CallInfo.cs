@@ -54,7 +54,6 @@ namespace ReachingTypeAnalysis
 		{
 			this.IsConstructor = isConstructor;
 			this.Method = method;
-
 		}
 
 		public MethodCallInfo(MethodDescriptor caller, AnalysisCallNode callNode,

@@ -772,10 +772,11 @@ namespace ReachingTypeAnalysis
 
         internal void RegisterDelegate(VariableNode lhsNode, MethodDescriptor delegateMethodDescriptor)
         {
-            Contract.Assert(lhsNode is DelegateVariableNode);
-            this.StatementProcessor.RegisterDelegateAssignment(
-                (DelegateVariableNode)lhsNode, delegateMethodDescriptor);
-        }
+			//Contract.Assert(lhsNode is DelegateVariableNode);
+			//this.StatementProcessor.RegisterDelegateAssignment((DelegateVariableNode)lhsNode, delegateMethodDescriptor);
+
+			this.StatementProcessor.RegisterDelegateAssignment(lhsNode, delegateMethodDescriptor);
+		}
 
         //public ANode RegisterExpression(ExpressionSyntax lhs)
         //{
