@@ -29,8 +29,9 @@ namespace ReachingTypeAnalysis
 			}
 
 			var typeDescriptor = Utils.CreateTypeDescriptor(method.ContainingType);
+			var isVirtual = method.IsVirtual || method.IsAbstract || method.IsOverride;
 
-			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic,
+			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic, isVirtual,
 				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
 				method.TypeParameters.Length,
 				Utils.CreateTypeDescriptor(method.ReturnType));

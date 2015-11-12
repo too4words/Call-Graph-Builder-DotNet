@@ -215,38 +215,35 @@ namespace ReachingTypeAnalysis
 				var instantiatedTypes = await codeProvider.GetCompatibleInstantiatedTypesAsync(callInfo.Receiver.Type);
 				types.UnionWith(instantiatedTypes);
 
-                //foreach(var potentialType in callInfo.InstantiatedTypes)
-                //{
-                //    if(await codeProvider.IsSubtypeAsync(potentialType, callInfo.Receiver.Type))
-                //    {
-                //        types.Add(potentialType);
-                //    }
-                //}
-            }
-            if (types.Count == 0)
-            {
-                types.Add(callInfo.Receiver.Type);
-            }
-            foreach (var typeDescriptor in types)
-            {
-                // TO-DO fix by adding a where T: AnalysisType
-                if (typeDescriptor.IsConcreteType)
-                {
-                    result.Add(typeDescriptor);
-                }
-                else
-                {
-                    Contract.Assert(callInfo.InstantiatedTypes != null);
-                    foreach (var candidateType in callInfo.InstantiatedTypes)
-                    {
-                        var isSubtype = await codeProvider.IsSubtypeAsync(candidateType, typeDescriptor);
-                        if (isSubtype)
-                        {
-                            result.Add(candidateType);
-                        }
-                    }
-                }
-            }
+				if (types.Count == 0)
+				{
+					types.Add(callInfo.Receiver.Type);
+				}
+			}
+
+			result.UnionWith(types);
+
+            //foreach (var typeDescriptor in types)
+            //{
+            //    // TO-DO fix by adding a where T: AnalysisType
+            //    if (typeDescriptor.IsConcreteType)
+            //    {
+            //        result.Add(typeDescriptor);
+            //    }
+            //    else
+            //    {
+            //        Contract.Assert(callInfo.InstantiatedTypes != null);
+            //        foreach (var candidateType in callInfo.InstantiatedTypes)
+            //        {
+            //            var isSubtype = await codeProvider.IsSubtypeAsync(candidateType, typeDescriptor);
+            //            if (isSubtype)
+            //            {
+            //                result.Add(candidateType);
+            //            }
+            //        }
+            //    }
+            //}
+
             return result;
         }
 
@@ -271,7 +268,19 @@ namespace ReachingTypeAnalysis
         {
             Contract.Assert(codeProvider != null);
             var calleesForNode = new HashSet<MethodDescriptor>();
-            if (callInfo.Receiver != null)
+
+			//if (methodCallInfo.Method.IsStatic || !methodCallInfo.Method.IsVirtual)
+			if (callInfo.Method.IsStatic)
+			{
+				// Static method call
+				calleesForNode.Add(callInfo.Method);
+			}
+			else if (!callInfo.Method.IsVirtual)
+			{
+				// Non-virtual method call
+				calleesForNode.Add(callInfo.Method);
+			}
+			else if (callInfo.Receiver != null)
             {
                 // I replaced the invocation for a local call to mark that functionality is missing
                 //var callees = GetPotentialTypes(this.Receiver, propGraph)

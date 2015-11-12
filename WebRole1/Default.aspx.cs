@@ -212,7 +212,7 @@ namespace WebRole1
                     var type = new TypeDescriptor("", tokens[0]);
 					var parameters = new TypeDescriptor[] { };
 
-					var methodDescriptor = new MethodDescriptor(type, tokens[1], true,parameters);
+					var methodDescriptor = new MethodDescriptor(type, tokens[1], true, false, parameters);
 
 					var invocation = int.Parse(tokens[2]);
 

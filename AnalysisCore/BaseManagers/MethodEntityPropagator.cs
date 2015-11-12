@@ -277,15 +277,23 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var possibleCallees = new HashSet<MethodDescriptor>();
 
-            // TODO: This is not good: one reason is that loads like b = this.f are not working
-            // in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
+			// TODO: This is not good: one reason is that loads like b = this.f are not working
+			// in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
 
-            if (/*methodCallInfo.IsConstructor || */ methodCallInfo.Method.IsStatic)
-            {
+			//if (methodCallInfo.IsConstructor || methodCallInfo.Method.IsStatic)
+			//if (methodCallInfo.Method.IsStatic)
+			//if (methodCallInfo.Method.IsStatic || !methodCallInfo.Method.IsVirtual)
+			if (methodCallInfo.Method.IsStatic)
+			{
                 // Static method call
                 possibleCallees.Add(methodCallInfo.Method);
             }
-            else
+			else if (!methodCallInfo.Method.IsVirtual)
+			{
+				// Non-virtual method call
+				possibleCallees.Add(methodCallInfo.Method);
+			}
+			else
             {
                 // Instance method call
 

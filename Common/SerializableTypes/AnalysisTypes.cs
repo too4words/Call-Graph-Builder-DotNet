@@ -111,8 +111,9 @@ namespace ReachingTypeAnalysis
         public IList<TypeDescriptor> Parameters { get; protected set; }
         public TypeDescriptor ReturnType { get; protected set; }
         public bool IsStatic { get; protected set; }
+		public bool IsVirtual { get; protected set; }
 
-        public string ClassName
+		public string ClassName
         {
             get { return this.ContainerType.ClassName; }
         }
@@ -149,9 +150,7 @@ namespace ReachingTypeAnalysis
             get { return !IsStatic ? ContainerType : null; }
         }
 
-        /// <summary>
-        ///  I include this just to simplify 
-        /// </summary>
+        // I include this just to simplify 
         public virtual MethodDescriptor BaseDescriptor
         {
             get { return this; }
@@ -166,6 +165,7 @@ namespace ReachingTypeAnalysis
 
         public MethodDescriptor(TypeDescriptor typeDescriptor, string methodName,
                                     bool isStatic = false,
+									bool isVirtual = false,
                                     IEnumerable<TypeDescriptor> parameters = null,
 									int typeParametersCount = 0,
                                     TypeDescriptor returnType = null)
@@ -175,6 +175,7 @@ namespace ReachingTypeAnalysis
             //this.ClassName = typeDescriptor.ClassName;
             this.MethodName = methodName;
             this.IsStatic = isStatic;
+			this.IsVirtual = IsVirtual;
             this.ReturnType = returnType;
             this.IsAnonymousDescriptor = false;
 			this.TypeParametersCount = typeParametersCount;
@@ -187,7 +188,8 @@ namespace ReachingTypeAnalysis
 
         public MethodDescriptor(string namespaceName, string className, string methodName,
                                     bool isStatic = false,
-                                    IEnumerable<TypeDescriptor> parameters = null,
+									bool isVirtual = false,
+									IEnumerable<TypeDescriptor> parameters = null,
 									int typeParametersCount = 0,
                                     TypeDescriptor returnType = null)
         {
@@ -196,7 +198,8 @@ namespace ReachingTypeAnalysis
             //this.ClassName = className;
             this.MethodName = methodName;
             this.IsStatic = isStatic;
-            this.ReturnType = returnType;
+			this.IsVirtual = IsVirtual;
+			this.ReturnType = returnType;
             this.IsAnonymousDescriptor = false;
 			this.TypeParametersCount = typeParametersCount;
 
@@ -238,6 +241,7 @@ namespace ReachingTypeAnalysis
 			this.TypeParametersCount = original.TypeParametersCount;
             this.ReturnType = original.ReturnType;
             this.IsStatic = original.IsStatic;
+			this.IsVirtual = original.IsVirtual;
             // this.ThisType = original.ThisType;
         }
 
@@ -323,6 +327,8 @@ namespace ReachingTypeAnalysis
             result.Append("-");
             result.Append(this.IsStatic);
 			result.Append("-");
+			result.Append(this.IsVirtual);
+			result.Append("-");
 			result.Append(this.TypeParametersCount);
 			result.Append("-");
 
@@ -374,19 +380,20 @@ namespace ReachingTypeAnalysis
 			//var className = tokens[1];
 			var methodName = tokens[1];
 			var isStatic = Convert.ToBoolean(tokens[2]);
-			var typeParametersCount = Convert.ToInt32(tokens[3]);
-			var parametersCount = Convert.ToInt32(tokens[4]);
+			var isVirtual = Convert.ToBoolean(tokens[3]);
+			var typeParametersCount = Convert.ToInt32(tokens[4]);
+			var parametersCount = Convert.ToInt32(tokens[5]);
 			var parameters = new List<TypeDescriptor>();
 
 			for (var i = 0; i < parametersCount; ++i)
 			{
-				var typeName = tokens[5 + i];
+				var typeName = tokens[6 + i];
 				var typeDescriptor = TypeDescriptor.DeMarshall(typeName);
 
 				parameters.Add(typeDescriptor);
 			}
 
-			var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic, parameters, typeParametersCount);
+			var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic, isVirtual, parameters, typeParametersCount);
 			return methodDescriptor;
 		}
     }
