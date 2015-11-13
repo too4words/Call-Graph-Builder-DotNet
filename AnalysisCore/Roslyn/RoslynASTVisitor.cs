@@ -498,6 +498,7 @@ namespace ReachingTypeAnalysis
             {
                 this.Visit(st);
             }
+
             return null;
         }
 
@@ -515,20 +516,21 @@ namespace ReachingTypeAnalysis
 			Visit(node.Statement);
 
 			return null;
-			//return base.VisitForEachStatement(node);
 		}
 
 		public override object VisitSwitchStatement(SwitchStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Expression);
+
             foreach (var section in node.Sections)
             {
                 Visit(section);
             }
+
             return null;
         }
 
-        public override object VisitSwitchSection(SwitchSectionSyntax node)
+		public override object VisitSwitchSection(SwitchSectionSyntax node)
         {
             foreach (var statement in node.Statements)
             {
@@ -538,11 +540,31 @@ namespace ReachingTypeAnalysis
             return null;
         }
 
-        public override object VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+		public override object VisitLabeledStatement(LabeledStatementSyntax node)
+		{
+			Visit(node.Statement);
+			return null;
+		}
+
+		public override object VisitYieldStatement(YieldStatementSyntax node)
+		{
+			expressionsVisitor.Visit(node.Expression);
+			return null;
+		}
+
+		public override object VisitLockStatement(LockStatementSyntax node)
+		{
+			expressionsVisitor.Visit(node.Expression);
+			Visit(node.Statement);
+			return null;
+		}
+
+		public override object VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
             AnalyzeDeclaration(node.Declaration);
             return null;
         }
+
         /// <summary>
         /// This method analyze a set of local variable declarations, i.e. C c = expression, D d = exp2,...;
         /// </summary>
@@ -569,25 +591,36 @@ namespace ReachingTypeAnalysis
             }
         }
 
-        public override object VisitElseClause(ElseClauseSyntax node)
-        {
-            return Visit(node.Statement);
-        }
         public override object VisitIfStatement(IfStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Condition);
-
             Visit(node.Statement);
             Visit(node.Else);
-
             return null;
         }
-        /// <summary>
-        /// INCOMPLETE!
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public override object VisitForStatement(ForStatementSyntax node)
+
+		public override object VisitElseClause(ElseClauseSyntax node)
+		{
+			Visit(node.Statement);
+			return null;
+		}
+
+		public override object VisitDoStatement(DoStatementSyntax node)
+		{
+			expressionsVisitor.Visit(node.Condition);
+			Visit(node.Statement);
+			return null;
+		}
+
+		public override object VisitWhileStatement(WhileStatementSyntax node)
+		{
+			expressionsVisitor.Visit(node.Condition);
+			Visit(node.Statement);
+			return null;
+		}
+
+		// INCOMPLETE!
+		public override object VisitForStatement(ForStatementSyntax node)
         {
 			if (node.Declaration != null)
 			{
@@ -612,6 +645,7 @@ namespace ReachingTypeAnalysis
 
             return null;
         }
+
         public override object VisitExpressionStatement(ExpressionStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Expression);
@@ -621,27 +655,33 @@ namespace ReachingTypeAnalysis
 		public override object VisitTryStatement(TryStatementSyntax node)
 		{
 			Visit(node.Block);
+
 			foreach(var catchSyntax in node.Catches)
 			{
 				Visit(catchSyntax);
 			}
+
 			if (node.Finally != null)
 			{
 				Visit(node.Finally);
 			}
+
 			return null;
 		}
+
 		public override object VisitCatchClause(CatchClauseSyntax node)
 		{
 			/// TODO: Process exception assigment
 			Visit(node.Block);
 			return null;
 		}
+
 		public override object VisitFinallyClause(FinallyClauseSyntax node)
 		{
 			Visit(node.Block);
 			return null;
 		}
+
         public override object VisitReturnStatement(ReturnStatementSyntax node)
         {
 			var analysisExpression = expressionsVisitor.Visit(node.Expression);
@@ -656,6 +696,7 @@ namespace ReachingTypeAnalysis
 				analysisExpression.ProcessAssignment(this.RetVar, this);
 			}
 		}
+
         public override object VisitAccessorDeclaration(AccessorDeclarationSyntax node)
         {
             if (node.Body != null)
@@ -677,7 +718,6 @@ namespace ReachingTypeAnalysis
             VisitBlock(node.Body);
             return null;
         }
-
        
         public override object VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
@@ -690,26 +730,31 @@ namespace ReachingTypeAnalysis
             VisitBlock(node.Body);
             return null;
         }
+
         public override object VisitThrowStatement(ThrowStatementSyntax node)
         {
-            var analysisExpression = expressionsVisitor.Visit(node.Expression);
+            expressionsVisitor.Visit(node.Expression);
             return null;
         }
+
         public override object VisitUsingStatement(UsingStatementSyntax node)
         {
             if (node.Declaration != null)
             {
                 AnalyzeDeclaration(node.Declaration);
             }
-            if (node.Expression!=null)
+
+            if (node.Expression != null)
             {
                 var analysisExpression = expressionsVisitor.Visit(node.Expression);
             }
+
             Visit(node.Statement);
             return null;
         }
 
         #region Helpers to connect with statement processor
+
         internal VariableNode RegisterVariable(ExpressionSyntax v)
         {
             var tVar = this.model.GetTypeInfo(v);

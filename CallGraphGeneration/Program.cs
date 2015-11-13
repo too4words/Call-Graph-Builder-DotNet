@@ -107,7 +107,7 @@ namespace CallGraphGeneration
 			var callgraph = analyzer.GenerateCallGraphAsync().Result;
 			this.Cleanup();
 
-			//// TODO: remove this assert, it is just for debugging
+			//TODO: remove this assert, it is just for debugging
 			//Debug.Assert(false);
 
 			var reachableMethods2 = callgraph.GetReachableMethods();
@@ -117,10 +117,11 @@ namespace CallGraphGeneration
 			var newMethods = reachableMethods2.Except(reachableMethods).ToList();
 			var missingMethods = reachableMethods.Except(reachableMethods2).ToList();
 
-			//if (strategyKind.Equals(AnalysisStrategyKind.ONDEMAND_ORLEANS))
-			//{
-			//	var count = analyzer.SolutionManager.GetReachableMethodsCountAsync().Result;
-			//}
+			var allMethods = ReachingTypeAnalysis.Statistics.SolutionStats.ComputeSolutionStats(solutionPath);
+			missingMethods = allMethods.Except(reachableMethods2).ToList();
+
+			allMethods = allMethods.OrderByDescending(m => m.Name).ToList();
+			missingMethods = missingMethods.OrderByDescending(m => m.Name).ToList();
 
 			return callgraph;
         }

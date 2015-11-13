@@ -8,9 +8,10 @@ namespace ReachingTypeAnalysis.Statistics
 {
 	public static class SolutionStats
 	{
-		public static void ComputeSolutionStats(string solutionPath)
+		public static IList<MethodDescriptor> ComputeSolutionStats(string solutionPath)
 		{
-			Utils.ComputeSolutionStatsAsync(solutionPath).Wait();
+			var methods = Utils.ComputeSolutionStatsAsync(solutionPath).Result;
+			return methods;
 		}
 	}
 }

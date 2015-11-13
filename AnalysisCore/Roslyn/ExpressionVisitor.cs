@@ -440,7 +440,42 @@ namespace ReachingTypeAnalysis.Roslyn
 			}
 		}
 
-        public override AnalysisExpression VisitConditionalExpression(ConditionalExpressionSyntax node)
+		public override AnalysisExpression VisitInitializerExpression(InitializerExpressionSyntax node)
+		{
+			foreach (var expression in node.Expressions)
+			{
+				Visit(expression);
+			}
+
+			return null;
+		}
+
+		public override AnalysisExpression VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
+		{
+			return Visit(node.Operand);
+		}
+
+		public override AnalysisExpression VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
+		{
+			return base.Visit(node.Operand);
+		}
+
+		public override AnalysisExpression VisitFromClause(FromClauseSyntax node)
+		{
+			return Visit(node.Expression);
+		}
+
+		public override AnalysisExpression VisitWhereClause(WhereClauseSyntax node)
+		{
+			return Visit(node.Condition);
+		}
+
+		public override AnalysisExpression VisitSelectClause(SelectClauseSyntax node)
+		{
+			return Visit(node.Expression);
+		}
+
+		public override AnalysisExpression VisitConditionalExpression(ConditionalExpressionSyntax node)
         {
             return Visit(node.Condition);
         }
@@ -685,6 +720,7 @@ namespace ReachingTypeAnalysis.Roslyn
             statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
 			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
         }
+
 		public override AnalysisExpression VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
 		{
 

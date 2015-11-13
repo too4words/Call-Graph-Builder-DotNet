@@ -480,12 +480,14 @@ namespace ReachingTypeAnalysis
 		{
 			var result = new HashSet<MethodDescriptor>();
 			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
-									 .OfType<INamedTypeSymbol>();
+									 .OfType<INamedTypeSymbol>()
+									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
 
 			foreach (var type in symbols)
 			{
 				var methods = type.GetMembers()
-								  .OfType<IMethodSymbol>();
+								  .OfType<IMethodSymbol>()
+								  .Where(m => !m.IsAbstract && !m.IsImplicitlyDeclared);
 
 				foreach (var methodSymbol in methods)
 				{
@@ -502,12 +504,14 @@ namespace ReachingTypeAnalysis
 			var result = new HashSet<MethodDescriptor>();
 			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
 									 .OfType<INamedTypeSymbol>()
+									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct)
 									 .Where(s => s.DeclaredAccessibility == Accessibility.Public);
 
 			foreach (var type in symbols)
 			{
 				var methods = type.GetMembers()
 								  .OfType<IMethodSymbol>()
+								  .Where(m => !m.IsAbstract && !m.IsImplicitlyDeclared)
 								  .Where(s => s.DeclaredAccessibility == Accessibility.Public);
 
 				foreach (var methodSymbol in methods)
@@ -559,9 +563,10 @@ namespace ReachingTypeAnalysis
 			return Task.FromResult(result.AsEnumerable());
 		}
 
-		public static async Task ComputeSolutionStatsAsync(string solutionPath)
+		public static async Task<IList<MethodDescriptor>> ComputeSolutionStatsAsync(string solutionPath)
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
+			var allMethods = new List<MethodDescriptor>();
 			var solutionName = Path.GetFileNameWithoutExtension(solutionPath);
 			var solution = await Utils.ReadSolutionAsync(solutionPath);
 			var projects = Utils.FilterProjects(solution);
@@ -582,6 +587,8 @@ namespace ReachingTypeAnalysis
 				var methods = await Utils.GetAllMethodsAsync(compilation);
 				var methodsCount = methods.Count();
 				totalMethods += methodsCount;
+
+				allMethods.AddRange(methods);
 
 				Console.WriteLine("\tMethods: {0}", methodsCount);
 
@@ -613,6 +620,8 @@ namespace ReachingTypeAnalysis
 			Console.WriteLine("\tTest methods: {0}", testMethods);
 			Console.WriteLine("\tMain methods: {0}", mainMethods);
 			Console.WriteLine();
+
+			return allMethods;
 		}
 	}
 
