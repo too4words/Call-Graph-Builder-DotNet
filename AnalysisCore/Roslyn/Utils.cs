@@ -453,6 +453,10 @@ namespace ReachingTypeAnalysis
 					result = await Utils.GetPublicMethodsAsync(compilation);
 					break;
 
+				case AnalysisRootKind.RootMethods:
+					result = await Utils.GetRootMethodsAsync(compilation);
+					break;
+
 				default:
 					throw new ArgumentException("rootKind");
 			}
@@ -505,14 +509,14 @@ namespace ReachingTypeAnalysis
 			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
 									 .OfType<INamedTypeSymbol>()
 									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct)
-									 .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+									 .Where(t => t.DeclaredAccessibility == Accessibility.Public);
 
 			foreach (var type in symbols)
 			{
 				var methods = type.GetMembers()
 								  .OfType<IMethodSymbol>()
 								  .Where(m => !m.IsAbstract && !m.IsImplicitlyDeclared)
-								  .Where(s => s.DeclaredAccessibility == Accessibility.Public);
+								  .Where(m => m.DeclaredAccessibility == Accessibility.Public);
 
 				foreach (var methodSymbol in methods)
 				{
@@ -561,6 +565,43 @@ namespace ReachingTypeAnalysis
 			}
 
 			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private static Task<IEnumerable<MethodDescriptor>> GetStaticConstructorsAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+						 .OfType<INamedTypeSymbol>()
+						 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(m => !m.IsAbstract && !m.IsImplicitlyDeclared)
+								  .Where(m => m.MethodKind == MethodKind.StaticConstructor);
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
+		private static async Task<IEnumerable<MethodDescriptor>> GetRootMethodsAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+
+			var roots = await GetTestMethodsAsync(compilation);
+			result.UnionWith(roots);
+
+			roots = await GetStaticConstructorsAsync(compilation);
+			result.UnionWith(roots);
+
+			return result;
 		}
 
 		public static async Task<IList<MethodDescriptor>> ComputeSolutionStatsAsync(string solutionPath)

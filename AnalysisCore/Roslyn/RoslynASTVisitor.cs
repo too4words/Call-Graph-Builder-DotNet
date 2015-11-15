@@ -573,21 +573,26 @@ namespace ReachingTypeAnalysis
         {
             foreach (var v in decl.Variables)
             {
-				var declaredVariableSymbol = (ILocalSymbol)this.model.GetDeclaredSymbol(v);
-                // Register the variable in the PropGraph
-                // Note it returns a Node, not an analysis expression
-                var lhsAnalysisNode = RegisterVariable(v.Identifier, declaredVariableSymbol);
+				var declaredVariableSymbol = this.model.GetDeclaredSymbol(v);
 
-                if (v.Initializer != null)
-                {
-                    // This is the rhs of the assigment
-                    // We first visit the expression because it may conatain invocations
-                    var rhsAnalysisExpression = expressionsVisitor.Visit(v.Initializer.Value);
-                    if (rhsAnalysisExpression != null)
-                    {
-                        rhsAnalysisExpression.ProcessAssignment(lhsAnalysisNode, this);
-                    }
-                }
+				if (declaredVariableSymbol is ILocalSymbol)
+				{
+					var localSymbol = declaredVariableSymbol as ILocalSymbol;
+					// Register the variable in the PropGraph
+					// Note it returns a Node, not an analysis expression
+					var lhsAnalysisNode = RegisterVariable(v.Identifier, localSymbol);
+
+					if (v.Initializer != null)
+					{
+						// This is the rhs of the assigment
+						// We first visit the expression because it may conatain invocations
+						var rhsAnalysisExpression = expressionsVisitor.Visit(v.Initializer.Value);
+						if (rhsAnalysisExpression != null)
+						{
+							rhsAnalysisExpression.ProcessAssignment(lhsAnalysisNode, this);
+						}
+					}
+				}
             }
         }
 
@@ -910,8 +915,50 @@ namespace ReachingTypeAnalysis
 		private void Initialize(SemanticModel semanticModel, MethodDescriptor descriptor = null)
 		{
 			this.SemanticModel = semanticModel;
-			this.MethodDescriptor = descriptor;			
+			this.MethodDescriptor = descriptor;
 			this.DeclaredMethods = new Dictionary<MethodDescriptor, MethodParserInfo>();
+
+			//this.ProcessImplicitlyDeclaredConstructors();
+        }
+
+		private void ProcessImplicitlyDeclaredConstructors()
+		{
+			var compilation = this.SemanticModel.Compilation;
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+									 .OfType<INamedTypeSymbol>()
+									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(m => m.MethodKind == MethodKind.Constructor && m.IsImplicitlyDeclared);
+
+				foreach (var methodSymbol in methods)
+				{
+					//var location = methodSymbol.Locations.First();
+					//var position = location.SourceSpan.Start;
+					//var syntaxTree = location.SourceTree;
+
+					//if (syntaxTree != null)
+					//{
+					//	var node = syntaxTree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+					//	return node;
+					//}
+
+					var declarationNode = SyntaxFactory.ConstructorDeclaration(methodSymbol.Name);
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);					
+
+					var methodInfo = new MethodParserInfo(methodDescriptor)
+					{
+						SemanticModel = this.SemanticModel,
+						DeclarationNode = declarationNode,
+						MethodSymbol = methodSymbol
+					};
+
+					this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+				}
+			}
 		}
 
 		public override void Visit(SyntaxNode syntax)
@@ -920,6 +967,32 @@ namespace ReachingTypeAnalysis
 
 			switch (kind)
 			{
+				case SyntaxKind.ClassDeclaration:
+					{
+						var declarationSyntax = (ClassDeclarationSyntax)syntax;
+						var typeSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
+						var defaultConstructor = typeSymbol.Constructors.SingleOrDefault(c => !c.IsStatic && c.IsImplicitlyDeclared);
+
+						if (defaultConstructor != null)
+						{
+							var methodDescriptor = Utils.CreateMethodDescriptor(defaultConstructor);
+							var declarationNode = SyntaxFactory.ConstructorDeclaration(defaultConstructor.Name).AddBodyStatements();
+
+							declarationSyntax = declarationSyntax.AddMembers(declarationNode);
+							declarationNode = declarationSyntax.Members.OfType<ConstructorDeclarationSyntax>().Single(c => !c.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)));
+
+							var methodInfo = new MethodParserInfo(methodDescriptor)
+							{
+								SemanticModel = this.SemanticModel,
+								DeclarationNode = declarationNode,
+								MethodSymbol = defaultConstructor
+							};
+
+							this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+						}
+						break;
+					}					
+
 				case SyntaxKind.MethodDeclaration:
 					{
 						var declarationSyntax = (MethodDeclarationSyntax)syntax;
