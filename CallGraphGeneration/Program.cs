@@ -102,12 +102,12 @@ namespace CallGraphGeneration
 			var reachableMethods = analyzer.SolutionManager.GetReachableMethodsAsync().Result;
 			Console.WriteLine("Reachable methods={0}", reachableMethods.Count());
 
+			var reachableMethods2 = reachableMethods;
+
 			Console.WriteLine("Generating call graph...");
 
 			var callgraph = analyzer.GenerateCallGraphAsync().Result;
 			this.Cleanup();
-
-			var reachableMethods2 = reachableMethods;
 
 			reachableMethods2 = callgraph.GetReachableMethods();
 			Console.WriteLine("Reachable methods={0}", reachableMethods2.Count());

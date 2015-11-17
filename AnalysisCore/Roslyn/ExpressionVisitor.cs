@@ -723,7 +723,6 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public override AnalysisExpression VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
 		{
-
 			var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol;
 			var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
 			var baseMethodDescriptor = this.statementProcessor.Method;
@@ -732,7 +731,6 @@ namespace ReachingTypeAnalysis.Roslyn
 			var methodEntity = lambdaMethodParser.ParseMethod();
 
 			statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
-
 			return new Lambda(node, lambdaSymbol.ReturnType, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
 		}
 

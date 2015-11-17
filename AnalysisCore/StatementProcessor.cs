@@ -3,6 +3,7 @@ using System;
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -139,7 +140,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		internal void RegisterAnonymousMethod(AnonymousMethodDescriptor methodDescriptor, MethodEntity methodEntity)
         {
-            this.anonymousMethods[methodDescriptor] = methodEntity;
+			this.anonymousMethods[methodDescriptor] = methodEntity;
         }
 
 		public void RegisterStaticCall(MethodDescriptor callee, IList<PropGraphNodeDescriptor> arguments,

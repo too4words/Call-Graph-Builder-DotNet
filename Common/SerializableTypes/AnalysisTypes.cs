@@ -286,9 +286,13 @@ namespace ReachingTypeAnalysis
 					if (thisParam.Kind == SerializableTypeKind.TypeParameter)
 					{
 						var typeArgIndex = this.ContainerType.TypeArguments.IndexOf(thisParam);
-						var typeArg = md.ContainerType.TypeArguments[typeArgIndex];
 
-						pEq = pEq && typeArg.EqualsIgnoringTypeArguments(mdParam);
+						if (typeArgIndex > -1)
+						{
+							var typeArg = md.ContainerType.TypeArguments[typeArgIndex];
+
+							pEq = pEq && typeArg.EqualsIgnoringTypeArguments(mdParam);
+						}
 					}
 					else
 					{

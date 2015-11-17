@@ -107,7 +107,7 @@ namespace ReachingTypeAnalysis.Roslyn
 						Console.WriteLine("[Error] Couldn't FindMethodInCompilation '{0}'", methodDescriptor);
 					}
 
-					var method = methods.Single();
+					var method = methods.SingleOrDefault();
 					return method;
 
 					//var member = members.First() as IMethodSymbol;

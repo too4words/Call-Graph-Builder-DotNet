@@ -202,7 +202,20 @@ namespace ReachingTypeAnalysis.Analysis
 
                 if (parameterNode != null)
                 {
-                    await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ArgumentsPossibleTypes[i], parameterNode, callMessageInfo.PropagationKind);
+					//TODO: Hack. Remove later!
+					ISet<TypeDescriptor> argumentPossibleTypes = null;
+
+					if (i < callMessageInfo.ArgumentsPossibleTypes.Count)
+					{
+						argumentPossibleTypes = callMessageInfo.ArgumentsPossibleTypes[i];
+					}
+					else
+					{
+						argumentPossibleTypes = new HashSet<TypeDescriptor>();
+						argumentPossibleTypes.Add(parameterNode.Type);
+                    }
+
+                    await this.methodEntity.PropGraph.DiffPropAsync(argumentPossibleTypes, parameterNode, callMessageInfo.PropagationKind);
                 }
             }
 
