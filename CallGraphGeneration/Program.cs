@@ -53,10 +53,10 @@ namespace CallGraphGeneration
 				//@"C:\Users\Edgar\Projects\Test projects\buildtools\src\BuildTools.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Test projects\codeformatter\src\CodeFormatter.sln", "OnDemandAsync" // works!
 				//@"C:\Users\Edgar\Projects\Test projects\Json\Src\Newtonsoft.Json.sln", "OnDemandAsync" // with errors
-				//@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandOrleans"
-                @"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandAsync"
+				@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandAsync"
+                //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
-				//@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandOrleans"
+				//@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandAsync"
 			};
 
 			//// This is to compute solution statistics
@@ -107,11 +107,10 @@ namespace CallGraphGeneration
 			var callgraph = analyzer.GenerateCallGraphAsync().Result;
 			this.Cleanup();
 
-			//TODO: remove this assert, it is just for debugging
-			//Debug.Assert(false);
+			var reachableMethods2 = reachableMethods;
 
-			var reachableMethods2 = callgraph.GetReachableMethods();
-			Console.WriteLine("Reachable methods={0}", reachableMethods2.Count);
+			reachableMethods2 = callgraph.GetReachableMethods();
+			Console.WriteLine("Reachable methods={0}", reachableMethods2.Count());
 
 			// TODO: Remove these lines
 			var newMethods = reachableMethods2.Except(reachableMethods).ToList();

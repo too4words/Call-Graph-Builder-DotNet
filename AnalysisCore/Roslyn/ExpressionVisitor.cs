@@ -714,7 +714,7 @@ namespace ReachingTypeAnalysis.Roslyn
             var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
             var baseMethodDescriptor = this.statementProcessor.Method;
             var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
-            var lambdaMethodParser =  new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+            var lambdaMethodParser =  new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.ContainingTypeNode, this.roslynMethodVisitor.DeclarationNode);
             var methodEntity = lambdaMethodParser.ParseMethod();
 
             statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);
@@ -728,7 +728,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			var lambdaMethodDescriptor = Utils.CreateMethodDescriptor(lambdaSymbol);
 			var baseMethodDescriptor = this.statementProcessor.Method;
 			var methodDescriptor = new AnonymousMethodDescriptor(baseMethodDescriptor, lambdaMethodDescriptor);
-			var lambdaMethodParser = new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.DeclarationNode);
+			var lambdaMethodParser = new LambdaMethodParser(model, node.Body, lambdaSymbol, methodDescriptor, this.roslynMethodVisitor.ContainingTypeNode, this.roslynMethodVisitor.DeclarationNode);
 			var methodEntity = lambdaMethodParser.ParseMethod();
 
 			statementProcessor.RegisterAnonymousMethod(methodDescriptor, methodEntity);

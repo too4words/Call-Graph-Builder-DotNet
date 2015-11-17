@@ -242,6 +242,7 @@ namespace ReachingTypeAnalysis
 	{
 		public MethodDescriptor MethodDescriptor { get; private set; }
 		public SemanticModel SemanticModel { get; set; }
+		public TypeDeclarationSyntax ContainingTypeSyntax { get; set; }
 		public BaseMethodDeclarationSyntax DeclarationNode { get; set; }
 		public AccessorDeclarationSyntax ProperyAccessorNode { get; set; }
 		public ArrowExpressionClauseSyntax ArrowExpressionNode { get; set; }
@@ -283,9 +284,9 @@ namespace ReachingTypeAnalysis
 	/// </summary>
 	internal class MethodParser : GeneralRoslynMethodParser
     {
+		private TypeDeclarationSyntax containingTypeNode;
 		private SyntaxNode methodNode;
         private SemanticModel model;
-		private AccessorDeclarationSyntax propertyAccessorNode;
         //private SyntaxTree Tree;
 
         public MethodParser(SemanticModel model, SyntaxTree tree, IMethodSymbol method)
@@ -297,16 +298,25 @@ namespace ReachingTypeAnalysis
             var visitor = new MethodFinder(method, model);
             visitor.Visit(root);
             this.methodNode = visitor.Result.DeclarationSyntaxNode;
+			this.containingTypeNode = visitor.Result.ContainingTypeSyntax;
             Contract.Assert(this.methodNode != null);
 
             // Ben: this is just a test to make the AST simpler. Disregard this :-)
             //method = MethodSimpifier.SimplifyASTForMethod(ref methodNode, ref semanticModel);
         }
 
-        public MethodParser(SemanticModel model, SyntaxTree tree, MethodDescriptor methodDescriptor)
-            : this(GetParserInfo(model, tree, methodDescriptor))
-        {
-        }
+		public MethodParser(MethodParserInfo methodParserInfo)
+			: base(methodParserInfo.MethodSymbol, methodParserInfo.MethodDescriptor)
+		{
+			this.model = methodParserInfo.SemanticModel;
+			this.methodNode = methodParserInfo.DeclarationSyntaxNode;
+			this.containingTypeNode = methodParserInfo.ContainingTypeSyntax;
+		}
+
+		public MethodParser(SemanticModel model, SyntaxTree tree, MethodDescriptor methodDescriptor)
+			: this(GetParserInfo(model, tree, methodDescriptor))
+		{
+		}
 
 		private static MethodParserInfo GetParserInfo(SemanticModel model, SyntaxTree tree, MethodDescriptor methodDescriptor)
 		{
@@ -316,19 +326,11 @@ namespace ReachingTypeAnalysis
 			return visitor.Result;
 		}
 
-		public MethodParser(MethodParserInfo methodParserInfo)
-			: base(methodParserInfo.MethodSymbol, methodParserInfo.MethodDescriptor)
-		{
-			this.model = methodParserInfo.SemanticModel;
-			this.methodNode = methodParserInfo.DeclarationSyntaxNode;
-			this.propertyAccessorNode = methodParserInfo.ProperyAccessorNode;
-        }
-
-        public override MethodEntity ParseMethod()
+		public override MethodEntity ParseMethod()
         {
-            Contract.Assert(this.methodNode != null || this.propertyAccessorNode!=null);
+            Contract.Assert(this.methodNode != null);
 
-			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, this.methodNode);			
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, this.containingTypeNode, this.methodNode);			
 			propGraphGenerator.Visit(this.methodNode);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
@@ -350,20 +352,22 @@ namespace ReachingTypeAnalysis
         private SyntaxNode lambdaExpression;
         private SemanticModel model;
 		private SyntaxNode declarationNode;
+		private TypeDeclarationSyntax containingTypeNode;
 
-        public LambdaMethodParser(SemanticModel model, SyntaxNode body, IMethodSymbol method, MethodDescriptor methodDescriptor, SyntaxNode declarationNode)
+		public LambdaMethodParser(SemanticModel model, SyntaxNode body, IMethodSymbol method, MethodDescriptor methodDescriptor, TypeDeclarationSyntax containingTypeNode, SyntaxNode declarationNode)
             : base(method, methodDescriptor)
         {
             this.model = model;
             this.lambdaExpression = body;
             this.MethodDescriptor = methodDescriptor;
 			this.declarationNode = declarationNode;
-        }
+            this.containingTypeNode = containingTypeNode;
+		}
 
         public override MethodEntity ParseMethod()
         {
 			Contract.Assert(this.lambdaExpression != null);
-			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, this.lambdaExpression);
+			var propGraphGenerator = new MethodSyntaxVisitor(this.model, this.RoslynMethod, this, this.containingTypeNode, this.lambdaExpression);
             propGraphGenerator.Visit(this.lambdaExpression);
 
             var descriptor = new MethodEntityDescriptor(propGraphGenerator.MethodDescriptor);  //EntityFactory.Create(this.MethodDescriptor, this.Dispatcher);
@@ -390,8 +394,9 @@ namespace ReachingTypeAnalysis
 
         public MethodDescriptor MethodDescriptor { get; private set; }
         internal MethodInterfaceData MethodInterfaceData { get; private set; }
+		internal TypeDeclarationSyntax ContainingTypeNode { get; private set; }
 
-        internal VariableNode RetVar
+		internal VariableNode RetVar
         {
             get { return MethodInterfaceData.ReturnVariable; }
         }
@@ -414,7 +419,7 @@ namespace ReachingTypeAnalysis
         private ExpressionVisitor expressionsVisitor;
         private GeneralRoslynMethodParser roslynMethodProcessor;
 
-        internal StatementProcessor StatementProcessor
+		internal StatementProcessor StatementProcessor
         {
             get { return this.roslynMethodProcessor.StatementProcessor; }
         }
@@ -431,14 +436,16 @@ namespace ReachingTypeAnalysis
         public MethodSyntaxVisitor(SemanticModel model,
                                     IMethodSymbol roslynMethod,
                                     GeneralRoslynMethodParser roslynMethodProcessor,
+									TypeDeclarationSyntax containingTypeNode,
 									SyntaxNode declarationNode)
         {
             //this.methodNode = methodSyntaxNode;
             this.model = model;
             //this.roslynMethod = roslynMethod;
             this.roslynMethodProcessor = roslynMethodProcessor;
+			this.ContainingTypeNode = containingTypeNode;
 
-            this.MethodInterfaceData = roslynMethodProcessor.MethodInterfaceData;
+			this.MethodInterfaceData = roslynMethodProcessor.MethodInterfaceData;
             this.MethodDescriptor = roslynMethodProcessor.MethodDescriptor;
             this.roslynMethod = roslynMethod; //  model.GetDeclaredSymbol(this.methodNode);
 
@@ -446,8 +453,7 @@ namespace ReachingTypeAnalysis
             this.InvocationPosition = 0;
 			this.DeclarationNode = declarationNode;
         }
-
-
+		
 		public override object VisitCompilationUnit(CompilationUnitSyntax node)
         {
             foreach (var member in node.Members)
@@ -559,6 +565,12 @@ namespace ReachingTypeAnalysis
 			return null;
 		}
 
+		public override object VisitFieldDeclaration(FieldDeclarationSyntax node)
+		{
+			AnalyzeDeclaration(node.Declaration);
+			return null;
+		}
+
 		public override object VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
             AnalyzeDeclaration(node.Declaration);
@@ -571,8 +583,8 @@ namespace ReachingTypeAnalysis
         /// <param name="decl"></param>
         private void AnalyzeDeclaration(VariableDeclarationSyntax decl)
         {
-            foreach (var v in decl.Variables)
-            {
+			foreach (var v in decl.Variables)
+			{
 				var declaredVariableSymbol = this.model.GetDeclaredSymbol(v);
 
 				if (declaredVariableSymbol is ILocalSymbol)
@@ -593,7 +605,25 @@ namespace ReachingTypeAnalysis
 						}
 					}
 				}
-            }
+				else if (declaredVariableSymbol is IFieldSymbol)
+				{
+					var fieldSymbol = declaredVariableSymbol as IFieldSymbol;
+					// Register the field in the PropGraph
+					// Note it returns a Node, not an analysis expression
+					var lhsAnalysisNode = RegisterField(v.Identifier, fieldSymbol);
+
+					if (v.Initializer != null)
+					{
+						// This is the rhs of the assigment
+						// We first visit the expression because it may conatain invocations
+						var rhsAnalysisExpression = expressionsVisitor.Visit(v.Initializer.Value);
+						if (rhsAnalysisExpression != null)
+						{
+							rhsAnalysisExpression.ProcessAssignment(lhsAnalysisNode, this);
+						}
+					}
+				}
+			}
         }
 
         public override object VisitIfStatement(IfStatementSyntax node)
@@ -710,13 +740,26 @@ namespace ReachingTypeAnalysis
             }
             return null;
         }
-        #endregion
+		#endregion
 
-        public override object VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-        {
-            VisitBlock(node.Body);
-            return null;
-        }
+		public override object VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+		{
+			var isStaticConstructor = node.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
+			var fieldDeclarations = this.ContainingTypeNode.Members.OfType<FieldDeclarationSyntax>();			
+
+			foreach (var fieldDeclaration in fieldDeclarations)
+			{
+				var isStaticField = fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
+
+				if (isStaticField == isStaticConstructor)
+				{
+					this.Visit(fieldDeclaration);
+				}
+			}
+
+			VisitBlock(node.Body);
+			return null;
+		}
 
         public override object VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
@@ -726,17 +769,50 @@ namespace ReachingTypeAnalysis
        
         public override object VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
-            return null;
-        }
+			if (node.ExpressionBody != null)
+			{
+				Visit(node.ExpressionBody);
+			}
+
+			if (node.Body != null)
+			{
+				Visit(node.Body);
+			}
+
+			return null;
+		}
 
         public override object VisitOperatorDeclaration(OperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
-            return null;
-        }
+			if (node.ExpressionBody != null)
+			{
+				Visit(node.ExpressionBody);
+			}
 
-        public override object VisitThrowStatement(ThrowStatementSyntax node)
+			if (node.Body != null)
+			{
+				Visit(node.Body);
+			}
+
+			return null;
+		}
+
+		public override object VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+		{
+			if (node.ExpressionBody != null)
+			{
+				Visit(node.ExpressionBody);
+			}
+
+			foreach (var accessor in node.AccessorList.Accessors)
+			{
+				Visit(accessor);
+			}
+
+			return null;
+		}
+
+		public override object VisitThrowStatement(ThrowStatementSyntax node)
         {
             expressionsVisitor.Visit(node.Expression);
             return null;
@@ -790,7 +866,23 @@ namespace ReachingTypeAnalysis
             return lhs;
         }
 
-        internal void RegisterAssignment(AnalysisExpression lhs, AnalysisExpression rhs)
+		internal VariableNode RegisterField(SyntaxNodeOrToken v, IFieldSymbol s)
+		{
+			VariableNode lhs;
+			if (s.Type.TypeKind.Equals(TypeKind.Delegate))
+			{
+				lhs = new DelegateVariableNode(v.ToString(), Utils.CreateTypeDescriptor(s.Type));
+			}
+			else
+			{
+				lhs = new FieldNode(s.ContainingType.Name, v.ToString(), Utils.CreateTypeDescriptor(s.Type));
+				//lhs = ANode.Define(t, v);
+			}
+			if (lhs != null) this.StatementProcessor.RegisterLocalVariable(lhs);
+			return lhs;
+		}
+
+		internal void RegisterAssignment(AnalysisExpression lhs, AnalysisExpression rhs)
         {
             Contract.Assert(lhs is Field || lhs is Identifier);
             if (lhs != null)
@@ -917,144 +1009,181 @@ namespace ReachingTypeAnalysis
 			this.SemanticModel = semanticModel;
 			this.MethodDescriptor = descriptor;
 			this.DeclaredMethods = new Dictionary<MethodDescriptor, MethodParserInfo>();
-
-			//this.ProcessImplicitlyDeclaredConstructors();
         }
 
-		private void ProcessImplicitlyDeclaredConstructors()
+		public override void VisitClassDeclaration(ClassDeclarationSyntax node)
 		{
-			var compilation = this.SemanticModel.Compilation;
-			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
-									 .OfType<INamedTypeSymbol>()
-									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct);
+			var typeSymbol = this.SemanticModel.GetDeclaredSymbol(node);
+			var defaultConstructorSymbol = typeSymbol.Constructors.SingleOrDefault(c => !c.IsStatic && c.IsImplicitlyDeclared);
 
-			foreach (var type in symbols)
+			if (defaultConstructorSymbol != null)
 			{
-				var methods = type.GetMembers()
-								  .OfType<IMethodSymbol>()
-								  .Where(m => m.MethodKind == MethodKind.Constructor && m.IsImplicitlyDeclared);
+				var methodDescriptor = Utils.CreateMethodDescriptor(defaultConstructorSymbol);
+				var defaultConstructorSyntax = SyntaxFactory.ConstructorDeclaration(defaultConstructorSymbol.Name).AddBodyStatements();
 
-				foreach (var methodSymbol in methods)
+				var methodInfo = new MethodParserInfo(methodDescriptor)
 				{
-					//var location = methodSymbol.Locations.First();
-					//var position = location.SourceSpan.Start;
-					//var syntaxTree = location.SourceTree;
+					ContainingTypeSyntax = node,
+					SemanticModel = this.SemanticModel,
+					DeclarationNode = defaultConstructorSyntax,
+					MethodSymbol = defaultConstructorSymbol
+				};
 
-					//if (syntaxTree != null)
-					//{
-					//	var node = syntaxTree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-					//	return node;
-					//}
+				this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+			}
 
-					var declarationNode = SyntaxFactory.ConstructorDeclaration(methodSymbol.Name);
-					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);					
+			base.VisitClassDeclaration(node);
+		}
 
-					var methodInfo = new MethodParserInfo(methodDescriptor)
-					{
-						SemanticModel = this.SemanticModel,
-						DeclarationNode = declarationNode,
-						MethodSymbol = methodSymbol
-					};
+		public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+		{
+			var containingTypeSyntax = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+			var methodSymbol = this.SemanticModel.GetDeclaredSymbol(node);
 
-					this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+			if (node.ExpressionBody != null)
+			{
+				this.ProcessArrowExpressionDecl(node.ExpressionBody, containingTypeSyntax, methodSymbol);
+			}
+			else
+			{
+				this.ProcessMethodDecl(node, containingTypeSyntax, methodSymbol);
+			}
+
+			base.VisitMethodDeclaration(node);
+		}
+
+		public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+		{
+			var containingTypeSyntax = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+			var methodSymbol = this.SemanticModel.GetDeclaredSymbol(node);
+
+			this.ProcessMethodDecl(node, containingTypeSyntax, methodSymbol);
+			base.VisitConstructorDeclaration(node);
+		}
+
+		public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+		{
+			var containingTypeSyntax = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+
+			if (node.ExpressionBody != null)
+			{
+				var propertySymbol = this.SemanticModel.GetDeclaredSymbol(node);
+				var methodSymbol = propertySymbol.GetMethod;
+
+				this.ProcessArrowExpressionDecl(node.ExpressionBody, containingTypeSyntax, methodSymbol);
+			}
+			else if (node.AccessorList != null)
+			{
+				foreach (var accessor in node.AccessorList.Accessors)
+				{
+					var methodSymbol = this.SemanticModel.GetDeclaredSymbol(accessor);
+					this.ProcessPropertyAccessorDecl(accessor, containingTypeSyntax, methodSymbol);
 				}
 			}
-		}
-
-		public override void Visit(SyntaxNode syntax)
-		{
-			var kind = syntax.Kind();
-
-			switch (kind)
+			else
 			{
-				case SyntaxKind.ClassDeclaration:
-					{
-						var declarationSyntax = (ClassDeclarationSyntax)syntax;
-						var typeSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
-						var defaultConstructor = typeSymbol.Constructors.SingleOrDefault(c => !c.IsStatic && c.IsImplicitlyDeclared);
-
-						if (defaultConstructor != null)
-						{
-							var methodDescriptor = Utils.CreateMethodDescriptor(defaultConstructor);
-							var declarationNode = SyntaxFactory.ConstructorDeclaration(defaultConstructor.Name).AddBodyStatements();
-
-							declarationSyntax = declarationSyntax.AddMembers(declarationNode);
-							declarationNode = declarationSyntax.Members.OfType<ConstructorDeclarationSyntax>().Single(c => !c.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)));
-
-							var methodInfo = new MethodParserInfo(methodDescriptor)
-							{
-								SemanticModel = this.SemanticModel,
-								DeclarationNode = declarationNode,
-								MethodSymbol = defaultConstructor
-							};
-
-							this.DeclaredMethods.Add(methodDescriptor, methodInfo);
-						}
-						break;
-					}					
-
-				case SyntaxKind.MethodDeclaration:
-					{
-						var declarationSyntax = (MethodDeclarationSyntax)syntax;
-						var methodSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
-
-						if (declarationSyntax.ExpressionBody != null)
-						{
-							this.ProcessArrowExpressionDecl(declarationSyntax.ExpressionBody, methodSymbol);
-						}
-						else
-						{
-							this.ProcessMethodDecl(declarationSyntax, methodSymbol);
-						}
-						break;
-					}
-
-				case SyntaxKind.ConstructorDeclaration:
-					{
-						var declarationSyntax = (ConstructorDeclarationSyntax)syntax;
-						var methodSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
-
-						this.ProcessMethodDecl(declarationSyntax, methodSymbol);
-						break;
-					}
-
-				case SyntaxKind.PropertyDeclaration:
-					{
-						var propertySyntax = (PropertyDeclarationSyntax)syntax;
-
-						if (propertySyntax.ExpressionBody != null)
-						{
-							var propertySymbol = this.SemanticModel.GetDeclaredSymbol(propertySyntax);
-							var methodSymbol = propertySymbol.GetMethod;
-
-							this.ProcessArrowExpressionDecl(propertySyntax.ExpressionBody, methodSymbol);
-						}
-						else if (propertySyntax.AccessorList != null)
-						{
-							foreach (var accessor in propertySyntax.AccessorList.Accessors)
-							{
-								var methodSymbol = this.SemanticModel.GetDeclaredSymbol(accessor);
-								this.ProcessPropertyAccessorDecl(accessor, methodSymbol);
-							}
-						}
-						else
-						{
-							throw new NotImplementedException("Unknown PropertyDeclaration syntax.");
-						}
-						break;
-					}
+				throw new NotImplementedException("Unknown PropertyDeclaration syntax.");
 			}
 
-			base.Visit(syntax);
+			base.VisitPropertyDeclaration(node);
 		}
 
-		private void ProcessPropertyAccessorDecl(AccessorDeclarationSyntax accessor, IMethodSymbol methodSymbol)
+		//public override void Visit(SyntaxNode syntax)
+		//{
+		//	var kind = syntax.Kind();
+
+		//	switch (kind)
+		//	{
+		//		case SyntaxKind.ClassDeclaration:
+		//			{
+		//				var declarationSyntax = (ClassDeclarationSyntax)syntax;
+		//				var typeSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
+		//				var defaultConstructorSymbol = typeSymbol.Constructors.SingleOrDefault(c => !c.IsStatic && c.IsImplicitlyDeclared);
+
+		//				if (defaultConstructorSymbol != null)
+		//				{
+		//					var methodDescriptor = Utils.CreateMethodDescriptor(defaultConstructorSymbol);
+		//					var defaultConstructorSyntax = SyntaxFactory.ConstructorDeclaration(defaultConstructorSymbol.Name).AddBodyStatements();
+
+		//					var methodInfo = new MethodParserInfo(methodDescriptor)
+		//					{
+		//						ContainingTypeSyntax = declarationSyntax,
+		//						SemanticModel = this.SemanticModel,
+		//						DeclarationNode = defaultConstructorSyntax,
+		//						MethodSymbol = defaultConstructorSymbol
+		//					};
+
+		//					this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+		//				}
+		//				break;
+		//			}
+
+		//		case SyntaxKind.MethodDeclaration:
+		//			{
+		//				var declarationSyntax = (MethodDeclarationSyntax)syntax;
+		//				var containingTypeSyntax = declarationSyntax.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+		//				var methodSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
+
+		//				if (declarationSyntax.ExpressionBody != null)
+		//				{
+		//					this.ProcessArrowExpressionDecl(declarationSyntax.ExpressionBody, containingTypeSyntax, methodSymbol);
+		//				}
+		//				else
+		//				{
+		//					this.ProcessMethodDecl(declarationSyntax, containingTypeSyntax, methodSymbol);
+		//				}
+		//				break;
+		//			}
+
+		//		case SyntaxKind.ConstructorDeclaration:
+		//			{
+		//				var declarationSyntax = (ConstructorDeclarationSyntax)syntax;
+		//				var containingTypeSyntax = declarationSyntax.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+		//				var methodSymbol = this.SemanticModel.GetDeclaredSymbol(declarationSyntax);
+
+		//				this.ProcessMethodDecl(declarationSyntax, containingTypeSyntax, methodSymbol);
+		//				break;
+		//			}
+
+		//		case SyntaxKind.PropertyDeclaration:
+		//			{
+		//				var propertySyntax = (PropertyDeclarationSyntax)syntax;
+		//				var containingTypeSyntax = propertySyntax.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+
+		//				if (propertySyntax.ExpressionBody != null)
+		//				{
+		//					var propertySymbol = this.SemanticModel.GetDeclaredSymbol(propertySyntax);
+		//					var methodSymbol = propertySymbol.GetMethod;
+
+		//					this.ProcessArrowExpressionDecl(propertySyntax.ExpressionBody, containingTypeSyntax, methodSymbol);
+		//				}
+		//				else if (propertySyntax.AccessorList != null)
+		//				{
+		//					foreach (var accessor in propertySyntax.AccessorList.Accessors)
+		//					{
+		//						var methodSymbol = this.SemanticModel.GetDeclaredSymbol(accessor);
+		//						this.ProcessPropertyAccessorDecl(accessor, containingTypeSyntax, methodSymbol);
+		//					}
+		//				}
+		//				else
+		//				{
+		//					throw new NotImplementedException("Unknown PropertyDeclaration syntax.");
+		//				}
+		//				break;
+		//			}
+		//	}
+
+		//	base.Visit(syntax);
+		//}
+
+		private void ProcessPropertyAccessorDecl(AccessorDeclarationSyntax accessor, TypeDeclarationSyntax containingTypeSyntax, IMethodSymbol methodSymbol)
 		{
 			var thisDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
 
 			var methodInfo = new MethodParserInfo(thisDescriptor)
 			{
-				SemanticModel = this.SemanticModel,
+				ContainingTypeSyntax = containingTypeSyntax,
+                SemanticModel = this.SemanticModel,
 				ProperyAccessorNode = accessor,
 				MethodSymbol = methodSymbol
 			};
@@ -1062,12 +1191,13 @@ namespace ReachingTypeAnalysis
 			this.ProcessBaseMethodDecl(thisDescriptor, methodInfo);
 		}
 
-		private void ProcessMethodDecl(BaseMethodDeclarationSyntax declarationNode, IMethodSymbol methodSymbol)
+		private void ProcessMethodDecl(BaseMethodDeclarationSyntax declarationNode, TypeDeclarationSyntax containingTypeSyntax, IMethodSymbol methodSymbol)
 		{
 			var thisDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
 
 			var methodInfo = new MethodParserInfo(thisDescriptor)
 			{
+				ContainingTypeSyntax = containingTypeSyntax,
 				SemanticModel = this.SemanticModel,
 				DeclarationNode = declarationNode,
 				MethodSymbol = methodSymbol
@@ -1076,12 +1206,13 @@ namespace ReachingTypeAnalysis
 			this.ProcessBaseMethodDecl(thisDescriptor, methodInfo);
 		}
 
-		private void ProcessArrowExpressionDecl(ArrowExpressionClauseSyntax arrowExpressionNode, IMethodSymbol methodSymbol)
+		private void ProcessArrowExpressionDecl(ArrowExpressionClauseSyntax arrowExpressionNode, TypeDeclarationSyntax containingTypeSyntax, IMethodSymbol methodSymbol)
 		{
 			var thisDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
 
 			var methodInfo = new MethodParserInfo(thisDescriptor)
 			{
+				ContainingTypeSyntax = containingTypeSyntax,
 				SemanticModel = this.SemanticModel,
 				ArrowExpressionNode = arrowExpressionNode,
 				MethodSymbol = methodSymbol

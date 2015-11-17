@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
 		TestMethods,
 		PublicMethods,
 		RootMethods,
-		Default = RootMethods
+		Default = PublicMethods
 	}
 
 	[Serializable]
@@ -283,7 +283,14 @@ namespace ReachingTypeAnalysis
 					var thisParam = this.Parameters[i];
 					var mdParam = md.Parameters[i];
 
-					if (thisParam.Kind != SerializableTypeKind.TypeParameter)
+					if (thisParam.Kind == SerializableTypeKind.TypeParameter)
+					{
+						var typeArgIndex = this.ContainerType.TypeArguments.IndexOf(thisParam);
+						var typeArg = md.ContainerType.TypeArguments[typeArgIndex];
+
+						pEq = pEq && typeArg.EqualsIgnoringTypeArguments(mdParam);
+					}
+					else
 					{
 						pEq = pEq && thisParam.EqualsIgnoringTypeArguments(mdParam);
 					}

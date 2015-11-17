@@ -344,7 +344,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
+		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
 		{
 			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
 				callInfo.ArgumentsPossibleTypes, callInfo.InstantiatedTypes, callInfo.CallNode, callInfo.LHS, propKind);
@@ -354,11 +354,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
 
-			await WaitQueue(QUEUE_THRESHOLD);
+			//await WaitQueue(QUEUE_THRESHOLD);
 			this.messageWorkList.Enqueue(callerMessage);
 			//this.messageWorkList.Add(callerMessage);
 
-			return;
+			return TaskDone.Done;
 			//return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
@@ -419,7 +419,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.CreateAndSendReturnMessageAsync(returnInfo, propKind);
 		}
 
-		private async Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
+		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
 			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, returnInfo.InstantiatedTypes,
 				returnInfo.CallerContext.CallNode, returnInfo.CallerContext.LHS, propKind);
@@ -427,11 +427,11 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
 			var calleeMessage = new CalleeMessage(source, returnMessageInfo);
 
-			await WaitQueue(QUEUE_THRESHOLD);
+			//await WaitQueue(QUEUE_THRESHOLD);
 			this.messageWorkList.Enqueue(calleeMessage);
 			//this.messageWorkList.Add(calleeMessage);
 
-			return;
+			return TaskDone.Done;
 			//return AnalyzeReturnAsync(returnMessageInfo.Caller, calleeMessage, propKind);
 		}
 
