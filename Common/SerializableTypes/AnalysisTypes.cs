@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
 		TestMethods,
 		PublicMethods,
 		RootMethods,
-		Default = PublicMethods
+		Default = RootMethods
 	}
 
 	[Serializable]

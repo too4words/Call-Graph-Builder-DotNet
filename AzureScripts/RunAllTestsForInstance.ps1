@@ -13,16 +13,20 @@ param (
 #$solutionNames = @("Longtest1", "test","test","test","test")
 #$expIDs= @("test1","test100","test1000","test10000","test100000")
 
-$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
-$solutionNames = @("Longtest1", "test")
-$expIDs= @("test01", "test1000000")
+#$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
+#$solutionNames = @("Longtest1", "test")
+#$expIDs= @("test01", "test1000000")
 
 #$solutionPaths = @("LongTest1", "new\newer\synthetic-100", "new\newer\synthetic-1000")
 #$solutionNames = @("Longtest1", "test", "test")
 #$expIDs= @("test01", "test0100", "test01000")
 
-#$solutionPaths = @("synthetic100","synthetic1000")
-#$solutionNames = @("test","test")
+#$solutionPaths = @("synthetic100", "synthetic1000")
+#$solutionNames = @("test", "test")
+
+$solutionPaths = @("LongTest1", "azure-powershell\src")
+$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
+$expIDs= @("test-1", "azure-powershell")
 
 # get the paths to use in the invocations
 $ScriptPath = Split-Path $MyInvocation.MyCommand.Path

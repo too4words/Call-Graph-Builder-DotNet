@@ -591,6 +591,32 @@ namespace ReachingTypeAnalysis
 			return Task.FromResult(result.AsEnumerable());
 		}
 
+		private static Task<IEnumerable<MethodDescriptor>> GetEventHandlersAsync(Compilation compilation)
+		{
+			var result = new HashSet<MethodDescriptor>();
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+						 .OfType<INamedTypeSymbol>()
+						 .Where(t => t.TypeKind == TypeKind.Class);
+
+			foreach (var type in symbols)
+			{
+				var methods = type.GetMembers()
+								  .OfType<IMethodSymbol>()
+								  .Where(m => !m.IsAbstract && !m.IsStatic && !m.IsImplicitlyDeclared && !m.IsGenericMethod && m.ReturnsVoid)
+								  .Where(m => m.Parameters.Length == 2 &&
+											  m.Parameters.First().Type.Equals(compilation.ObjectType) &&
+											  TypeHelper.Inherits(m.Parameters.Last().Type, compilation.GetTypeByMetadataName("System.EventArgs")));
+
+				foreach (var methodSymbol in methods)
+				{
+					var methodDescriptor = Utils.CreateMethodDescriptor(methodSymbol);
+					result.Add(methodDescriptor);
+				}
+			}
+
+			return Task.FromResult(result.AsEnumerable());
+		}
+
 		private static async Task<IEnumerable<MethodDescriptor>> GetRootMethodsAsync(Compilation compilation)
 		{
 			var result = new HashSet<MethodDescriptor>();
@@ -599,6 +625,12 @@ namespace ReachingTypeAnalysis
 			result.UnionWith(roots);
 
 			roots = await GetStaticConstructorsAsync(compilation);
+			result.UnionWith(roots);
+
+			roots = await GetEventHandlersAsync(compilation);
+			result.UnionWith(roots);
+
+			roots = await GetPublicMethodsAsync(compilation);
 			result.UnionWith(roots);
 
 			return result;
@@ -883,7 +915,7 @@ namespace ReachingTypeAnalysis
 
 			switch (possibleBase.TypeKind)
 			{
-				case Microsoft.CodeAnalysis.TypeKind.Class:
+				case TypeKind.Class:
 					for (ITypeSymbol t = type.BaseType; t != null; t = t.BaseType)
 					{
 						if (t.Equals(possibleBase))
@@ -894,7 +926,7 @@ namespace ReachingTypeAnalysis
 
 					return false;
 
-				case Microsoft.CodeAnalysis.TypeKind.Interface:
+				case TypeKind.Interface:
 					foreach (var i in type.AllInterfaces)
 					{
 						if (i.Equals(possibleBase))

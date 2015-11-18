@@ -55,7 +55,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #$machinesSet = 1
 #$machinesSet = 32
 #$machinesSet = 32,16,8,4,2,1
-$machinesSet = 64
+$machinesSet = 4
 
 # this is the time in seconds for the wait before starting to run experiments
 $waitTime = 3
@@ -63,8 +63,8 @@ $waitTime = 3
 $instancesTime = 5
 foreach($machines in $machinesSet)
 {
-	Write-Host "Changing instances to :" $machines 
-	$result1 = & "$ScriptPath\ChangeNumberOfInstances.ps1" -InstanceCount $machines
+#	Write-Host "Changing instances to :" $machines
+#	$result1 = & "$ScriptPath\ChangeNumberOfInstances.ps1" -InstanceCount $machines
 
 	Write-Host "Waiting instances to be ready" 
 	$result1 = Wait_Instances_Ready($instancesTime)
