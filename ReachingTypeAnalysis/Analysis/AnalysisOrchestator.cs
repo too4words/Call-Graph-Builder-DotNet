@@ -70,27 +70,44 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await this.ProcessMessages();
 
-			var newlyResolvedCalleesCount = 0;
+			// TODO: Remove these lines
+			var reachableMethodsCount = await this.solutionManager.GetReachableMethodsCountAsync();
 
-			do
+			if (GrainClient.IsInitialized)
 			{
-				// TODO: Remove these lines
-				var reachableMethods = this.solutionManager.GetReachableMethodsAsync().Result;
-				Console.WriteLine("Reachable methods={0}", reachableMethods.Count());
-
-				var result = await this.PropagateUsingDeclaredTypes();
-				newlyResolvedCalleesCount = result.Count;
-				await this.ProcessMessages();
+				Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Reachable methods={0}", reachableMethodsCount);
 			}
-			while (newlyResolvedCalleesCount > 0);
+
+			Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
+
+			//var newlyResolvedCalleesCount = 0;
+
+			//do
+			//{
+			//	newlyResolvedCalleesCount = await this.PropagateUsingDeclaredTypes();
+			//	await this.ProcessMessages();
+
+			//	// TODO: Remove these lines
+			//	reachableMethodsCount = await this.solutionManager.GetReachableMethodsCountAsync();
+
+			//	if (GrainClient.IsInitialized)
+			//	{
+			//		Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Reachable methods={0}", reachableMethodsCount);
+			//	}
+
+			//	Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
+			//}
+			//while (newlyResolvedCalleesCount > 0);
 		}
 
-		private async Task<ISet<MethodDescriptor>> PropagateUsingDeclaredTypes()
+		//private async Task<ISet<MethodDescriptor>> PropagateUsingDeclaredTypes()
+        private async Task<int> PropagateUsingDeclaredTypes()
 		{
 			var roots = await this.solutionManager.GetRootsAsync();
 			var worklist = new Queue<MethodDescriptor>(roots);
 			var visited = new HashSet<MethodDescriptor>();
-			var newlyResolvedCallees = new HashSet<MethodDescriptor>();
+			//var newlyResolvedCallees = new HashSet<MethodDescriptor>();
+			var newlyResolvedCalleesCount = 0;
 
 			while (worklist.Count > 0)
 			{
@@ -104,7 +121,8 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var propagationEffects = await methodEntity.PropagateAsync(PropagationKind.ADD_TYPES);
 
-					newlyResolvedCallees.UnionWith(propagationEffects.CalleesInfo.SelectMany(ci => ci.PossibleCallees));
+					//newlyResolvedCallees.UnionWith(propagationEffects.CalleesInfo.SelectMany(ci => ci.PossibleCallees));
+					newlyResolvedCalleesCount = propagationEffects.CalleesInfo.Sum(ci => ci.PossibleCallees.Count);
 
 					await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntity);
 				}
@@ -123,7 +141,8 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 
-			return newlyResolvedCallees;
+			//return newlyResolvedCallees;
+			return newlyResolvedCalleesCount;
         }
 
 		//private async Task<bool> WaitForReady(PropagationEffects propagationEffects, MethodDescriptor method,  int millisecondsDelay = 100)

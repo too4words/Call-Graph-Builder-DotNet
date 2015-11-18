@@ -252,6 +252,13 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			StatsHelper.RegisterMsg("ProjectGrain::IsSubtype", this.GrainFactory);
 
+			//if (GrainClient.IsInitialized)
+			//{
+			//	Logger.LogWarning(GrainClient.Logger, "ProjectGrain", "IsSubtypeAsync", "type1={0}, type2={1}", typeDescriptor1, typeDescriptor2);
+			//}
+
+			//Console.WriteLine("ProjectGrain::IsSubtypeAsync type1={0}, type2={1}", typeDescriptor1, typeDescriptor2);
+
 			return this.projectCodeProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
         }
 

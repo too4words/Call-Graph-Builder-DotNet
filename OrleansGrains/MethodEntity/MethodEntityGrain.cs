@@ -129,9 +129,9 @@ namespace ReachingTypeAnalysis.Analysis
 			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
             
 			// This wrapper caches some of the queries to codeProvider
-			//this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
+			this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
 
-			this.codeProvider = codeProviderGrain;
+			//this.codeProvider = codeProviderGrain;
 
 			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0} calls to proivder {1}", methodDescriptor, this.codeProvider);
 			var sw = new Stopwatch();
