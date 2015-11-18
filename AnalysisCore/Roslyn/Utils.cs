@@ -636,6 +636,17 @@ namespace ReachingTypeAnalysis
 			return result;
 		}
 
+		private static Task<int> GetClassesCountAsync(Compilation compilation)
+		{
+			var symbols = compilation.GetSymbolsWithName(s => true, SymbolFilter.Type)
+									 .OfType<INamedTypeSymbol>()
+									 .Where(t => !t.IsImplicitlyDeclared)
+									 .Where(t => t.TypeKind == TypeKind.Class || t.TypeKind == TypeKind.Struct)
+									 .Count();
+
+			return Task.FromResult(symbols);
+		}
+
 		public static async Task<IList<MethodDescriptor>> ComputeSolutionStatsAsync(string solutionPath)
 		{
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -646,6 +657,7 @@ namespace ReachingTypeAnalysis
 
 			var projectsCount = projects.Count;
 			var currentProjectNumber = 1;
+			var totalClasses = 0;
 			var totalMethods = 0;
 			var publicMethods = 0;
 			var testMethods = 0;
@@ -656,6 +668,9 @@ namespace ReachingTypeAnalysis
 				Console.WriteLine("Compiling project {0} ({1} of {2})", project.Name, currentProjectNumber++, projectsCount);
 
 				var compilation = await Utils.CompileProjectAsync(project, cancellationTokenSource.Token);
+
+				var classesCount = await Utils.GetClassesCountAsync(compilation);
+				totalClasses += classesCount;
 
 				var methods = await Utils.GetAllMethodsAsync(compilation);
 				var methodsCount = methods.Count();
@@ -688,6 +703,7 @@ namespace ReachingTypeAnalysis
 			Console.WriteLine();
 			Console.WriteLine("Solution {0}", solutionName);
 			Console.WriteLine("\tProjects: {0}", projectsCount);
+			Console.WriteLine("\tClasses: {0}", totalClasses);
 			Console.WriteLine("\tMethods: {0}", totalMethods);
 			Console.WriteLine("\tPublic methods: {0}", publicMethods);
 			Console.WriteLine("\tTest methods: {0}", testMethods);
