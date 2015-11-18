@@ -19,11 +19,14 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
 	{
 		private IProjectCodeProvider codeProvider;
-		private IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
-		private IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
-		private IDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new Dictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
+		private static IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
+		private static IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
+		private static IDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new Dictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
 
-		internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
+        static ProjectCodeProviderWithCache()
+        {
+        }
+        internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
 		{
 			this.codeProvider = codeProvider;
 		}
@@ -40,11 +43,11 @@ namespace ReachingTypeAnalysis.Analysis
 			var isSubType = await codeProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
 			if (isSubType)
 			{
-				AddToSubTypeCache(this.IsSubTypeReply, typeDescriptor1, typeDescriptor2);
+				AddToSubTypeCache(IsSubTypeReply, typeDescriptor1, typeDescriptor2);
 			}
 			else
 			{
-				AddToSubTypeCache(this.IsSubTypeNegativeReply, typeDescriptor1, typeDescriptor2);
+				AddToSubTypeCache(IsSubTypeNegativeReply, typeDescriptor1, typeDescriptor2);
 			}
 
 			return isSubType;
