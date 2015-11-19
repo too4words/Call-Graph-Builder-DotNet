@@ -6,6 +6,7 @@ param (
 	[string] $solutionName = "LongTest2",
 	[int] $machines = 1,
 	[string] $expID= "",
+	[string] $rootKind = "Default",
 	[int] $numberOfMethods = 100
 	)
 
@@ -72,7 +73,7 @@ else
 	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\" + $solutionPath
 }
 $controler="api/Experiments"
-$cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines+"&expID="+$expID <#+"&numberOfMethods="+$numberOfMethods#>
+$cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines+"&expID="+$expID+"&rootKind="+$rootKind <#+"&numberOfMethods="+$numberOfMethods#>
 $uri = $resource+$controler+$cmd
 Write-Host "Invoking"  $uri
 Invoke-WebRequest -Uri $uri -TimeoutSec 5000

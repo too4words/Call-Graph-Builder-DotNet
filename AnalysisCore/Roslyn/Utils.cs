@@ -48,7 +48,22 @@ namespace ReachingTypeAnalysis
 			return new List<Project>(filteredProjects);
 		}
 
-		public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
+        public static AnalysisRootKind ToAnalysisRootKind(string rootKind)
+        {
+            switch(rootKind)
+            {
+                case "Main":
+                    return AnalysisRootKind.MainMethods;
+                case "Public":
+                    return AnalysisRootKind.PublicMethods;
+                case "Root":
+                    return AnalysisRootKind.RootMethods;  
+            }
+            return AnalysisRootKind.Default;
+
+        }
+
+        public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
 		{
 			Contract.Assert(type != null);
 			var assemblyName = "Unknown";

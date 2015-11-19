@@ -37,6 +37,7 @@ namespace ReachingTypeAnalysis
 		private string testName;
 
 		public ISolutionManager SolutionManager { get; private set; }
+        public AnalysisRootKind RootKind { get; set; } 
 
 		public static int MessageCounter { get; private set; }
 
@@ -48,6 +49,7 @@ namespace ReachingTypeAnalysis
         {
             var analyzer = new SolutionAnalyzer();
 			analyzer.solutionPath = solutionPath;
+            analyzer.RootKind = AnalysisRootKind.Default;
 			return analyzer;
         }
 
@@ -55,14 +57,16 @@ namespace ReachingTypeAnalysis
 		{
 			var analyzer = new SolutionAnalyzer();
 			analyzer.source = source;
-			return analyzer;
+            analyzer.RootKind = AnalysisRootKind.Default;
+            return analyzer;
 		}
 
 		public static SolutionAnalyzer CreateFromTest(string testName)
 		{
 			var analyzer = new SolutionAnalyzer();
 			analyzer.testName= testName;
-			return analyzer;
+            analyzer.RootKind = AnalysisRootKind.Default;
+            return analyzer;
 		}
 
 		/// <summary>
@@ -168,7 +172,7 @@ namespace ReachingTypeAnalysis
 				throw new Exception("We need a solutionPath, source code or testName to analyze");
 			}
 
-			var roots = await this.SolutionManager.GetRootsAsync();
+			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 			var orchestator = new AnalysisOrchestator(this.SolutionManager);
             await orchestator.AnalyzeAsync(roots);
         }
@@ -230,7 +234,7 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
-			var roots = await this.SolutionManager.GetRootsAsync();
+			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), AnalysisRootKind.Default);
 
@@ -245,7 +249,7 @@ namespace ReachingTypeAnalysis
 		{
 			Logger.LogS("SolutionAnalyzer", "GenerateCallGraphAsync", "Start building CG");
 			var callgraph = new CallGraph<MethodDescriptor, LocationDescriptor>();
-			var roots = await this.SolutionManager.GetRootsAsync();
+			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 			var worklist = new Queue<MethodDescriptor>(roots);
 			var visited = new HashSet<MethodDescriptor>();
 

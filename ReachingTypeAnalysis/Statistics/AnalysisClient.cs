@@ -154,17 +154,17 @@ namespace ReachingTypeAnalysis.Statistics
 			return msg;
 		}
 
-		public async Task StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		public async Task StartRunningExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID", AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
 			AnalysisClient.instance = this;
 			//Task.Run(async () =>
 			await Task.Factory.StartNew(async () =>
 			{
-				await this.RunExperiment(grainFactory, expId);
+				await this.RunExperiment(grainFactory, expId, rootKind);
 			});
 		}
 
-		public async Task RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID")
+		public async Task RunExperiment(IGrainFactory grainFactory, string expId = "DummyExperimentID", AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
 			try
 			{
@@ -180,6 +180,7 @@ namespace ReachingTypeAnalysis.Statistics
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Compiling;
 
+                this.analyzer.RootKind = rootKind;
                 await this.analyzer.InitializeOnDemandOrleansAnalysis();
                 await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 

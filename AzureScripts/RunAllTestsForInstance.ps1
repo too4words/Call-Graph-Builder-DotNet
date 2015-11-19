@@ -6,12 +6,14 @@ param (
 #	[string] $className = "C",
 #	[string] $assemblyName = "ConsoleApplication",
 #    [string] $methodPrefix = "N",
-	[int] $repetitions = 50
+	[string] $rootKind = "Default",
+	[int] $repetitions = 100
+
 	)
 
-#$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000","new\synthetic-100000")
-#$solutionNames = @("Longtest1", "test","test","test","test")
-#$expIDs= @("test1","test100","test1000","test10000","test100000")
+$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000","new\synthetic-100000")
+$solutionNames = @("Longtest1", "test","test","test","test")
+$expIDs= @("test1","s100","s1000","s10000","s100000")
 
 #$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
 #$solutionNames = @("Longtest1", "test")
@@ -21,9 +23,9 @@ param (
 #$solutionNames = @("Longtest1", "test", "test")
 #$expIDs= @("test01", "test0100", "test01000")
 
-$solutionPaths = @("LongTest1", "azure-powershell\src")
-$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
-$expIDs= @("test-1", "azure-powershell")
+#$solutionPaths = @("LongTest1", "azure-powershell\src")
+#$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
+#$expIDs= @("test-1", "azure-powershell")
 
 # get the paths to use in the invocations
 $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
@@ -43,7 +45,7 @@ for ($i=0; $i -lt $solutionNames.length; $i++) {
     #$solutionName = "LongTest1"
     #$numberOfMethods = 10
     #$result1 = & "$ScriptPath\RunTestForInstance.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -numberOfMethods $numberOfMethods -assemblyName $assemblyName | Write-Output
-    $result1 = & "$ScriptPath\RunTestForInstance.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -repetitions $repetitions -expID $expID| Write-Output
+    $result1 = & "$ScriptPath\RunTestForInstance.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -repetitions $repetitions -expID $expID -rootKind $rootKind | Write-Output
 
     Write-Host "Result:" $result1
 }

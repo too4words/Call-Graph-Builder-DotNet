@@ -5,6 +5,7 @@ param (
 #	[string] $className = "C",
 #	[string] $assemblyName = "ConsoleApplication",
 #    [string] $methodPrefix = "N",
+	[string] $rootKind = "Default",
 	[int] $repetitions = 50
 	)
 
@@ -55,7 +56,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #$machinesSet = 1
 #$machinesSet = 32
 #$machinesSet = 32,16,8,4,2,1
-$machinesSet = 4
+$machinesSet = 16
 
 # this is the time in seconds for the wait before starting to run experiments
 $waitTime = 3
@@ -64,7 +65,7 @@ $instancesTime = 5
 foreach($machines in $machinesSet)
 {
 #	Write-Host "Changing instances to :" $machines
-#	$result1 = & "$ScriptPath\ChangeNumberOfInstances.ps1" -InstanceCount $machines
+	$result1 = & "$ScriptPath\ChangeNumberOfInstances.ps1" -InstanceCount $machines
 
 	Write-Host "Waiting instances to be ready" 
 	$result1 = Wait_Instances_Ready($instancesTime)
@@ -77,7 +78,7 @@ foreach($machines in $machinesSet)
 	
 	Write-Host "Analizing all test in:" $machines " instances"
     # $result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive  -machines $machines -className $className -assemblyName $assemblyName -methodPrefix $methodPrefix -repetitions $repetitions  | Write-Output
-    $result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive -machines $machines -repetitions $repetitions  | Write-Output
+    $result2 = & "$ScriptPath\RunAllTestsForInstance.ps1" -drive $drive -machines $machines -repetitions $repetitions -rootKind $rootKind | Write-Output
 	Write-Host "Result:" $result2
 }
 

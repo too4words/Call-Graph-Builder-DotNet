@@ -10,6 +10,7 @@ param (
 #	[string] $assemblyName = "ConsoleApplication",
 #    [string] $methodPrefix = "N",
 	[int] $repetitions = 50,
+	[string] $rootKind = "Default",
     [string] $expID = ""
 	)
 
@@ -21,7 +22,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 
 Write-Host "Invoke test:"  $solutionName
 #$job = Start-Job { 
-	$result1 = & "$ScriptPath\InvokeSolutionExperiment.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -numberOfMethods $numberOfMethods -expID $expID| Write-Output
+	$result1 = & "$ScriptPath\InvokeSolutionExperiment.ps1" -drive $drive -solutionPath $solutionPath -solutionName $solutionName -machines $machines -numberOfMethods $numberOfMethods -expID $expID -rootKind $rootKind| Write-Output
 #}
 #Wait-Job $job
 #Receive-Job $job
@@ -38,4 +39,6 @@ Write-Host "Result:" $result2
 
 echo "Clean grain"
 $result3 = & "$ScriptPath\InvokeGrainDeactivation.ps1"
-Write-Host "Result:" $result3
+$result4 = & "$ScriptPath\InvokeCmd.ps1" -command RemoveGrainState
+
+Write-Host "Result:" $result3 $result4

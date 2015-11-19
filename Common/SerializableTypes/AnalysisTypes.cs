@@ -27,8 +27,9 @@ namespace ReachingTypeAnalysis
 		TestMethods,
 		PublicMethods,
 		RootMethods,
-		Default = RootMethods
-	}
+        //		Default = RootMethods
+        Default = MainMethods
+    }
 
 	[Serializable]
 	public enum EntityGrainStatus

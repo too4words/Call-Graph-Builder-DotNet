@@ -22,7 +22,7 @@ namespace WebAPI
     {
 		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2&expID=dummy
 		[HttpGet]
-		public Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID)
+		public Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID, string rootKind = "Default")
 		{
 			var result = string.Empty;
 
@@ -31,7 +31,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID, Utils.ToAnalysisRootKind(rootKind));
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Running test {0}.", testName);
@@ -46,7 +46,7 @@ namespace WebAPI
 		}
 
 		[HttpGet]
-		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID)
+		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID, string rootKind="Default")
 		{
 			var result = string.Empty;
 
@@ -60,7 +60,7 @@ namespace WebAPI
 				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
 				var analysisClient = new AnalysisClient(analyzer, machines);
 				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID);
+				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID,Utils.ToAnalysisRootKind(rootKind));
 
 				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
 				result = string.Format("Analyzing solution {0}.", solutionName);
