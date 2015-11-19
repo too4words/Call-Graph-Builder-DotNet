@@ -13,19 +13,21 @@ using CodeGraphModel;
 using Orleans.Placement;
 using Orleans.Runtime;
 using Orleans.Core;
+using System.Collections.Concurrent;
 
 namespace ReachingTypeAnalysis.Analysis
 {
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
 	{
 		private IProjectCodeProvider codeProvider;
-		private static IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
-		private static IDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new Dictionary<TypeDescriptor, ISet<TypeDescriptor>>();
-		private static IDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new Dictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
+		private static ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeReply = new ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>>();
+		private static ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>>();
+		private static ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
 
         static ProjectCodeProviderWithCache()
         {
         }
+
         internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
 		{
 			this.codeProvider = codeProvider;
@@ -53,7 +55,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return isSubType;
 		}
 
-		private void AddToSubTypeCache(IDictionary<TypeDescriptor, ISet<TypeDescriptor>> typeCache,
+		private void AddToSubTypeCache(ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> typeCache,
 					TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
 		{
 			ISet<TypeDescriptor> subTypes;
@@ -65,7 +67,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				subTypes = new HashSet<TypeDescriptor>();
 				subTypes.Add(typeDescriptor2);
-				typeCache[typeDescriptor1] = subTypes;
+				typeCache.TryAdd(typeDescriptor1, subTypes);
 			}
 		}
 
@@ -78,7 +80,7 @@ namespace ReachingTypeAnalysis.Analysis
 				return reply;
 			}
 			reply = await codeProvider.FindMethodImplementationAsync(methodDescriptor, typeDescriptor);
-			FindMethodReply.Add(key, reply);
+			FindMethodReply.TryAdd(key, reply);
 			return reply;
 		}
 
