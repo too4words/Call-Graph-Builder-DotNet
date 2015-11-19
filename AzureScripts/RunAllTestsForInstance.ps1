@@ -21,9 +21,6 @@ param (
 #$solutionNames = @("Longtest1", "test", "test")
 #$expIDs= @("test01", "test0100", "test01000")
 
-#$solutionPaths = @("synthetic100", "synthetic1000")
-#$solutionNames = @("test", "test")
-
 $solutionPaths = @("LongTest1", "azure-powershell\src")
 $solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
 $expIDs= @("test-1", "azure-powershell")
