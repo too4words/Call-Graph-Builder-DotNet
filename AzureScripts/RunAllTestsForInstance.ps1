@@ -11,9 +11,9 @@ param (
 
 	)
 
-$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000","new\synthetic-100000")
-$solutionNames = @("Longtest1", "test","test","test","test")
-$expIDs= @("test1","s100","s1000","s10000","s100000")
+$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000") #,"new\synthetic-100000")
+$solutionNames = @("Longtest1", "test","test","test") #,"test")
+$expIDs= @("test1","s100","s1000","s10000") #,"s100000")
 
 #$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
 #$solutionNames = @("Longtest1", "test")

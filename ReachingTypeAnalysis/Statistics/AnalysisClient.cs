@@ -197,27 +197,29 @@ namespace ReachingTypeAnalysis.Statistics
                 AnalysisClient.ExperimentStatus = ExperimentStatus.ComputingResults;
 
                 this.stopWatch.Stop();
-
                 var totalRecvNetwork = 0L;
                 var totalSentLocal = 0L;
                 var totalSentNetwork = 0L;
                 var totalRecvLocal = 0L;
 
-                this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
-                await systemManagement.ForceGarbageCollection(null);
-                var orleansStats = await systemManagement.GetRuntimeStatistics(null);
-                var hosts = await systemManagement.GetHosts();
-                //var silos = hosts.Keys.ToArray();
-
                 var totalAct = 0L;
                 var totalDeact = 0L;
                 var time = DateTime.Now;
-
                 var acummulatedPerSiloMemoryUsage = 0L;
                 var maxPerSiloMemoryUsage = 0L;
                 var acummulatedPerSiloCPUUsage = 0D;
                 var maxPerSiloCPUUsage = 0D;
 
+                var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
+
+                this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
+                await systemManagement.ForceGarbageCollection(null);
+                var hosts = await systemManagement.GetHosts();
+#if COMPUTE_STATS
+                var orleansStats = await systemManagement.GetRuntimeStatistics(null);
+                //var silos = hosts.Keys.ToArray();
+
+                
                 //this.methods = -1;
 
                 // var messageMetric = new MessageMetrics();			
@@ -226,7 +228,7 @@ namespace ReachingTypeAnalysis.Statistics
                 var silosEnumeration = await myStatsGrain.GetSilos();
                 var silos = silosEnumeration.ToArray();
                 var siloComputedStats = new SiloComputedStats[silos.Length];
-
+                var silosSize = silos.Length; 
                 for (var i = 0; i < silos.Length; i++)
                 {
                     var silo = silos[i];
@@ -286,10 +288,16 @@ namespace ReachingTypeAnalysis.Statistics
 
                 var totalMessages = await myStatsGrain.GetTotalMessages();
                 var clientMessages = await myStatsGrain.GetTotalClientMessages();
-                var methods = await this.SolutionManager.GetReachableMethodsCountAsync();
+#else
+                var avgLatency = 0;
+                var maxLatency = 0;
+                var maxLatencyMsg = "";
 
+                var totalMessages = 0;
+                var clientMessages = 0;
+                var silosSize = hosts.Keys.Count;
+#endif
                 var testFullName = this.subject;
-
                 var results = new SubjectExperimentResults()
                 {
                     ExpID = expId,
@@ -312,8 +320,8 @@ namespace ReachingTypeAnalysis.Statistics
                     AverageLatency = avgLatency,
                     MaxLatency = maxLatency,
                     MaxLatencyMsg = maxLatencyMsg,
-                    AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silos.Length,
-                    AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silos.Length,
+                    AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silosSize,
+                    AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silosSize,
                     MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
                     MaxPerSiloCPUUsage = maxPerSiloCPUUsage
                 };
