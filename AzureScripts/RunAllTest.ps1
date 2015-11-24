@@ -56,7 +56,7 @@ $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #$machinesSet = 1
 #$machinesSet = 32
 #$machinesSet = 32,16,8,4,2,1
-$machinesSet = 1
+$machinesSet = 16
 
 # this is the time in seconds for the wait before starting to run experiments
 $waitTime = 3
