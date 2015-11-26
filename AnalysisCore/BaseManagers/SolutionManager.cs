@@ -60,6 +60,8 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
 			await Task.WhenAll(tasks);
+
+			Console.WriteLine("All projects compiled");
 		}
 
 		protected Task LoadSourceAsync(string source)

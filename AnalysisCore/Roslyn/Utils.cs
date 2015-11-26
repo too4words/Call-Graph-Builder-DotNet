@@ -41,8 +41,22 @@ namespace ReachingTypeAnalysis
 
 		public static IList<Project> FilterProjects(Solution solution)
 		{
+			// For Roslyn.sln only
+			// They are portable versions of other projects
+			var projectsToExclude = new string[]
+			{
+				"ResultProvider.Portable",
+				"CSharpResultProvider.Portable",
+				"MSBuildTask",
+				"CscCore",
+				"VbcCore",
+				"CsiCore",
+			};
+
 			var filteredProjects = from project in solution.Projects
 								   where project.Language == LanguageNames.CSharp
+								   //where !project.Name.Contains("Portable")
+								   where !projectsToExclude.Contains(project.Name)
 								   select project;
 
 			return new List<Project>(filteredProjects);

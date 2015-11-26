@@ -67,7 +67,14 @@ namespace ReachingTypeAnalysis.Analysis
 
             lock (this.ProjectProviders)
             {
-                this.ProjectProviders.Add(assemblyName, provider);
+				//// TODO: Hack! remove these lines!
+				//if (this.ProjectProviders.ContainsKey(assemblyName))
+				//{
+				//	var oldProvider = this.ProjectProviders[assemblyName];
+				//	this.ProjectProviders.Remove(assemblyName);
+				//}
+
+				this.ProjectProviders.Add(assemblyName, provider);
             }
 		}
 
