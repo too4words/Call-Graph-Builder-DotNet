@@ -64,17 +64,14 @@ namespace ReachingTypeAnalysis
 
         public static AnalysisRootKind ToAnalysisRootKind(string rootKind)
         {
-            switch(rootKind)
+            switch (rootKind)
             {
-                case "Main":
-                    return AnalysisRootKind.MainMethods;
-                case "Public":
-                    return AnalysisRootKind.PublicMethods;
-                case "Root":
-                    return AnalysisRootKind.RootMethods;  
+                case "Main": return AnalysisRootKind.MainMethods;
+                case "Public": return AnalysisRootKind.PublicMethods;
+                case "Root": return AnalysisRootKind.RootMethods;  
             }
-            return AnalysisRootKind.Default;
 
+            return AnalysisRootKind.Default;
         }
 
         public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
