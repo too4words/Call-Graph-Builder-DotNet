@@ -564,9 +564,16 @@ namespace ReachingTypeAnalysis.Roslyn
 				case SymbolKind.Property:
 					{
 						// For the special case of propery setter, e.g. this.a.b.c = value, a and b are getters but c is setter
+
+						//var isSetter = this.leftHandSide &&
+						//	((node.Parent is AssignmentExpressionSyntax) ||
+						//	 (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+
 						var isSetter = this.leftHandSide &&
 							((node.Parent is AssignmentExpressionSyntax) ||
-							 (node.Parent != null && node.Parent.Parent is AssignmentExpressionSyntax));
+							 (node.Parent is MemberAccessExpressionSyntax &&
+							 (node.Parent as MemberAccessExpressionSyntax).Name == node &&
+							  node.Parent.Parent is AssignmentExpressionSyntax));
 
 						return new Property(node, type, symbol, isSetter, this.roslynMethodVisitor.DeclarationNode);
 					}
