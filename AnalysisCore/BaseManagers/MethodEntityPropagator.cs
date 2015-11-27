@@ -257,7 +257,7 @@ namespace ReachingTypeAnalysis.Analysis
             var invocationNode = this.GetCallSiteByOrdinal(invocationPosition);
             ISet<MethodDescriptor> result;
             var calleesForNode = new HashSet<MethodDescriptor>();
-            var invExp = methodEntity.PropGraph.GetInvocationInfo((AnalysisCallNode)invocationNode);
+            var invExp = methodEntity.PropGraph.GetInvocationInfo(invocationNode);
             Contract.Assert(invExp != null);
             Contract.Assert(codeProvider != null);
             var calleeResult = await methodEntity.PropGraph.ComputeCalleesForNodeAsync(invExp, codeProvider);

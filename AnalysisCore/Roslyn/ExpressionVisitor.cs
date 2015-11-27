@@ -226,12 +226,19 @@ namespace ReachingTypeAnalysis.Roslyn
 	{
 		public IMethodSymbol RoslynMethod { get; private set; }
 		public bool IsDelegate { get; private set; }
+
 		internal Property(SyntaxNodeOrToken expression, ITypeSymbol typeSymbol, ISymbol symbol, bool isSetter, SyntaxNode declarationNode)
 			: base(expression, typeSymbol, symbol, declarationNode)
 		{
-			IsDelegate = false;
-			var properySymbol = symbol as IPropertySymbol;
-			RoslynMethod = isSetter ? properySymbol.SetMethod : properySymbol.GetMethod;
+			this.IsDelegate = false;
+			var propertySymbol = symbol as IPropertySymbol;
+			this.RoslynMethod = isSetter ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+
+			if (this.RoslynMethod == null && propertySymbol.IsOverride)
+			{
+				propertySymbol = propertySymbol.OverriddenProperty;
+				this.RoslynMethod = isSetter ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+			}
 		}
 
 		public override AnalysisExpression ProcessArgument(ArgumentSyntax argNode, ExpressionVisitor visitor)
