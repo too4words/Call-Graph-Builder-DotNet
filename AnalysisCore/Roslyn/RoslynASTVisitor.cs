@@ -1019,17 +1019,22 @@ namespace ReachingTypeAnalysis
 			if (defaultConstructorSymbol != null)
 			{
 				var methodDescriptor = Utils.CreateMethodDescriptor(defaultConstructorSymbol);
-				var defaultConstructorSyntax = SyntaxFactory.ConstructorDeclaration(defaultConstructorSymbol.Name).AddBodyStatements();
 
-				var methodInfo = new MethodParserInfo(methodDescriptor)
+				// We don't want to explicity add the deafult constructor twice if, for example, the class is partial
+				if (!this.DeclaredMethods.ContainsKey(methodDescriptor))
 				{
-					ContainingTypeSyntax = node,
-					SemanticModel = this.SemanticModel,
-					DeclarationNode = defaultConstructorSyntax,
-					MethodSymbol = defaultConstructorSymbol
-				};
+					var defaultConstructorSyntax = SyntaxFactory.ConstructorDeclaration(defaultConstructorSymbol.Name).AddBodyStatements();
 
-				this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+					var methodInfo = new MethodParserInfo(methodDescriptor)
+					{
+						ContainingTypeSyntax = node,
+						SemanticModel = this.SemanticModel,
+						DeclarationNode = defaultConstructorSyntax,
+						MethodSymbol = defaultConstructorSymbol
+					};
+
+					this.DeclaredMethods.Add(methodDescriptor, methodInfo);
+				}
 			}
 
 			base.VisitClassDeclaration(node);

@@ -517,9 +517,21 @@ namespace ReachingTypeAnalysis.Roslyn
 
 				if (rhs != null)
 				{
-					Contract.Assert(lhs.GetAnalysisNode() is VariableNode);
+					var variableNode = lhs.GetAnalysisNode() as VariableNode;
 
-					rhs.ProcessAssignment((VariableNode)lhs.GetAnalysisNode(), this.roslynMethodVisitor);
+					if (lhs is Call)
+					{
+						var call = lhs as Call;
+						variableNode = call.ReturnedVariableNode;
+                    }
+
+					if (variableNode == null)
+					{
+					}
+
+					Contract.Assert(variableNode != null);
+
+					rhs.ProcessAssignment(variableNode, this.roslynMethodVisitor);
 
 					//if (rhs is Allocation)
 					//{
