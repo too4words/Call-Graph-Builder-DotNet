@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis
 		TestMethods,
 		PublicMethods,
 		RootMethods,
-        //		Default = RootMethods
+        //Default = RootMethods
         Default = MainMethods
     }
 
@@ -98,11 +98,93 @@ namespace ReachingTypeAnalysis
         }
     }
 
-    /// <summary>
-    /// This is a string represenation of a method designed to be 
-    /// put as keys in Dictionaries and used for comparison.
-    /// </summary>
-    [Serializable]
+	[Serializable]
+	public enum ParameterKind
+	{
+		In,
+		Out,
+		Ref
+	}
+
+	[Serializable]
+	public class ParameterDescriptor
+	{
+		public ParameterKind Kind { get; protected set; }
+		public TypeDescriptor Type { get; protected set; }
+
+		public ParameterDescriptor(TypeDescriptor type, ParameterKind kind = ParameterKind.In)
+		{
+			this.Kind = kind;
+			this.Type = type;
+		}
+
+		public override int GetHashCode()
+		{
+			return this.Kind.GetHashCode() ^ this.Type.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			var other = obj as ParameterDescriptor;
+			if (other == null) return false;
+
+			var kEq = this.Kind == other.Kind;
+			var tEq = this.Type.Equals(other.Type);
+
+			return kEq && tEq;
+		}
+
+		public bool EqualsIgnoringTypeArguments(object obj)
+		{
+			var other = obj as ParameterDescriptor;
+			if (other == null) return false;
+
+			var kEq = this.Kind == other.Kind;
+			var tEq = this.Type.EqualsIgnoringTypeArguments(other.Type);
+
+			return kEq && tEq;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("[{0}] {1}", this.Kind, this.Type);
+		}
+
+		internal string Marshall()
+		{
+			var type = this.Type.Marshall();
+			var kind = this.Kind.ToString().First();
+            var result = string.Format("{0}{1}", kind, type);
+
+			return result;
+		}
+
+		internal static ParameterDescriptor DeMarshall(string parameterString)
+		{
+			var kindChar = parameterString.First();
+			ParameterKind kind;
+
+			switch (kindChar)
+			{
+				case 'I': kind = ParameterKind.In; break;
+				case 'O': kind = ParameterKind.Out; break;
+				case 'R': kind = ParameterKind.Ref; break;
+				default: throw new Exception("Unknown ParemeterKind");
+			}
+
+			var typeString = parameterString.Remove(0, 1);
+			var type = TypeDescriptor.DeMarshall(typeString);
+			var result = new ParameterDescriptor(type, kind);
+
+			return result;
+        }
+	}
+
+	/// <summary>
+	/// This is a string represenation of a method designed to be 
+	/// put as keys in Dictionaries and used for comparison.
+	/// </summary>
+	[Serializable]
     public class MethodDescriptor
     {
         protected string name;
@@ -110,7 +192,7 @@ namespace ReachingTypeAnalysis
         public TypeDescriptor ContainerType { get; protected set; }
         public string MethodName { get; protected set; }
 		public int TypeParametersCount { get; protected set; }
-        public IList<TypeDescriptor> Parameters { get; protected set; }
+        public IList<ParameterDescriptor> Parameters { get; protected set; }
         public TypeDescriptor ReturnType { get; protected set; }
         public bool IsStatic { get; protected set; }
 		public bool IsVirtual { get; protected set; }
@@ -168,7 +250,7 @@ namespace ReachingTypeAnalysis
         public MethodDescriptor(TypeDescriptor typeDescriptor, string methodName,
                                     bool isStatic = false,
 									bool isVirtual = false,
-                                    IEnumerable<TypeDescriptor> parameters = null,
+                                    IEnumerable<ParameterDescriptor> parameters = null,
 									int typeParametersCount = 0,
                                     TypeDescriptor returnType = null)
         {
@@ -184,14 +266,14 @@ namespace ReachingTypeAnalysis
 
 			if (parameters != null)
 			{
-				this.Parameters = new List<TypeDescriptor>(parameters);
+				this.Parameters = new List<ParameterDescriptor>(parameters);
 			}
         }
 
         public MethodDescriptor(string namespaceName, string className, string methodName,
                                     bool isStatic = false,
 									bool isVirtual = false,
-									IEnumerable<TypeDescriptor> parameters = null,
+									IEnumerable<ParameterDescriptor> parameters = null,
 									int typeParametersCount = 0,
                                     TypeDescriptor returnType = null)
         {
@@ -207,7 +289,7 @@ namespace ReachingTypeAnalysis
 
             if (parameters != null)
             {
-                this.Parameters = new List<TypeDescriptor>(parameters);
+                this.Parameters = new List<ParameterDescriptor>(parameters);
             }
         }
 
@@ -284,15 +366,15 @@ namespace ReachingTypeAnalysis
 					var thisParam = this.Parameters[i];
 					var mdParam = md.Parameters[i];
 
-					if (thisParam.Kind == SerializableTypeKind.TypeParameter)
+					if (thisParam.Type.Kind == SerializableTypeKind.TypeParameter)
 					{
-						var typeArgIndex = this.ContainerType.TypeArguments.IndexOf(thisParam);
+						var typeArgIndex = this.ContainerType.TypeArguments.IndexOf(thisParam.Type);
 
 						if (typeArgIndex > -1)
 						{
 							var typeArg = md.ContainerType.TypeArguments[typeArgIndex];
 
-							pEq = pEq && typeArg.EqualsIgnoringTypeArguments(mdParam);
+							pEq = pEq && typeArg.EqualsIgnoringTypeArguments(mdParam.Type);
 						}
 					}
 					else
@@ -396,14 +478,14 @@ namespace ReachingTypeAnalysis
 			var isVirtual = Convert.ToBoolean(tokens[3]);
 			var typeParametersCount = Convert.ToInt32(tokens[4]);
 			var parametersCount = Convert.ToInt32(tokens[5]);
-			var parameters = new List<TypeDescriptor>();
+			var parameters = new List<ParameterDescriptor>();
 
 			for (var i = 0; i < parametersCount; ++i)
 			{
-				var typeName = tokens[6 + i];
-				var typeDescriptor = TypeDescriptor.DeMarshall(typeName);
+				var parameterString = tokens[6 + i];
+				var parameterDescriptor = ParameterDescriptor.DeMarshall(parameterString);
 
-				parameters.Add(typeDescriptor);
+				parameters.Add(parameterDescriptor);
 			}
 
 			var methodDescriptor = new MethodDescriptor(containerType, methodName, isStatic, isVirtual, parameters, typeParametersCount);

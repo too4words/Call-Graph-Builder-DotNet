@@ -1253,7 +1253,8 @@ namespace ReachingTypeAnalysis.Roslyn
 		public override AnalysisExpression VisitAwaitExpression(AwaitExpressionSyntax node)
 		{
 			var exp = Visit(node.Expression);
-			if (exp.Type is INamedTypeSymbol)
+
+			if (exp != null && exp.Type is INamedTypeSymbol)
 			{
 				var type = (INamedTypeSymbol)exp.Type;
 				if (type.IsGenericType)
@@ -1262,9 +1263,11 @@ namespace ReachingTypeAnalysis.Roslyn
 				}
 				else
 				{
+					// This should never happen
 					exp.Type = this.model.Compilation.GetSpecialType(SpecialType.System_Void);
 				}
 			}
+
 			return exp;
 		}
 

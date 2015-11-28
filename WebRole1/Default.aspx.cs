@@ -210,7 +210,7 @@ namespace WebRole1
 					string[] tokens = TextBoxPathPrefix.Text.Split(';');
 
                     var type = new TypeDescriptor("", tokens[0]);
-					var parameters = new TypeDescriptor[] { };
+					var parameters = new ParameterDescriptor[] { };
 
 					var methodDescriptor = new MethodDescriptor(type, tokens[1], true, false, parameters);
 

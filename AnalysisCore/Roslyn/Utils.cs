@@ -32,7 +32,7 @@ namespace ReachingTypeAnalysis
 			var isVirtual = method.IsVirtual || method.IsAbstract || method.IsOverride;
 
 			var result = new MethodDescriptor(typeDescriptor, method.Name, method.IsStatic, isVirtual,
-				method.Parameters.Select(parmeter => Utils.CreateTypeDescriptor(parmeter.Type)),
+				method.Parameters.Select(parmeter => Utils.CreateParameterDescriptor(parmeter)),
 				method.TypeParameters.Length,
 				Utils.CreateTypeDescriptor(method.ReturnType));
 
@@ -74,7 +74,15 @@ namespace ReachingTypeAnalysis
             return AnalysisRootKind.Default;
         }
 
-        public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
+		public static ParameterDescriptor CreateParameterDescriptor(IParameterSymbol parameter)
+		{
+			var type = Utils.CreateTypeDescriptor(parameter.Type);
+			var kind = Utils.Convert(parameter.RefKind);
+			var result = new ParameterDescriptor(type, kind);
+			return result;
+		}
+
+		public static TypeDescriptor CreateTypeDescriptor(ITypeSymbol type, bool isConcrete = true)
 		{
 			Contract.Assert(type != null);
 			var assemblyName = "Unknown";
@@ -179,6 +187,17 @@ namespace ReachingTypeAnalysis
 			}
 
 			return result.ToString();
+		}
+
+		private static ParameterKind Convert(RefKind kind)
+		{
+			switch (kind)
+			{
+				case RefKind.None: return ParameterKind.In;
+				case RefKind.Out: return ParameterKind.Out;
+				case RefKind.Ref: return ParameterKind.Ref;
+				default: throw new ArgumentException("Can't convert " + kind);
+			}
 		}
 
 		private static SerializableTypeKind Convert(TypeKind kind)

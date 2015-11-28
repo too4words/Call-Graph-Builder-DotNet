@@ -172,7 +172,7 @@ namespace ReachingTypeAnalysis
                 for (int i = 0; i < methodDescriptor.Parameters.Count(); i++)
                 {
                     var parameterName = "P_" + i;
-                    var parameterNode = new ParameterNode(parameterName, i, methodDescriptor.Parameters[i]);
+                    var parameterNode = new ParameterNode(parameterName, i, methodDescriptor.Parameters[i].Type);
                     parameters.Add(parameterNode);
                     //if (p.RefKind == RefKind.Ref || p.RefKind == RefKind.Out)
                     {
