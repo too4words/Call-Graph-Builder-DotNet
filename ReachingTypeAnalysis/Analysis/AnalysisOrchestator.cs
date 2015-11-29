@@ -38,6 +38,46 @@ namespace ReachingTypeAnalysis.Analysis
 			this.messageWorkList = new ConcurrentQueue<Message>();
 		}
 
+        public async Task AnalyzeAsyncDistributed(IEnumerable<MethodDescriptor> rootMethods)
+        {
+            foreach (var method in rootMethods)
+            {
+                if (GrainClient.IsInitialized)
+                {
+                    Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
+                }
+
+                var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
+  
+                await methodEntityProc.UseDeclaredTypesForParameters();
+                //var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+                //await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntityProc);
+                await methodEntityProc.PropagateAndProcessAsync(PropagationKind.ADD_TYPES);
+            }
+            var count = 0;
+
+            var solutionGrain = (ISolutionGrain)this.solutionManager;
+            do
+            {
+                await Task.Delay(200);
+                count = await solutionGrain.UpdateCounter(0);
+            } while (count > 0);
+
+            // await this.ProcessMessages();
+
+            // TODO: Remove these lines
+            var reachableMethodsCount = await this.solutionManager.GetReachableMethodsCountAsync();
+
+            if (GrainClient.IsInitialized)
+            {
+                Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Reachable methods={0}", reachableMethodsCount);
+            }
+
+            Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
+        }
+
+
+
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
 			foreach (var method in rootMethods)

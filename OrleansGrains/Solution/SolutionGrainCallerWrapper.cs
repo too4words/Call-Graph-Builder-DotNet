@@ -138,5 +138,11 @@ namespace ReachingTypeAnalysis.Analysis
 		//	this.SetRequestContext();
 		//	return solutionGrain.GetDrivesAsync();
 		//}
-	}
+
+
+        public Task<int> UpdateCounter(int value)
+        {
+            return solutionGrain.UpdateCounter(value);
+        }
+    }
 }

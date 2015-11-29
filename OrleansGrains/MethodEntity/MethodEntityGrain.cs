@@ -13,6 +13,7 @@ using CodeGraphModel;
 using Orleans.Placement;
 using Orleans.Runtime;
 using Orleans.Core;
+using Orleans.Concurrency;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -38,9 +39,9 @@ namespace ReachingTypeAnalysis.Analysis
         private MethodEntity methodEntity;
         [NonSerialized]
         private IProjectCodeProvider codeProvider;
-		//[NonSerialized]
-		//private ISolutionGrain solutionGrain;
-		//[NonSerialized]
+		[NonSerialized]
+		private ISolutionGrain solutionGrain;
+        	//[NonSerialized]
 		//private EntityGrainStatus status;
 
 		private MethodState State;
@@ -121,7 +122,7 @@ namespace ReachingTypeAnalysis.Analysis
 			// This is a private method. We must not register this as a grain callee
 			// await StatsHelper.RegisterMsg("MethodEntityGrain::CreateMethodEntity", this.GrainFactory);
 
-			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
+			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
             this.State.MethodDescriptor = methodDescriptor;
             var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
@@ -171,6 +172,43 @@ namespace ReachingTypeAnalysis.Analysis
 			StatsHelper.RegisterMsg("MethodEntityGrain::GetCalleesInfo", this.GrainFactory);
 
 			return this.methodEntityPropagator.GetCalleesInfoAsync();
+        }
+
+        public async Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+        {
+            StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+            var effects = await this.PropagateAsync(propKind, reWorkSet);
+            await ProcessEffects(effects);
+            return;
+        }
+        public async Task PropagateAndProcessAsync(PropagationKind propKind)
+        {
+            await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+            var effects = await this.PropagateAsync(propKind);
+            await ProcessEffects(effects);
+            return;
+        }
+
+       public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
+        {
+           await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+           var effects = await this.PropagateAsync(callMessageInfo);
+           await ProcessEffects(effects);
+           return;
+        }
+       public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
+       {
+           await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+           var effects = await this.PropagateAsync(returnMessageInfo);
+           await ProcessEffects(effects);
+           return;
+       }
+        private async Task ProcessEffects(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
+        {
+            var orchestrator = SiloOrchestrator.Instance;
+            orchestrator.solutionManager = solutionGrain;
+            orchestrator.PropagateEffectsAsync(effects,propKind);
+            //await orchestrator.ProcessMessages();
         }
 
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
