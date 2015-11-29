@@ -78,6 +78,7 @@
   <ItemGroup>
     <PublishProfile Include="Profiles\orleansservicedgProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansservicedgProduction1.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansservicedgProduction2.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction1.azurePubxml" />
     <PublishProfile Include="Profiles\orleansServiceProduction3.azurePubxml" />

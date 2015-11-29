@@ -121,6 +121,7 @@ namespace ReachingTypeAnalysis.Tests
 
 				var zipFile = SolutionFileGenerator.GenerateSolutionWithProjectsAsAZip(TestConstants.SolutionPath, projectDescriptors, solutionName);
 
+				Console.WriteLine("Writing a solution of size {0} with {1} projects to {2}", this.totalMethodsCount, this.totalProjectsCount, zipFile);
 				Trace.TraceInformation("Writing a solution of size {0} with {1} projects to {2}", this.totalMethodsCount, this.totalProjectsCount, zipFile);
 			}
 
@@ -201,9 +202,9 @@ namespace ReachingTypeAnalysis.Tests
         [TestCategory("Generation")]
         public void GenerateSyntheticSolution()
         {
-			var generator = new SyntheticSolution(1000000, 100, 10);
+			var generator = new SyntheticSolution(10000000, 100, 10);
             generator.Generate();
-			generator.Save("synthetic-1000000");
+			generator.Save("synthetic-10000000");
         }
 
         #endregion
