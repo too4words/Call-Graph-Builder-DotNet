@@ -207,7 +207,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             var orchestrator = SiloOrchestrator.Instance;
             orchestrator.solutionManager = solutionGrain;
-            orchestrator.PropagateEffectsAsync(effects,propKind);
+            await orchestrator.PropagateEffectsAsync(effects,propKind);
             //await orchestrator.ProcessMessages();
         }
 

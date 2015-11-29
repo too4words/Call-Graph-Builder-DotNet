@@ -131,7 +131,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
 			}
-            await ProcessMessages();
+            ProcessMessages();
 		}
 
 		private async Task ProcessCalleesAsync(IEnumerable<CallInfo> calleesInfo, PropagationKind propKind)
