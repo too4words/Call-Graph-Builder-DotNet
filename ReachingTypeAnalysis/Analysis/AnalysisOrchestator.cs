@@ -59,7 +59,7 @@ namespace ReachingTypeAnalysis.Analysis
             var solutionGrain = (ISolutionGrain)this.solutionManager;
             do
             {
-                await Task.Delay(200);
+                await Task.Delay(500);
                 count = await solutionGrain.UpdateCounter(0);
             } while (count > 0);
 
