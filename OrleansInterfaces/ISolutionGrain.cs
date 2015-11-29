@@ -18,5 +18,6 @@ namespace OrleansInterfaces
 		Task<EntityGrainStatus> GetStatusAsync();
 
 		//Task<IEnumerable<string>> GetDrivesAsync();
+        Task<int> UpdateCounter(int value);
 	}
 }

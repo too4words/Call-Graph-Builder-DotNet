@@ -15,6 +15,11 @@ namespace OrleansInterfaces
 
     public interface IMethodEntityGrain :  IGrainWithStringKey, IMethodEntityWithPropagator
     {
+         Task PropagateAndProcessAsync(PropagationKind propKind);
+         Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet);
+         Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo);
+         Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo);
+ 
         //Task<IEntityDescriptor> GetDescriptor();
         //Task<MethodDescriptor> GetMethodDescriptor();
         //Task SetDescriptor(IEntityDescriptor orleansEntityDescriptor);

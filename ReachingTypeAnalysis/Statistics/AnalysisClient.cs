@@ -215,8 +215,11 @@ namespace ReachingTypeAnalysis.Statistics
                 this.systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
                 await systemManagement.ForceGarbageCollection(null);
                 var hosts = await systemManagement.GetHosts();
-#if COMPUTE_STATS
+                var averagePerSiloMemoryUsage = 0L;
+
                 var orleansStats = await systemManagement.GetRuntimeStatistics(null);
+
+#if COMPUTE_STATS
                 //var silos = hosts.Keys.ToArray();
 
                 
@@ -288,6 +291,7 @@ namespace ReachingTypeAnalysis.Statistics
 
                 var totalMessages = await myStatsGrain.GetTotalMessages();
                 var clientMessages = await myStatsGrain.GetTotalClientMessages();
+
 #else
                 var avgLatency = 0;
                 var maxLatency = 0;
@@ -295,8 +299,19 @@ namespace ReachingTypeAnalysis.Statistics
 
                 var totalMessages = 0;
                 var clientMessages = 0;
-                var silosSize = hosts.Keys.Count;
+                for(int i = 0; i<this.machines; i++)
+                {
+                    if (maxPerSiloMemoryUsage < orleansStats[i].MemoryUsage)
+                    {
+                        maxPerSiloMemoryUsage = orleansStats[i].MemoryUsage;
+                    }
+                    acummulatedPerSiloMemoryUsage += orleansStats[i].MemoryUsage;
+                }
+                var silosSize = this.machines; // hosts.Keys.Count;
+
 #endif
+                averagePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silosSize;
+
                 var testFullName = this.subject;
                 var results = new SubjectExperimentResults()
                 {
@@ -320,7 +335,7 @@ namespace ReachingTypeAnalysis.Statistics
                     AverageLatency = avgLatency,
                     MaxLatency = maxLatency,
                     MaxLatencyMsg = maxLatencyMsg,
-                    AveragePerSiloMemoryUsage = acummulatedPerSiloMemoryUsage / silosSize,
+                    AveragePerSiloMemoryUsage =  averagePerSiloMemoryUsage, // acummulatedPerSiloMemoryUsage / silosSize,
                     AveragePerSiloCPUUsage = acummulatedPerSiloCPUUsage / silosSize,
                     MaxPerSiloMemoryUsage = maxPerSiloMemoryUsage,
                     MaxPerSiloCPUUsage = maxPerSiloCPUUsage

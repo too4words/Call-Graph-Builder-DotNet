@@ -54,6 +54,31 @@ namespace ReachingTypeAnalysis.Analysis
 			return methodEntityGrain.PropagateAsync(returnMessageInfo);
 		}
 
+        public Task PropagateAndProcessAsync(PropagationKind propKind)
+        {
+            this.SetRequestContext();
+            return methodEntityGrain.PropagateAndProcessAsync(propKind);
+        }
+
+        public Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+        {
+            this.SetRequestContext();
+            return methodEntityGrain.PropagateAndProcessAsync(propKind, reWorkSet);
+        }
+
+        public Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
+        {
+            this.SetRequestContext();
+            return methodEntityGrain.PropagateAndProcessAsync(callMessageInfo);
+        }
+
+        public Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
+        {
+            this.SetRequestContext();
+            return methodEntityGrain.PropagateAndProcessAsync(returnMessageInfo);
+        }
+
+
 		public Task<bool> IsInitializedAsync()
 		{
 			this.SetRequestContext();

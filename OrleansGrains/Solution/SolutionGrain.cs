@@ -33,7 +33,8 @@ namespace ReachingTypeAnalysis.Analysis
         private OrleansSolutionManager solutionManager;
 		[NonSerialized]
 		private int projectsReadyCount;
-
+        [NonSerialized]
+        private int messagesCounter = 0;
 		//private SolutionState State;
 
 		//private Task WriteStateAsync()
@@ -356,7 +357,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return Task.FromResult(status);
 		}
-
+        public Task<int> UpdateCounter(int value)
+        {
+            this.messagesCounter += value;
+            return Task.FromResult(this.messagesCounter);
+        }
 		// TODO: remove this hack!
 		//public Task<IEnumerable<string>> GetDrivesAsync()
 		//{
