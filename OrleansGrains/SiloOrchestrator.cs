@@ -93,7 +93,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 					if (messageWorkList.TryDequeue(out message))
 					{
-                        await this.solutionManager.UpdateCounter(-1);
 						Logger.LogWarning(Logger.OrleansLogger, "SiloOrchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
                         //Logger.LogS("Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
 
@@ -116,8 +115,9 @@ namespace ReachingTypeAnalysis.Analysis
 						}
 					}
 				}
-
 				await Task.WhenAll(tasks);
+				await this.solutionManager.UpdateCounter(-tasks.Count);
+
 			}
 		}
 

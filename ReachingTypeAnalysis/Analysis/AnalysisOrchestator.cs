@@ -57,11 +57,16 @@ namespace ReachingTypeAnalysis.Analysis
             var count = 0;
 
             var solutionGrain = (ISolutionGrain)this.solutionManager;
-            do
+			count = await solutionGrain.UpdateCounter(0);
+            while(count>0)
             {
-                await Task.Delay(500);
-                count = await solutionGrain.UpdateCounter(0);
-            } while (count > 0);
+				await Task.Delay(500);
+				count = await solutionGrain.UpdateCounter(0);
+				if (GrainClient.IsInitialized)
+				{
+					Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Message Counter: {0}", count);
+				}
+            }
 
             // await this.ProcessMessages();
 
