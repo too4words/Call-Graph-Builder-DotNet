@@ -105,25 +105,25 @@ namespace ReachingTypeAnalysis
 
 		public Task ApplyModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			return orchestator.ApplyModificationsAsync(modifiedDocuments);
 		}
 
 		internal Task RemoveMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			return orchestator.RemoveMethodAsync(methodDescriptor, newSource);
 		}
 
 		internal Task AddMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			return orchestator.AddMethodAsync(methodDescriptor, newSource);
 		}
 
 		internal Task UpdateMethodAsync(MethodDescriptor methodDescriptor, string newSource)
 		{
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			return orchestator.UpdateMethodAsync(methodDescriptor, newSource);
 		}
 
@@ -173,7 +173,7 @@ namespace ReachingTypeAnalysis
 			}
 
 			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
             await orchestator.AnalyzeAsync(roots);
         }
 
@@ -238,9 +238,9 @@ namespace ReachingTypeAnalysis
 
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), AnalysisRootKind.Default);
 
-			var orchestator = new AnalysisOrchestator(this.SolutionManager);
-			//await orchestator.AnalyzeAsync(roots);
-            await orchestator.AnalyzeAsyncDistributed(roots);
+			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
+			await orchestator.AnalyzeAsync(roots);
+            //await orchestator.AnalyzeDistributedAsync(roots);
 
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
