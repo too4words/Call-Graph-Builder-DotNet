@@ -11,21 +11,46 @@ param (
 
 	)
 
+# synthetic solutions
+
 #$solutionPaths = @("LongTest1", "new\newer\synthetic-100","new\newer\synthetic-1000","new\newer\synthetic-10000") #,"new\synthetic-100000")
 #$solutionNames = @("Longtest1", "test","test","test") #,"test")
 #$expIDs= @("test1","s100","s1000","s10000") #,"s100000")
 
-$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
-$solutionNames = @("Longtest1", "test")
-$expIDs= @("test01", "test1000000")
+#$solutionPaths = @("LongTest1", "new\newer\synthetic-1000000-100p")
+#$solutionNames = @("Longtest1", "test")
+#$expIDs= @("test01", "test1000000")
 
-#$solutionPaths = @("LongTest1", "new\newer\synthetic-100", "new\newer\synthetic-1000")
-#$solutionNames = @("Longtest1", "test", "test")
-#$expIDs= @("test01", "test0100", "test01000")
+#$solutionPaths = @("LongTest1", "new\newer\synthetic-10000000-100p")
+#$solutionNames = @("Longtest1", "test")
+#$expIDs= @("test01", "test10000000")
+
+#$solutionPaths = @("new\newer\synthetic-10000")
+#$solutionNames = @("test")
+#$expIDs= @("test10000d")
+
+#$solutionPaths = @("new\synthetic-100000")
+#$solutionNames = @("test")
+#$expIDs= @("test100000d")
+
+# real solutions
 
 #$solutionPaths = @("LongTest1", "azure-powershell\src")
 #$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
 #$expIDs= @("test-1", "azure-powershell")
+
+$solutionPaths = @("LongTest1", "ShareX")
+$solutionNames = @("LongTest1", "ShareX")
+$expIDs= @("test-1", "ShareX")
+
+#$solutionPaths = @("LongTest1", "ILSpy")
+#$solutionNames = @("LongTest1", "ILSpy")
+#$expIDs= @("test-1", "ILSpy")
+
+#$solutionPaths = @("LongTest1", "EntityFramework")
+#$solutionNames = @("LongTest1", "EntityFramework")
+#$expIDs= @("test-1", "EntityFramework")
+
 
 # get the paths to use in the invocations
 $ScriptPath = Split-Path $MyInvocation.MyCommand.Path

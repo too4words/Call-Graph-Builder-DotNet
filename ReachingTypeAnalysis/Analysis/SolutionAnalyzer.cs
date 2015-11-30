@@ -187,7 +187,7 @@ namespace ReachingTypeAnalysis
 		public async Task InitializeOnDemandOrleansAnalysis()
 		{
 			SolutionAnalyzer.MessageCounter = 0;
-			GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+			//GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
 
 			// For orleans we cannot use the strategy to create a solution
 			// The solution grain creates an internal strategy and contain an internal 
