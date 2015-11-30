@@ -213,11 +213,11 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			//Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
 
-			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
-			var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-			await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-
-			Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee) as IMethodEntityGrain;
+            //var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
+            //await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+            await methodEntityProc.PropagateAndProcessAsync(callerMessage.CallMessageInfo);
+            Logger.LogS("AnalysisOrchestator", "AnalyzeCalleeAsync", "End Analyzing call to {0} ", callee);
 		}
 
 		private async Task ProcessReturnAsync(IEnumerable<ReturnInfo> callersInfo, PropagationKind propKind)
@@ -268,12 +268,12 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
-			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller) as IMethodEntityGrain;
 
-			var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-
-			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
+            //var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
+            //await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+            await methodEntityProc.PropagateAndProcessAsync(calleeMessage.ReturnMessageInfo);
+            Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
 	}
 }
