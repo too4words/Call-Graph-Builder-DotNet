@@ -259,7 +259,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analysis\AnalysisOrchestator.cs" />
+    <Compile Include="Analysis\AnalysisOrchestrator.cs" />
     <Compile Include="Analysis\CallGraphQueryInterface.cs" />
     <Compile Include="CallGraph\CallGraph.cs" />
     <Compile Include="CallGraph\DGMLGraphDataAdapter.cs" />

@@ -76,16 +76,15 @@ namespace ReachingTypeAnalysis.Analysis
 				await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntityProc);
 			}
             await this.ProcessMessages();
-
 		}
 
 		internal async Task ProcessMessages()
 		{
-			// TODO: This version is much faster, works well with orleans but there are some data races for the async case
-			var tasks = new List<Task>();
-
 			while (messageWorkList.Count > 0)
 			{
+				// TODO: This version is much faster, works well with orleans but there are some data races for the async case
+				var tasks = new List<Task>();
+
 				while (messageWorkList.Count > 0)
 				{
 					//var message = messageWorkList.Dequeue();
@@ -118,7 +117,6 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				await Task.WhenAll(tasks);
 				await this.solutionManager.UpdateCounter(-tasks.Count);
-
 			}
 		}
 

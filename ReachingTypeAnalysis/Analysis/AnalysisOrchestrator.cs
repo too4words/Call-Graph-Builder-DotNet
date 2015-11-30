@@ -22,7 +22,7 @@ namespace ReachingTypeAnalysis.Analysis
 	/// This version of the prototype "flattens" the OrleansDispacther and MethodEntityProcessor and make extensive use of await
 	/// This should be improved in next versions.
 	/// </summary>
-	internal class AnalysisOrchestator
+	internal class AnalysisOrchestrator
 	{
 		private const long QUEUE_THRESHOLD = 10000;
 		private ISolutionManager solutionManager;
@@ -30,7 +30,7 @@ namespace ReachingTypeAnalysis.Analysis
 		//private Queue<Message> messageWorkList;
 		private ConcurrentQueue<Message> messageWorkList;
 
-		public AnalysisOrchestator(ISolutionManager solutionManager)
+		public AnalysisOrchestrator(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
 			//this.messageWorkList = new HashSet<Message>();
@@ -38,13 +38,13 @@ namespace ReachingTypeAnalysis.Analysis
 			this.messageWorkList = new ConcurrentQueue<Message>();
 		}
 
-        public async Task AnalyzeAsyncDistributed(IEnumerable<MethodDescriptor> rootMethods)
+        public async Task AnalyzeDistributedAsync(IEnumerable<MethodDescriptor> rootMethods)
         {
             foreach (var method in rootMethods)
             {
                 if (GrainClient.IsInitialized)
                 {
-                    Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Analyzing: {0}", method);
+                    Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeDistributedAsync", "Analyzing: {0}", method);
                 }
 
                 var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
@@ -64,7 +64,7 @@ namespace ReachingTypeAnalysis.Analysis
 				count = await solutionGrain.UpdateCounter(0);
 				if (GrainClient.IsInitialized)
 				{
-					Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Message Counter: {0}", count);
+					Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeDistributedAsync", "Message Counter: {0}", count);
 				}
             }
 
@@ -75,13 +75,11 @@ namespace ReachingTypeAnalysis.Analysis
 
             if (GrainClient.IsInitialized)
             {
-                Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeAsync", "Reachable methods={0}", reachableMethodsCount);
+                Logger.LogWarning(GrainClient.Logger, "Orchestrator", "AnalyzeDistributedAsync", "Reachable methods={0}", reachableMethodsCount);
             }
 
             Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
         }
-
-
 
 		public async Task AnalyzeAsync(IEnumerable<MethodDescriptor> rootMethods)
 		{
@@ -266,11 +264,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task ProcessMessages()
 		{
-			// TODO: This version is much faster, works well with orleans but there are some data races for the async case
-			var tasks = new List<Task>();
-
 			while (messageWorkList.Count > 0)
 			{
+				// TODO: This version is much faster, works well with orleans but there are some data races for the async case
+				var tasks = new List<Task>();
+
 				while (messageWorkList.Count > 0)
 				{
 					//var message = messageWorkList.Dequeue();
