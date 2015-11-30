@@ -113,6 +113,7 @@ namespace ReachingTypeAnalysis.Analysis
 							//await task;
 							tasks.Add(task);
 						}
+						//tasks.Add(this.solutionManager.UpdateCounter(-1));
 					}
 				}
 				await Task.WhenAll(tasks);
