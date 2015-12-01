@@ -336,11 +336,16 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetInvocationInfoAsync(callContext);
 		}
 
-        public Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
+        public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
 			StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
 
-			return this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
+			var methodEntity = await this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
+
+            // Force Activation
+            await methodEntity.IsInitializedAsync();
+
+            return methodEntity;
         }
 
         public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
