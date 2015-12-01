@@ -513,17 +513,16 @@ namespace ReachingTypeAnalysis.Statistics
             long minTime = long.MaxValue;
             long[] times = new long[repetitions];
 
-            var numberOfMethods = await solutionManager.GetReachableMethodsCountAsync();
+            //var numberOfMethods = await solutionManager.GetReachableMethodsCountAsync();
 
             var warmingUpQueries = 50;
 
             for (int i = 0; i < repetitions+ warmingUpQueries; i++)
             {
-                int methodNumber = random.Next(numberOfMethods);
-                var methodDescriptor = await solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
-                //var typeDescriptor = new TypeDescriptor("", className, assemblyName);
-                //var methodDescriptor = new MethodDescriptor(typeDescriptor, methodPrejix + methodNumber, true);
-                var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
+				//var methodNumber = random.Next(numberOfMethods);
+				//var methodDescriptor = await solutionManager.GetMethodDescriptorByIndexAsync(methodNumber);
+				var methodDescriptor = await solutionManager.GetRandomMethodAsync();
+				var invocationCount = await CallGraphQueryInterface.GetInvocationCountAsync(solutionManager, methodDescriptor);
 
                 if (invocationCount > 0)
                 {

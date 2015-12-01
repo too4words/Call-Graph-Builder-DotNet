@@ -338,12 +338,17 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-			StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
+			await StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
 
 			var methodEntity = await this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 
 			//// Force Activation
-			//await methodEntity.IsInitializedAsync();
+			//var isReachable = await this.projectCodeProvider.IsReachable(methodDescriptor);
+
+			//if (!isReachable)
+			//{
+			//	await methodEntity.IsInitializedAsync();
+			//}
 
             return methodEntity;
         }
@@ -425,5 +430,19 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return this.projectCodeProvider.GetCompatibleInstantiatedTypesAsync(type);
 		}
-    }
+
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			//StatsHelper.RegisterMsg("ProjectGrain::GetRandomMethodAsync", this.GrainFactory);
+
+			return this.projectCodeProvider.GetRandomMethodAsync();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			//StatsHelper.RegisterMsg("ProjectGrain::IsReachable", this.GrainFactory);
+
+			return this.projectCodeProvider.IsReachable(methodDescriptor);
+		}
+	}
 }

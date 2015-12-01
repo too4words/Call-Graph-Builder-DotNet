@@ -392,5 +392,15 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             throw new NotImplementedException();
         }
-    }
+
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

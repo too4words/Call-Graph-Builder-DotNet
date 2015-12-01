@@ -90,6 +90,10 @@ namespace ReachingTypeAnalysis
 		Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext);
 
 		Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type);
+
+		Task<MethodDescriptor> GetRandomMethodAsync();
+
+		Task<bool> IsReachable(MethodDescriptor methodDescriptor);
 	}
 
     public interface ISolutionManager
@@ -111,6 +115,10 @@ namespace ReachingTypeAnalysis
 		//The next 2 methods are for RTA: Not currently used
 		//Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
 		//Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+
+		Task<MethodDescriptor> GetRandomMethodAsync();
+
+		Task<bool> IsReachable(MethodDescriptor methodDescriptor);
 
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 

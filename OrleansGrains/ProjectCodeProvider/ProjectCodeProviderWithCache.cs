@@ -163,5 +163,15 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return codeProvider.GetCompatibleInstantiatedTypesAsync(type);
 		}
+
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			return codeProvider.GetRandomMethodAsync();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			return codeProvider.IsReachable(methodDescriptor);
+		}
 	}
 }

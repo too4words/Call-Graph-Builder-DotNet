@@ -345,8 +345,24 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int index)
 		{
+			//StatsHelper.RegisterMsg("SolutionGrain::GetMethodDescriptorByIndexAsync", this.GrainFactory);
+
 			return this.solutionManager.GetMethodDescriptorByIndexAsync(index);
 		}
+
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			//StatsHelper.RegisterMsg("SolutionGrain::GetRandomMethodAsync", this.GrainFactory);
+
+			return this.solutionManager.GetRandomMethodAsync();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			//StatsHelper.RegisterMsg("SolutionGrain::IsReachable", this.GrainFactory);
+
+			return this.solutionManager.IsReachable(methodDescriptor);
+        }
 
 		public Task<EntityGrainStatus> GetStatusAsync()
 		{
@@ -357,11 +373,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return Task.FromResult(status);
 		}
+
         public Task<int> UpdateCounter(int value)
         {
             this.messagesCounter += value;
             return Task.FromResult(this.messagesCounter);
         }
+
 		// TODO: remove this hack!
 		//public Task<IEnumerable<string>> GetDrivesAsync()
 		//{

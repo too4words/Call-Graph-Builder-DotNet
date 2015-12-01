@@ -26,6 +26,11 @@ namespace ReachingTypeAnalysis.Roslyn
 			this.methodEntities = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
 
+		protected ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator> MethodEntities
+		{
+			get { return useNewFieldsVersion ? newMethodEntities : methodEntities; }
+		}
+
 		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath, ISolutionManager solutionManager)
 		{
 			var provider = new AsyncProjectCodeProvider(solutionManager);
@@ -51,7 +56,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		{
 			IMethodEntityWithPropagator result;
 
-			if (!this.methodEntities.TryGetValue(methodDescriptor, out result))
+			if (!this.MethodEntities.TryGetValue(methodDescriptor, out result))
 			{
 				var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor.BaseDescriptor) as MethodEntity;
 
@@ -63,7 +68,7 @@ namespace ReachingTypeAnalysis.Roslyn
 				result = new MethodEntityWithPropagator(methodEntity, this);
 				//lock (this.methodEntities)
 				{
-					this.methodEntities.TryAdd(methodDescriptor, result);
+					this.MethodEntities.TryAdd(methodDescriptor, result);
 				}
 			}
 
@@ -72,15 +77,29 @@ namespace ReachingTypeAnalysis.Roslyn
 
 		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
 		{
-			return Task.FromResult(methodEntities.Keys.AsEnumerable());
+			return Task.FromResult(this.MethodEntities.Keys.AsEnumerable());
 		}
 
         public override Task<int> GetReachableMethodsCountAsync()
         {
-            return Task.FromResult(methodEntities.Keys.Count);
+            return Task.FromResult(this.MethodEntities.Keys.Count);
         }
 
-        public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
+		public override Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			var random = new Random();
+			var randomIndex = random.Next(this.MethodEntities.Count);
+			var method = this.MethodEntities.Keys.ElementAt(randomIndex);
+
+			return Task.FromResult(method);
+		}
+
+		public override Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			return Task.FromResult(this.MethodEntities.ContainsKey(methodDescriptor));
+		}
+
+		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
 			//this.methodEntities.Remove(methodDescriptor);

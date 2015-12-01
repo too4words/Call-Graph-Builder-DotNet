@@ -249,5 +249,31 @@ namespace ReachingTypeAnalysis.Analysis
 				await Task.WhenAll(tasks);
 			}
         }
+
+		public async Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			var random = new Random();
+			var randomIndex = random.Next(this.Assemblies.Count);
+			var assemblyName = this.Assemblies.ElementAt(randomIndex);
+			var projectProvider = await this.GetProjectCodeProviderAsync(assemblyName);
+			var method = await projectProvider.GetRandomMethodAsync();
+
+			return method;
+        }
+
+		public async Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			var typeDescriptor = methodDescriptor.ContainerType;
+			var assemblyName = typeDescriptor.AssemblyName;
+			var result = false;
+
+			if (this.Assemblies.Contains(assemblyName))
+			{
+				var projectProvider = await this.GetProjectCodeProviderAsync(assemblyName);
+				result = await projectProvider.IsReachable(methodDescriptor);
+			}
+
+			return result;
+		}
 	}
 }

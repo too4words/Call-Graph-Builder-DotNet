@@ -45,5 +45,19 @@ namespace ReachingTypeAnalysis.Roslyn
         {
             return Task.FromResult(methodEntities.Keys.Count);
         }
-    }
+
+		public override Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			var random = new Random();
+			var randomIndex = random.Next(methodEntities.Count);
+			var method = methodEntities.Keys.ElementAt(randomIndex);
+
+			return Task.FromResult(method);
+		}
+
+		public override Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			return Task.FromResult(methodEntities.ContainsKey(methodDescriptor));
+		}
+	}
 }

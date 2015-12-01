@@ -88,7 +88,21 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(reachableMethods.Count);
         }
 
-        public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
+		public override Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			var random = new Random();
+			var randomIndex = random.Next(reachableMethods.Count);
+			var method = reachableMethods.ElementAt(randomIndex);
+
+			return Task.FromResult(method);
+		}
+
+		public override Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			return Task.FromResult(reachableMethods.Contains(methodDescriptor));
+		}
+
+		public override async Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodDescriptor)
 		{
 			var propagationEffects = await base.RemoveMethodAsync(methodDescriptor);
 			//var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);

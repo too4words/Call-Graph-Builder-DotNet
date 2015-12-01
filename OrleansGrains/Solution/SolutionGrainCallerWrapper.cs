@@ -133,16 +133,25 @@ namespace ReachingTypeAnalysis.Analysis
 			return solutionGrain.StopObservingAsync(target);
 		}
 
+        public Task<int> UpdateCounter(int value)
+        {
+            return solutionGrain.UpdateCounter(value);
+        }
+
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			return solutionGrain.GetRandomMethodAsync();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			return solutionGrain.IsReachable(methodDescriptor);
+		}
+
 		//public Task<IEnumerable<string>> GetDrives()
 		//{
 		//	this.SetRequestContext();
 		//	return solutionGrain.GetDrivesAsync();
 		//}
-
-
-        public Task<int> UpdateCounter(int value)
-        {
-            return solutionGrain.UpdateCounter(value);
-        }
-    }
+	}
 }

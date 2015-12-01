@@ -157,6 +157,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return providerGrain.SetProjectFromTestAsync(testName);
 		}
 
+		public Task<MethodDescriptor> GetRandomMethodAsync()
+		{
+			//this.SetRequestContext();
+			return providerGrain.GetRandomMethodAsync();
+		}
+
+		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		{
+			//this.SetRequestContext();
+			return providerGrain.IsReachable(methodDescriptor);
+		}
+
 		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)
 		{
 			return providerGrain.AddObserverAsync(observer);
