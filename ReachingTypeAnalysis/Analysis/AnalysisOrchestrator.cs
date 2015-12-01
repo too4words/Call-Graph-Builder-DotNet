@@ -60,7 +60,7 @@ namespace ReachingTypeAnalysis.Analysis
 			count = await solutionGrain.UpdateCounter(0);
             while(count>0)
             {
-				await Task.Delay(500);
+				await Task.Delay(5000);
 				count = await solutionGrain.UpdateCounter(0);
 				if (GrainClient.IsInitialized)
 				{
