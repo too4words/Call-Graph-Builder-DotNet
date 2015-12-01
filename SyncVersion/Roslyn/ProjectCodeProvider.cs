@@ -398,7 +398,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			throw new NotImplementedException();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			throw new NotImplementedException();
 		}

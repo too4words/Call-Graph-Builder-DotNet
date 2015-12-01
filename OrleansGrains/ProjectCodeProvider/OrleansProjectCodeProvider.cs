@@ -97,7 +97,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return Task.FromResult(method);
 		}
 
-		public override Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public override Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			return Task.FromResult(reachableMethods.Contains(methodDescriptor));
 		}

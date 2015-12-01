@@ -143,9 +143,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return solutionGrain.GetRandomMethodAsync();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
-			return solutionGrain.IsReachable(methodDescriptor);
+			return solutionGrain.IsReachableAsync(methodDescriptor);
 		}
 
 		//public Task<IEnumerable<string>> GetDrives()

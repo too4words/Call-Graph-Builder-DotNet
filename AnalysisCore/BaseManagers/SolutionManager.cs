@@ -261,7 +261,7 @@ namespace ReachingTypeAnalysis.Analysis
 			return method;
         }
 
-		public async Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public async Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			var typeDescriptor = methodDescriptor.ContainerType;
 			var assemblyName = typeDescriptor.AssemblyName;
@@ -270,7 +270,7 @@ namespace ReachingTypeAnalysis.Analysis
 			if (this.Assemblies.Contains(assemblyName))
 			{
 				var projectProvider = await this.GetProjectCodeProviderAsync(assemblyName);
-				result = await projectProvider.IsReachable(methodDescriptor);
+				result = await projectProvider.IsReachableAsync(methodDescriptor);
 			}
 
 			return result;

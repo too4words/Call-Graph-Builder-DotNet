@@ -438,11 +438,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.projectCodeProvider.GetRandomMethodAsync();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			//StatsHelper.RegisterMsg("ProjectGrain::IsReachable", this.GrainFactory);
 
-			return this.projectCodeProvider.IsReachable(methodDescriptor);
+			return this.projectCodeProvider.IsReachableAsync(methodDescriptor);
 		}
 	}
 }

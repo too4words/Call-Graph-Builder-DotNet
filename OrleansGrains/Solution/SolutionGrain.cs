@@ -357,11 +357,11 @@ namespace ReachingTypeAnalysis.Analysis
 			return this.solutionManager.GetRandomMethodAsync();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			//StatsHelper.RegisterMsg("SolutionGrain::IsReachable", this.GrainFactory);
 
-			return this.solutionManager.IsReachable(methodDescriptor);
+			return this.solutionManager.IsReachableAsync(methodDescriptor);
         }
 
 		public Task<EntityGrainStatus> GetStatusAsync()

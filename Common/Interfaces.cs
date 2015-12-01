@@ -93,7 +93,7 @@ namespace ReachingTypeAnalysis
 
 		Task<MethodDescriptor> GetRandomMethodAsync();
 
-		Task<bool> IsReachable(MethodDescriptor methodDescriptor);
+		Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
 	}
 
     public interface ISolutionManager
@@ -118,7 +118,7 @@ namespace ReachingTypeAnalysis
 
 		Task<MethodDescriptor> GetRandomMethodAsync();
 
-		Task<bool> IsReachable(MethodDescriptor methodDescriptor);
+		Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
 
 		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
 

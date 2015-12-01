@@ -184,7 +184,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public abstract Task<MethodDescriptor> GetRandomMethodAsync();
 
-		public abstract Task<bool> IsReachable(MethodDescriptor methodDescriptor);
+		public abstract Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
 
 		public virtual async Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
         {

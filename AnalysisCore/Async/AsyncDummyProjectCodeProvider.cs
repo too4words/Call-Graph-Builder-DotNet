@@ -55,7 +55,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			return Task.FromResult(method);
 		}
 
-		public override Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public override Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			return Task.FromResult(methodEntities.ContainsKey(methodDescriptor));
 		}

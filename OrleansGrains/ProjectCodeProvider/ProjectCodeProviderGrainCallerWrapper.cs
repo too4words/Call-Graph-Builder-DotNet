@@ -163,10 +163,10 @@ namespace ReachingTypeAnalysis.Analysis
 			return providerGrain.GetRandomMethodAsync();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
 			//this.SetRequestContext();
-			return providerGrain.IsReachable(methodDescriptor);
+			return providerGrain.IsReachableAsync(methodDescriptor);
 		}
 
 		public Task AddObserverAsync(IEntityGrainObserverNotifications observer)

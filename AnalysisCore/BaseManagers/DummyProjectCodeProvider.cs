@@ -69,7 +69,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public abstract Task<MethodDescriptor> GetRandomMethodAsync();
 
-		public abstract Task<bool> IsReachable(MethodDescriptor methodDescriptor);
+		public abstract Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
 
 		public Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate)
 		{

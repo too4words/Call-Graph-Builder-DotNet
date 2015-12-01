@@ -169,9 +169,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return codeProvider.GetRandomMethodAsync();
 		}
 
-		public Task<bool> IsReachable(MethodDescriptor methodDescriptor)
+		public Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor)
 		{
-			return codeProvider.IsReachable(methodDescriptor);
+			return codeProvider.IsReachableAsync(methodDescriptor);
 		}
 	}
 }
