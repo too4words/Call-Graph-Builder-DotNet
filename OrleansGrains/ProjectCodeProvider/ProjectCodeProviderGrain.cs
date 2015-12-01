@@ -342,8 +342,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var methodEntity = await this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 
-            // Force Activation
-            await methodEntity.IsInitializedAsync();
+			//// Force Activation
+			//await methodEntity.IsInitializedAsync();
 
             return methodEntity;
         }
