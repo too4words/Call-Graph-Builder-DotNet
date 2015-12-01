@@ -529,7 +529,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					{
 					}
 
-					Contract.Assert(variableNode != null);
+					//Contract.Assert(variableNode != null);
 
 					rhs.ProcessAssignment(variableNode, this.roslynMethodVisitor);
 
