@@ -19,6 +19,7 @@ namespace ReachingTypeAnalysis.Analysis
     /// </summary>
     internal class MethodEntityWithPropagator : IMethodEntityWithPropagator
     {
+        private List<int> UpdateHistory = new List<int>();
         private MethodEntity methodEntity;
         private IProjectCodeProvider codeProvider;
         //private Queue<PropagationEffects> propagationEffectsToSend;
@@ -72,8 +73,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return PropagateAsync(propKind);
 		}
+        public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+        {
+            this.methodEntity.PropGraph.ResetUpdateCount();
+            return InternalPropagateAsync(propKind);
+        }
 
-        public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+        private async Task<PropagationEffects> InternalPropagateAsync(PropagationKind propKind)
         {
 			//Logger.LogS("MethodEntityProp", "PropagateAsync", "Propagation for {0} ", this.methodEntity.MethodDescriptor);
 			Logger.Log("Propagating {0} to {1}", this.methodEntity.MethodDescriptor, propKind);
@@ -100,30 +106,30 @@ namespace ReachingTypeAnalysis.Analysis
             Logger.LogS("MethodEntityGrain", "PropagateAsync", "End Propagation for {0} ", this.methodEntity.MethodDescriptor);
             //this.methodEntity.Save(@"C:\Temp\"+this.methodEntity.MethodDescriptor.MethodName + @".dot");
 
-			//if (propagationEffects.CalleesInfo.Count > 100)
-			//{
-			//	int index = 0;
-			//	var count = propagationEffects.CalleesInfo.Count;
-			//	var callessInfo = propagationEffects.CalleesInfo.ToList();
-			//	propagationEffects.CalleesInfo = new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count));
-			//	propagationEffects.MoreEffectsToFetch = true;
+            //if (propagationEffects.CalleesInfo.Count > 100)
+            //{
+            //	int index = 0;
+            //	var count = propagationEffects.CalleesInfo.Count;
+            //	var callessInfo = propagationEffects.CalleesInfo.ToList();
+            //	propagationEffects.CalleesInfo = new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count));
+            //	propagationEffects.MoreEffectsToFetch = true;
             //
-			//	while (count > 100)
-			//	{
-			//		count -= 100;
-			//		index += 100;
-			//
-			//		var propEffect = new PropagationEffects(new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count)), false);
+            //	while (count > 100)
+            //	{
+            //		count -= 100;
+            //		index += 100;
             //
-			//		if (count > 100)
-			//		{
-			//			propEffect.MoreEffectsToFetch = true;
-			//		}
-			//
-			//		this.propagationEffectsToSend.Enqueue(propEffect);                   
-			//	}
-			//}
-
+            //		var propEffect = new PropagationEffects(new HashSet<CallInfo>(callessInfo.GetRange(index, count > 100 ? 100 : count)), false);
+            //
+            //		if (count > 100)
+            //		{
+            //			propEffect.MoreEffectsToFetch = true;
+            //		}
+            //
+            //		this.propagationEffectsToSend.Enqueue(propEffect);                   
+            //	}
+            //}
+            this.UpdateHistory.Add(this.methodEntity.PropGraph.UpdateCount);
             return propagationEffects;
         }
 
@@ -183,6 +189,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
+            this.methodEntity.PropGraph.ResetUpdateCount();
+
             Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "Propagation for {0} ", callMessageInfo.Callee);
 
 			if (!this.methodEntity.CanBeAnalized)
@@ -222,13 +230,15 @@ namespace ReachingTypeAnalysis.Analysis
             var context = new CallContext(callMessageInfo.Caller, callMessageInfo.LHS, callMessageInfo.CallNode);
             this.methodEntity.AddToCallers(context);
 
-            var effects = await PropagateAsync(callMessageInfo.PropagationKind);
+            var effects = await InternalPropagateAsync(callMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "End Propagation for {0} ", callMessageInfo.Callee);
             return effects;
         }
 
         public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
+            this.methodEntity.PropGraph.ResetUpdateCount();
+
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "Propagation for {0} ", returnMessageInfo.Caller);
             //PropGraph.Add(lhs, retValues);
 
@@ -238,7 +248,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
 
             /// We need to recompute possible calless 
-            var effects = await PropagateAsync(returnMessageInfo.PropagationKind);
+            var effects = await InternalPropagateAsync(returnMessageInfo.PropagationKind);
             Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
 
             if (returnMessageInfo.PropagationKind == PropagationKind.REMOVE_TYPES)

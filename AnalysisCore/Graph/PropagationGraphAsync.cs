@@ -23,6 +23,8 @@ namespace ReachingTypeAnalysis
     /// <typeparam name="M"></typeparam>
     internal partial class PropagationGraph
     {
+        public int UpdateCount { get; private set; }
+
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
         {
             Logger.LogS("PropagationGraph", "DiffPropAsync", "Diff({0},{1})", src, n);
@@ -49,12 +51,15 @@ namespace ReachingTypeAnalysis
                     if(isAsig)
                     {
                         ts.Add(t);
+
                     }
                 }
             }
             //ts.UnionWith(src.Where(t => !ts.Contains(t) && (await IsAssignableAsync(t, n))));
             if (ts.Count > c)
             {
+                this.UpdateCount+=ts.Count-c;
+
                 this.AddToWorkList(n);
                 return true;
             }
@@ -109,6 +114,7 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateAsync(IProjectCodeProvider codeProvider)
         {
+            this.UpdateCount = 0;
 			Logger.Log("Add Working Set size {0}", this.workList.Count);
             this.codeProvider = codeProvider;
 
@@ -121,6 +127,7 @@ namespace ReachingTypeAnalysis
                 this.RemoveFromWorkList(analysisNode);
                 if (IsCallNode(analysisNode) || IsDelegateCallNode(analysisNode))
                 {
+                    //this.UpdateCount++;
                     calls.Add(GetInvocationInfo(analysisNode));
                     continue;
                 }
@@ -146,7 +153,11 @@ namespace ReachingTypeAnalysis
                 }
             }
             HasBeenPropagated = true;
-            return new PropagationEffects(calls, retModified);
+            return new PropagationEffects(calls, retModified, this.UpdateCount);
+        }
+        internal void ResetUpdateCount()
+        {
+            this.UpdateCount = 0;
         }
 
         internal async Task<PropagationEffects> PropagateDeletionOfNodesAsync(IProjectCodeProvider codeProvider)
