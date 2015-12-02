@@ -88,6 +88,8 @@ namespace ReachingTypeAnalysis.Analysis
 					else if (this.State.AssemblyName.Equals("DUMMY"))
 					{
 						this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+
+						await this.WriteStateAsync();
 					}
 
 					this.RaiseStateChangedEvent(EntityGrainStatus.Ready);
@@ -405,8 +407,13 @@ namespace ReachingTypeAnalysis.Analysis
                 var orleansProvider = this.projectCodeProvider as OrleansProjectCodeProvider;
                 await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
             }
+			else if (this.projectCodeProvider is OrleansDummyProjectCodeProvider)
+			{
+				var orleansProvider = this.projectCodeProvider as OrleansDummyProjectCodeProvider;
+				await orleansProvider.ForceDeactivationOfMethodEntitiesAsync();
+			}
 
-            await this.ClearStateAsync();
+			await this.ClearStateAsync();
 
             //this.State.ProjectPath = null;
             //this.State.Source = null;

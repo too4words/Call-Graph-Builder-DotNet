@@ -61,5 +61,20 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return Task.FromResult(reachableMethods.Contains(methodDescriptor));
 		}
+
+		public async Task ForceDeactivationOfMethodEntitiesAsync()
+		{
+			var tasks = new List<Task>();
+
+			foreach (var methodDescriptor in reachableMethods)
+			{
+				var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
+				var task = methodEntityGrain.ForceDeactivationAsync();
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
 	}
 }
