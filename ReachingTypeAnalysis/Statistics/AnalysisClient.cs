@@ -420,7 +420,21 @@ namespace ReachingTypeAnalysis.Statistics
             return output.ToString();
 		}
 		
-		private static SiloAddress ParseSilo(string s)
+        public async static Task<string> GetOperationsCount(IGrainFactory grainFactory)
+        {
+            var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+
+            var operationsDict = await myStatsGrain.GetOperationCounters();
+            var output = new StringBuilder();
+
+            foreach (var op in operationsDict.Keys)
+            {
+                output.AppendFormat("{0}:{1}", op, operationsDict[op]);
+            }
+            return output.ToString();
+
+        }
+        private static SiloAddress ParseSilo(string s)
 		{
 			return SiloAddress.FromParsableString(s);
 		}

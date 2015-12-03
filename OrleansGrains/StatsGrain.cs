@@ -337,6 +337,10 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return Task.FromResult(this.lastMessage);
         }
+        public Task<Dictionary<string,long>> GetOperationCounters()
+        {
+            return Task.FromResult(this.operationCounter);
+        }
     }
 
 	[Serializable]

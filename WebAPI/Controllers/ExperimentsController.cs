@@ -167,6 +167,11 @@ namespace WebAPI
                             result += " Message:" + await AnalysisClient.LastMessage +"\n"+ AnalysisClient.ErrorMessage ; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
 						break;
+                    case "OperationCount":
+                        {
+
+                        }
+                        break;
                     case "Cancel":
                         await AnalysisClient.CancelExperimentAsync();
                         result = "Cancelled";
