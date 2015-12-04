@@ -114,7 +114,7 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateAsync(IProjectCodeProvider codeProvider)
         {
-            this.UpdateCount = 0;
+            this.UpdateCount = workList.Count;
 			Logger.Log("Add Working Set size {0}", this.workList.Count);
             this.codeProvider = codeProvider;
 

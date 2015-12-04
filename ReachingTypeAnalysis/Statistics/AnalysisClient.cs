@@ -180,17 +180,19 @@ namespace ReachingTypeAnalysis.Statistics
                 await myStatsGrain.ResetStats();
 
 #if COMPUTE_STATS
-                   // Repeat every 2 seconds.
-        IObservable<long> observable = System.Reactive.Linq.Observable.Interval(TimeSpan.FromSeconds(2));
+                this.series = 0;
 
-        // Token for cancelation
-        CancellationTokenSource source = new CancellationTokenSource();
+                // Repeat every 30 seconds.
+                IObservable<long> observable = System.Reactive.Linq.Observable.Interval(TimeSpan.FromSeconds(30));
 
-        Action action = (async () => await this.SaveUpdateInfo(myStatsGrain));
+                // Token for cancelation
+                CancellationTokenSource source = new CancellationTokenSource();
 
-        // Subscribe the obserable to the task on execution.
-        observable.Subscribe(x => { Task task = new Task(action); task.Start();
-        }, source.Token);
+                Action action = (async () => await this.SaveUpdateInfo(myStatsGrain));
+
+                // Subscribe the obserable to the task on execution.
+                observable.Subscribe(x => { Task task = new Task(action); task.Start();
+                }, source.Token);
 
 #endif
                 this.stopWatch = Stopwatch.StartNew();
@@ -214,6 +216,9 @@ namespace ReachingTypeAnalysis.Statistics
                 AnalysisClient.ExperimentStatus = ExperimentStatus.ComputingResults;
 
                 this.stopWatch.Stop();
+#if COMPUTE_STATS
+                source.Cancel();
+#endif
                 var totalRecvNetwork = 0L;
                 var totalSentLocal = 0L;
                 var totalSentNetwork = 0L;
@@ -781,7 +786,9 @@ namespace ReachingTypeAnalysis.Statistics
                 Time = time,
                 Machines = machines,
                 Series = series,
-                Updates = updates
+                Updates = updates,
+                PartitionKey = this.ExperimentID,
+                RowKey = time.ToFileTime().ToString()
             };
             if (this.updatesTable == null)
             {
