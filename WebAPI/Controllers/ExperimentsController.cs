@@ -20,59 +20,59 @@ namespace WebAPI
 
     public class ExperimentsController : ApiController
     {
-		// http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2&expID=dummy
-		[HttpGet]
-		public Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID, string rootKind = "Default")
-		{
-			var result = string.Empty;
+        // http://localhost:49176/api/Experiments?testName=Hola&machines=1&numberOfMethods=2&expID=dummy
+        [HttpGet]
+        public Task<string> RunTestAsync(string testName, int machines, int numberOfMethods, string expID, string rootKind = "Default")
+        {
+            var result = string.Empty;
 
-			try
-			{
-				var analyzer = SolutionAnalyzer.CreateFromTest(testName);
-				var analysisClient = new AnalysisClient(analyzer, machines);
-				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID, Utils.ToAnalysisRootKind(rootKind));
+            try
+            {
+                var analyzer = SolutionAnalyzer.CreateFromTest(testName);
+                var analysisClient = new AnalysisClient(analyzer, machines);
+                //var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+                analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID, Utils.ToAnalysisRootKind(rootKind));
 
-				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-				result = string.Format("Running test {0}.", testName);
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
+                //result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+                result = string.Format("Running test {0}.", testName);
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
 
-			return Task.FromResult(result);
-		}
+            return Task.FromResult(result);
+        }
 
-		[HttpGet]
-		public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID, string rootKind="Default")
-		{
-			var result = string.Empty;
+        [HttpGet]
+        public Task<string> AnalyzeSolutionAsync(string drive, string solutionPath, string solutionName, int machines, string expID, string rootKind = "Default")
+        {
+            var result = string.Empty;
 
-			try
-			{
+            try
+            {
                 if (string.IsNullOrEmpty(expID))
                 {
                     expID = solutionName;
                 }
-				solutionPath = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
-				var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-				var analysisClient = new AnalysisClient(analyzer, machines);
-				//var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
-				analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID,Utils.ToAnalysisRootKind(rootKind));
+                solutionPath = Path.Combine(drive + ":\\" + solutionPath, solutionName + ".sln");
+                var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
+                var analysisClient = new AnalysisClient(analyzer, machines);
+                //var results = await analysisClient.RunExperiment(GrainClient.GrainFactory, expID);
+                analysisClient.StartRunningExperiment(GrainClient.GrainFactory, expID, Utils.ToAnalysisRootKind(rootKind));
 
-				//result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
-				result = string.Format("Analyzing solution {0}.", solutionName);
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
+                //result = string.Format("Ready for queries. Time: {0} ms", results.ElapsedTime);
+                result = string.Format("Analyzing solution {0}.", solutionName);
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
 
-			return Task.FromResult(result);
-		}
+            return Task.FromResult(result);
+        }
 
         [HttpGet]
         public async Task<string> ComputeQueries(string className, string methodPrefix, int machines, int numberOfMethods, int repetitions, string assemblyName, string expID)
@@ -120,24 +120,24 @@ namespace WebAPI
 
         //[HttpGet]
         public async Task<string> PerformDeactivationAsync()
-		{
-			var result = string.Empty;
+        {
+            var result = string.Empty;
 
-			try
-			{
-				var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
-				await AnalysisClient.PerformDeactivation(GrainClient.GrainFactory, solutionGrain);
+            try
+            {
+                var solutionGrain = GrainClient.GrainFactory.GetGrain<ISolutionGrain>("Solution");
+                await AnalysisClient.PerformDeactivation(GrainClient.GrainFactory, solutionGrain);
 
-				result = string.Format("All grains are deactivated");
-			}
-			catch (Exception exc)
-			{
-				while (exc is AggregateException) exc = exc.InnerException;
-				result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
-			}
+                result = string.Format("All grains are deactivated");
+            }
+            catch (Exception exc)
+            {
+                while (exc is AggregateException) exc = exc.InnerException;
+                result = "Error connecting to Orleans: " + exc + " at " + DateTime.Now;
+            }
 
-			return result;
-		}
+            return result;
+        }
 
         [HttpGet]
         public async Task<string> ExecuteCmd(string command)
@@ -154,29 +154,26 @@ namespace WebAPI
                         result = AnalysisClient.EmptyTable("OrleansGrainState").ToString();
                         break;
                     case "RemoveStats":
-                        result = AnalysisClient.EmptyTable("OrleansSiloStatistics").ToString()+" " + AnalysisClient.EmptyTable("OrleansClientStatistics").ToString();
+                        result = AnalysisClient.EmptyTable("OrleansSiloStatistics").ToString() + " " + AnalysisClient.EmptyTable("OrleansClientStatistics").ToString();
                         break;
                     case "Stats":
                         result = await AnalysisClient.PrintGrainStatistics(GrainClient.GrainFactory);
                         break;
-					case "Status":
+                    case "Status":
                         result = Convert.ToString(AnalysisClient.ExperimentStatus);
                         if (AnalysisClient.ExperimentStatus != ExperimentStatus.None
                             && AnalysisClient.ExperimentStatus != ExperimentStatus.Ready)
                         {
-                            result += " Message:" + await AnalysisClient.LastMessage +"\n"+ AnalysisClient.ErrorMessage ; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
+                            result += " Message:" + await AnalysisClient.LastMessage + "\n" + AnalysisClient.ErrorMessage; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
-						break;
+                        break;
                     case "OperationCount":
-                        {
-
-                        }
+                        result = await AnalysisClient.GetOperationsCount(GrainClient.GrainFactory);
                         break;
                     case "Cancel":
                         await AnalysisClient.CancelExperimentAsync();
                         result = "Cancelled";
                         break;
-
                         // Unfortunately I cannot run the following scripts from a WebRole
                         // I can run scripts from Azure PowerShell on the development machine
                         // or use the Azure Web API

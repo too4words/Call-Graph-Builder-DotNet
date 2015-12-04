@@ -59,6 +59,7 @@ namespace ReachingTypeAnalysis.Statistics
 		private CloudTable analysisTimes;
 		private CloudTable querytimes;
 		private CloudTable siloMetrics;
+        private CloudTable updatesTable;
 
         private int machines;
         private string subject;
@@ -67,10 +68,12 @@ namespace ReachingTypeAnalysis.Statistics
 
 		private SolutionAnalyzer analyzer;
         private ISolutionGrain solutionManager;
-
-		public string ExperimentID { get; private set; }
+ 
+        public string ExperimentID { get; private set; }
 		public static ExperimentStatus ExperimentStatus { get; private set; }
 		public static string ErrorMessage { get; private set; }
+
+        private int series = 0;
 
         public AnalysisClient(SolutionAnalyzer analyzer, int machines, string subject = "")
 		{
@@ -176,6 +179,20 @@ namespace ReachingTypeAnalysis.Statistics
                 var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
                 await myStatsGrain.ResetStats();
 
+#if COMPUTE_STATS
+                   // Repeat every 2 seconds.
+        IObservable<long> observable = System.Reactive.Linq.Observable.Interval(TimeSpan.FromSeconds(2));
+
+        // Token for cancelation
+        CancellationTokenSource source = new CancellationTokenSource();
+
+        Action action = (async () => await this.SaveUpdateInfo(myStatsGrain));
+
+        // Subscribe the obserable to the task on execution.
+        observable.Subscribe(x => { Task task = new Task(action); task.Start();
+        }, source.Token);
+
+#endif
                 this.stopWatch = Stopwatch.StartNew();
 
                 AnalysisClient.ExperimentStatus = ExperimentStatus.Compiling;
@@ -368,6 +385,15 @@ namespace ReachingTypeAnalysis.Statistics
 			SaveTable<SubjectExperimentResults>("AnalysisResults", path);
 			SaveTable<SiloRuntimeStats>("SiloMetrics",path);
 		}
+
+        private async Task SaveUpdateInfo(IStatsGrain myStatsGrain)
+        {
+            //var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
+            this.series++;
+            var updates = await myStatsGrain.GetUpdatesAndReset();
+            this.AddToUpdatesEntry(DateTime.Now, this.machines, this.series, updates);
+        }
+
 
 		public static async Task PerformDeactivation(IGrainFactory grainFactory, ISolutionGrain solutionGrain)
 		{
@@ -747,8 +773,28 @@ namespace ReachingTypeAnalysis.Statistics
 			this.siloMetrics.Execute(insertOperation);
 		}
 
+        internal void AddToUpdatesEntry(DateTime time, int machines, int series, int updates)
+        {
+            var updatesEntry = new UpdatesHistory()
+            {
+                ExpID = this.ExperimentID,
+                Time = time,
+                Machines = machines,
+                Series = series,
+                Updates = updates
+            };
+            if (this.updatesTable == null)
+            {
+                this.updatesTable = CreateTable("UpdatesTable");
+            }
+            TableOperation insertOperation = TableOperation.Insert(updatesEntry);
+            // Execute the insert operation.
+            this.updatesTable.Execute(insertOperation);
 
-		internal void AddSiloMetricWithOrleans(/*SiloAddress*/ string siloAddr,  SiloRuntimeStatistics siloMetric, SiloComputedStats siloComputedStat, DateTime time, int machines)
+        }
+
+
+        internal void AddSiloMetricWithOrleans(/*SiloAddress*/ string siloAddr,  SiloRuntimeStatistics siloMetric, SiloComputedStats siloComputedStat, DateTime time, int machines)
 		{
 			var siloStat = new SiloRuntimeStats()
 			{

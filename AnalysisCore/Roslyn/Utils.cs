@@ -461,10 +461,7 @@ namespace ReachingTypeAnalysis
 			if (errors.Any())
 			{
 				var fileName = string.Format("{0}.txt", project.Name);
-				//var folderName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-				var folderName = Path.GetFullPath(project.FilePath);
-				folderName = Path.GetPathRoot(folderName);
+				var folderName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
 				folderName = Path.Combine(folderName, "Roslyn compilation errors");
 				Directory.CreateDirectory(folderName);

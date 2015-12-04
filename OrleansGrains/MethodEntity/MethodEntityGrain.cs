@@ -249,6 +249,8 @@ namespace ReachingTypeAnalysis.Analysis
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
 
             Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} Effects size: {2}", this.methodEntity.MethodDescriptor,sw.Elapsed, propagationEffects.CalleesInfo.Count);
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, this.GrainFactory);
+
             return propagationEffects;
         }
 
@@ -267,6 +269,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates,this.GrainFactory);
             return propagationEffects;
         }
 
@@ -285,6 +288,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, this.GrainFactory);
+
             return propagationEffects;
         }
 

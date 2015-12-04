@@ -129,7 +129,7 @@ namespace ReachingTypeAnalysis.Analysis
             //		this.propagationEffectsToSend.Enqueue(propEffect);                   
             //	}
             //}
-            this.UpdateHistory.Add(this.methodEntity.PropGraph.UpdateCount);
+            //this.UpdateHistory.Add(this.methodEntity.PropGraph.UpdateCount);
             return propagationEffects;
         }
 

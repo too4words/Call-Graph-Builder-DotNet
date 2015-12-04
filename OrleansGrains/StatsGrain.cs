@@ -50,6 +50,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private long memoryUsage;
         private long clientMessages;
         private string lastMessage;
+        private int updatesCounter; 
 
         private Task WriteStateAsync()
 		{
@@ -80,7 +81,7 @@ namespace ReachingTypeAnalysis.Analysis
             this.operationCounter = new Dictionary<string,long>();
 			this.messages = 0;
             this.clientMessages = 0;
-
+            this.updatesCounter = 0;
 			this.latencyInfo = new LatencyInfo
 			{
 				AccumulattedTimeDifference = 0,
@@ -181,6 +182,8 @@ namespace ReachingTypeAnalysis.Analysis
             this.clientMessages = 0;
             this.memoryUsage = 0;
             this.operationCounter.Clear();
+            this.updatesCounter = 0;
+
             this.latencyInfo = new LatencyInfo()
             {
                 AccumulattedTimeDifference = 0,
@@ -341,6 +344,17 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return Task.FromResult(this.operationCounter);
         }
+        public Task AddUpdatesCounter(int updates)
+        {
+            this.updatesCounter += updates;
+            return TaskDone.Done;
+        }
+        public Task<int> GetUpdatesAndReset()
+        {
+            var updates = this.updatesCounter;
+            this.updatesCounter = 0;
+            return Task.FromResult(updates);
+        }
     }
 
 	[Serializable]
@@ -402,7 +416,18 @@ namespace ReachingTypeAnalysis.Analysis
 #endif
 		}
 
-		public static Task RegisterDeactivation(string grainClass, IGrainFactory grainFactory)
+        public static Task RegisterProgagationUpdates(int updates, IGrainFactory grainFactory)
+        {
+#if COMPUTE_STATS
+			var statGrain = GetStatGrain(grainFactory);
+			return statGrain.AddUpdatesCounter(updates);
+            ;
+#else
+            return TaskDone.Done;
+#endif
+        }
+
+        public static Task RegisterDeactivation(string grainClass, IGrainFactory grainFactory)
 		{
 #if COMPUTE_STATS
 			var statGrain = GetStatGrain(grainFactory);

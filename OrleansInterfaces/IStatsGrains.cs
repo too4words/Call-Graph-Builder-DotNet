@@ -37,5 +37,7 @@ namespace OrleansInterfaces
 		Task<IEnumerable<string>> GetSilos();
         Task<string> GetLastMessage();
         Task<Dictionary<string, long>> GetOperationCounters();
+        Task AddUpdatesCounter(int updates);
+        Task<int> GetUpdatesAndReset();
     }
 }
