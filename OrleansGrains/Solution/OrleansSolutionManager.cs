@@ -37,7 +37,7 @@ namespace ReachingTypeAnalysis.Analysis
             }
             var grain = solutionCache;
 #if COMPUTE_STATS
-			grain = new SolutionGrainCallerWrapper(solutionCache);
+			grain = new SolutionGrainCallerWrapper(grain);
 #endif
 			return grain;
 		}

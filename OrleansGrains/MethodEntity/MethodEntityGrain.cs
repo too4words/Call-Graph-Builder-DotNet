@@ -176,30 +176,31 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
         {
-            StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            var effects = await this.PropagateAsync(propKind, reWorkSet);
+            StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+            var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
             await ProcessEffects(effects);
             return;
         }
         public async Task PropagateAndProcessAsync(PropagationKind propKind)
         {
-            await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-            var effects = await this.PropagateAsync(propKind);
+            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+            var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
+            // await this.PropagateAsync(propKind);
             await ProcessEffects(effects);
             return;
         }
 
        public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
         {
-           await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-           var effects = await this.PropagateAsync(callMessageInfo);
+           await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+           var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
            await ProcessEffects(effects);
            return;
         }
        public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
        {
-           await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
-           var effects = await this.PropagateAsync(returnMessageInfo);
+           await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+            var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
            await ProcessEffects(effects);
            return;
        }
