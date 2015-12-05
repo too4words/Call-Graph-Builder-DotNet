@@ -178,6 +178,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+
             await ProcessEffects(effects);
             return;
         }
@@ -185,6 +187,8 @@ namespace ReachingTypeAnalysis.Analysis
         {
             await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+
             // await this.PropagateAsync(propKind);
             await ProcessEffects(effects);
             return;
@@ -194,14 +198,18 @@ namespace ReachingTypeAnalysis.Analysis
         {
            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
            var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
-           await ProcessEffects(effects);
+           StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+
+            await ProcessEffects(effects);
            return;
         }
        public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
        {
            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
-           await ProcessEffects(effects);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+
+            await ProcessEffects(effects);
            return;
        }
         private async Task ProcessEffects(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
