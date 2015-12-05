@@ -177,6 +177,7 @@
     <Compile Include="Rta\OrleansRtaManager.cs" />
     <Compile Include="Rta\RtaGrain.cs" />
     <Compile Include="Rta\RtaGrainCallerWrapper.cs" />
+    <Compile Include="Solution\SolutionGrainCache.cs" />
     <Compile Include="Solution\SolutionGrainCallerWrapper.cs" />
     <Compile Include="StatsGrain.cs" />
     <Compile Include="Solution\SolutionGrain.cs" />

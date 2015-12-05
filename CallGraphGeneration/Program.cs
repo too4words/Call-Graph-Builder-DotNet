@@ -38,7 +38,7 @@ namespace CallGraphGeneration
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-				//@"..\..\..\TestsSolutions\LongTest2\LongTest2.sln", "OnDemandOrleans"
+				@"..\..\..\TestsSolutions\LongTest2\LongTest2.sln", "OnDemandOrleans"
                 //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\TestsSolutions\synthetic-1000\test.sln", "OnDemandOrleans"
                 //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000000\test.sln", "OnDemandOrleans"
@@ -56,7 +56,7 @@ namespace CallGraphGeneration
 				//@"C:\azure-powershell\src\ResourceManager.ForRefactoringOnly.sln", "OnDemandAsync"
                 //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
-				@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandOrleans"
+				//@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandOrleans"
 			};
 
 			//// This is to compute solution statistics

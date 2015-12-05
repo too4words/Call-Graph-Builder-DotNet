@@ -167,7 +167,7 @@ namespace WebAPI
                             result += " Message:" + await AnalysisClient.LastMessage + "\n" + AnalysisClient.ErrorMessage; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
                         break;
-                    case "OperationCount":
+                    case "OperationsCount":
                         result = await AnalysisClient.GetOperationsCount(GrainClient.GrainFactory);
                         break;
                     case "Cancel":

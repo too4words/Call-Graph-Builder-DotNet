@@ -14,6 +14,7 @@ namespace ReachingTypeAnalysis.Analysis
     internal class OrleansSolutionManager : SolutionManager
     {
 		private SolutionGrain solutionGrain;
+        private static ISolutionGrain solutionCache; 
         private IGrainFactory grainFactory;
 		private ISet<AssemblyName> assemblies;
 		private ISet<AssemblyName> newAssemblies;
@@ -30,10 +31,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public static ISolutionGrain GetSolutionGrain(IGrainFactory grainFactory)
 		{
-			var grain = grainFactory.GetGrain<ISolutionGrain>("Solution");
-
+            if (solutionCache == null)
+            {
+                solutionCache = new SolutionGrainCache(grainFactory.GetGrain<ISolutionGrain>("Solution"));
+            }
+            var grain = solutionCache;
 #if COMPUTE_STATS
-			grain = new SolutionGrainCallerWrapper(grain);
+			grain = new SolutionGrainCallerWrapper(solutionCache);
 #endif
 			return grain;
 		}
