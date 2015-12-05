@@ -183,7 +183,7 @@ namespace ReachingTypeAnalysis.Statistics
                 this.series = 0;
 
                 // Repeat every 30 seconds.
-                IObservable<long> observable = System.Reactive.Linq.Observable.Interval(TimeSpan.FromSeconds(30));
+                IObservable<long> observable = System.Reactive.Linq.Observable.Interval(TimeSpan.FromSeconds(60));
 
                 // Token for cancelation
                 CancellationTokenSource source = new CancellationTokenSource();
@@ -460,7 +460,7 @@ namespace ReachingTypeAnalysis.Statistics
 
             foreach (var op in operationsDict.Keys)
             {
-                output.AppendFormat("{0}:{1}", op, operationsDict[op]);
+                output.AppendFormat("{0}:{1}\n", op, operationsDict[op]);
             }
             return output.ToString();
 
