@@ -344,13 +344,13 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var methodEntity = await this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 
-			//// Force Activation
-			//var isReachable = await this.projectCodeProvider.IsReachable(methodDescriptor);
+            // Force Activation
+            var isReachable = await this.projectCodeProvider.IsReachableAsync(methodDescriptor);
 
-			//if (!isReachable)
-			//{
-			//	await methodEntity.IsInitializedAsync();
-			//}
+            if (!isReachable)
+            {
+                await methodEntity.IsInitializedAsync();
+            }
 
             return methodEntity;
         }

@@ -212,7 +212,18 @@ namespace ReachingTypeAnalysis.Analysis
             //Logger.LogInfo(GrainClient.Logger, "Orchestrator", "AnalyzeCalleeAsync", "Analyzing: {0}", callee);
 
             var methodEntityProc = await GetMethodEntityGrainAndActivateInProject(callee);
-            await methodEntityProc.PropagateAndProcessAsync(callerMessage.CallMessageInfo);
+            var exit = false;
+            for (int i = 0; i < 3 && !exit; i++)
+            {
+                try {
+                    exit = true;
+                    await methodEntityProc.PropagateAndProcessAsync(callerMessage.CallMessageInfo);
+                }
+                catch (Exception e)
+                {
+                    exit = false;
+                }
+            }
             // var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee) as IMethodEntityGrain;
             //var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
             //await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
@@ -222,7 +233,7 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
         {
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
-
+            // Force MethodGrain placement near projects
 			//var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
             return methodEntityProc;
@@ -277,7 +288,19 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "Analyzing return to {0} ", caller);
 
             var methodEntityProc = await GetMethodEntityGrainAndActivateInProject(caller);
-            await methodEntityProc.PropagateAndProcessAsync(calleeMessage.ReturnMessageInfo);
+            var exit = false;
+            for (int i = 0; i < 3 && !exit; i++)
+            {
+                try
+                {
+                    exit = true;
+                    await methodEntityProc.PropagateAndProcessAsync(calleeMessage.ReturnMessageInfo);
+                }
+                catch (Exception e)
+                {
+                    exit = false;
+                }
+            }
             //var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller) as IMethodEntityGrain;
             //var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
             //await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
