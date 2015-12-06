@@ -239,8 +239,8 @@ namespace ReachingTypeAnalysis
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
 
 			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
-			await orchestator.AnalyzeAsync(roots);
-            //await orchestator.AnalyzeDistributedAsync(roots);
+			//await orchestator.AnalyzeAsync(roots);
+            await orchestator.AnalyzeDistributedAsync(roots);
 
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
