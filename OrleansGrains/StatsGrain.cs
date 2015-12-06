@@ -50,7 +50,8 @@ namespace ReachingTypeAnalysis.Analysis
 		private long memoryUsage;
         private long clientMessages;
         private string lastMessage;
-        private int updatesCounter; 
+        private int updatesCounter;
+        private int worklistSizeCounter;
 
         private Task WriteStateAsync()
 		{
@@ -82,6 +83,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.messages = 0;
             this.clientMessages = 0;
             this.updatesCounter = 0;
+            this.worklistSizeCounter = 0;
 			this.latencyInfo = new LatencyInfo
 			{
 				AccumulattedTimeDifference = 0,
@@ -344,16 +346,19 @@ namespace ReachingTypeAnalysis.Analysis
         {
             return Task.FromResult(this.operationCounter);
         }
-        public Task AddUpdatesCounter(int updates)
+        public Task AddUpdatesCounter(int updates, int wlSize)
         {
             this.updatesCounter += updates;
+            this.worklistSizeCounter += wlSize;
             return TaskDone.Done;
         }
-        public Task<int> GetUpdatesAndReset()
+        public Task<Tuple<int,int>> GetUpdatesAndReset()
         {
             var updates = this.updatesCounter;
+            var wlSize = this.worklistSizeCounter;
             this.updatesCounter = 0;
-            return Task.FromResult(updates);
+            this.worklistSizeCounter = 0; 
+            return Task.FromResult(new Tuple<int,int>(updates,wlSize));
         }
     }
 
@@ -416,11 +421,11 @@ namespace ReachingTypeAnalysis.Analysis
 #endif
 		}
 
-        public static Task RegisterProgagationUpdates(int updates, IGrainFactory grainFactory)
+        public static Task RegisterProgagationUpdates(int updates, int worklistSize, IGrainFactory grainFactory)
         {
 #if COMPUTE_STATS
 			var statGrain = GetStatGrain(grainFactory);
-			return statGrain.AddUpdatesCounter(updates);
+			return statGrain.AddUpdatesCounter(updates, worklistSize);
             ;
 #else
             return TaskDone.Done;

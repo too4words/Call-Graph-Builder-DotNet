@@ -5,12 +5,13 @@ namespace ReachingTypeAnalysis
 {
 	public class PropagationEffects
 	{
-		public PropagationEffects(IEnumerable<CallInfo> calleesInfo, bool resultChanged, int updates = 0, int worklistInitialSize)
+		public PropagationEffects(IEnumerable<CallInfo> calleesInfo, bool resultChanged, int updates = 0, int worklistInitialSize = 0)
 		{
 			this.CalleesInfo = new HashSet<CallInfo>(calleesInfo);
 			this.ResultChanged = resultChanged;
             this.CallersInfo = new HashSet<ReturnInfo>();
             this.NumberOfUpdates = updates;
+            this.WorkListInitialSize = worklistInitialSize;
         //    this.MoreEffectsToFetch = false;
         //    this.MethodEntityReady = true;
         }

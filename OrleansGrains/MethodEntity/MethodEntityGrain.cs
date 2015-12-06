@@ -178,7 +178,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             await ProcessEffects(effects);
             return;
@@ -187,7 +187,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             // await this.PropagateAsync(propKind);
             await ProcessEffects(effects);
@@ -198,7 +198,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
            var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
-           StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             await ProcessEffects(effects);
            return;
@@ -207,7 +207,7 @@ namespace ReachingTypeAnalysis.Analysis
        {
            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates,effects.WorkListInitialSize ,this.GrainFactory);
 
             await ProcessEffects(effects);
            return;
@@ -258,7 +258,7 @@ namespace ReachingTypeAnalysis.Analysis
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
 
             Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} Effects size: {2}", this.methodEntity.MethodDescriptor,sw.Elapsed, propagationEffects.CalleesInfo.Count);
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
 
             return propagationEffects;
         }
@@ -278,7 +278,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates,this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
+
             return propagationEffects;
         }
 
@@ -297,7 +298,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, this.GrainFactory);
+            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
 
             return propagationEffects;
         }

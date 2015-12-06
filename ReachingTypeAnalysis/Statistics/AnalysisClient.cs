@@ -397,7 +397,7 @@ namespace ReachingTypeAnalysis.Statistics
             this.series++;
             var date = DateTime.Now;
             var updates = await myStatsGrain.GetUpdatesAndReset();
-            this.AddToUpdatesEntry(date, this.machines, this.series, updates);
+            this.AddToUpdatesEntry(date, this.machines, this.series, updates.Item1,updates.Item2);
         }
 
 
