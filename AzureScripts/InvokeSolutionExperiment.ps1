@@ -18,7 +18,9 @@ function Check_Status($service)
 	}
 	else
 	{
-		$resource = "http://localhost:49176/"
+			$resource = "http://localhost:45002/"
+
+#		$resource = "http://localhost:49176/"
 	}
 	$controler="api/Experiments"
 	$cmd = "?command=Status"
@@ -68,9 +70,12 @@ if($env:ISEMULATED -ne $true)  {
 }
 else
 {
-	$resource = "http://localhost:49176/"
-	$drive = "C"
-	$solutionPath = "\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\" + $solutionPath
+	$port = "45002"
+	$resource = "http://localhost:45002/" 
+	#"http://localhost:49176/"
+#	$drive = "C"
+#	$solutionPath = "\Users\dgarber\Desktop\" +$solutionPath
+	#"\Users\diegog\Source\Repos\Call-Graph-Builder-DotNet\TestsSolutions\" + $solutionPath
 }
 $controler="api/Experiments"
 $cmd = "?drive="+$drive+"&solutionPath="+$solutionPath+"&solutionName="+$solutionName+"&machines="+$machines+"&expID="+$expID+"&rootKind="+$rootKind <#+"&numberOfMethods="+$numberOfMethods#>

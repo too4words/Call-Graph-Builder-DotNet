@@ -340,17 +340,19 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
-			await StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
+			//await StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity"+":"+methodDescriptor, this.GrainFactory);
+			await StatsHelper.RegisterMsg("ProjectGrain::GetMethodEntity", this.GrainFactory);
+
 
 			var methodEntity = await this.projectCodeProvider.GetMethodEntityAsync(methodDescriptor);
 
             // Force Activation
-            var isReachable = await this.projectCodeProvider.IsReachableAsync(methodDescriptor);
+			//var isReachable = await this.projectCodeProvider.IsReachableAsync(methodDescriptor);
 
-            if (!isReachable)
-            {
-                await methodEntity.IsInitializedAsync();
-            }
+			//if (!isReachable)
+			//{
+			//	await methodEntity.IsInitializedAsync();
+			//}
 
             return methodEntity;
         }

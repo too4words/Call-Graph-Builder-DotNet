@@ -13,7 +13,7 @@
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>OrleansAzureSilos</Name>
     <PackageEnableRemoteDebugger>False</PackageEnableRemoteDebugger>
-    <UseWebProjectPorts>True</UseWebProjectPorts>
+    <UseWebProjectPorts>False</UseWebProjectPorts>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

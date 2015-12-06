@@ -9,7 +9,9 @@ if($env:ISEMULATED -ne $true)  {
 }
 else
 {
-	$resource = "http://localhost:49176/"
+#	$resource = "http://localhost:49176/"
+
+	$resource = "http://localhost:45002/"
 }
 $controler="api/Experiments"
 $cmd = "?command="+$command

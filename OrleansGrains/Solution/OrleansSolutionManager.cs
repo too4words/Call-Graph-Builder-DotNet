@@ -155,22 +155,22 @@ namespace ReachingTypeAnalysis.Analysis
 		public override Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
 //#if COMPUTE_STATS
-            this.MethodDescriptors.Add(methodDescriptor);
+            // this.MethodDescriptors.Add(methodDescriptor);
 //#endif
             var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(grainFactory, methodDescriptor);
 			return Task.FromResult<IMethodEntityWithPropagator>(methodEntityGrain);
 		}
 
 //#if COMPUTE_STATS
-		public override Task<int> GetReachableMethodsCountAsync()
-		{
-			return Task.FromResult(this.MethodDescriptors.Count);
-		}
+		//public override Task<int> GetReachableMethodsCountAsync()
+		//{
+		//	return Task.FromResult(this.MethodDescriptors.Count);
+		//}
 
-		public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
-		{
-			return Task.FromResult(this.MethodDescriptors.AsEnumerable());
-		}
+		//public override Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync()
+		//{
+		//	return Task.FromResult(this.MethodDescriptors.AsEnumerable());
+		//}
 //#endif
 
 		public Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int methodNumber)

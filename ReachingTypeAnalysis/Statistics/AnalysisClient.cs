@@ -395,9 +395,10 @@ namespace ReachingTypeAnalysis.Statistics
         {
             //var myStatsGrain = StatsHelper.GetStatGrain(grainFactory);
             this.series++;
+			var seriesCount = this.series;
             var date = DateTime.Now;
             var updates = await myStatsGrain.GetUpdatesAndReset();
-            this.AddToUpdatesEntry(date, this.machines, this.series, updates.Item1,updates.Item2);
+            this.AddToUpdatesEntry(date, this.machines, seriesCount, updates.Item1,updates.Item2);
         }
 
 

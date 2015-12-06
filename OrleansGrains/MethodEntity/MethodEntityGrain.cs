@@ -222,7 +222,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{
-			StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::PropagateWithRework", this.GrainFactory);
 
 			//if (status.Equals(EntityGrainStatus.Busy))
 			//{
@@ -265,7 +265,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
-			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::PropagateCall", this.GrainFactory);
             
 			//if (status.Equals(EntityGrainStatus.Busy))
 			//{
@@ -285,7 +285,7 @@ namespace ReachingTypeAnalysis.Analysis
 
         public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
-			await StatsHelper.RegisterMsg("MethodEntityGrain::Propagate", this.GrainFactory);
+			StatsHelper.RegisterMsg("MethodEntityGrain::PropagateReturn", this.GrainFactory);
 
             //if (status.Equals(EntityGrainStatus.Busy))
             //{

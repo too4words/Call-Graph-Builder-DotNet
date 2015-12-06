@@ -19,11 +19,11 @@
 
 	  <Application>
 		  <Defaults>
-			  <Deactivation AgeLimit="30m"/>
+			  <Deactivation AgeLimit="3000m"/>
 		  </Defaults>
 	  </Application>
 
-	  <Messaging ResponseTimeout="600s"/>
+	  <Messaging ResponseTimeout="180m"/>
 	  <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s"
 				  WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
    

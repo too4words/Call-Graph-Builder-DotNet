@@ -245,9 +245,12 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var callerInfo in callersInfo)
 			{
-				var task = this.DispachReturnMessageAsync(callerInfo, propKind);
-				//await task;
-				tasks.Add(task);
+				if (callerInfo.ResultPossibleTypes.Count > 0)
+				{
+					var task = this.DispachReturnMessageAsync(callerInfo, propKind);
+					//await task;
+					tasks.Add(task);
+				}
 			}
 
 			await Task.WhenAll(tasks);

@@ -12,7 +12,9 @@ function Check_Status($service)
 	}
 	else
 	{
-		$resource = "http://localhost:49176/"
+			$resource = "http://localhost:45002/"
+
+#		$resource = "http://localhost:49176/"
 	}
 	$controler="api/Experiments"
 	$cmd = "?command=Status"

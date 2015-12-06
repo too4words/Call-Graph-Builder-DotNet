@@ -6,7 +6,9 @@ if($env:ISEMULATED -ne $true)  {
 }
 else
 {
-	$resource = "http://localhost:49176/"
+	$resource = "http://localhost:45002/"
+
+#	$resource = "http://localhost:49176/"
 }
 $controler="api/Experiments"
 $cmd = "?command=Deactivate"
