@@ -24,6 +24,7 @@ namespace ReachingTypeAnalysis
     internal partial class PropagationGraph
     {
         public int UpdateCount { get; private set; }
+        public int WorklistSize { get; private set; }
 
         internal async Task<bool> DiffPropAsync(IEnumerable<TypeDescriptor> src, PropGraphNodeDescriptor n, PropagationKind propKind)
         {
@@ -114,8 +115,10 @@ namespace ReachingTypeAnalysis
 
         internal async Task<PropagationEffects> PropagateAsync(IProjectCodeProvider codeProvider)
         {
-            this.UpdateCount = workList.Count;
-			Logger.Log("Add Working Set size {0}", this.workList.Count);
+            this.UpdateCount = 0;
+            this.WorklistSize = workList.Count;
+
+            Logger.Log("Add Working Set size {0}", this.workList.Count);
             this.codeProvider = codeProvider;
 
             var calls = new HashSet<CallInfo>();
@@ -153,7 +156,7 @@ namespace ReachingTypeAnalysis
                 }
             }
             HasBeenPropagated = true;
-            return new PropagationEffects(calls, retModified, this.UpdateCount);
+            return new PropagationEffects(calls, retModified, this.UpdateCount, this.WorklistSize);
         }
         internal void ResetUpdateCount()
         {

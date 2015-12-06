@@ -122,6 +122,7 @@ namespace ReachingTypeAnalysis.Statistics
         public int Machines { get; set; }
         public int Series { get; set; }
         public int Updates { get; set; }
+        public int WorklistSize { get; internal set; }
     }
 
 }

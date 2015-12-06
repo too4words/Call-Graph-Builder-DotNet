@@ -779,7 +779,7 @@ namespace ReachingTypeAnalysis.Statistics
 			this.siloMetrics.Execute(insertOperation);
 		}
 
-        internal void AddToUpdatesEntry(DateTime time, int machines, int series, int updates)
+        internal void AddToUpdatesEntry(DateTime time, int machines, int series, int updates, int worklistInitSize)
         {
             var updatesEntry = new UpdatesHistory()
             {
@@ -788,6 +788,7 @@ namespace ReachingTypeAnalysis.Statistics
                 Machines = machines,
                 Series = series,
                 Updates = updates,
+                WorklistSize = worklistInitSize,
                 PartitionKey = this.ExperimentID,
                 RowKey = time.ToFileTime().ToString()
             };

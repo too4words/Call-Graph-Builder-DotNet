@@ -232,10 +232,10 @@ namespace ReachingTypeAnalysis.Analysis
 
         private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
         {
-			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
+            //var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
             // Force MethodGrain placement near projects
-			//var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
+            var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+            var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
             return methodEntityProc;
         }
 
