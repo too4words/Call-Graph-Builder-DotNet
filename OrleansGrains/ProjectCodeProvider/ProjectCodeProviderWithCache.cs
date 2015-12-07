@@ -24,10 +24,6 @@ namespace ReachingTypeAnalysis.Analysis
 		private static ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>>();
 		private static ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
 
-        static ProjectCodeProviderWithCache()
-        {
-        }
-
         internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
 		{
 			this.codeProvider = codeProvider;

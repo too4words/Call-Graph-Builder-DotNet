@@ -5,6 +5,7 @@ using System.Linq;
 using Orleans;
 using Orleans.Runtime;
 using System.Threading;
+using System.Collections.Concurrent;
 using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis.Analysis
@@ -12,9 +13,8 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class SolutionGrainCache : ISolutionGrain
 	{
 		private ISolutionGrain solutionGrain;
-        private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntitiesMap = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
-        private IDictionary<string, IProjectCodeProvider> projectsAssemblyMaps = new Dictionary<string, IProjectCodeProvider>();
-        private IDictionary<MethodDescriptor, IProjectCodeProvider> projectsMethodsMap = new Dictionary<MethodDescriptor, IProjectCodeProvider>();
+        private static ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntitiesMap = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>();
+        private static ConcurrentDictionary<string, IProjectCodeProvider> projectsAssemblyMaps = new ConcurrentDictionary<string, IProjectCodeProvider>();
 
         internal SolutionGrainCache(ISolutionGrain solutionGrain)
 		{
@@ -24,38 +24,37 @@ namespace ReachingTypeAnalysis.Analysis
         public async Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName)
         {
             IProjectCodeProvider codeProvider = null;
+
             if (!projectsAssemblyMaps.TryGetValue(assemblyName, out codeProvider))
             {
                 codeProvider = await solutionGrain.GetProjectCodeProviderAsync(assemblyName);
-                projectsAssemblyMaps[assemblyName] = codeProvider;
+                projectsAssemblyMaps.TryAdd(assemblyName, codeProvider);
             }
-            else { }
+
             return codeProvider;
         }
 
         public async Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor)
         {
-            IProjectCodeProvider codeProvider = null;
-            if (!projectsMethodsMap.TryGetValue(methodDescriptor, out codeProvider))
-            {
-                codeProvider = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptor);
-                projectsMethodsMap[methodDescriptor] = codeProvider;
-            }
-            return codeProvider;
-        }
+			var typeDescriptor = methodDescriptor.ContainerType;
+			var assemblyName = typeDescriptor.AssemblyName;
+			var provider = await this.GetProjectCodeProviderAsync(assemblyName);
 
+			return provider;
+		}
 
         public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
         {
             IMethodEntityWithPropagator methodEntity = null;
+
             if (!methodEntitiesMap.TryGetValue(methodDescriptor, out methodEntity))
             {
                 methodEntity = await solutionGrain.GetMethodEntityAsync(methodDescriptor);
-                methodEntitiesMap[methodDescriptor] = methodEntity;
+                methodEntitiesMap.TryAdd(methodDescriptor, methodEntity);
             }
+
             return methodEntity;
         }
-
 
         public Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default)
 		{
@@ -66,6 +65,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return solutionGrain.GetReachableMethodsAsync();
 		}
+
         public Task<int> GetReachableMethodsCountAsync()
         {
             return solutionGrain.GetReachableMethodsCountAsync();
@@ -80,9 +80,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return solutionGrain.GetProjectCodeProvidersAsync();
 		}
-
-
-
 
 		public Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments)
 		{
@@ -143,6 +140,5 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			return solutionGrain.GetRandomMethodAsync();
 		}
-
 	}
 }
