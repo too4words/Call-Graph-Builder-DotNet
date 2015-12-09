@@ -707,6 +707,7 @@ namespace ReachingTypeAnalysis
 			var publicMethods = 0;
 			var testMethods = 0;
 			var mainMethods = 0;
+			var eventMethods = 0;
 
 			foreach (var project in projects)
 			{
@@ -737,6 +738,12 @@ namespace ReachingTypeAnalysis
 
 				Console.WriteLine("\tTest methods: {0}", methodsCount);
 
+				methods = await Utils.GetEventHandlersAsync(compilation);
+				methodsCount = methods.Count();
+				eventMethods += methodsCount;
+
+				Console.WriteLine("\tEvent handler methods: {0}", methodsCount);
+
 				methods = await Utils.GetMainMethodsAsync(compilation);
 				methodsCount = methods.Count();
 				mainMethods += methodsCount;
@@ -752,6 +759,7 @@ namespace ReachingTypeAnalysis
 			Console.WriteLine("\tMethods: {0}", totalMethods);
 			Console.WriteLine("\tPublic methods: {0}", publicMethods);
 			Console.WriteLine("\tTest methods: {0}", testMethods);
+			Console.WriteLine("\tEvent handler methods: {0}", eventMethods);
 			Console.WriteLine("\tMain methods: {0}", mainMethods);
 			Console.WriteLine();
 
