@@ -9,8 +9,20 @@
   <Globals>
     <Liveness LivenessType="AzureTable" />
     <StorageProviders>
-      <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />
+      <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
+<!--    	<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" /> -->
+      <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstoragedg;AccountKey=0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==" />
     </StorageProviders>
+	  
+	  <Application>
+		  <Defaults>
+			  <Deactivation AgeLimit="24hr"/>
+		  </Defaults>
+	  </Application>
+    <Messaging ResponseTimeout="7200s"/>
+    <!-- <Statistics WriteLogStatisticsToTable="false"/> -->
+    <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="300s" LogWriteInterval="300s"
+                WriteLogStatisticsToTable="false" StatisticsCollectionLevel="Critical"/>
   </Globals>
   <Defaults>
     <!--
@@ -19,12 +31,14 @@
       Setting WriteTraces to true will cause detailed performance information to be collected and logged about the individual steps in the
       message lifecycle. This may be useful debugging performance issues.
       -->
-    <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
-	  <!--
+    <!--   <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" > -->
+       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+
+        <!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".
 	    Depending on the log levels you have used in your code, this will cause additional messages to be written to the log.
 	    -->
-      <TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
+      <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning"  TraceToFile="{0}-{1}.log"/>
     </Tracing>
   </Defaults>
 </OrleansConfiguration>

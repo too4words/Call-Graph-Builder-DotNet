@@ -8,14 +8,16 @@ using System.Threading.Tasks;
 
 namespace OrleansInterfaces
 {
-    public interface ISolutionGrain : IGrainWithStringKey
+	public interface ISolutionGrain : IGrainWithStringKey, ISolutionManager, IEntityGrainObserver
     {
-        Task SetSolutionPath(string solutionPath);
-        Task SetSolutionSource(string solutionSource);
-        Task<IProjectCodeProviderGrain> GetCodeProviderAsync(ReachingTypeAnalysis.MethodDescriptor methodDescriptor);
-        Task<IEnumerable<MethodDescriptor>> GetRoots();
+        Task SetSolutionPathAsync(string solutionPath);
+        Task SetSolutionSourceAsync(string solutionSource);
+		Task SetSolutionFromTestAsync(string testName); 
+		Task ForceDeactivationAsync();
+        Task<MethodDescriptor> GetMethodDescriptorByIndexAsync(int index);
+		Task<EntityGrainStatus> GetStatusAsync();
 
-        Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types);
-        Task<ISet<TypeDescriptor>> InstantiatedTypes();
-    }
+		//Task<IEnumerable<string>> GetDrivesAsync();
+        Task<int> UpdateCounter(int value);
+	}
 }

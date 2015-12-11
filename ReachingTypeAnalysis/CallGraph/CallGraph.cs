@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SolutionTraversal.Callgraph
+namespace SolutionTraversal.CallGraph
 {
 	public class CallGraph<M, L>
 	{
@@ -19,6 +19,11 @@ namespace SolutionTraversal.Callgraph
 			this.graph = new Graph();
 			this.vertexIndex = new Dictionary<M, int>();
 		}
+
+        public void Compress()
+        {
+            this.graph.Compress();
+        }
 
 		public void Add(M method)
 		{
@@ -80,7 +85,7 @@ namespace SolutionTraversal.Callgraph
 			}
 		}
 
-		public ISet<M> GetCallees(M m)
+		public IEnumerable<M> GetCallees(M m)
 		{
 			var result = new HashSet<M>();
 			int index = this.vertexIndex[m];
@@ -90,10 +95,11 @@ namespace SolutionTraversal.Callgraph
 
 			foreach (Vertex v2 in this.graph.EnumerateAdjacentVertices(v))
 			{
-				result.Add((M)v2["M"]);
+				// result.Add((M)v2["M"]);
+				yield return (M)v2["M"];
 			}
 
-			return result;
+			// return result;
 		}
 
 		public ISet<M> GetCallees(M m, L location)

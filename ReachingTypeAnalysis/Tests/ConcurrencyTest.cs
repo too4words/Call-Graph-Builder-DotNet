@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 
-namespace ReachingTypeAnalysis
+namespace ReachingTypeAnalysis.Test
 {
     public partial class Tests
     {

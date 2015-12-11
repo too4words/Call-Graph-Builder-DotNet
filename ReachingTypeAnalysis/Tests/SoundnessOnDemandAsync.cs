@@ -15,7 +15,7 @@ namespace ReachingTypeAnalysis
             BasicTests.TestSimpleCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
         }
 
-        [TestMethod]
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestRecursionOnDemandAsync()
@@ -112,6 +112,38 @@ namespace ReachingTypeAnalysis
 		}
 
 		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestExtensionMethodCallOnDemandAsync()
+		{
+			BasicTests.TestExtensionMethodCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestStaticMethodCallOnDemandAsync()
+		{
+			BasicTests.TestStaticMethodCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestPropertyCallOnDemandAsync()
+		{
+			BasicTests.TestPropertyCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestInterfaceMethodCallOnDemandAsync()
+		{
+			BasicTests.TestInterfaceMethodCall(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
         [TestCategory("Soundness")]
         [TestCategory("OnDemandAsync")]
         public void TestLambdaOnDemandAsync()
@@ -125,6 +157,14 @@ namespace ReachingTypeAnalysis
 		public void TestNamedParametersOnDemandAsync()
 		{
 			BasicTests.TestNamedParameters(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
+		public void TestGenericMethodOnDemandAsync()
+		{
+			BasicTests.TestGenericMethod(AnalysisStrategyKind.ONDEMAND_ASYNC);
 		}
 	}
 }

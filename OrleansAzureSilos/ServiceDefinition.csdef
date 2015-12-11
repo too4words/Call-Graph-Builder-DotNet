@@ -1,27 +1,119 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="OrleansAzureSilos" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
-  <WorkerRole name="OrleansSilosInAzure" vmsize="Medium">
+  <!-- <WorkerRole name="OrleansSilosInAzure" vmsize="ExtraLarge"> -->
+   <WorkerRole name="OrleansSilosInAzure" vmsize="Large"> 
     <Imports>
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+      <!--      <Import moduleName="Diagnostics" />  -->
     </Imports>
     <ConfigurationSettings>
       <Setting name="DataConnectionString" />
+      <!-- <Setting name="Startup.ExternalTasksUrl" />  -->
+      <Setting name="Startup.VsSourceDir" />
+      <Setting name="Startup.VsInstallDir" />
+      <Setting name="Startup.NetSourceDir" />
     </ConfigurationSettings>
     <Endpoints>
       <InternalEndpoint name="OrleansSiloEndpoint" protocol="tcp" port="11111" />
       <InternalEndpoint name="OrleansProxyEndpoint" protocol="tcp" port="30000" />
     </Endpoints>
     <!--
-    <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
-    </ConfigurationSettings>
-  -->
     <LocalResources>
       <LocalStorage name="LocalStorage1" cleanOnRoleRecycle="false" />
     </LocalResources>
+    -->
+    <Startup>
+      <!-- This is for installing .Net 4.6. Not longer used as VS 2015 also install it
+		<Task executionContext="elevated" commandLine="scripts\InstallNET46.cmd" taskType="simple">
+			<Environment>
+				<Variable name="EMULATED">
+					<RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+				</Variable>
+				<Variable name="NETSOURCEDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.NetSourceDir']/@value" />
+				</Variable>
+			</Environment>
+		</Task>
+		-->
+      <!-- This Script install VS 2015 in the worker role
+		<Task executionContext="elevated" commandLine="scripts\InstallVS2015-v2.cmd" taskType="simple">
+			<Environment>
+				<Variable name="EMULATED">
+					<RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+				</Variable>
+				<Variable name="VSSOURCEDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.VsSourceDir']/@value" />
+				</Variable>
+				<Variable name="VSINSTALLDIR">
+					<RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.VsInstallDir']/@value" />
+				</Variable>
+			</Environment>
+		</Task>
+		-->
+      <!-- This Script install Build Tools in the worker role -->
+      <Task executionContext="elevated" commandLine="scripts\SetupExternalTasks.cmd" taskType="simple">
+        <Environment>
+          <Variable name="EMULATED">
+            <RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+          </Variable>
+          <!-- 
+		  <Variable name="EXTERNALTASKURL">
+            <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/ConfigurationSettings/ConfigurationSetting[@name='Startup.ExternalTasksUrl']/@value" />
+          </Variable>
+		  -->
+        </Environment>
+      </Task>
+      <Task commandLine="scripts\ServerGC.cmd" executionContext="elevated" taskType="simple">
+        <Environment>
+          <Variable name="UseServerGC" value="True" />
+          <Variable name="UseBackgroundGC" value="False" />
+        </Environment>
+      </Task>
+    </Startup>
   </WorkerRole>
-  <WorkerRole name="Orchestator" vmsize="Small">
+  <WebRole name="WebRole1" vmsize="Large">
+    <Imports>
+      <!--      <Import moduleName="Diagnostics" />  -->
+      <Import moduleName="RemoteAccess" />
+    </Imports>
     <ConfigurationSettings>
-      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="DataConnectionString" />
     </ConfigurationSettings>
-  </WorkerRole>
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="80" />
+    </Endpoints>
+  </WebRole>
+  <WebRole name="WebAPI" vmsize="ExtraLarge">
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Startup>
+      <Task commandLine="scripts\EnablePowerShell.cmd" executionContext="elevated" taskType="simple">
+        <Environment>
+        </Environment>
+      </Task>
+    </Startup>
+    <Imports>
+      <!--      <Import moduleName="Diagnostics" />  -->
+      <Import moduleName="RemoteAccess" />
+    </Imports>
+    <ConfigurationSettings>
+      <Setting name="DataConnectionString" />
+    </ConfigurationSettings>
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="45002" />
+    </Endpoints>
+  </WebRole>
 </ServiceDefinition>

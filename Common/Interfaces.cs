@@ -1,4 +1,5 @@
-﻿using ReachingTypeAnalysis;
+﻿using CodeGraphModel;
+using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Communication;
 using System;
 using System.Collections.Generic;
@@ -14,55 +15,121 @@ namespace ReachingTypeAnalysis
 
     public interface IEntity
     {
-        //IEntityProcessor GetEntityProcessor(IDispatcher dispacther);
     }
 
 	public interface IAnalysisStrategy
 	{
+		ISolutionManager SolutionManager { get; }
+        Task<ISolutionManager> CreateFromSourceAsync(string source);
+		Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath);
 		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
 	}
 
-    public interface IMethodEntityWithPropagator: IEntity
+    public interface IMethodEntityWithPropagator : IEntity
     {
         Task<PropagationEffects> PropagateAsync(PropagationKind propKind);
+		Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet);
         Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo);
         Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo);
         Task<bool> IsInitializedAsync();
-        Task<IEntity> GetMethodEntityAsync();
-        //Task SetMethodEntityAsync(IEntity methodEntity, IEntityDescriptor descriptor);
+
+        Task<IEnumerable<TypeDescriptor>> GetInstantiatedTypesAsync();
+		Task<IEnumerable<CallContext>> GetCallersAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync();
         Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync();
         Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition);
         Task<int> GetInvocationCountAsync();
-    }
 
-    public interface IEntityProcessor
-    {
-        IEntity Entity { get; }
-        void SendMessage(IEntityDescriptor destination, IMessage message);
-        void ReceiveMessage(IEntityDescriptor source, IMessage message);
-        Task SendMessageAsync(IEntityDescriptor destination, IMessage message);
-        Task ReceiveMessageAsync(IEntityDescriptor source, IMessage message);
-        void DoAnalysis();
-        Task DoAnalysisAsync();
-    }
+		Task<SymbolReference> GetDeclarationInfoAsync();
+        Task<IEnumerable<SymbolReference>> GetCallersDeclarationInfoAsync();
+		Task<IEnumerable<Annotation>> GetAnnotationsAsync();
+		Task<PropagationEffects> RemoveMethodAsync();
 
-    public interface ICodeProvider
+		Task UnregisterCallerAsync(CallContext callContext);
+		Task UseDeclaredTypesForParameters();
+		Task<MethodCalleesInfo> FixUnknownCalleesAsync();
+
+		//Task UnregisterCalleeAsync(CallContext callContext);
+		//Task<PropagationEffects> GetMoreEffects();
+	}
+
+    public interface IProjectCodeProvider
     {
         Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
-        Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
-        bool IsSubtype(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2);
-        MethodDescriptor FindMethodImplementation(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
-        Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
-    
-    }
-    public interface ISolution
-    {
-        Task<IEnumerable<MethodDescriptor>> GetRoots();
-        Task AddInstantiatedTypes(IEnumerable<TypeDescriptor> types);
-        Task<ISet<TypeDescriptor>> InstantiatedTypes();
-    }
 
+        Task<MethodDescriptor> FindMethodImplementationAsync(MethodDescriptor methodDescriptor, TypeDescriptor typeDescriptor);
+
+        Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default);
+
+		Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
+        Task<int> GetReachableMethodsCountAsync();
+
+        Task<IEnumerable<FileResponse>> GetDocumentsAsync();
+
+		Task<IEnumerable<FileResponse>> GetDocumentEntitiesAsync(string documentPath);
+
+		Task<PropagationEffects> RemoveMethodAsync(MethodDescriptor methodToUpdate);
+		
+		Task<PropagationEffects> AddMethodAsync(MethodDescriptor methodToAdd);
+
+		Task ReplaceDocumentSourceAsync(string source, string documentPath);
+
+		Task ReplaceDocumentAsync(string documentPath, string newDocumentPath = null);
+
+		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
+
+		Task ReloadAsync();
+
+		Task<SymbolReference> GetDeclarationInfoAsync(MethodDescriptor methodDescriptor);
+
+		Task<SymbolReference> GetInvocationInfoAsync(CallContext callContext);
+
+		Task<IEnumerable<TypeDescriptor>> GetCompatibleInstantiatedTypesAsync(TypeDescriptor type);
+
+		Task<MethodDescriptor> GetRandomMethodAsync();
+
+		Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
+	}
+
+    public interface ISolutionManager
+    {
+        Task<IEnumerable<MethodDescriptor>> GetRootsAsync(AnalysisRootKind rootKind = AnalysisRootKind.Default);
+
+		Task<IEnumerable<MethodDescriptor>> GetReachableMethodsAsync();
+
+        Task<int> GetReachableMethodsCountAsync();
+
+        Task<IEnumerable<IProjectCodeProvider>> GetProjectCodeProvidersAsync();
+
+		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(string assemblyName);
+
+		Task<IProjectCodeProvider> GetProjectCodeProviderAsync(MethodDescriptor methodDescriptor);
+
+		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+
+		//The next 2 methods are for RTA: Not currently used
+		//Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+		//Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+
+		Task<MethodDescriptor> GetRandomMethodAsync();
+
+		Task<bool> IsReachableAsync(MethodDescriptor methodDescriptor);
+
+		Task<IEnumerable<MethodModification>> GetModificationsAsync(IEnumerable<string> modifiedDocuments);
+
+		Task ReloadAsync();
+	}
+
+    public interface IRtaManager
+    {
+        Task AddInstantiatedTypesAsync(IEnumerable<TypeDescriptor> types);
+        Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
+    }
 
     public delegate void MessageHandler(IMessage message);
 
@@ -70,20 +137,6 @@ namespace ReachingTypeAnalysis
     {
         IEntityDescriptor Source { get; }
         MessageHandler Handler();
-    }
-
-    public interface IDispatcher
-    {
-        ImmutableHashSet<IEntity> GetAllEntites();
-        ImmutableHashSet<IEntityDescriptor> GetAllEntitiesDescriptors();
-
-        void DeliverMessage(IEntityDescriptor destination, IMessage message);
-        Task DeliverMessageAsync(IEntityDescriptor destination, IMessage message);
-        //Task<IEntity> GetEntityAsync(IEntityDescriptor entityDesc);
-        //IEntity GetEntity(IEntityDescriptor entityDesc);
-        void RegisterEntity(IEntityDescriptor entityDesc, IEntity entity);
-        Task<IEntityProcessor> GetEntityWithProcessorAsync(IEntityDescriptor entityDesc);
-        IEntityProcessor GetEntityWithProcessor(IEntityDescriptor entityDesc);
     }
 
     /// <summary>
@@ -95,7 +148,7 @@ namespace ReachingTypeAnalysis
         ADD_TYPES,
         REMOVE_TYPES,
         ADD_ASSIGNMENT,
-        REMOVE_ASSIGNMENT,
+        REMOVE_ASSIGNMENT
     }
 
     [Serializable]

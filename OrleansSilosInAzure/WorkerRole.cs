@@ -5,16 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using Orleans.Runtime.Host;
-using System.Diagnostics.Contracts;
-using System.IO;
-using Orleans;
 using Orleans.Providers;
 using Orleans.Runtime.Configuration;
+using RedDog.Storage.Files;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure;
+using System.IO;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace OrleansSilosInAzure
 {
@@ -25,33 +26,79 @@ namespace OrleansSilosInAzure
 
         private AzureSilo orleansAzureSilo;
         private const string DATA_CONNECTION_STRING_KEY = "DataConnectionString";
-
+        private int instances;
 
         //private AppDomain hostDomain;
         //private static OrleansHostWrapper hostWrapper;
 
-
         public override void Run()
         {
-            var config = new ClusterConfiguration();
-            config.StandardLoad();
+			try
+			{
+				var config = new ClusterConfiguration();
+                //config.StandardLoad();
+				if (RoleEnvironment.IsEmulated)
+				{
+					config.LoadFromFile(@"OrleansLocalConfiguration.xml");
+				}
+				else
+				{
+					config.LoadFromFile(@"OrleansConfiguration.xml");
+				}
 
-            // First example of how to configure an existing provider
-            Example_ConfigureExistingStorageProvider(config);
-            Example_ConfigureNewStorageProvider(config);
-            Example_ConfigureNewBootstrapProvider(config);
+				var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["OrleansSiloEndPoint"].IPEndpoint.Address.ToString();
+				Environment.SetEnvironmentVariable("MyIPAddr",ipAddr);
 
-            // It is IMPORTANT to start the silo not in OnStart but in Run.
-            // Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.
-            orleansAzureSilo = new AzureSilo();
-            bool ok = orleansAzureSilo.Start(config);
+                this.instances = RoleEnvironment.CurrentRoleInstance.Role.Instances.Count;
 
-            Trace.WriteLine("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
+				// TODO: Delete Orleans Tables
+				// To avoid double delete, check for existence
+				//CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+					//table = tableClient.GetTableReference("OrleansGrainState");
+					//table.DeleteIfExists();
+				// Create the table client.
+				//CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
-            orleansAzureSilo.Run(); // Call will block until silo is shutdown
+				//CloudTable table = tableClient.GetTableReference("OrleansSiloStatistics");
+				//table.DeleteIfExists();
 
-            Trace.TraceInformation("OrleansSilosInAzure is running");
+				//CloudTable  table = tableClient.GetTableReference("OrleansClientStatistics");
+				//table.DeleteIfExists();
 
+				
+				// It is IMPORTANT to start the silo not in OnStart but in Run.
+				// Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.
+				orleansAzureSilo = new AzureSilo();
+				bool ok = orleansAzureSilo.Start(config);
+				if (ok)
+				{
+					Trace.TraceInformation("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
+                    Trace.TraceInformation("OrleansSilosInAzure is running");
+
+                    orleansAzureSilo.Run(); // Call will block until silo is shutdown
+
+                    Trace.TraceInformation("OrleansSilosInAzure stop running");
+                    WriteToTempFile("OrleansSilosInAzure stop running");
+
+                    //SaveErrorToBlob("Orleans Silo stops!");
+                }
+                else
+				{
+					Trace.TraceError("Orleans Silo could not start");
+                    WriteToTempFile("Orleans Silo could not start");
+                    //SaveErrorToBlob("Orleans Silo could not start");
+                }
+
+			}
+			catch (Exception ex)
+			{
+				while (ex is AggregateException) ex = ex.InnerException;
+				Trace.TraceError("Error dutring initialization of WorkerRole {0}",ex.ToString());
+                var excString = ex.ToString();
+                WriteToTempFile(excString);
+                //SaveErrorToBlob(excString);                
+                throw ex;
+			}
             //try
             //{
             //    this.RunAsync(this.cancellationTokenSource.Token).Wait();
@@ -62,97 +109,98 @@ namespace OrleansSilosInAzure
             //}
         }
 
-
-        // Storage Provider is already configured in the OrleansConfiguration.xml as:
-        // <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />
-        // Below is an example of how to set the storage key in the ProviderConfiguration and how to add a new custom configuration property.
-        private void Example_ConfigureExistingStorageProvider(ClusterConfiguration config)
+        private void SaveErrorToBlob(string excString)
         {
-            IProviderConfiguration storageProvider = null;
+            WriteToTempFile(excString);
 
-            const string myProviderFullTypeName = "Orleans.Storage.AzureTableStorage"; // Alternatively, can be something like typeof(AzureTableStorage).FullName
-            const string myProviderName = "AzureStore"; // what ever arbitrary name you want to give to your provider
-            if (config.Globals.TryGetProviderConfiguration(myProviderFullTypeName, myProviderName, out storageProvider))
+            var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+            // Create the blob client.
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            // Retrieve reference to a previously created container.
+            CloudBlobContainer container = blobClient.GetContainerReference("errors");
+
+            // Retrieve reference to a blob named "myblob".
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(errorFile);
+
+            using (Stream s = GenerateStreamFromString(excString))
             {
-                // provider configuration already exists, modify it.
-                string connectionString = RoleEnvironment.GetConfigurationSettingValue(DATA_CONNECTION_STRING_KEY);
-                storageProvider.SetProperty(DATA_CONNECTION_STRING_KEY, connectionString);
-                storageProvider.SetProperty("MyCustomProperty1", "MyCustomPropertyValue1");
-            }
-            else
-            {
-                // provider configuration does not exists, add a new one.
-                var properties = new Dictionary<string, string>();
-                string connectionString = RoleEnvironment.GetConfigurationSettingValue(DATA_CONNECTION_STRING_KEY);
-                properties.Add(DATA_CONNECTION_STRING_KEY, connectionString);
-                properties.Add("MyCustomProperty2", "MyCustomPropertyValue2");
+                blockBlob.UploadFromStream(s);
 
-                config.Globals.RegisterStorageProvider(myProviderFullTypeName, myProviderName, properties);
             }
-
-            // Alternatively, find all storage providers and modify them as necessary
-            foreach (IProviderConfiguration providerConfig in config.Globals.GetAllProviderConfigurations())//storageConfiguration.Providers.Values.Where(provider => provider is ProviderConfiguration).Cast<ProviderConfiguration>())
-            {
-                if (providerConfig.Type.Equals(myProviderFullTypeName))
-                {
-                    string connectionString = RoleEnvironment.GetConfigurationSettingValue(DATA_CONNECTION_STRING_KEY);
-                    providerConfig.SetProperty(DATA_CONNECTION_STRING_KEY, connectionString);
-                    providerConfig.SetProperty("MyCustomProperty3", "MyCustomPropertyValue3");
-                }
-            }
-
-            // Once silo starts you can see that it prints in the log:
-            //   Providers:
-            //      StorageProviders:
-            //          Name=AzureStore, Type=Orleans.Storage.AzureTableStorage, Properties=[DataConnectionString, MyCustomProperty, MyCustomProperty1, MyCustomProperty3]
         }
 
-        // Below is an example of how to define a full configuration for a new storage provider that is not already specified in the config file.
-        private void Example_ConfigureNewStorageProvider(ClusterConfiguration config)
+        private static void WriteToTempFile(string excString)
         {
-            const string myProviderFullTypeName = "Orleans.Storage.AzureTableStorage"; // Alternatively, can be something like typeof(AzureTableStorage).FullName
-            const string myProviderName = "MyNewAzureStoreProvider"; // what ever arbitrary name you want to give to your provider
+            var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
 
-            var properties = new Dictionary<string, string>();
-            string connectionString = RoleEnvironment.GetConfigurationSettingValue(DATA_CONNECTION_STRING_KEY);
-            properties.Add(DATA_CONNECTION_STRING_KEY, connectionString);
-            properties.Add("MyCustomProperty4", "MyCustomPropertyValue4");
-
-            config.Globals.RegisterStorageProvider(myProviderFullTypeName, myProviderName, properties);
-
-            // Once silo starts you can see that it prints in the log:
-            //  Providers:
-            //      StorageProviders:
-            //          Name=MyNewAzureStoreProvider, Type=Orleans.Storage.AzureTableStorage, Properties=[DataConnectionString, MyCustomProperty4]
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Temp\"+errorFile+".txt"))
+            {
+                file.WriteLine("Logging:" + excString);
+            }
         }
 
-        // Below is an example of how to define a full configuration for a new Bootstrap provider that is not already specified in the config file.
-        private void Example_ConfigureNewBootstrapProvider(ClusterConfiguration config)
+        private Stream GenerateStreamFromString(string s)
         {
-            //const string myProviderFullTypeName = "FullNameSpace.NewBootstrapProviderType"; // Alternatively, can be something like typeof(EventStoreInitBootstrapProvider).FullName
-            //const string myProviderName = "MyNewBootstrapProvider"; // what ever arbitrary name you want to give to your provider
-            //var properties = new Dictionary<string, string>();
-
-            //config.Globals.RegisterBootstrapProvider(myProviderFullTypeName, myProviderName, properties);
-
-            // The last line, config.Globals.RegisterBootstrapProvider, is commented out because the assembly with "FullNameSpace.NewBootstrapProviderType" is not added to the project,
-            // this the silo will fail to load the new bootstrap provider upon startup.
-            // !!!!!!!!!! Provider of type FullNameSpace.NewBootstrapProviderType name MyNewBootstrapProvider was not loaded.
-            // Once you add your new provider to the project, uncommnet this line.
-
-            // Once silo starts you can see that it prints in the log:
-            // Providers:
-            //      BootstrapProviders:
-            //          Name=MyNewBootstrapProvider, Type=FullNameSpace.NewBootstrapProviderType, Properties=[]
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
 
         public override bool OnStart()
         {
+			
+
+			if (!RoleEnvironment.IsEmulated)
+			{
+				
+				try
+				{
+					CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+					var key = storageAccount.Credentials.ExportBase64EncodedKey();
+					var storageAccountName = storageAccount.Credentials.AccountName;
+					// Mount a drive.
+					FilesMappedDrive.Mount("Y:", @"\\"+storageAccountName+@".file.core.windows.net\solutions", storageAccountName,key);
+                    // Dg Subsription: orleansstoragedg 0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==
+                    //FilesMappedDrive.Mount("Y:", @"\\orleansstorage2.file.core.windows.net\solutions", "orleansstorage2",
+                    //	"ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==");
+                }
+                catch (Exception exc)
+				{
+					while (exc is AggregateException) exc = exc.InnerException;
+					Trace.TraceError("Error trying to mount Azure File {0}", exc.ToString());
+                    WriteToTempFile(exc.ToString());
+                }
+
+            }
+			// Unmount a drive.
+			//FilesMappedDrive.Unmount("P:");
+
+			// Mount a drive for a CloudFileShare.
+			//CloudFileShare share = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"))
+			//	.CreateCloudFileClient()
+			//	.GetShareReference("reports");
+			//share.Mount("P:");
+
+			// List drives mapped to an Azure Files share.
+			//foreach (var mappedDrive in FilesMappedDrive.GetMountedShares())
+			//{
+			//	Trace.WriteLine(String.Format("{0} - {1}", mappedDrive.DriveLetter, mappedDrive.Path));
+			//}
+ 
+
             // Set the maximum number of concurrent connections
-            ServicePointManager.DefaultConnectionLimit = 12;
+            //ServicePointManager.DefaultConnectionLimit = 12;
 
             // For information on handling configuration changes
             // see the MSDN topic at http://go.microsoft.com/fwlink/?LinkId=166357.
+
+			RoleEnvironment.Changing += RoleEnvironmentOnChanging;
 
             bool result = base.OnStart();
 
@@ -161,12 +209,47 @@ namespace OrleansSilosInAzure
             return result;
         }
 
+
+		/// <summary>
+		/// This event is called after configuration changes have been submited to Windows Azure but before they have been applied in this instance
+		/// </summary>
+		/// <param name="sender">The sender.</param>
+		/// <param name="e">The <see cref="RoleEnvironmentChangingEventArgs" /> instance containing the event data.</param>
+		private void RoleEnvironmentOnChanging(object sender, RoleEnvironmentChangingEventArgs e)
+		{
+            // Implements the changes after restarting the role instance
+            foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentTopologyChange))
+            {
+                e.Cancel = true;
+                return;
+            }
+
+   //         foreach (RoleEnvironmentConfigurationSettingChange settingChange in e.Changes.Where(x => x is RoleEnvironmentConfigurationSettingChange))
+			//{
+			//	switch (settingChange.ConfigurationSettingName)
+			//	{
+   //                 case "Startup.ExternalTasksUrl":
+   //                     Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+   //                     e.Cancel = true;
+   //                     return;
+   //                 case "Startup.VsInstallDir":
+   //                     Trace.TraceWarning("The specified configuration changes can't be made on a running instance. Recycling...");
+   //                     e.Cancel = true;
+   //                     return;
+   //             }
+			//}
+		}
+
+
         public override void OnStop()
         {
             Trace.TraceInformation("OrleansSilosInAzure is stopping");
-
+            
             this.cancellationTokenSource.Cancel();
             this.runCompleteEvent.WaitOne();
+
+            orleansAzureSilo.Stop();
+            WriteToTempFile("OrleansSilosInAzure has stopped");
 
             base.OnStop();
 
@@ -321,5 +404,6 @@ namespace OrleansSilosInAzure
     //    }
     //}
     #endregion
+
 
 }

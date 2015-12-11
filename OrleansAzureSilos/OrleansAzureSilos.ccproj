@@ -12,6 +12,8 @@
     <AssemblyName>OrleansAzureSilos</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>OrleansAzureSilos</Name>
+    <PackageEnableRemoteDebugger>False</PackageEnableRemoteDebugger>
+    <UseWebProjectPorts>False</UseWebProjectPorts>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,14 +39,6 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Orchestator\Orchestator.csproj">
-      <Name>Orchestator</Name>
-      <Project>{4e736a1b-ef2e-40a7-88e8-663d77b31b9b}</Project>
-      <Private>True</Private>
-      <RoleType>Worker</RoleType>
-      <RoleName>Orchestator</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-    </ProjectReference>
     <ProjectReference Include="..\OrleansSilosInAzure\OrleansSilosInAzure.csproj">
       <Name>OrleansSilosInAzure</Name>
       <Project>{c07f6004-d958-4be5-a348-1d8f6ee2d60a}</Project>
@@ -53,14 +47,41 @@
       <RoleName>OrleansSilosInAzure</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
+    <ProjectReference Include="..\WebAPI\WebAPI.csproj">
+      <Name>WebAPI</Name>
+      <Project>{1e551217-6d01-4141-bc9f-b861c8154632}</Project>
+      <Private>True</Private>
+      <RoleType>Web</RoleType>
+      <RoleName>WebAPI</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
+    <ProjectReference Include="..\WebRole1\WebRole1.csproj">
+      <Name>WebRole1</Name>
+      <Project>{304dd841-07b0-4753-8457-ca22965ea5ba}</Project>
+      <Private>True</Private>
+      <RoleType>Web</RoleType>
+      <RoleName>WebRole1</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="OrchestatorContent\" />
     <Folder Include="OrleansSilosInAzureContent\" />
+    <Folder Include="Profiles" />
+    <Folder Include="WebAPIContent\" />
+    <Folder Include="WebRole1Content\" />
   </ItemGroup>
   <ItemGroup>
-    <DiagnosticsConfiguration Include="OrchestatorContent\diagnostics.wadcfgx" />
     <DiagnosticsConfiguration Include="OrleansSilosInAzureContent\diagnostics.wadcfgx" />
+    <DiagnosticsConfiguration Include="WebAPIContent\diagnostics.wadcfgx" />
+    <DiagnosticsConfiguration Include="WebRole1Content\diagnostics.wadcfgx" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublishProfile Include="Profiles\orleansservicedgProduction.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansservicedgProduction1.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansservicedgProduction2.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansServiceProduction.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansServiceProduction1.azurePubxml" />
+    <PublishProfile Include="Profiles\orleansServiceProduction3.azurePubxml" />
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
