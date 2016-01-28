@@ -179,6 +179,7 @@
     <Compile Include="Roslyn\CodeGraphHelper.cs" />
     <Compile Include="Roslyn\DocumentDiff.cs" />
     <Compile Include="Roslyn\ExpressionVisitor.cs" />
+    <Compile Include="Roslyn\IOperationASTVisitor.cs" />
     <Compile Include="Roslyn\LibraryMethodProcessor.cs" />
     <Compile Include="Roslyn\MethodSimpifier.cs" />
     <Compile Include="BaseManagers\ProjectCodeProviderIncremental.cs" />
