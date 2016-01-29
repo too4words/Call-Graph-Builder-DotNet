@@ -19,21 +19,21 @@ using TestSources;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	public interface IProjectState : IGrainState
-	//public class ProjectState
+	//public interface IProjectState : IGrainState
+	public class ProjectState : GrainState
 	{
-        /*public*/ string ProjectPath { get; set; }
-        /*public*/ string AssemblyName { get; set; }
-        /*public*/ string Source { get; set; }
-		/*public*/ string TestName { get; set; }
+        public string ProjectPath { get; set; }
+        public string AssemblyName { get; set; }
+        public string Source { get; set; }
+		public string TestName { get; set; }
     }
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
     [StorageProvider(ProviderName = "AzureStore")]
     [Reentrant]
-	public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
-	//public class ProjectCodeProviderGrain : Grain, IProjectCodeProviderGrain
+	//public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
+	public class ProjectCodeProviderGrain : Grain<ProjectState>, IProjectCodeProviderGrain
     {
 		[NonSerialized]
         private IProjectCodeProvider projectCodeProvider;
