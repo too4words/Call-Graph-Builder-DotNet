@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 using Orleans;
 using ReachingTypeAnalysis.Communication;
 using SolutionTraversal.CallGraph;

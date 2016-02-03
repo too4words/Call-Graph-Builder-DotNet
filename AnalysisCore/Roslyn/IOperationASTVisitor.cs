@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.Semantics;
+using ReachingTypeAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -1244,4 +1246,13 @@ namespace AnalysisCore.Roslyn
 	//    #endregion
 	//}
 
+	internal class PropagationGraphBuilder : IOperationVisitor<PropGraphNodeDescriptor, PropGraphNodeDescriptor>
+	{
+		private PropagationGraph propagationGraph;
+
+		public PropagationGraphBuilder()
+		{
+			propagationGraph = new PropagationGraph();
+		}
+	}
 }

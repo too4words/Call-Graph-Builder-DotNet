@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Linq;
 using System.Collections.Concurrent;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using ReachingTypeAnalysis.Analysis;
 using System.IO;
 using ReachingTypeAnalysis.Roslyn;
-using Microsoft.CodeAnalysis.CSharp;
 
 using DocumentPath = System.String;
 using Orleans;

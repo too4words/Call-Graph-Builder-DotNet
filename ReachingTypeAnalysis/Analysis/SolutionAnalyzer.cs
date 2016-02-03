@@ -7,16 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Orleans;
 using OrleansInterfaces;
 using ReachingTypeAnalysis.Analysis;
 using ReachingTypeAnalysis.Communication;
 using ReachingTypeAnalysis.Roslyn;
 using SolutionTraversal.CallGraph;
-using Microsoft.CodeAnalysis.MSBuild;
 using ReachingTypeAnalysis.Statistics;
+using Microsoft.CodeAnalysis;
 
 namespace ReachingTypeAnalysis
 {

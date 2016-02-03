@@ -8,7 +8,6 @@ using Orleans.Providers;
 using OrleansInterfaces;
 using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Roslyn;
-using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;

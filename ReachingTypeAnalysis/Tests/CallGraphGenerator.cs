@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SolutionTraversal.CallGraph;
 using System;
@@ -11,9 +8,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Diagnostics.Contracts;
 using System.IO;
-using Microsoft.CodeAnalysis.MSBuild;
 using System.Xml;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace ReachingTypeAnalysis.Tests
 {
