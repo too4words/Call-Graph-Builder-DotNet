@@ -153,7 +153,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
 
 			// This take cares of doing the progation of types
-			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
+			var orchestrator = OrleansOrchestratorManager.GetOrchestratorGrain(this.GrainFactory);
+			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider, orchestrator);
 
             await this.WriteStateAsync();
 

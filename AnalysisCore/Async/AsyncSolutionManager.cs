@@ -17,28 +17,29 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDictionary<AssemblyName, IProjectCodeProvider> projectProviders;
 		private IDictionary<AssemblyName, IProjectCodeProvider> newProjectProviders;
 
-		private AsyncSolutionManager() : base()
+		private AsyncSolutionManager(IOrchestratorManager orchestratorManager)
+			: base(orchestratorManager)
 		{
 			this.projectProviders = new Dictionary<AssemblyName, IProjectCodeProvider>();
 		}
 
-		public static async Task<AsyncSolutionManager> CreateFromSolutionAsync(string solutionPath)
+		public static async Task<AsyncSolutionManager> CreateFromSolutionAsync(string solutionPath, IOrchestratorManager orchestratorManager)
 		{
-			var manager = new AsyncSolutionManager();
+			var manager = new AsyncSolutionManager(orchestratorManager);
 			await manager.LoadSolutionAsync(solutionPath);
 			return manager;
 		}
 
-		public static async Task<AsyncSolutionManager> CreateFromSourceAsync(string source)
+		public static async Task<AsyncSolutionManager> CreateFromSourceAsync(string source, IOrchestratorManager orchestratorManager)
 		{
-			var manager = new AsyncSolutionManager();
+			var manager = new AsyncSolutionManager(orchestratorManager);
 			await manager.LoadSourceAsync(source);
 			return manager;
 		}
 
-		public static async Task<AsyncSolutionManager> CreateFromTestAsync(string testName)
+		public static async Task<AsyncSolutionManager> CreateFromTestAsync(string testName, IOrchestratorManager orchestratorManager)
 		{
-			var manager = new AsyncSolutionManager();
+			var manager = new AsyncSolutionManager(orchestratorManager);
 			await manager.LoadTestAsync(testName);
 			return manager;
 		}
@@ -63,7 +64,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath, this);
+			var provider = await AsyncProjectCodeProvider.CreateFromProjectAsync(projectPath, this, this.orchestratorManager);
 
             lock (this.ProjectProviders)
             {
@@ -88,7 +89,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName, this);
+			var provider = await AsyncProjectCodeProvider.CreateFromSourceAsync(source, assemblyName, this, this.orchestratorManager);
 			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
@@ -102,7 +103,7 @@ namespace ReachingTypeAnalysis.Analysis
 				//throw new Exception(message);
 			}
 
-			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName, this);
+			var provider = await AsyncProjectCodeProvider.CreateFromTestAsync(testName, assemblyName, this, this.orchestratorManager);
 			this.ProjectProviders.Add(assemblyName, provider);
 		}
 
@@ -121,7 +122,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private IProjectCodeProvider GetDummyProjectCodeProvider()
 		{
-			var provider = new AsyncDummyProjectCodeProvider();
+			var provider = new AsyncDummyProjectCodeProvider(this.orchestratorManager);
 			return provider;
 		}
 

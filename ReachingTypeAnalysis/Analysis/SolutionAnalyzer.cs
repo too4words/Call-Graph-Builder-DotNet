@@ -37,7 +37,8 @@ namespace ReachingTypeAnalysis
 		private string testName;
 
 		public ISolutionManager SolutionManager { get; private set; }
-        public AnalysisRootKind RootKind { get; set; } 
+		public IOrchestratorManager OrchestratorManager { get; private set; }
+		public AnalysisRootKind RootKind { get; set; } 
 
 		public static int MessageCounter { get; private set; }
 
@@ -155,27 +156,33 @@ namespace ReachingTypeAnalysis
 
         private async Task AnalyzeOnDemandAsync()
         {
-            if (this.source != null)
+			var orchestratorManager = new AsyncOrchestratorManager();
+			this.OrchestratorManager = orchestratorManager;
+
+			if (this.source != null)
             {
-                this.SolutionManager = await AsyncSolutionManager.CreateFromSourceAsync(this.source);
+                this.SolutionManager = await AsyncSolutionManager.CreateFromSourceAsync(this.source, orchestratorManager);
             }
 			else if (this.testName != null)
 			{
-				this.SolutionManager = await AsyncSolutionManager.CreateFromTestAsync(this.testName);
+				this.SolutionManager = await AsyncSolutionManager.CreateFromTestAsync(this.testName, orchestratorManager);
 			}
 			else if(this.solutionPath != null)
             {
-                this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath);
+                this.SolutionManager = await AsyncSolutionManager.CreateFromSolutionAsync(this.solutionPath, orchestratorManager);
             }
 			else
 			{
 				throw new Exception("We need a solutionPath, source code or testName to analyze");
 			}
 
+			await orchestratorManager.InitializeAsync(this.SolutionManager, 10);
 			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
-			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
-            await orchestator.AnalyzeAsync(roots);
-        }
+			await orchestratorManager.ProcessMethodsAsync(roots);
+
+			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
+			//await orchestator.AnalyzeAsync(roots);
+		}
 
 		public async Task AnalyzeOnDemandOrleans()
         {
@@ -188,6 +195,8 @@ namespace ReachingTypeAnalysis
 		{
 			SolutionAnalyzer.MessageCounter = 0;
 			//GrainClient.ClientInvokeCallback = OnClientInvokeCallBack;
+
+			this.OrchestratorManager = OrleansOrchestratorManager.GetOrchestratorGrain(GrainClient.GrainFactory);
 
 			// For orleans we cannot use the strategy to create a solution
 			// The solution grain creates an internal strategy and contain an internal 
@@ -238,13 +247,15 @@ namespace ReachingTypeAnalysis
 
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
 
-			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
-			await orchestator.AnalyzeAsync(roots);
-            //await orchestator.AnalyzeDistributedAsync(roots);
+			await this.OrchestratorManager.ProcessMethodsAsync(roots);
 
-			//var callGraph = await orchestator.GenerateCallGraphAsync();
+			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
+			//await orchestator.AnalyzeAsync(roots);
+			////await orchestator.AnalyzeDistributedAsync(roots);
+
+			////var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
-			//return callGraph;
+			////return callGraph;
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

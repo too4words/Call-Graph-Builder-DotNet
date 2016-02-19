@@ -136,7 +136,7 @@ namespace ReachingTypeAnalysis.Roslyn
 		public async Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor)
 		{
 			var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor) as MethodEntity;
-			var result = new MethodEntityWithPropagator(methodEntity, this);
+			var result = new MethodEntityWithPropagator(methodEntity, this, null);
 			return result;
         }
 

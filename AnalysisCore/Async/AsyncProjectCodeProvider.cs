@@ -20,8 +20,8 @@ namespace ReachingTypeAnalysis.Roslyn
 		//private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
 		//private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> newMethodEntities;
 
-		private AsyncProjectCodeProvider(ISolutionManager solutionManager)
-			: base(solutionManager, new RtaManager())
+		private AsyncProjectCodeProvider(ISolutionManager solutionManager, IOrchestratorManager orchestratorManager)
+			: base(solutionManager, new RtaManager(), orchestratorManager)
         {
 			this.methodEntities = new ConcurrentDictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
@@ -31,23 +31,23 @@ namespace ReachingTypeAnalysis.Roslyn
 			get { return useNewFieldsVersion ? newMethodEntities : methodEntities; }
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath, ISolutionManager solutionManager)
+		public static async Task<AsyncProjectCodeProvider> CreateFromProjectAsync(string projectPath, ISolutionManager solutionManager, IOrchestratorManager orchestratorManager)
 		{
-			var provider = new AsyncProjectCodeProvider(solutionManager);
+			var provider = new AsyncProjectCodeProvider(solutionManager, orchestratorManager);
 			await provider.LoadProjectAsync(projectPath);
 			return provider;
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName, ISolutionManager solutionManager)
+		public static async Task<AsyncProjectCodeProvider> CreateFromSourceAsync(string source, string assemblyName, ISolutionManager solutionManager, IOrchestratorManager orchestratorManager)
 		{
-			var provider = new AsyncProjectCodeProvider(solutionManager);
+			var provider = new AsyncProjectCodeProvider(solutionManager, orchestratorManager);
 			await provider.LoadSourceAsync(source, assemblyName);
 			return provider;
 		}
 
-		public static async Task<AsyncProjectCodeProvider> CreateFromTestAsync(string testName, string assemblyName, ISolutionManager solutionManager)
+		public static async Task<AsyncProjectCodeProvider> CreateFromTestAsync(string testName, string assemblyName, ISolutionManager solutionManager, IOrchestratorManager orchestratorManager)
 		{
-			var provider = new AsyncProjectCodeProvider(solutionManager);
+			var provider = new AsyncProjectCodeProvider(solutionManager, orchestratorManager);
 			await provider.LoadTestAsync(testName, assemblyName);
 			return provider;
 		}
@@ -65,7 +65,7 @@ namespace ReachingTypeAnalysis.Roslyn
 					methodEntity = methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
 				}
 
-				result = new MethodEntityWithPropagator(methodEntity, this);
+				result = new MethodEntityWithPropagator(methodEntity, this, this.orchestratorManager);
 				//lock (this.methodEntities)
 				{
 					this.MethodEntities.TryAdd(methodDescriptor, result);

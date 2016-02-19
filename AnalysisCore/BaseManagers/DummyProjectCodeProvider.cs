@@ -16,6 +16,13 @@ namespace ReachingTypeAnalysis.Analysis
 {
 	public abstract class DummyProjectCodeProvider : IProjectCodeProvider
 	{
+		protected IOrchestratorManager orchestratorManager;
+
+		protected DummyProjectCodeProvider(IOrchestratorManager orchestratorManager)
+		{
+			this.orchestratorManager = orchestratorManager;
+		}
+
 		public Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
 		{
 			return Task.FromResult(true);

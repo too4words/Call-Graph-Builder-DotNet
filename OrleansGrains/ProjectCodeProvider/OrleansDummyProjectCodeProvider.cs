@@ -20,10 +20,18 @@ namespace ReachingTypeAnalysis.Analysis
 		private IGrainFactory grainFactory;
 		private ISet<MethodDescriptor> reachableMethods;
 
-		public OrleansDummyProjectCodeProvider(IGrainFactory grainFactory)
+		private OrleansDummyProjectCodeProvider(IGrainFactory grainFactory, IOrchestratorManager orchestratorManager)
+			: base(orchestratorManager)
 		{
 			this.grainFactory = grainFactory;
 			this.reachableMethods = new HashSet<MethodDescriptor>();
+		}
+
+		public static Task<OrleansDummyProjectCodeProvider> CreateAsync(IGrainFactory grainFactory)
+		{
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var provider = new OrleansDummyProjectCodeProvider(grainFactory, orchestratorGrain);
+			return Task.FromResult(provider);
 		}
 
 		public override Task<IEntity> CreateMethodEntityAsync(MethodDescriptor methodDescriptor)

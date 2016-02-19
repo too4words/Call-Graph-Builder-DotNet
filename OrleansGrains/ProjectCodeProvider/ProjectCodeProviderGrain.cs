@@ -87,7 +87,7 @@ namespace ReachingTypeAnalysis.Analysis
 					}
 					else if (this.State.AssemblyName.Equals("DUMMY"))
 					{
-						this.projectCodeProvider = new OrleansDummyProjectCodeProvider(this.GrainFactory);
+						this.projectCodeProvider = await OrleansDummyProjectCodeProvider.CreateAsync(this.GrainFactory);
 
 						await this.WriteStateAsync();
 					}

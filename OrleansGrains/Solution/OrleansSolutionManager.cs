@@ -21,7 +21,8 @@ namespace ReachingTypeAnalysis.Analysis
 		private ISet<MethodDescriptor> methodDescriptors;
 		private ISet<MethodDescriptor> newMethodDescriptors;
 
-		private OrleansSolutionManager(SolutionGrain solutionGrain, IGrainFactory grainFactory)
+		private OrleansSolutionManager(SolutionGrain solutionGrain, IGrainFactory grainFactory, IOrchestratorManager orchestratorManager)
+			: base(orchestratorManager)
 		{
 			this.solutionGrain = solutionGrain;
 			this.grainFactory = grainFactory;
@@ -44,21 +45,24 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public static async Task<OrleansSolutionManager> CreateFromSolutionAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string solutionPath)
         {
-			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory, orchestratorGrain);
             await manager.LoadSolutionAsync(solutionPath);
             return manager;
         }
 
         public static async Task<OrleansSolutionManager> CreateFromSourceAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string source)
         {
-			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory, orchestratorGrain);
             await manager.LoadSourceAsync(source);
             return manager;
         }
 
 		public static async Task<OrleansSolutionManager> CreateFromTestAsync(SolutionGrain solutionGrain, IGrainFactory grainFactory, string testName)
         {
-			var manager = new OrleansSolutionManager(solutionGrain, grainFactory);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var manager = new OrleansSolutionManager(solutionGrain, grainFactory, orchestratorGrain);
             await manager.LoadTestAsync(testName);
             return manager;
         }

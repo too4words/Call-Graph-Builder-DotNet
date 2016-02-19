@@ -131,6 +131,17 @@ namespace ReachingTypeAnalysis
         Task<ISet<TypeDescriptor>> GetInstantiatedTypesAsync();
     }
 
+	public interface IOrchestratorManager
+	{
+		Task ProcessMethodsAsync(IEnumerable<MethodDescriptor> methods);
+		Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind);
+	}
+
+	public interface IEffectsProcessorManager
+	{
+		Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind);
+	}
+
     public delegate void MessageHandler(IMessage message);
 
     public interface IMessage

@@ -22,8 +22,9 @@ namespace ReachingTypeAnalysis.Analysis
         private List<int> UpdateHistory = new List<int>();
         private MethodEntity methodEntity;
         private IProjectCodeProvider codeProvider;
-        //private Queue<PropagationEffects> propagationEffectsToSend;
-        //private Orleans.Runtime.Logger logger = GrainClient.Logger;
+		private IOrchestratorManager orchestratorManager;
+		//private Queue<PropagationEffects> propagationEffectsToSend;
+		//private Orleans.Runtime.Logger logger = GrainClient.Logger;
 
 		///// <summary>
 		///// This build a MethodEntityPropagator with a solution
@@ -49,16 +50,17 @@ namespace ReachingTypeAnalysis.Analysis
 		//	}            
 		//}
 
-        /// <summary>
-        /// Creates the Propagator using directly an entity and a provider
-        /// This can be used by the MethodEntityGrain
-        /// </summary>
-        /// <param name="methodEntity"></param>
-        /// <param name="provider"></param>
-        public MethodEntityWithPropagator(MethodEntity methodEntity, IProjectCodeProvider provider)
+		/// <summary>
+		/// Creates the Propagator using directly an entity and a provider
+		/// This can be used by the MethodEntityGrain
+		/// </summary>
+		/// <param name="methodEntity"></param>
+		/// <param name="provider"></param>
+		public MethodEntityWithPropagator(MethodEntity methodEntity, IProjectCodeProvider provider, IOrchestratorManager orchestratorManager)
         {
-            this.codeProvider = provider;
-            this.methodEntity = methodEntity;
+			this.methodEntity = methodEntity;
+			this.codeProvider = provider;
+			this.orchestratorManager = orchestratorManager;
 			//this.propagationEffectsToSend = new Queue<PropagationEffects>();
         }
 
@@ -73,6 +75,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			return PropagateAsync(propKind);
 		}
+
         public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             this.methodEntity.PropGraph.ResetUpdateCount();
@@ -231,7 +234,10 @@ namespace ReachingTypeAnalysis.Analysis
             this.methodEntity.AddToCallers(context);
 
             var effects = await InternalPropagateAsync(callMessageInfo.PropagationKind);
-            Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "End Propagation for {0} ", callMessageInfo.Callee);
+
+			await this.orchestratorManager.ProcessEffectsAsync(effects, callMessageInfo.PropagationKind);
+
+			Logger.LogS("MethodEntityGrain", "PropagateAsync-call", "End Propagation for {0} ", callMessageInfo.Callee);
             return effects;
         }
 
@@ -247,11 +253,10 @@ namespace ReachingTypeAnalysis.Analysis
                 await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes, returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
             }
 
-            /// We need to recompute possible calless 
             var effects = await InternalPropagateAsync(returnMessageInfo.PropagationKind);
-            Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
 
-            if (returnMessageInfo.PropagationKind == PropagationKind.REMOVE_TYPES)
+			// We need to recompute possible calless 
+			if (returnMessageInfo.PropagationKind == PropagationKind.REMOVE_TYPES)
             {
                 var invoInfo = from callNode in this.methodEntity.PropGraph.CallNodes
                                select this.methodEntity.PropGraph.GetInvocationInfo(callNode);
@@ -259,7 +264,10 @@ namespace ReachingTypeAnalysis.Analysis
                 await this.PopulateCalleesInfo(invoInfo);
             }
 
-            return effects;
+			await this.orchestratorManager.ProcessEffectsAsync(effects, returnMessageInfo.PropagationKind);
+
+			Logger.LogS("MethodEntityGrain", "PropagateAsync-return", "End Propagation for {0} ", returnMessageInfo.Caller);
+			return effects;
         }
 
         public async Task<ISet<MethodDescriptor>> GetCalleesAsync(int invocationPosition)

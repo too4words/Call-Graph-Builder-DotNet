@@ -158,12 +158,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisMessages.cs" />
+    <Compile Include="Async\AsyncOrchestratorManager.cs" />
     <Compile Include="Async\AsyncSolutionManager.cs" />
     <Compile Include="Async\AsyncProjectCodeProvider.cs" />
     <Compile Include="Async\AsyncDummyProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\DummyProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\EffectsProcessorManager.cs" />
     <Compile Include="BaseManagers\MethodEntityPropagator.cs" />
     <Compile Include="BaseManagers\BaseProjectCodeProvider.cs" />
+    <Compile Include="BaseManagers\OrchestratorManager.cs" />
     <Compile Include="BaseManagers\RtaManager.cs" />
     <Compile Include="BaseManagers\SolutionManager.cs" />
     <Compile Include="Graph\Graph.cs" />

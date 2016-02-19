@@ -168,9 +168,8 @@ namespace ReachingTypeAnalysis.Roslyn
 			// We should not throw an exception. Maybe return a dummy code Provider to let the analysis evolve
 			// or an informative message in order to let the caller continue. We can declare the exception
 			// throw new ArgumentException("Cannot find a provider for " + methodDescriptor);
-			return new Tuple<IProjectCodeProvider, SyntaxTree>(new AsyncDummyProjectCodeProvider(), null);
+			return new Tuple<IProjectCodeProvider, SyntaxTree>(new AsyncDummyProjectCodeProvider(null), null);
 		}
-
 
 		#endregion
 	}

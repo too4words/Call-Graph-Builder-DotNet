@@ -16,7 +16,8 @@ namespace ReachingTypeAnalysis.Roslyn
 	{
 		private IDictionary<MethodDescriptor, IMethodEntityWithPropagator> methodEntities;
 
-		public AsyncDummyProjectCodeProvider()
+		public AsyncDummyProjectCodeProvider(IOrchestratorManager orchestratorManager)
+			: base(orchestratorManager)
         {
 			this.methodEntities = new Dictionary<MethodDescriptor, IMethodEntityWithPropagator>();
 		}
@@ -29,7 +30,7 @@ namespace ReachingTypeAnalysis.Roslyn
 			{
 				var methodEntity = await this.CreateMethodEntityAsync(methodDescriptor) as MethodEntity;
 
-				result = new MethodEntityWithPropagator(methodEntity, this);
+				result = new MethodEntityWithPropagator(methodEntity, this, this.orchestratorManager);
 				this.methodEntities.Add(methodDescriptor, result);
 			}
 

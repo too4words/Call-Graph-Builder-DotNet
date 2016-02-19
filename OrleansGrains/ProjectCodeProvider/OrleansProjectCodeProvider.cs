@@ -21,8 +21,8 @@ namespace ReachingTypeAnalysis.Analysis
 		private ISet<MethodDescriptor> reachableMethods;
 		private ISet<MethodDescriptor> methodsToRemove;
 
-		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager, IRtaManager rtaManager)
-			: base(solutionManager, rtaManager)
+		private OrleansProjectCodeProvider(IGrainFactory grainFactory, ISolutionManager solutionManager, IRtaManager rtaManager, IOrchestratorManager orchestratorManager)
+			: base(solutionManager, rtaManager, orchestratorManager)
 		{
 			this.grainFactory = grainFactory;
 			this.reachableMethods = new HashSet<MethodDescriptor>();
@@ -43,7 +43,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(grainFactory);
             var rtaGain = OrleansRtaManager.GetRtaGrain(grainFactory);
-			var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain, orchestratorGrain);
 			await provider.LoadProjectAsync(projectPath);
 			return provider;
 		}
@@ -52,7 +53,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(grainFactory);
             var rtaGain = OrleansRtaManager.GetRtaGrain(grainFactory);
-            var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain, orchestratorGrain);
             await provider.LoadSourceAsync(source, assemblyName);
 			return provider;
 		}
@@ -61,8 +63,9 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var solutionGrain = OrleansSolutionManager.GetSolutionGrain(grainFactory);
             var rtaGain = OrleansRtaManager.GetRtaGrain(grainFactory);
-            var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain);
-            await provider.LoadTestAsync(testName, assemblyName);
+			var orchestratorGrain = OrleansOrchestratorManager.GetOrchestratorGrain(grainFactory);
+			var provider = new OrleansProjectCodeProvider(grainFactory, solutionGrain, rtaGain, orchestratorGrain);
+			await provider.LoadTestAsync(testName, assemblyName);
 			return provider;
 		}
 

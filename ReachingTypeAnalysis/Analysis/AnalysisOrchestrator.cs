@@ -331,7 +331,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (GrainClient.IsInitialized)
 			{
-				Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
+				Logger.LogInfo(GrainClient.Logger, "Orchestrator", "PropagateEffects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
 			}
 
 			await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
@@ -568,15 +568,15 @@ namespace ReachingTypeAnalysis.Analysis
 
 			Logger.LogS("AnalysisOrchestator", "AnalyzeReturnAsync", "End Analyzing return to {0} ", caller);
 		}
-		private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+
+		private async Task<IMethodEntityWithPropagator> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
 		{
-			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method) as IMethodEntityGrain;
+			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
 			// Force MethodGrain placement near projects
 			//var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
 			return methodEntityProc;
 		}
-
 
 		#region Incremental Analysis
 

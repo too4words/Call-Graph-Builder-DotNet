@@ -70,6 +70,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IEffectsProcessorGrain.cs" />
+    <Compile Include="IOrchestratorGrain.cs" />
     <Compile Include="IRtaGrain.cs" />
     <Compile Include="Observers.cs" />
     <Compile Include="IProjectCodeProviderGrain.cs" />

@@ -21,9 +21,11 @@ namespace ReachingTypeAnalysis.Analysis
 		protected ISet<TypeDescriptor> instantiatedTypes;
 		protected bool useNewFieldsVersion;
 		protected IEnumerable<MethodDescriptor> rootMethods;
+		protected IOrchestratorManager orchestratorManager;
 
-		protected SolutionManager()
+		protected SolutionManager(IOrchestratorManager orchestratorManager)
 		{
+			this.orchestratorManager = orchestratorManager;
 			this.instantiatedTypes = new HashSet<TypeDescriptor>();
 		}
 

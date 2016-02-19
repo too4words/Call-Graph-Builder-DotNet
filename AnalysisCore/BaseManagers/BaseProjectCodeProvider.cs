@@ -61,11 +61,13 @@ namespace ReachingTypeAnalysis.Analysis
 		protected bool useNewFieldsVersion;
 		protected ISolutionManager solutionManager;
         protected IRtaManager rtaManager;
+		protected IOrchestratorManager orchestratorManager;
 
-		protected BaseProjectCodeProvider(ISolutionManager solutionManager, IRtaManager rtaManager)
+		protected BaseProjectCodeProvider(ISolutionManager solutionManager, IRtaManager rtaManager, IOrchestratorManager orchestratorManager)
         {
 			this.solutionManager = solutionManager;
             this.rtaManager = rtaManager;
+			this.orchestratorManager = orchestratorManager;
 			this.documentsInfo = new Dictionary<DocumentPath, DocumentInfo>();			
         }
 
