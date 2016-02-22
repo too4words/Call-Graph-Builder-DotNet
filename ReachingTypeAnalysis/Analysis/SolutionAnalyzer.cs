@@ -179,6 +179,7 @@ namespace ReachingTypeAnalysis
 			await orchestratorManager.InitializeAsync(this.SolutionManager, 10);
 			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 			await orchestratorManager.ProcessMethodsAsync(roots);
+			await this.WaitForTerminationAsync();
 
 			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			//await orchestator.AnalyzeAsync(roots);
@@ -248,6 +249,7 @@ namespace ReachingTypeAnalysis
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
 
 			await this.OrchestratorManager.ProcessMethodsAsync(roots);
+			await this.WaitForTerminationAsync();
 
 			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
 			//await orchestator.AnalyzeAsync(roots);
@@ -256,6 +258,31 @@ namespace ReachingTypeAnalysis
 			////var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
 			////return callGraph;
+		}
+
+		private async Task WaitForTerminationAsync()
+		{
+			var count = await this.OrchestratorManager.GetCounterAsync();
+
+			while (count > 0)
+			{
+				await Task.Delay(500);
+				count = await this.OrchestratorManager.GetCounterAsync();
+
+				if (GrainClient.IsInitialized)
+				{
+					Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "WaitForTermination", "Message Counter: {0}", count);
+				}
+			}
+
+			var reachableMethodsCount = await this.SolutionManager.GetReachableMethodsCountAsync();
+
+			if (GrainClient.IsInitialized)
+			{
+				Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "WaitForTermination", "Reachable methods={0}", reachableMethodsCount);
+			}
+
+			Console.WriteLine("Reachable methods={0}", reachableMethodsCount);
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

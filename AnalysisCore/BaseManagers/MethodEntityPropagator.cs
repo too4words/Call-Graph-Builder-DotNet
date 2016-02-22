@@ -76,11 +76,16 @@ namespace ReachingTypeAnalysis.Analysis
 			return PropagateAsync(propKind);
 		}
 
-        public Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
+        public async Task<PropagationEffects> PropagateAsync(PropagationKind propKind)
         {
             this.methodEntity.PropGraph.ResetUpdateCount();
-            return InternalPropagateAsync(propKind);
-        }
+
+			var effects = await this.InternalPropagateAsync(propKind);
+
+			await this.orchestratorManager.ProcessEffectsAsync(effects, propKind);
+
+			return effects;
+		}
 
         private async Task<PropagationEffects> InternalPropagateAsync(PropagationKind propKind)
         {
@@ -199,7 +204,10 @@ namespace ReachingTypeAnalysis.Analysis
 			if (!this.methodEntity.CanBeAnalized)
 			{
 				var calleesInfo = new HashSet<CallInfo>();
-                return new PropagationEffects(calleesInfo, false);
+				var result = new PropagationEffects(calleesInfo, false);
+
+				await this.orchestratorManager.ProcessEffectsAsync(result, callMessageInfo.PropagationKind);
+				return result;
 			}
 			
             if (this.methodEntity.ThisRef != null)
@@ -233,7 +241,7 @@ namespace ReachingTypeAnalysis.Analysis
             var context = new CallContext(callMessageInfo.Caller, callMessageInfo.LHS, callMessageInfo.CallNode);
             this.methodEntity.AddToCallers(context);
 
-            var effects = await InternalPropagateAsync(callMessageInfo.PropagationKind);
+            var effects = await this.InternalPropagateAsync(callMessageInfo.PropagationKind);
 
 			await this.orchestratorManager.ProcessEffectsAsync(effects, callMessageInfo.PropagationKind);
 
@@ -253,7 +261,7 @@ namespace ReachingTypeAnalysis.Analysis
                 await this.methodEntity.PropGraph.DiffPropAsync(returnMessageInfo.ResultPossibleTypes, returnMessageInfo.LHS, returnMessageInfo.PropagationKind);
             }
 
-            var effects = await InternalPropagateAsync(returnMessageInfo.PropagationKind);
+            var effects = await this.InternalPropagateAsync(returnMessageInfo.PropagationKind);
 
 			// We need to recompute possible calless 
 			if (returnMessageInfo.PropagationKind == PropagationKind.REMOVE_TYPES)

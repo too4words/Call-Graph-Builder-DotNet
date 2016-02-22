@@ -435,13 +435,16 @@ namespace ReachingTypeAnalysis.Analysis
         public static Task RegisterDeactivation(string grainClass, IGrainFactory grainFactory)
 		{
 #if COMPUTE_STATS
-			var statGrain = GetStatGrain(grainFactory);
-			var calleeAddr = GetMyIPAddr();
-			return statGrain.RegisterActivation(grainClass, calleeAddr);
+			//var statGrain = GetStatGrain(grainFactory);
+			//var calleeAddr = GetMyIPAddr();
+			//return statGrain.RegisterDeactivation(grainClass, calleeAddr);
+
+			return TaskDone.Done;
 #else
 			return TaskDone.Done;
 #endif
 		}
+
 		public static StatsContext CreateMyIPAddrContext()
 		{
 			var addr = GetMyIPAddr();

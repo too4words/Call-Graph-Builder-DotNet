@@ -15,6 +15,7 @@ namespace ReachingTypeAnalysis.Analysis
 		protected ISolutionManager solutionManager;
 		private IList<IEffectsProcessorManager> processors;
 		private int currentProcessorIndex;
+		private int messageCount;
 
 		public OrchestratorManager()
 		{
@@ -36,52 +37,37 @@ namespace ReachingTypeAnalysis.Analysis
 
 		protected abstract IEffectsProcessorManager CreateEffectsProcessor(int index);
 
-		public async Task ProcessMethodsAsync(IEnumerable<MethodDescriptor> methods)
+		public Task<int> GetCounterAsync()
 		{
-			var tasks = new List<Task>();
-
-			foreach (var method in methods)
-			{
-				var task = this.ProcessMethodAsync(method);
-				//await task;
-				tasks.Add(task);
-			}
-
-			await Task.WhenAll(tasks);
+			return Task.FromResult(messageCount);
 		}
 
-		private async Task ProcessMethodAsync(MethodDescriptor method)
+		public Task ProcessMethodsAsync(IEnumerable<MethodDescriptor> methods)
 		{
-			Logger.LogS("OrchestratorManager", "ProcessMethod", "Analyzing: {0}", method);
+			foreach (var method in methods)
+			{
+				messageCount++;
 
-			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
-			var methodEntityProc = await GetMethodEntityGrainAndActivateInProject(method);
+				var processor = this.SelectEffectsProcessorAsync();
+				processor.ProcessMethodAsync(method); // do not await this call!!
+				//await processor.ProcessMethodAsync(method);
+			}
 
-			await methodEntityProc.UseDeclaredTypesForParameters();
-
-			//PropagationEffects propagationEffects = null;
-			//var ready = true;
-			//
-			//do
-			//{
-			//	propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
-			//	ready = await WaitForReady(propagationEffects, method);
-			//}
-			//while (!ready);
-			//
-			//await this.ProcessEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
-
-			var propagationEffects = await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
-
-			await this.ProcessEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES);
+			return TaskDone.Done;
 		}
 
 		public Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind)
 		{
 			Logger.LogS("OrchestratorManager", "ProcessEffects", "Propagating effets computed in {0}", effects.SiloAddress);
 
+			messageCount += effects.CalleesInfo.Sum(ci => ci.PossibleCallees.Count);
+			messageCount += effects.CallersInfo.Sum(ci => ci.ResultPossibleTypes.Count > 0 ? 1 : 0);
+
 			var processor = this.SelectEffectsProcessorAsync();
-			processor.ProcessEffectsAsync(effects, propKind);
+			processor.ProcessEffectsAsync(effects, propKind); // do not await this call!!
+			//await processor.ProcessEffectsAsync(effects, propKind);
+
+			messageCount--;
 			return TaskDone.Done;
 		}
 

@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ReachingTypeAnalysis;
+using Orleans.Concurrency;
 
 namespace ReachingTypeAnalysis.Analysis
 {
+	[Reentrant]
 	public class OrchestratorGrain : Grain, IOrchestratorGrain
 	{
 		[NonSerialized]
@@ -25,9 +27,14 @@ namespace ReachingTypeAnalysis.Analysis
 			this.orchestratorManager = await OrleansOrchestratorManager.CreateAsync(this.GrainFactory, this.solutionGrain);
 		}
 
-		public override Task OnDeactivateAsync()
+		public override async Task OnDeactivateAsync()
 		{
-			return StatsHelper.RegisterDeactivation("OrchestratorGrain", this.GrainFactory);
+			await StatsHelper.RegisterDeactivation("OrchestratorGrain", this.GrainFactory);
+		}
+
+		public Task<int> GetCounterAsync()
+		{
+			return this.orchestratorManager.GetCounterAsync();
 		}
 
 		public Task ProcessMethodsAsync(IEnumerable<MethodDescriptor> methods)

@@ -19,6 +19,21 @@ namespace ReachingTypeAnalysis.Analysis
 			this.solutionManager = solutionManager;
 		}
 
+		public async Task ProcessMethodAsync(MethodDescriptor method)
+		{
+			Logger.LogS("EffectsProcessorManager", "ProcessMethod", "Analyzing: {0}", method);
+
+			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
+			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(method);
+
+			await methodEntityProc.UseDeclaredTypesForParameters();
+
+			methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES); // do not await this call!!
+			//await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+
+			Logger.LogS("EffectsProcessorManager", "ProcessMethod", "End Analyzing {0} ", method);
+		}
+
 		public async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind)
 		{
 			Logger.LogS("EffectsProcessorManager", "ProcessEffects", "Propagating effets computed in {0}", effects.SiloAddress);
@@ -37,36 +52,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			foreach (var calleeInfo in calleesInfo)
 			{
-				//TODO: Need to Refactor to get rid of this ifs!
-				if (calleeInfo is MethodCallInfo)
-				{
-					// TODO: This should work in any order because the technique is flow insensitive 
-					// But actually for some reason the ordering is affecting the result
-					// I think the problem is the conservative treatment when types(receiver).Count = 0 
-					// (FIXED??)
-
-					var task = this.DispatchCallMessageForMethodCallAsync(calleeInfo as MethodCallInfo, propKind);
-					//await task;
-					tasks.Add(task);
-				}
-				else if (calleeInfo is DelegateCallInfo)
-				{
-					var task = this.DispatchCallMessageForDelegateCallAsync(calleeInfo as DelegateCallInfo, propKind);
-					//await task;
-					tasks.Add(task);
-				}
-			}
-
-			await Task.WhenAll(tasks);
-		}
-
-		private async Task DispatchCallMessageForMethodCallAsync(MethodCallInfo methodCallInfo, PropagationKind propKind)
-		{
-			var tasks = new List<Task>();
-
-			foreach (var callee in methodCallInfo.PossibleCallees)
-			{
-				var task = this.CreateAndSendCallMessageAsync(methodCallInfo, callee, propKind);
+				var task = this.DispatchCallMessageAsync(calleeInfo, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -74,13 +60,13 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task DispatchCallMessageForDelegateCallAsync(DelegateCallInfo delegateCallInfo, PropagationKind propKind)
+		private async Task DispatchCallMessageAsync(CallInfo callInfo, PropagationKind propKind)
 		{
 			var tasks = new List<Task>();
 
-			foreach (var callee in delegateCallInfo.PossibleCallees)
+			foreach (var callee in callInfo.PossibleCallees)
 			{
-				var task = this.CreateAndSendCallMessageAsync(delegateCallInfo, callee, propKind);
+				var task = this.CreateAndSendCallMessageAsync(callInfo, callee, propKind);
 				//await task;
 				tasks.Add(task);
 			}
@@ -96,13 +82,6 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
 
-			//Logger.LogWarning(GrainClient.Logger, "Orchestrator", "CreateAndSendCallMsg", "Enqueuing: {0}", callee);
-
-			//await WaitQueue(QUEUE_THRESHOLD);
-			//this.messageWorkList.Enqueue(callerMessage);
-			//this.messageWorkList.Add(callerMessage);
-
-			//return TaskDone.Done;
 			return AnalyzeCalleeAsync(callMessageInfo.Callee, callerMessage, propKind);
 		}
 
@@ -115,37 +94,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(callee);
 
-			methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-
-			//PropagationEffects propagationEffects = null;
-			//var ready = true;
-			//
-			//do
-			//{
-			//	propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-			//	ready = await WaitForReady(propagationEffects,callee);
-			//}
-			//while (!ready);
-			//
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-
-			//var exit = false;
-			//for (int i = 0; i < 3 && !exit; i++)
-			//{
-			//	try
-			//	{
-			//		exit = true;
-			//await methodEntityProc.PropagateAndProcessAsync(callerMessage.CallMessageInfo);
-			//var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-			//	}
-			//	catch (Exception e)
-			//	{
-			//		exit = false;
-			//	}
-			//}
-			//var propagationEffects = await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+			methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo); // do not await this call!!
+			//await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
 
 			Logger.LogS("EffectsProcessorManager", "AnalyzeCallee", "End Analyzing call to {0} ", callee);
 		}
@@ -180,11 +130,6 @@ namespace ReachingTypeAnalysis.Analysis
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
 			var calleeMessage = new CalleeMessage(source, returnMessageInfo);
 
-			//await WaitQueue(QUEUE_THRESHOLD);
-			//this.messageWorkList.Enqueue(calleeMessage);
-			//this.messageWorkList.Add(calleeMessage);
-
-			//return TaskDone.Done;
 			return AnalyzeReturnAsync(returnMessageInfo.Caller, calleeMessage, propKind);
 		}
 
@@ -195,37 +140,8 @@ namespace ReachingTypeAnalysis.Analysis
 			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(caller);
 
-			methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-
-			//PropagationEffects propagationEffects = null;
-			//var ready = true;
-			//
-			//do
-			//{
-			//	propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			//	ready = await WaitForReady(propagationEffects, caller);
-			//}
-			//while (!ready);
-			//
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-
-			//var exit = false;
-			//for (int i = 0; i < 3 && !exit; i++)
-			//{
-			//	try
-			//	{
-			//		exit = true;
-			//var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
-			//	}
-			//	catch (Exception e)
-			//	{
-			//		exit = false;
-			//	}
-			//}
-
-			//var propagationEffects = await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
-			//await this.PropagateEffectsAsync(propagationEffects, propKind, methodEntityProc);
+			methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo); // do not await this call!!
+			//await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
 
 			Logger.LogS("EffectsProcessorManager", "AnalyzeReturn", "End Analyzing return to {0} ", caller);
 		}

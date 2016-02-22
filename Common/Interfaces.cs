@@ -135,10 +135,12 @@ namespace ReachingTypeAnalysis
 	{
 		Task ProcessMethodsAsync(IEnumerable<MethodDescriptor> methods);
 		Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind);
+		Task<int> GetCounterAsync();
 	}
 
 	public interface IEffectsProcessorManager
 	{
+		Task ProcessMethodAsync(MethodDescriptor method);
 		Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind);
 	}
 

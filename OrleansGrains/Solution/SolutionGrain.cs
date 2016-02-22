@@ -94,9 +94,9 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogInfo(this.GetLogger(), "SolutionGrain", "OnActivate", "Exit");
 		}
 
-		public override Task OnDeactivateAsync()
+		public override async Task OnDeactivateAsync()
 		{
-			return StatsHelper.RegisterDeactivation("SolutionGrain", this.GrainFactory); 
+			await StatsHelper.RegisterDeactivation("SolutionGrain", this.GrainFactory);
 		}
 
 		#region IEntityGrainObserver

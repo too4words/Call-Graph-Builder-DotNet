@@ -34,10 +34,9 @@ namespace ReachingTypeAnalysis.Analysis
         //    return instance;
         //}
 
-
         //public static SiloOrchestrator CreateInstance(ISolutionGrain solutionManager)
         //{
-        //    if(instance==null)
+        //    if (instance==null)
         //    {
         //        instance = new SiloOrchestrator(solutionManager);
         //    }
@@ -48,6 +47,7 @@ namespace ReachingTypeAnalysis.Analysis
 		//private ISet<Message> messageWorkList;
 		//private Queue<Message> messageWorkList;
 		private ConcurrentQueue<Message> messageWorkList;
+
         public SiloOrchestrator()
         {
             this.messageWorkList = new ConcurrentQueue<Message>();
@@ -75,6 +75,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 				await this.PropagateEffectsAsync(propagationEffects, PropagationKind.ADD_TYPES, methodEntityProc);
 			}
+
             await this.ProcessMessages();
 		}
 
@@ -95,7 +96,6 @@ namespace ReachingTypeAnalysis.Analysis
 						Logger.LogWarning(Logger.OrleansLogger, "SiloOrchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
                         //Logger.LogS("Orchestrator", "ProcessMessage", "Deqeued: {0} Count: {1}", message, messageWorkList.Count);
 
-
 						if (message is CallerMessage)
 						{
 							var callerMessage = (CallerMessage)message;
@@ -115,6 +115,7 @@ namespace ReachingTypeAnalysis.Analysis
 						//tasks.Add(this.solutionManager.UpdateCounter(-1));
 					}
 				}
+
 				await Task.WhenAll(tasks);
 				await this.solutionManager.UpdateCounter(-tasks.Count);
 			}
@@ -122,7 +123,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		internal async Task PropagateEffectsAsync(PropagationEffects propagationEffects, PropagationKind propKind, IMethodEntityWithPropagator methodEntityProp = null)
 		{
-		    Logger.LogInfo(Logger.OrleansLogger, "SiloOrchestrator", "PropagatEffFects", "Propagating effets computed in {0}", propagationEffects.SiloAddress);
+		    Logger.LogInfo(Logger.OrleansLogger, "SiloOrchestrator", "PropagatEffFects", "Propagating effects computed in {0}", propagationEffects.SiloAddress);
 
 			await this.ProcessCalleesAsync(propagationEffects.CalleesInfo, propKind);
 
@@ -130,7 +131,8 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				await this.ProcessReturnAsync(propagationEffects.CallersInfo, propKind);
 			}
-            ProcessMessages();
+
+            await ProcessMessages();
 		}
 
 		private async Task ProcessCalleesAsync(IEnumerable<CallInfo> calleesInfo, PropagationKind propKind)
@@ -152,6 +154,7 @@ namespace ReachingTypeAnalysis.Analysis
 					tasks.Add(task);
 				}
 			}
+
 			await Task.WhenAll(tasks);
 		}
 
