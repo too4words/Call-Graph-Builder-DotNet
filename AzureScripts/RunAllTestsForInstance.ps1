@@ -25,13 +25,13 @@ param (
 #$solutionNames = @("Longtest1", "test")
 #$expIDs= @("test01", "test10000000")
 
-#$solutionPaths = @("new\newer\synthetic-10000")
-#$solutionNames = @("test")
-#$expIDs= @("test10000d")
+$solutionPaths = @("LongTest1", "new\newer\synthetic-10000")
+$solutionNames = @("Longtest1", "test")
+$expIDs= @("test01", "test10000d")
 
-#$solutionPaths = @("new\synthetic-100000")
-#$solutionNames = @("test")
-#$expIDs= @("test100000d")
+#$solutionPaths = @("LongTest1", "new\synthetic-100000")
+#$solutionNames = @("Longtest1", "test")
+#$expIDs= @("test01", "test100000d")
 
 # real solutions
 
@@ -39,9 +39,9 @@ param (
 #$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
 #$expIDs= @("test-1", "azure-powershell")
 
-$solutionPaths = @("LongTest1", "ShareX")
-$solutionNames = @("LongTest1", "ShareX")
-$expIDs= @("test-1", "ShareX")
+#$solutionPaths = @("LongTest1", "ShareX")
+#$solutionNames = @("LongTest1", "ShareX")
+#$expIDs= @("test-1", "ShareX")
 
 #$solutionPaths = @("LongTest1", "ILSpy")
 #$solutionNames = @("LongTest1", "ILSpy")

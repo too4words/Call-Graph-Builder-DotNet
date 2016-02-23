@@ -166,6 +166,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EffectsProcessor\EffectsProcessorGrain.cs" />
+    <Compile Include="Orchestrator\OrchestratorGrain.cs" />
+    <Compile Include="Orchestrator\OrleansOrchestratorManager.cs" />
     <Compile Include="SiloOrchestrator.cs" />
     <Compile Include="MethodEntity\MethodEntityGrainCallerWrapper.cs" />
     <Compile Include="MethodEntity\OrleansMethodEntity.cs" />
