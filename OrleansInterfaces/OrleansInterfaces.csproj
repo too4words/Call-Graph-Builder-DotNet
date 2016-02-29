@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IEffectsDispatcherGrain.cs" />
     <Compile Include="IRtaGrain.cs" />
     <Compile Include="Observers.cs" />
     <Compile Include="IProjectCodeProviderGrain.cs" />

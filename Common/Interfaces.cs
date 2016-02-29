@@ -1,4 +1,5 @@
 ﻿using CodeGraphModel;
+using Orleans.Streams;
 using ReachingTypeAnalysis;
 using ReachingTypeAnalysis.Communication;
 using System;
@@ -17,12 +18,10 @@ namespace ReachingTypeAnalysis
     {
     }
 
-	public interface IAnalysisStrategy
+	public interface IEffectsDispatcher
 	{
-		ISolutionManager SolutionManager { get; }
-        Task<ISolutionManager> CreateFromSourceAsync(string source);
-		Task<ISolutionManager> CreateFromSolutionAsync(string solutionPath);
-		Task<IMethodEntityWithPropagator> GetMethodEntityAsync(MethodDescriptor methodDescriptor);
+		Task ProcessMethodAsync(MethodDescriptor method);
+		Task DispatchEffectsAsync(PropagationEffects effects);
 	}
 
     public interface IMethodEntityWithPropagator : IEntity
