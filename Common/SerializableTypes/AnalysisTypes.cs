@@ -20,6 +20,13 @@ namespace ReachingTypeAnalysis
 		public const string TemporaryNamespace = "Temporary";
 	}
 
+	public static class AnalysisConstants
+	{
+		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
+		public const string StreamGuidFormat = "{{32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}}}";
+		public const int StreamCount = 100;
+	}
+
 	[Serializable]
 	public enum AnalysisRootKind
 	{

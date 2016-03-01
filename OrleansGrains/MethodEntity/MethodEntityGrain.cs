@@ -41,7 +41,9 @@ namespace ReachingTypeAnalysis.Analysis
         private IProjectCodeProvider codeProvider;
 		[NonSerialized]
 		private ISolutionGrain solutionGrain;
-        	//[NonSerialized]
+		[NonSerialized]
+		private int currentStreamIndex;
+		//[NonSerialized]
 		//private EntityGrainStatus status;
 
 		private MethodState State;
@@ -59,6 +61,8 @@ namespace ReachingTypeAnalysis.Analysis
 		public override async Task OnActivateAsync()
         {
 			this.State = new MethodState();
+
+			this.currentStreamIndex = this.GetHashCode() % AnalysisConstants.StreamCount;
 
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
@@ -160,64 +164,70 @@ namespace ReachingTypeAnalysis.Analysis
 			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
 		}
 
-        public Task<ISet<MethodDescriptor>> GetCalleesAsync()
+        public async Task<ISet<MethodDescriptor>> GetCalleesAsync()
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::GetCallees", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::GetCallees", this.GrainFactory);
 
-			return this.methodEntityPropagator.GetCalleesAsync();
+			var result = await this.methodEntityPropagator.GetCalleesAsync();
+			return result;
         }
 
-        public Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+        public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::GetCalleesInfo", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::GetCalleesInfo", this.GrainFactory);
 
-			return this.methodEntityPropagator.GetCalleesInfoAsync();
+			var result = await this.methodEntityPropagator.GetCalleesInfoAsync();
+			return result;
         }
 
         public async Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
         {
-            StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             await ProcessEffects(effects);
-            return;
         }
+
         public async Task PropagateAndProcessAsync(PropagationKind propKind)
         {
             await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             // await this.PropagateAsync(propKind);
             await ProcessEffects(effects);
-            return;
         }
 
-       public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
-        {
-           await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
-           var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+		public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
+		{
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+			var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
+			await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-            await ProcessEffects(effects);
-           return;
-        }
-       public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
-       {
-           await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
-            var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
-            StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates,effects.WorkListInitialSize ,this.GrainFactory);
+			await ProcessEffects(effects);
+		}
 
-            await ProcessEffects(effects);
-           return;
-       }
+		public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
+		{
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+			var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
+			await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+
+			await ProcessEffects(effects);
+		}
+
         private async Task ProcessEffects(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
         {
-            var orchestrator = SiloOrchestrator.Instance;
-            orchestrator.solutionManager = solutionGrain;
-            await orchestrator.PropagateEffectsAsync(effects,propKind);
-            //await orchestrator.ProcessMessages();
+			effects.Kind = propKind;
+
+			this.currentStreamIndex = (this.currentStreamIndex + 1) % AnalysisConstants.StreamCount;
+
+			var streamId = string.Format(AnalysisConstants.StreamGuidFormat, currentStreamIndex);
+			var streamGuid = Guid.Parse(streamId);
+			var streamProvider = this.GetStreamProvider("SimpleMessageStreamProvider");
+			var stream = streamProvider.GetStream<PropagationEffects>(streamGuid, "EffectsStream");
+			await stream.OnNextAsync(effects);
         }
 
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)

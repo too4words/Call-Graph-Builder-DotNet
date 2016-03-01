@@ -4,6 +4,7 @@
 		<StorageProviders>
 			<Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
 			<Provider Type="Orleans.Storage.MemoryStorage" Name="AzureStore" />
+			<Provider Type="Orleans.Storage.MemoryStorage" Name="PubSubStore" />
 			<!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DataConnectionString="UseDevelopmentStorage=true" />-->
 		</StorageProviders>
 		<StreamProviders>

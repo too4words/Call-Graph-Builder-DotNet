@@ -238,13 +238,48 @@ namespace ReachingTypeAnalysis
 
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
 
-			var orchestator = new AnalysisOrchestrator(this.SolutionManager);
-			await orchestator.AnalyzeAsync(roots);
-            //await orchestator.AnalyzeDistributedAsync(roots);
+			var tasks = new List<Task>();
+
+			foreach (var method in roots)
+			{
+				var task = this.ProcessMethodAsync(method);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+
+			// TODO: Wait for termination!
+
+			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
+			//await orchestator.AnalyzeAsync(roots);
+			////await orchestator.AnalyzeDistributedAsync(roots);
 
 			//var callGraph = await orchestator.GenerateCallGraphAsync();
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
 			//return callGraph;
+		}
+
+		private async Task ProcessMethodAsync(MethodDescriptor method)
+		{
+			Logger.LogS("SolutionAnalyzer", "ProcessMethod", "Analyzing: {0}", method);
+
+			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method);
+			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(method);
+
+			await methodEntityProc.UseDeclaredTypesForParameters();
+			await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+
+			Logger.LogS("SolutionAnalyzer", "ProcessMethod", "End Analyzing {0} ", method);
+		}
+
+		private async Task<IMethodEntityWithPropagator> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+		{
+			var methodEntityProc = await this.SolutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
+			// Force MethodGrain placement near projects
+			//var codeProvider = await this.SolutionManager.GetProjectCodeProviderAsync(method);
+			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
+			return methodEntityProc;
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()
