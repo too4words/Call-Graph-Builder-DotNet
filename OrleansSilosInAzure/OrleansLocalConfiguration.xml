@@ -6,45 +6,49 @@
     For a detailed reference, see "Orleans Configuration Reference.html".
 -->
 <OrleansConfiguration xmlns="urn:orleans">
-  <Globals>
-      <!-- <SeedNode Address="localhost" Port="11111" /> -->    
-    
-    <Liveness LivenessType="AzureTable" /> 
-    
-    <StorageProviders>
-      <Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
-      <!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />  -->
- 	    <Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore"  DeleteStateOnClear="true" DataConnectionString="UseDevelopmentStorage=true" />
-    </StorageProviders>
+	<Globals>
+		<!-- <SeedNode Address="localhost" Port="11111" /> -->
 
-	  <Application>
-		  <Defaults>
-			  <Deactivation AgeLimit="3000m"/>
-		  </Defaults>
-	  </Application>
+		<Liveness LivenessType="AzureTable" />
 
-	  <Messaging ResponseTimeout="180m"/>
-	  <Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s"
-				  WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
-   
-  </Globals>
-    <Defaults>
-    <!--
+		<StorageProviders>
+			<Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
+			<!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />  -->
+			<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore"  DeleteStateOnClear="true" DataConnectionString="UseDevelopmentStorage=true" />
+			<Provider Type="Orleans.Storage.AzureTableStorage" Name="PubSubStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstoragedg;AccountKey=0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==" />
+		</StorageProviders>
+		<StreamProviders>
+			<Provider Type="Orleans.Providers.Streams.SimpleMessageStream.SimpleMessageStreamProvider" Name="SimpleMessageStreamProvider"/>
+			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider"/>
+		</StreamProviders>
+		<Application>
+			<Defaults>
+				<Deactivation AgeLimit="3000m"/>
+			</Defaults>
+		</Application>
+
+		<Messaging ResponseTimeout="180m"/>
+		<Statistics MetricsTableWriteInterval="300s" PerfCounterWriteInterval="30s" LogWriteInterval="300s"
+					WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Info"/>
+
+	</Globals>
+	<Defaults>
+		<!--
       <Networking Address="localhost" Port="11111" />
       <ProxyingGateway Address="localhost" Port="30000" />
      -->
-    <!--
+		<!--
 	  To turn tracing off, set DefaultTraceLevel="Off" and have no overrides. To see a minimum of messages, set DefaultTraceLevel="Error".
       For the trace log file name, {0} is the silo name and {1} is the current time. 
       Setting WriteTraces to true will cause detailed performance information to be collected and logged about the individual steps in the
       message lifecycle. This may be useful debugging performance issues.
       -->
-       <Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
-        <!--
+		<Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+			<!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".
 	    Depending on the log levels you have used in your code, this will cause additional messages to be written to the log.
 	    -->
-      <TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
-    </Tracing>
-  </Defaults>
+			<TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
+		</Tracing>
+	</Defaults>
 </OrleansConfiguration>

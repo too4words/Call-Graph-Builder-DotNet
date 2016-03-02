@@ -38,7 +38,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await stream.SubscribeAsync(this);
 
 			var period = TimeSpan.FromMilliseconds(AnalysisConstants.DispatcherTimerPeriod);
-			this.RegisterTimer(this.OnTimerTick, null, period, period);
+			this.timer = this.RegisterTimer(this.OnTimerTick, null, period, period);
 
 			//// Explicit subscription code
 			//var subscriptionHandles = await stream.GetAllSubscriptionHandles();
@@ -63,6 +63,8 @@ namespace ReachingTypeAnalysis.Analysis
 		public override async Task OnDeactivateAsync()
 		{
 			await StatsHelper.RegisterDeactivation("EffectsDispatcherGrain", this.GrainFactory);
+
+			this.timer.Dispose();
 		}
 
 		public Task Subscribe(IAnalysisObserver observer)
