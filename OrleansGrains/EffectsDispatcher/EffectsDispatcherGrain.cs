@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterActivation("EffectsDispatcherGrain", this.GrainFactory);
 
-			this.lastProcessingTime = DateTime.MinValue;
+			this.lastProcessingTime = DateTime.MaxValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 			this.effectsDispatcher = new EffectsDispatcherManager(this.solutionGrain);
 
