@@ -421,7 +421,7 @@ namespace ReachingTypeAnalysis.Analysis
 #endif
 		}
 
-        public static Task RegisterProgagationUpdates(int updates, int worklistSize, IGrainFactory grainFactory)
+        public static Task RegisterPropagationUpdates(int updates, int worklistSize, IGrainFactory grainFactory)
         {
 #if COMPUTE_STATS
 			var statGrain = GetStatGrain(grainFactory);

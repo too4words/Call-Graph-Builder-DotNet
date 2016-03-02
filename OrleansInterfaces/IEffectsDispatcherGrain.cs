@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace OrleansInterfaces
 {
-	public interface IEffectsDispatcherGrain : IGrainWithStringKey, IEffectsDispatcher, IAsyncObserver<PropagationEffects>
+	public interface IEffectsDispatcherGrain : IGrainWithGuidKey, IEffectsDispatcher, IAsyncObserver<PropagationEffects>
 	{
+		Task Subscribe(IAnalysisObserver observer);
+		Task Unsubscribe(IAnalysisObserver observer);
 	}
 }

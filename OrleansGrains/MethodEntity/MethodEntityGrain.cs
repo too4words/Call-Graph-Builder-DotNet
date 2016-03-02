@@ -184,7 +184,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
-            await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             await ProcessEffects(effects);
         }
@@ -193,7 +193,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
             await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
-            await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             // await this.PropagateAsync(propKind);
             await ProcessEffects(effects);
@@ -203,7 +203,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
 			var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
-			await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
 			await ProcessEffects(effects);
 		}
@@ -212,7 +212,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
 			var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
-			await StatsHelper.RegisterProgagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
 			await ProcessEffects(effects);
 		}
@@ -225,8 +225,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			var streamId = string.Format(AnalysisConstants.StreamGuidFormat, currentStreamIndex);
 			var streamGuid = Guid.Parse(streamId);
-			var streamProvider = this.GetStreamProvider("SimpleMessageStreamProvider");
-			var stream = streamProvider.GetStream<PropagationEffects>(streamGuid, "EffectsStream");
+			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
+			var stream = streamProvider.GetStream<PropagationEffects>(streamGuid, AnalysisConstants.StreamNamespace);
 			await stream.OnNextAsync(effects);
         }
 
@@ -268,14 +268,14 @@ namespace ReachingTypeAnalysis.Analysis
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
 
             Logger.LogInfo(this.GetLogger(),"MethodEntityGrain", "Propagate", "End Propagation for {0}. Time elapsed {1} Effects size: {2}", this.methodEntity.MethodDescriptor,sw.Elapsed, propagationEffects.CalleesInfo.Count);
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterPropagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
 
             return propagationEffects;
         }
 
         public async Task<PropagationEffects> PropagateAsync(CallMessageInfo callMessageInfo)
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::PropagateCall", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateCall", this.GrainFactory);
             
 			//if (status.Equals(EntityGrainStatus.Busy))
 			//{
@@ -288,14 +288,14 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterPropagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
 
             return propagationEffects;
         }
 
         public async Task<PropagationEffects> PropagateAsync(ReturnMessageInfo returnMessageInfo)
         {
-			StatsHelper.RegisterMsg("MethodEntityGrain::PropagateReturn", this.GrainFactory);
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateReturn", this.GrainFactory);
 
             //if (status.Equals(EntityGrainStatus.Busy))
             //{
@@ -308,7 +308,7 @@ namespace ReachingTypeAnalysis.Analysis
 
             var propagationEffects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo);
             propagationEffects.SiloAddress = StatsHelper.GetMyIPAddr();
-            StatsHelper.RegisterProgagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
+            await StatsHelper.RegisterPropagationUpdates(propagationEffects.NumberOfUpdates, propagationEffects.WorkListInitialSize, this.GrainFactory);
 
             return propagationEffects;
         }

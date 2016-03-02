@@ -30,11 +30,12 @@ namespace ReachingTypeAnalysis
         NONE,
     }
 
-	public class SolutionAnalyzer
+	public class SolutionAnalyzer : IAnalysisObserver
 	{
 		private string source;
 		private string solutionPath;
 		private string testName;
+		private IDictionary<Guid, bool> idleDispatchers;
 
 		public ISolutionManager SolutionManager { get; private set; }
         public AnalysisRootKind RootKind { get; set; } 
@@ -43,6 +44,7 @@ namespace ReachingTypeAnalysis
 
 		private SolutionAnalyzer()
 		{
+			this.idleDispatchers = new Dictionary<Guid, bool>();
 		}
 
 		public static SolutionAnalyzer CreateFromSolution(string solutionPath)
@@ -234,11 +236,51 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
+			await this.SubscribeToAllDispatchersAsync();
+			await this.ProcessRootMethodsAsync();
+			await this.WaitForTerminationAsync();
+
+			//var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
+			//Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
+			//
+			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
+			//await orchestator.AnalyzeAsync(roots);
+			////await orchestator.AnalyzeDistributedAsync(roots);
+
+			//var callGraph = await orchestator.GenerateCallGraphAsync();
+			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
+			//return callGraph;
+		}
+
+		private async Task SubscribeToAllDispatchersAsync()
+		{
+			var tasks = new List<Task>();
+			var objref = await GrainClient.GrainFactory.CreateObjectReference<IAnalysisObserver>(this);
+
+			this.idleDispatchers.Clear();
+
+			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
+			{
+				var dispatcherId = string.Format(AnalysisConstants.StreamGuidFormat, i);
+				var dispatcherGuid = Guid.Parse(dispatcherId);
+				var dispatcher = GrainClient.GrainFactory.GetGrain<IEffectsDispatcherGrain>(dispatcherGuid);
+
+				this.idleDispatchers.Add(dispatcherGuid, false);
+
+				var task = dispatcher.Subscribe(objref);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
+
+		private async Task ProcessRootMethodsAsync()
+		{
+			var tasks = new List<Task>();
 			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 
 			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
-
-			var tasks = new List<Task>();
 
 			foreach (var method in roots)
 			{
@@ -248,16 +290,6 @@ namespace ReachingTypeAnalysis
 			}
 
 			await Task.WhenAll(tasks);
-
-			// TODO: Wait for termination!
-
-			//var orchestator = new AnalysisOrchestrator(this.SolutionManager);
-			//await orchestator.AnalyzeAsync(roots);
-			////await orchestator.AnalyzeDistributedAsync(roots);
-
-			//var callGraph = await orchestator.GenerateCallGraphAsync();
-			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
-			//return callGraph;
 		}
 
 		private async Task ProcessMethodAsync(MethodDescriptor method)
@@ -280,6 +312,20 @@ namespace ReachingTypeAnalysis
 			//var codeProvider = await this.SolutionManager.GetProjectCodeProviderAsync(method);
 			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
 			return methodEntityProc;
+		}
+
+		private async Task WaitForTerminationAsync()
+		{
+			while (this.idleDispatchers.Any(e => !e.Value))
+			{
+				await Task.Delay(AnalysisConstants.WaitForTerminationDelay);
+			}
+		}
+
+		void IAnalysisObserver.OnEffectsDispatcherIdle(IEffectsDispatcherGrain sender)
+		{
+			var dispatcherGuid = sender.GetPrimaryKey();
+			this.idleDispatchers[dispatcherGuid] = true;
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

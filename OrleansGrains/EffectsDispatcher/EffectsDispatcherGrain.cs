@@ -9,7 +9,7 @@ using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	[ImplicitStreamSubscription("EffectsStream")]
+	[ImplicitStreamSubscription(AnalysisConstants.StreamNamespace)]
 	public class EffectsDispatcherGrain : Grain, IEffectsDispatcherGrain
 	{
 		[NonSerialized]
@@ -17,19 +17,28 @@ namespace ReachingTypeAnalysis.Analysis
 		[NonSerialized]
 		private ISolutionGrain solutionGrain;
 		[NonSerialized]
+		private ObserverSubscriptionManager<IAnalysisObserver> subscriptionManager;
+		[NonSerialized]
+		private IDisposable timer;
+		[NonSerialized]
 		private DateTime lastProcessingTime;
 
 		public override async Task OnActivateAsync()
 		{
 			await StatsHelper.RegisterActivation("EffectsDispatcherGrain", this.GrainFactory);
 
+			this.lastProcessingTime = DateTime.MinValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 			this.effectsDispatcher = new EffectsDispatcherManager(this.solutionGrain);
-			this.lastProcessingTime = DateTime.MinValue;
 
-			var streamProvider = this.GetStreamProvider("SimpleMessageStreamProvider");
-			var stream = streamProvider.GetStream<PropagationEffects>(this.GetPrimaryKey(), "EffectsStream");
+			this.subscriptionManager = new ObserverSubscriptionManager<IAnalysisObserver>();
+
+			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
+			var stream = streamProvider.GetStream<PropagationEffects>(this.GetPrimaryKey(), AnalysisConstants.StreamNamespace);
 			await stream.SubscribeAsync(this);
+
+			var period = TimeSpan.FromMilliseconds(AnalysisConstants.DispatcherTimerPeriod);
+			this.RegisterTimer(this.OnTimerTick, null, period, period);
 
 			//// Explicit subscription code
 			//var subscriptionHandles = await stream.GetAllSubscriptionHandles();
@@ -47,11 +56,25 @@ namespace ReachingTypeAnalysis.Analysis
 
 			//	await Task.WhenAll(tasks);
 			//}
+
+			await base.OnActivateAsync();
 		}
 
 		public override async Task OnDeactivateAsync()
 		{
 			await StatsHelper.RegisterDeactivation("EffectsDispatcherGrain", this.GrainFactory);
+		}
+
+		public Task Subscribe(IAnalysisObserver observer)
+		{
+			this.subscriptionManager.Subscribe(observer);
+			return TaskDone.Done;
+		}
+
+		public Task Unsubscribe(IAnalysisObserver observer)
+		{
+			this.subscriptionManager.Unsubscribe(observer);
+			return TaskDone.Done;
 		}
 
 		public async Task ProcessMethodAsync(MethodDescriptor method)
@@ -77,13 +100,26 @@ namespace ReachingTypeAnalysis.Analysis
 
 		public Task OnCompletedAsync()
 		{
-			Logger.LogWarning(this.GetLogger(), "EffectsDispatcherGrain", "OnCompleted", "EffectsDispatcherGrain ID: {0}", this.GetPrimaryKeyString());
+			Logger.LogWarning(this.GetLogger(), "EffectsDispatcherGrain", "OnCompleted", "EffectsDispatcherGrain ID: {0}", this.GetPrimaryKey());
 			return TaskDone.Done;
 		}
 
 		public Task OnErrorAsync(Exception ex)
 		{
 			Logger.LogWarning(this.GetLogger(), "EffectsDispatcherGrain", "OnError", "Exception: {0}", ex);
+			return TaskDone.Done;
+		}
+
+		private Task OnTimerTick(object state)
+		{
+			var idleTime = DateTime.UtcNow - lastProcessingTime;
+
+			if (idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
+			{
+				// Notify that this dispatcher is idle.
+				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherIdle(this));
+			}
+
 			return TaskDone.Done;
 		}
 	}

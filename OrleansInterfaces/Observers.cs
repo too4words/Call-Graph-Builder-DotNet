@@ -24,4 +24,9 @@ namespace OrleansInterfaces
 	{
 		void OnStatusChanged(IObservableEntityGrain sender, EntityGrainStatus newState);
 	}
+
+	public interface IAnalysisObserver : IGrainObserver
+	{
+		void OnEffectsDispatcherIdle(IEffectsDispatcherGrain sender);
+	}
 }
