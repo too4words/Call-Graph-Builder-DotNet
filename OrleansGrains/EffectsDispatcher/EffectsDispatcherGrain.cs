@@ -9,7 +9,7 @@ using OrleansInterfaces;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	[ImplicitStreamSubscription(AnalysisConstants.StreamNamespace)]
+	//[ImplicitStreamSubscription(AnalysisConstants.StreamNamespace)]
 	public class EffectsDispatcherGrain : Grain, IEffectsDispatcherGrain
 	{
 		[NonSerialized]
@@ -22,40 +22,50 @@ namespace ReachingTypeAnalysis.Analysis
 		private IDisposable timer;
 		[NonSerialized]
 		private DateTime lastProcessingTime;
+		[NonSerialized]
+		private bool isIdle;
+		[NonSerialized]
+		private bool isDispatchingEffects;
 
 		public override async Task OnActivateAsync()
 		{
 			await StatsHelper.RegisterActivation("EffectsDispatcherGrain", this.GrainFactory);
 
-			this.lastProcessingTime = DateTime.MaxValue;
+			this.isIdle = false;
+			this.isDispatchingEffects = false;
+			this.lastProcessingTime = DateTime.UtcNow; // DateTime.MinValue; // DateTime.MaxValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
-			this.effectsDispatcher = new EffectsDispatcherManager(this.solutionGrain);
+			this.effectsDispatcher = new OrleansEffectsDispatcherManager(this.solutionGrain);
 
 			this.subscriptionManager = new ObserverSubscriptionManager<IAnalysisObserver>();
 
 			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
 			var stream = streamProvider.GetStream<PropagationEffects>(this.GetPrimaryKey(), AnalysisConstants.StreamNamespace);
-			await stream.SubscribeAsync(this);
+			//await stream.SubscribeAsync(this);
+
+			// Explicit subscription code
+			var subscriptionHandles = await stream.GetAllSubscriptionHandles();
+
+			if (subscriptionHandles != null && subscriptionHandles.Count > 0)
+			{
+				var tasks = new List<Task>();
+
+				foreach (var subscriptionHandle in subscriptionHandles)
+				{
+					var task = subscriptionHandle.ResumeAsync(this);
+					//await task;
+					tasks.Add(task);
+				}
+
+				await Task.WhenAll(tasks);
+			}
+			else
+			{
+				await stream.SubscribeAsync(this);
+			}
 
 			var period = TimeSpan.FromMilliseconds(AnalysisConstants.DispatcherTimerPeriod);
 			this.timer = this.RegisterTimer(this.OnTimerTick, null, period, period);
-
-			//// Explicit subscription code
-			//var subscriptionHandles = await stream.GetAllSubscriptionHandles();
-
-			//if (subscriptionHandles != null && subscriptionHandles.Count > 0)
-			//{
-			//	var tasks = new List<Task>();
-
-			//	foreach (var subscriptionHandle in subscriptionHandles)
-			//	{
-			//		var task = subscriptionHandle.ResumeAsync(this);
-			//		//await task;
-			//		tasks.Add(task);
-			//	}
-
-			//	await Task.WhenAll(tasks);
-			//}
 
 			await base.OnActivateAsync();
 		}
@@ -90,8 +100,21 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterMsg("EffectsDispatcherGrain::DispatchEffects", this.GrainFactory);
 
+			Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Dequeuing effects", this.GetPrimaryKey());
+
+			this.lastProcessingTime = DateTime.UtcNow;
+			this.isDispatchingEffects = true;
+
+			if (this.isIdle)
+			{
+				this.isIdle = false;
+				// Notify that the dispatcher is no longer idle?
+				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy", this.GetPrimaryKey());
+			}
+
 			await this.effectsDispatcher.DispatchEffectsAsync(effects);
 
+			this.isDispatchingEffects = false;
 			this.lastProcessingTime = DateTime.UtcNow;
 		}
 
@@ -116,9 +139,13 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var idleTime = DateTime.UtcNow - lastProcessingTime;
 
-			if (idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
+			if (!this.isDispatchingEffects && !this.isIdle &&
+				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
 			{
+				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle", this.GetPrimaryKey());
+
 				// Notify that this dispatcher is idle.
+				this.isIdle = true;
 				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherIdle(this));
 			}
 

@@ -26,10 +26,10 @@ namespace ReachingTypeAnalysis
 		public const string StreamNamespace = "EffectsStream";
 		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
-		public const int StreamCount = 100;
-		public const int DispatcherIdleThreshold = 30 * 1000; // milliseconds
-		public const int DispatcherTimerPeriod = 5 * 1000; // milliseconds
-		public const int WaitForTerminationDelay = 5 * 1000; // milliseconds
+		public const int StreamCount = 20; // 100
+		public const int DispatcherIdleThreshold = 1 * 60 * 1000; // milliseconds
+		public const int DispatcherTimerPeriod = 30 * 1000; // milliseconds
+		public const int WaitForTerminationDelay = 30 * 1000; // milliseconds
 	}
 
 	[Serializable]

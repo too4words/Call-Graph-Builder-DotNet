@@ -1,4 +1,6 @@
-﻿using ReachingTypeAnalysis.Communication;
+﻿using Orleans;
+using OrleansInterfaces;
+using ReachingTypeAnalysis.Communication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +9,22 @@ using System.Threading.Tasks;
 
 namespace ReachingTypeAnalysis.Analysis
 {
-	internal class EffectsDispatcherManager : IEffectsDispatcher
+	internal class OrleansEffectsDispatcherManager : IEffectsDispatcher
 	{
 		private ISolutionManager solutionManager;
 
-		public EffectsDispatcherManager(ISolutionManager solutionManager)
+		public OrleansEffectsDispatcherManager(ISolutionManager solutionManager)
 		{
 			this.solutionManager = solutionManager;
+		}
+
+		public static IEffectsDispatcherGrain GetEffectsDispatcherGrain(IGrainFactory grainFactory, Guid dispatcherGuid)
+		{
+			var grain = grainFactory.GetGrain<IEffectsDispatcherGrain>(dispatcherGuid);
+#if COMPUTE_STATS
+			//grain = new EffectsDispatcherGrainCallerWrapper(grain);
+#endif
+			return grain;
 		}
 
 		public async Task ProcessMethodAsync(MethodDescriptor method)
@@ -24,7 +35,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(method);
 
 			await methodEntityProc.UseDeclaredTypesForParameters();
-			await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+			await methodEntityProc.PropagateAndProcessAsync(PropagationKind.ADD_TYPES);
 
 			Logger.LogS("EffectsDispatcherManager", "ProcessMethod", "End Analyzing {0} ", method);
 		}
@@ -87,7 +98,7 @@ namespace ReachingTypeAnalysis.Analysis
 			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(callee);
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(callee);
 
-			await methodEntityProc.PropagateAsync(callerMessage.CallMessageInfo);
+			await methodEntityProc.PropagateAndProcessAsync(callerMessage.CallMessageInfo);
 
 			Logger.LogS("EffectsDispatcherManager", "AnalyzeCallee", "End Analyzing call to {0} ", callee);
 		}
@@ -132,18 +143,18 @@ namespace ReachingTypeAnalysis.Analysis
 			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(caller);
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(caller);
 
-			await methodEntityProc.PropagateAsync(calleeMessage.ReturnMessageInfo);
+			await methodEntityProc.PropagateAndProcessAsync(calleeMessage.ReturnMessageInfo);
 
 			Logger.LogS("EffectsDispatcherManager", "AnalyzeReturn", "End Analyzing return to {0} ", caller);
 		}
 
-		private async Task<IMethodEntityWithPropagator> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+		private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
 		{
 			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
 			// Force MethodGrain placement near projects
 			//var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
 			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
-			return methodEntityProc;
+			return methodEntityProc as IMethodEntityGrain;
 		}
 	}
 }

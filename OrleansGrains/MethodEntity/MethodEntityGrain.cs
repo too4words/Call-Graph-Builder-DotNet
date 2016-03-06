@@ -227,6 +227,9 @@ namespace ReachingTypeAnalysis.Analysis
 			var streamGuid = Guid.Parse(streamId);
 			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
 			var stream = streamProvider.GetStream<PropagationEffects>(streamGuid, AnalysisConstants.StreamNamespace);
+
+			Logger.LogForDebug(this.GetLogger(), "@@[MethodEntityGrain {0}] Enqueuing effects into stream {1}", this.methodEntity.MethodDescriptor, streamGuid);
+
 			await stream.OnNextAsync(effects);
         }
 

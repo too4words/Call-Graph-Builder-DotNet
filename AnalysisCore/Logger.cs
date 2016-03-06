@@ -68,6 +68,7 @@ namespace ReachingTypeAnalysis
             Console.WriteLine(message);
             orleansLog.Warn(0, message);
         }
+
         public static void LogError(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
         {
             var message = string.Format(format, arguments);
@@ -79,6 +80,7 @@ namespace ReachingTypeAnalysis
             //Console.WriteLine(message);
             orleansLog.Error(0, message);
         }
+
         public static void LogInfo(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
 		{
 			var message = string.Format(format, arguments);
@@ -91,8 +93,13 @@ namespace ReachingTypeAnalysis
 			//Console.WriteLine(message);
 			orleansLog.Info(0, message);
 		}
+		
+		public static void LogForDebug(Orleans.Runtime.Logger orleansLog, string format, params object[] arguments)
+		{
+			orleansLog.Warn(0, format, arguments);
+		}
 
-        public static void LogS(string type, string method, string format, params object[] arguments)
+		public static void LogS(string type, string method, string format, params object[] arguments)
         {
 			if (OrleansLogger != null)
 			{
@@ -103,6 +110,32 @@ namespace ReachingTypeAnalysis
 				Instance.Log(type, method, format, arguments);
 			}
         }
+
+		//public static async Task LogToFile(string format, params object[] arguments)
+		//{
+		//	var retryCount = 0;
+
+		//	do
+		//	{
+		//		try
+		//		{
+		//			var message = string.Format(format, arguments);
+
+		//			using (var writer = File.AppendText(@"C:\temp\debug.log"))
+		//			{
+		//				await writer.WriteLineAsync(message);
+		//			}
+
+		//			break;
+		//		}
+		//		catch
+		//		{
+		//			await Task.Delay(10);
+		//			retryCount++;
+		//		}
+		//	}
+		//	while (retryCount < 3);
+		//}
 
 		public static void Log(string format, params object[] arguments)
 		{
@@ -144,5 +177,5 @@ namespace ReachingTypeAnalysis
 		{
 			this.Log(type, method, "{0}", argument);
 		}
-    }
+	}
 }

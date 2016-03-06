@@ -236,9 +236,13 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
+			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Starting analysis...");
+
 			await this.SubscribeToAllDispatchersAsync();
 			await this.ProcessRootMethodsAsync();
 			await this.WaitForTerminationAsync();
+
+			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Analysis end");
 
 			//var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 			//Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
@@ -251,7 +255,7 @@ namespace ReachingTypeAnalysis
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Message count {0}", MessageCounter);
 			//return callGraph;
 		}
-
+		
 		private async Task SubscribeToAllDispatchersAsync()
 		{
 			var tasks = new List<Task>();
@@ -262,8 +266,8 @@ namespace ReachingTypeAnalysis
 			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
 			{
 				var dispatcherId = string.Format(AnalysisConstants.StreamGuidFormat, i);
-				var dispatcherGuid = Guid.Parse(dispatcherId);
-				var dispatcher = GrainClient.GrainFactory.GetGrain<IEffectsDispatcherGrain>(dispatcherGuid);
+				var dispatcherGuid = Guid.Parse(dispatcherId);				
+				var dispatcher = OrleansEffectsDispatcherManager.GetEffectsDispatcherGrain(GrainClient.GrainFactory, dispatcherGuid);
 
 				this.idleDispatchers.Add(dispatcherGuid, false);
 
@@ -300,24 +304,25 @@ namespace ReachingTypeAnalysis
 			var methodEntityProc = await this.GetMethodEntityGrainAndActivateInProject(method);
 
 			await methodEntityProc.UseDeclaredTypesForParameters();
-			await methodEntityProc.PropagateAsync(PropagationKind.ADD_TYPES);
+			await methodEntityProc.PropagateAndProcessAsync(PropagationKind.ADD_TYPES);
 
 			Logger.LogS("SolutionAnalyzer", "ProcessMethod", "End Analyzing {0} ", method);
 		}
 
-		private async Task<IMethodEntityWithPropagator> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+		private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
 		{
 			var methodEntityProc = await this.SolutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
 			// Force MethodGrain placement near projects
 			//var codeProvider = await this.SolutionManager.GetProjectCodeProviderAsync(method);
 			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
-			return methodEntityProc;
+			return methodEntityProc as IMethodEntityGrain;
 		}
 
 		private async Task WaitForTerminationAsync()
 		{
 			while (this.idleDispatchers.Any(e => !e.Value))
 			{
+				Logger.LogForDebug(GrainClient.Logger, "@@[Client] Waiting for termination...");
 				await Task.Delay(AnalysisConstants.WaitForTerminationDelay);
 			}
 		}
@@ -326,6 +331,8 @@ namespace ReachingTypeAnalysis
 		{
 			var dispatcherGuid = sender.GetPrimaryKey();
 			this.idleDispatchers[dispatcherGuid] = true;
+
+			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is idle", dispatcherGuid);
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

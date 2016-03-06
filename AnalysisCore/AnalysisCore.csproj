@@ -162,7 +162,6 @@
     <Compile Include="Async\AsyncProjectCodeProvider.cs" />
     <Compile Include="Async\AsyncDummyProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\DummyProjectCodeProvider.cs" />
-    <Compile Include="BaseManagers\EffectsDispatcherManager.cs" />
     <Compile Include="BaseManagers\MethodEntityPropagator.cs" />
     <Compile Include="BaseManagers\BaseProjectCodeProvider.cs" />
     <Compile Include="BaseManagers\RtaManager.cs" />

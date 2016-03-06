@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EffectsDispatcher\EffectsDispatcherGrain.cs" />
+    <Compile Include="EffectsDispatcher\OrleansEffectsDispatcherManager.cs" />
     <Compile Include="SiloOrchestrator.cs" />
     <Compile Include="MethodEntity\MethodEntityGrainCallerWrapper.cs" />
     <Compile Include="MethodEntity\OrleansMethodEntity.cs" />

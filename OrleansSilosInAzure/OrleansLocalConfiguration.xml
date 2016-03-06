@@ -15,7 +15,8 @@
 			<Provider Type="Orleans.Storage.MemoryStorage" Name="MemoryStore" />
 			<!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore" DeleteStateOnClear="true" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstorage2;AccountKey=ilzOub7LFk5zQ7drJFkfoxdwN1rritlSWAJ9Vl35g/TG4rZWxCXWNTJV20vZLTL/D2LK065cG8AozDg8CGOKQQ==" />  -->
 			<Provider Type="Orleans.Storage.AzureTableStorage" Name="AzureStore"  DeleteStateOnClear="true" DataConnectionString="UseDevelopmentStorage=true" />
-			<Provider Type="Orleans.Storage.AzureTableStorage" Name="PubSubStore" DeleteStateOnClear="true" DataConnectionString="UseDevelopmentStorage=true" />
+			<!--<Provider Type="Orleans.Storage.AzureTableStorage" Name="PubSubStore" DeleteStateOnClear="true" DataConnectionString="UseDevelopmentStorage=true" />-->
+			<Provider Type="Orleans.Storage.MemoryStorage" Name="PubSubStore" />
 		</StorageProviders>
 		<StreamProviders>
 			<Provider Type="Orleans.Providers.Streams.SimpleMessageStream.SimpleMessageStreamProvider" Name="SimpleMessageStreamProvider"/>
@@ -43,12 +44,13 @@
       Setting WriteTraces to true will cause detailed performance information to be collected and logged about the individual steps in the
       message lifecycle. This may be useful debugging performance issues.
       -->
-		<Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
+		<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" >
 			<!--
 	    To get more detailed application logging, you can change the TraceLevel attribute value to "Verbose" or "Verbose2".
 	    Depending on the log levels you have used in your code, this will cause additional messages to be written to the log.
 	    -->
-			<TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
+			<TraceLevelOverride LogPrefix="Application" TraceLevel="Warning" TraceToFile="{0}-{1}.log"/>
+			<TraceLevelOverride LogPrefix="@@" TraceLevel="Warning" TraceToFile="debug.log"/>
 		</Tracing>
 	</Defaults>
 </OrleansConfiguration>
