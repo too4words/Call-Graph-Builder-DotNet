@@ -14,6 +14,7 @@ using Orleans.Placement;
 using Orleans.Runtime;
 using Orleans.Core;
 using Orleans.Concurrency;
+using Orleans.Streams;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -186,7 +187,7 @@ namespace ReachingTypeAnalysis.Analysis
             var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
             await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-            await ProcessEffects(effects);
+            await ProcessEffectsAsync(effects);
         }
 
         public async Task PropagateAndProcessAsync(PropagationKind propKind)
@@ -196,7 +197,7 @@ namespace ReachingTypeAnalysis.Analysis
             await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
             // await this.PropagateAsync(propKind);
-            await ProcessEffects(effects);
+            await ProcessEffectsAsync(effects);
         }
 
 		public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
@@ -205,7 +206,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var effects = await this.methodEntityPropagator.PropagateAsync(callMessageInfo); // await this.PropagateAsync(callMessageInfo);
 			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-			await ProcessEffects(effects);
+			await ProcessEffectsAsync(effects);
 		}
 
 		public async Task PropagateAndProcessAsync(ReturnMessageInfo returnMessageInfo)
@@ -214,13 +215,39 @@ namespace ReachingTypeAnalysis.Analysis
 			var effects = await this.methodEntityPropagator.PropagateAsync(returnMessageInfo); //await this.PropagateAsync(returnMessageInfo);
 			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-			await ProcessEffects(effects);
+			await ProcessEffectsAsync(effects);
 		}
 
-        private async Task ProcessEffects(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
+        private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
         {
 			effects.Kind = propKind;
+			var retryCount = 3;
 
+			do
+			{
+				var stream = this.SelectStream();
+
+				try
+				{
+					await stream.OnNextAsync(effects);
+					break;
+				}
+				catch (Exception ex)
+				{					
+					retryCount--;
+
+					if (retryCount == 0)
+					{
+						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "ProcessEffects", "Exception {0}", ex);
+						throw ex;
+					}
+				}
+			}
+			while (retryCount > 0);
+		}
+
+		private IAsyncStream<PropagationEffects> SelectStream()
+		{
 			this.currentStreamIndex = (this.currentStreamIndex + 1) % AnalysisConstants.StreamCount;
 
 			var streamId = string.Format(AnalysisConstants.StreamGuidFormat, currentStreamIndex);
@@ -230,8 +257,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			Logger.LogForDebug(this.GetLogger(), "@@[MethodEntityGrain {0}] Enqueuing effects into stream {1}", this.methodEntity.MethodDescriptor, streamGuid);
 
-			await stream.OnNextAsync(effects);
-        }
+			return stream;
+		}
 
 		public Task<PropagationEffects> PropagateAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
 		{

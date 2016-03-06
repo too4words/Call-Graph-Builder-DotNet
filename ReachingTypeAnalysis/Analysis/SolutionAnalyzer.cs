@@ -272,8 +272,8 @@ namespace ReachingTypeAnalysis
 				this.idleDispatchers.Add(dispatcherGuid, false);
 
 				var task = dispatcher.Subscribe(objref);
-				await task;
-				//tasks.Add(task);
+				//await task;
+				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
@@ -289,8 +289,8 @@ namespace ReachingTypeAnalysis
 			foreach (var method in roots)
 			{
 				var task = this.ProcessMethodAsync(method);
-				await task;
-				//tasks.Add(task);
+				//await task;
+				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
