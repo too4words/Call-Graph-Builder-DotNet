@@ -221,7 +221,7 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
         {
 			effects.Kind = propKind;
-			var retryCount = 3;
+			var retryCount = AnalysisConstants.StreamCount; // 3
 
 			do
 			{

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT License.  See License.txt in the project root for license information.
+using System;
 using System.Collections.Generic;
 
 namespace ReachingTypeAnalysis
 {
+	[Serializable]
 	public class PropagationEffects
 	{
 		public PropagationEffects(IEnumerable<CallInfo> calleesInfo, bool resultChanged, int updates = 0, int worklistInitialSize = 0)

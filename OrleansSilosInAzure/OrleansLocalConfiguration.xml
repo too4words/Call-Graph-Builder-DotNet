@@ -20,7 +20,7 @@
 		</StorageProviders>
 		<StreamProviders>
 			<Provider Type="Orleans.Providers.Streams.SimpleMessageStream.SimpleMessageStreamProvider" Name="SimpleMessageStreamProvider"/>
-			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider" DataConnectionString="UseDevelopmentStorage=true" DeploymentId="deployment28" />
+			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider" DeploymentId="deployment28" DataConnectionString="UseDevelopmentStorage=true" />
 		</StreamProviders>
 		<Application>
 			<Defaults>
