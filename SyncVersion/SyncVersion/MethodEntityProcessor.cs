@@ -339,7 +339,7 @@ namespace ReachingTypeAnalysis.Analysis
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
 
             return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
-				new List<ISet<TypeDescriptor>>(argumentValues), callInfo.InstantiatedTypes,
+				new List<ISet<TypeDescriptor>>(argumentValues), /*callInfo.InstantiatedTypes,*/
 				callInfo.CallNode, callInfo.LHS, propKind);
         }
 
@@ -411,7 +411,7 @@ namespace ReachingTypeAnalysis.Analysis
 				context.Caller,
 				this.MethodEntity.MethodDescriptor,
 				types,
-				this.MethodEntity.InstantiatedTypes,
+				/*this.MethodEntity.InstantiatedTypes,*/
 				context.CallNode, lhs,
 				propKind);
 			var returnMessage = new CalleeMessage(this.MethodEntity.EntityDescriptor, retMessageInfo);

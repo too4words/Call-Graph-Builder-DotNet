@@ -309,13 +309,16 @@ namespace ReachingTypeAnalysis
 			Logger.LogS("SolutionAnalyzer", "ProcessMethod", "End Analyzing {0} ", method);
 		}
 
-		private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+		private Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
 		{
-			var methodEntityProc = await this.SolutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
-			// Force MethodGrain placement near projects
-			//var codeProvider = await this.SolutionManager.GetProjectCodeProviderAsync(method);
-			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
-			return methodEntityProc as IMethodEntityGrain;
+			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(GrainClient.GrainFactory, method);
+			return Task.FromResult(methodEntityGrain);
+
+			//var methodEntityProc = await this.SolutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
+			//// Force MethodGrain placement near projects
+			////var codeProvider = await this.SolutionManager.GetProjectCodeProviderAsync(method);
+			////var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
+			//return methodEntityProc as IMethodEntityGrain;
 		}
 
 		private async Task WaitForTerminationAsync()

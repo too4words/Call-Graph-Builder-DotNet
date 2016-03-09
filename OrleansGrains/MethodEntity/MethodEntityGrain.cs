@@ -15,6 +15,7 @@ using Orleans.Runtime;
 using Orleans.Core;
 using Orleans.Concurrency;
 using Orleans.Streams;
+using System.Linq;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -221,6 +222,21 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
         {
 			effects.Kind = propKind;
+			var tasks = new List<Task>();
+			var messages = SplitEffects(effects);
+
+			foreach (var message in messages)
+			{
+				var task = this.EnqueueEffectsAsync(message);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
+
+		private async Task EnqueueEffectsAsync(PropagationEffects effects)
+		{
 			var retryCount = AnalysisConstants.StreamCount; // 3
 
 			do
@@ -233,7 +249,7 @@ namespace ReachingTypeAnalysis.Analysis
 					break;
 				}
 				catch (Exception ex)
-				{					
+				{
 					retryCount--;
 
 					if (retryCount == 0)
@@ -244,6 +260,61 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 			while (retryCount > 0);
+		}
+
+		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects)
+		{
+			var result = new List<PropagationEffects>();
+			var calleesInfo = effects.CalleesInfo.ToList();
+			var count = calleesInfo.Count;
+			var index = 0;
+
+			while (count > 10)
+			{
+				var callees = calleesInfo.GetRange(index, 10);
+				var message = new PropagationEffects(callees, false);
+
+				result.Add(message);
+
+				count -= 10;
+				index += 10;
+			}
+
+			if (count > 0)
+			{
+				var callees = calleesInfo.GetRange(index, count);
+				var message = new PropagationEffects(callees, false);
+
+				result.Add(message);
+			}
+
+			if (effects.ResultChanged)
+			{
+				var callersInfo = effects.CallersInfo.ToList();
+				count = callersInfo.Count;
+				index = 0;
+
+				while (count > 10)
+				{
+					var callers = callersInfo.GetRange(index, 10);
+					var message = new PropagationEffects(callers);
+
+					result.Add(message);
+
+					count -= 10;
+					index += 10;
+				}
+
+				if (count > 0)
+				{
+					var callers = callersInfo.GetRange(index, count);
+					var message = new PropagationEffects(callers);
+
+					result.Add(message);
+				}
+			}
+
+			return result;
 		}
 
 		private IAsyncStream<PropagationEffects> SelectStream()

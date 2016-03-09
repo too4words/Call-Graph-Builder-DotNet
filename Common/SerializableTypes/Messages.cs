@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Communication
 		public CallMessageInfo() { }
 
         public CallMessageInfo(MethodDescriptor caller, MethodDescriptor callee, ISet<TypeDescriptor> receiverPossibleTypes,
-			IList<ISet<TypeDescriptor>> argumentsPossibleTypes, ISet<TypeDescriptor> instantiatedTypes,
+			IList<ISet<TypeDescriptor>> argumentsPossibleTypes, /*ISet<TypeDescriptor> instantiatedTypes,*/
 			AnalysisCallNode callNode, VariableNode lhs, PropagationKind propKind)
 		{
             this.Caller = caller;
@@ -73,7 +73,7 @@ namespace ReachingTypeAnalysis.Communication
 		public ReturnMessageInfo() { }
 
 		public ReturnMessageInfo(MethodDescriptor caller, MethodDescriptor callee, ISet<TypeDescriptor> resultPossibleTypes,
-			ISet<TypeDescriptor> instantiatedTypes, AnalysisCallNode callNode, VariableNode lhs, PropagationKind propKind)
+			/*ISet<TypeDescriptor> instantiatedTypes,*/ AnalysisCallNode callNode, VariableNode lhs, PropagationKind propKind)
 		{
 			this.Caller = caller;
 			this.Callee = callee;

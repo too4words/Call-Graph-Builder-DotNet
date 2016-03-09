@@ -166,10 +166,12 @@ namespace ReachingTypeAnalysis.Analysis
                     delegateCalleeInfo.PossibleCallees = await GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo, codeProvider);
                 }
 
-                for (int i = 0; i < calleeInfo.Arguments.Count; i++)
+				calleeInfo.ArgumentsPossibleTypes.Clear();
+
+				for (int i = 0; i < calleeInfo.Arguments.Count; i++)
                 {
                     var arg = calleeInfo.Arguments[i];
-                    var potentialTypes = arg != null ? GetTypes(arg) : new HashSet<TypeDescriptor>();
+                    var potentialTypes = GetTypes(arg);
                     calleeInfo.ArgumentsPossibleTypes.Add(potentialTypes);
                 }
             }
@@ -181,7 +183,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				var returnInfo = new ReturnInfo(this.methodEntity.MethodDescriptor, callerContext);
 				returnInfo.ResultPossibleTypes = GetTypes(this.methodEntity.ReturnVariable);
-				returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
+				//returnInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
 
 				callersInfo.Add(returnInfo);
 			}

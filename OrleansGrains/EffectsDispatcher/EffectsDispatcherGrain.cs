@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis.Analysis
 			this.isDispatchingEffects = false;
 			this.lastProcessingTime = DateTime.UtcNow; // DateTime.MinValue; // DateTime.MaxValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
-			this.effectsDispatcher = new OrleansEffectsDispatcherManager(this.solutionGrain);
+			this.effectsDispatcher = new OrleansEffectsDispatcherManager(this.GrainFactory, this.solutionGrain);
 
 			this.subscriptionManager = new ObserverSubscriptionManager<IAnalysisObserver>();
 

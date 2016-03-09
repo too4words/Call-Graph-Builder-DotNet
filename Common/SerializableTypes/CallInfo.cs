@@ -15,7 +15,7 @@ namespace ReachingTypeAnalysis
 		public IList<PropGraphNodeDescriptor> Arguments { get; set; }
 		public PropGraphNodeDescriptor Receiver { get; set; }
 		public VariableNode LHS { get; set; }
-		public ISet<TypeDescriptor> InstantiatedTypes { get; set; }
+		//public ISet<TypeDescriptor> InstantiatedTypes { get; set; }
 		public AnalysisCallNode CallNode { get; set; }
 		public ISet<TypeDescriptor> ReceiverPossibleTypes { get; set; }
 		public IList<ISet<TypeDescriptor>> ArgumentsPossibleTypes { get; set; }
@@ -30,7 +30,7 @@ namespace ReachingTypeAnalysis
 			this.LHS = lhs;
 			this.Receiver = receiver;
 			this.CallNode = callNode;
-			this.InstantiatedTypes = new HashSet<TypeDescriptor>();
+			//this.InstantiatedTypes = new HashSet<TypeDescriptor>();
 			this.ReceiverPossibleTypes = new HashSet<TypeDescriptor>();
 			this.ArgumentsPossibleTypes = new List<ISet<TypeDescriptor>>();
 			this.PossibleCallees = new HashSet<MethodDescriptor>();
@@ -88,13 +88,13 @@ namespace ReachingTypeAnalysis
 	public class ReturnInfo
 	{
 		public ISet<TypeDescriptor> ResultPossibleTypes { get; set; }
-		public ISet<TypeDescriptor> InstantiatedTypes { get; set; }
+		//public ISet<TypeDescriptor> InstantiatedTypes { get; set; }
 		public CallContext CallerContext { get; private set; }
 		public MethodDescriptor Callee { get; set; }
 
 		public ReturnInfo(MethodDescriptor callee, CallContext callerContext)
 		{
-			this.InstantiatedTypes = new HashSet<TypeDescriptor>();
+			//this.InstantiatedTypes = new HashSet<TypeDescriptor>();
 			this.ResultPossibleTypes = new HashSet<TypeDescriptor>();
 			this.Callee = callee;
 			this.CallerContext = callerContext;

@@ -411,7 +411,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
 		{
 			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
-				callInfo.ArgumentsPossibleTypes, callInfo.InstantiatedTypes, callInfo.CallNode, callInfo.LHS, propKind);
+				callInfo.ArgumentsPossibleTypes, /*callInfo.InstantiatedTypes,*/ callInfo.CallNode, callInfo.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
@@ -504,7 +504,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
-			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, returnInfo.InstantiatedTypes,
+			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, /*returnInfo.InstantiatedTypes,*/
 				returnInfo.CallerContext.CallNode, returnInfo.CallerContext.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(returnInfo.Callee);

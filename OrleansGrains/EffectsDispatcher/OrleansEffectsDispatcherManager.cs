@@ -11,10 +11,12 @@ namespace ReachingTypeAnalysis.Analysis
 {
 	internal class OrleansEffectsDispatcherManager : IEffectsDispatcher
 	{
+		private IGrainFactory grainFactory;
 		private ISolutionManager solutionManager;
 
-		public OrleansEffectsDispatcherManager(ISolutionManager solutionManager)
+		public OrleansEffectsDispatcherManager(IGrainFactory grainFactory, ISolutionManager solutionManager)
 		{
+			this.grainFactory = grainFactory;
 			this.solutionManager = solutionManager;
 		}
 
@@ -83,7 +85,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
 		{
 			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
-				callInfo.ArgumentsPossibleTypes, callInfo.InstantiatedTypes, callInfo.CallNode, callInfo.LHS, propKind);
+				callInfo.ArgumentsPossibleTypes, /*callInfo.InstantiatedTypes,*/ callInfo.CallNode, callInfo.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
@@ -127,7 +129,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
-			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, returnInfo.InstantiatedTypes,
+			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, /*returnInfo.InstantiatedTypes,*/
 				returnInfo.CallerContext.CallNode, returnInfo.CallerContext.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
@@ -148,13 +150,16 @@ namespace ReachingTypeAnalysis.Analysis
 			Logger.LogS("EffectsDispatcherManager", "AnalyzeReturn", "End Analyzing return to {0} ", caller);
 		}
 
-		private async Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
+		private Task<IMethodEntityGrain> GetMethodEntityGrainAndActivateInProject(MethodDescriptor method)
 		{
-			var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
-			// Force MethodGrain placement near projects
-			//var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
-			//var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
-			return methodEntityProc as IMethodEntityGrain;
+			var methodEntityGrain = OrleansMethodEntity.GetMethodEntityGrain(this.grainFactory, method);
+			return Task.FromResult(methodEntityGrain);
+
+			//var methodEntityProc = await this.solutionManager.GetMethodEntityAsync(method); //as IMethodEntityGrain;
+			//// Force MethodGrain placement near projects
+			////var codeProvider = await this.solutionManager.GetProjectCodeProviderAsync(method);
+			////var methodEntityProc = await codeProvider.GetMethodEntityAsync(method) as IMethodEntityGrain;
+			//return methodEntityProc as IMethodEntityGrain;
 		}
 	}
 }
