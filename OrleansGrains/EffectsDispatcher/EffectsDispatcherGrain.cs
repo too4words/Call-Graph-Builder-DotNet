@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 		[NonSerialized]
 		private DateTime lastProcessingTime;
 		[NonSerialized]
-		private bool isIdle;
+		private EffectsDispatcherStatus status;
 		[NonSerialized]
 		private bool isDispatchingEffects;
 
@@ -31,7 +31,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterActivation("EffectsDispatcherGrain", this.GrainFactory);
 
-			this.isIdle = false;
+			this.status = EffectsDispatcherStatus.Busy;
 			this.isDispatchingEffects = false;
 			this.lastProcessingTime = DateTime.UtcNow; // DateTime.MinValue; // DateTime.MaxValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
@@ -105,11 +105,13 @@ namespace ReachingTypeAnalysis.Analysis
 			this.lastProcessingTime = DateTime.UtcNow;
 			this.isDispatchingEffects = true;
 
-			if (this.isIdle)
+			if (this.status == EffectsDispatcherStatus.Idle)
 			{
-				this.isIdle = false;
-				// Notify that the dispatcher is no longer idle?
 				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy", this.GetPrimaryKey());
+
+				// Notify that the dispatcher is busy
+				this.status = EffectsDispatcherStatus.Busy;
+				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
 			}
 
 			await this.effectsDispatcher.DispatchEffectsAsync(effects);
@@ -139,14 +141,14 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var idleTime = DateTime.UtcNow - lastProcessingTime;
 
-			if (!this.isDispatchingEffects && !this.isIdle &&
+			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Busy &&
 				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
 			{
 				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle", this.GetPrimaryKey());
 
 				// Notify that this dispatcher is idle.
-				this.isIdle = true;
-				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherIdle(this));
+				this.status = EffectsDispatcherStatus.Idle;
+				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
 			}
 
 			return TaskDone.Done;

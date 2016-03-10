@@ -22,11 +22,11 @@ namespace OrleansInterfaces
 
 	public interface IEntityGrainObserverNotifications : IGrainObserver
 	{
-		void OnStatusChanged(IObservableEntityGrain sender, EntityGrainStatus newState);
+		void OnStatusChanged(IObservableEntityGrain sender, EntityGrainStatus newStatus);
 	}
 
 	public interface IAnalysisObserver : IGrainObserver
 	{
-		void OnEffectsDispatcherIdle(IEffectsDispatcherGrain sender);
+		void OnEffectsDispatcherStatusChanged(IEffectsDispatcherGrain sender, EffectsDispatcherStatus newStatus);
 	}
 }

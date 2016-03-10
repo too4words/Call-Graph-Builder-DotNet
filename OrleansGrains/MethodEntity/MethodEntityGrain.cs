@@ -27,7 +27,7 @@ namespace ReachingTypeAnalysis.Analysis
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
-	//[StorageProvider(ProviderName = "AzureStore")]
+	//[StorageProvider(ProviderName = "AzureTableStore")]
     //[Reentrant]
 	[PreferLocalPlacement]
 	//public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
@@ -220,14 +220,19 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
-        {
+		{
 			effects.Kind = propKind;
+			await SplitAndEnqueueAsync(effects, 10);
+		}
+
+		private async Task SplitAndEnqueueAsync(PropagationEffects effects, int maxCount)
+		{
 			var tasks = new List<Task>();
-			var messages = SplitEffects(effects);
+			var messages = SplitEffects(effects, maxCount);
 
 			foreach (var message in messages)
 			{
-				var task = this.EnqueueEffectsAsync(message);
+				var task = this.EnqueueEffectsAsync(message, maxCount);
 				//await task;
 				tasks.Add(task);
 			}
@@ -235,9 +240,11 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task EnqueueEffectsAsync(PropagationEffects effects)
+		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCount)
 		{
+			var splitEffects = false;
 			var retryCount = AnalysisConstants.StreamCount; // 3
+			Exception exception = null;
 
 			do
 			{
@@ -248,36 +255,64 @@ namespace ReachingTypeAnalysis.Analysis
 					await stream.OnNextAsync(effects);
 					break;
 				}
+				catch (AggregateException ex)
+				{
+					Exception innerEx = ex;
+					while (innerEx is AggregateException) innerEx = innerEx.InnerException;
+
+					if (innerEx is ArgumentException && maxCount != 1)
+					{
+						splitEffects = true;
+						break;
+					}
+					else
+					{
+						exception = ex;
+					}
+				}
 				catch (Exception ex)
+				{
+					exception = ex;
+				}
+
+				if (exception != null)
 				{
 					retryCount--;
 
 					if (retryCount == 0)
 					{
-						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "ProcessEffects", "Exception {0}", ex);
-						throw ex;
+						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "ProcessEffects", "Exception {0}", exception);
+						throw exception;
 					}
+
+					exception = null;
 				}
 			}
 			while (retryCount > 0);
+
+			if (splitEffects)
+			{
+				var newMaxCount = (maxCount / 2) + (maxCount % 2);
+				await SplitAndEnqueueAsync(effects, newMaxCount);
+			}
 		}
 
-		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects)
+		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
 		{
 			var result = new List<PropagationEffects>();
 			var calleesInfo = effects.CalleesInfo.ToList();
 			var count = calleesInfo.Count;
 			var index = 0;
 
-			while (count > 10)
+			while (count > maxCount)
 			{
-				var callees = calleesInfo.GetRange(index, 10);
+				var callees = calleesInfo.GetRange(index, maxCount);
 				var message = new PropagationEffects(callees, false);
 
 				result.Add(message);
 
-				count -= 10;
-				index += 10;
+				count -= maxCount;
+				index += maxCount;
 			}
 
 			if (count > 0)
@@ -294,15 +329,15 @@ namespace ReachingTypeAnalysis.Analysis
 				count = callersInfo.Count;
 				index = 0;
 
-				while (count > 10)
+				while (count > maxCount)
 				{
-					var callers = callersInfo.GetRange(index, 10);
+					var callers = callersInfo.GetRange(index, maxCount);
 					var message = new PropagationEffects(callers);
 
 					result.Add(message);
 
-					count -= 10;
-					index += 10;
+					count -= maxCount;
+					index += maxCount;
 				}
 
 				if (count > 0)

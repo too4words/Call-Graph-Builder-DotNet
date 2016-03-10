@@ -23,7 +23,7 @@ namespace ReachingTypeAnalysis.Analysis
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
-	[StorageProvider(ProviderName = "AzureStore")]
+	[StorageProvider(ProviderName = "AzureTableStore")]
 	[Reentrant]
 	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserverNotifications
 	//public class SolutionGrain : Grain, ISolutionGrain, IEntityGrainObserverNotifications

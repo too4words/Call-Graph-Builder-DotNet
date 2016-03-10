@@ -35,7 +35,7 @@ namespace ReachingTypeAnalysis
 		private string source;
 		private string solutionPath;
 		private string testName;
-		private IDictionary<Guid, bool> idleDispatchers;
+		private IDictionary<Guid, EffectsDispatcherStatus> dispatchersStatus;
 
 		public ISolutionManager SolutionManager { get; private set; }
         public AnalysisRootKind RootKind { get; set; } 
@@ -44,7 +44,7 @@ namespace ReachingTypeAnalysis
 
 		private SolutionAnalyzer()
 		{
-			this.idleDispatchers = new Dictionary<Guid, bool>();
+			this.dispatchersStatus = new Dictionary<Guid, EffectsDispatcherStatus>();
 		}
 
 		public static SolutionAnalyzer CreateFromSolution(string solutionPath)
@@ -261,7 +261,7 @@ namespace ReachingTypeAnalysis
 			var tasks = new List<Task>();
 			var objref = await GrainClient.GrainFactory.CreateObjectReference<IAnalysisObserver>(this);
 
-			this.idleDispatchers.Clear();
+			this.dispatchersStatus.Clear();
 
 			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
 			{
@@ -269,7 +269,7 @@ namespace ReachingTypeAnalysis
 				var dispatcherGuid = Guid.Parse(dispatcherId);				
 				var dispatcher = OrleansEffectsDispatcherManager.GetEffectsDispatcherGrain(GrainClient.GrainFactory, dispatcherGuid);
 
-				this.idleDispatchers.Add(dispatcherGuid, false);
+				this.dispatchersStatus.Add(dispatcherGuid, EffectsDispatcherStatus.Busy);
 
 				var task = dispatcher.Subscribe(objref);
 				//await task;
@@ -323,19 +323,19 @@ namespace ReachingTypeAnalysis
 
 		private async Task WaitForTerminationAsync()
 		{
-			while (this.idleDispatchers.Any(e => !e.Value))
+			while (this.dispatchersStatus.Any(e => e.Value == EffectsDispatcherStatus.Busy))
 			{
 				Logger.LogForDebug(GrainClient.Logger, "@@[Client] Waiting for termination...");
 				await Task.Delay(AnalysisConstants.WaitForTerminationDelay);
 			}
 		}
 
-		void IAnalysisObserver.OnEffectsDispatcherIdle(IEffectsDispatcherGrain sender)
+		void IAnalysisObserver.OnEffectsDispatcherStatusChanged(IEffectsDispatcherGrain sender, EffectsDispatcherStatus newStatus)
 		{
 			var dispatcherGuid = sender.GetPrimaryKey();
-			this.idleDispatchers[dispatcherGuid] = true;
+			this.dispatchersStatus[dispatcherGuid] = newStatus;
 
-			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is idle", dispatcherGuid);
+			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

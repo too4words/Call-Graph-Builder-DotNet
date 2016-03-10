@@ -164,7 +164,7 @@ namespace WebAPI
                         if (AnalysisClient.ExperimentStatus != ExperimentStatus.None
                             && AnalysisClient.ExperimentStatus != ExperimentStatus.Ready)
                         {
-                            result += " Message:" + await AnalysisClient.LastMessage + "\n" + AnalysisClient.ErrorMessage; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
+                            result += "\nMessage:" + await AnalysisClient.LastMessage + "\n" + AnalysisClient.ErrorMessage; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
                         }
                         break;
                     case "OperationsCount":

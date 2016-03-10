@@ -39,7 +39,7 @@ namespace ReachingTypeAnalysis.Analysis
 		public string MaxLatencyMsg { get; set; }
 	}
 
-	//[StorageProvider(ProviderName = "AzureStore")]
+	//[StorageProvider(ProviderName = "AzureTableStore")]
 	//public class StatsGrain : Grain<IStatsState>, IStatsGrain
 	public class StatsGrain : Grain, IStatsGrain
     {

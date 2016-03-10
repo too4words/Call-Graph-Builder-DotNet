@@ -30,7 +30,7 @@ namespace ReachingTypeAnalysis.Analysis
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
-    [StorageProvider(ProviderName = "AzureStore")]
+    [StorageProvider(ProviderName = "AzureTableStore")]
     [Reentrant]
 	public class ProjectCodeProviderGrain : Grain<IProjectState>, IProjectCodeProviderGrain
 	//public class ProjectCodeProviderGrain : Grain, IProjectCodeProviderGrain
@@ -131,9 +131,9 @@ namespace ReachingTypeAnalysis.Analysis
 			return TaskDone.Done;
 		}
 
-		private void RaiseStateChangedEvent(EntityGrainStatus newState)
+		private void RaiseStateChangedEvent(EntityGrainStatus newStatus)
 	    {
-			this.observers.Notify(observer => observer.OnStatusChanged(this.AsReference<IProjectCodeProviderGrain>(), newState));
+			this.observers.Notify(observer => observer.OnStatusChanged(this.AsReference<IProjectCodeProviderGrain>(), newStatus));
 	    }
 
 		#endregion

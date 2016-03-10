@@ -30,7 +30,7 @@
             <asp:TextBox ID="TextBoxPath" runat="server" Width="680px">LongGeneratedTest1</asp:TextBox>
         </p>
 		<p>
-            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;10;50;1</asp:TextBox>
+            <asp:TextBox ID="TextRandomQueryInput" runat="server">C;N;10;50;1;Main</asp:TextBox>
         </p>
     </div>
 

@@ -64,6 +64,7 @@ namespace WebRole1
                     var numberOfMethods = int.Parse(tokens[2]);
                     var repetitions = int.Parse(tokens[3]);
                     var machines = int.Parse(tokens[4]);
+					var rootKind = Utils.ToAnalysisRootKind(tokens[5]);
 
 					var solutionFileName = Path.Combine(pathPrefix, solutionPath);
 					var analyzer = SolutionAnalyzer.CreateFromSolution(solutionFileName);
@@ -71,7 +72,7 @@ namespace WebRole1
 					var analysisClient = new AnalysisClient(analyzer, machines);
 					// await analysisClient.Analyze();
 					//await analysisClient.RunExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\','-').Replace('.','-'));
-					analysisClient.StartRunningExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\', '-').Replace('.', '-'));
+					analysisClient.StartRunningExperiment(GrainClient.GrainFactory, solutionPath.Replace('\\', '-').Replace('.', '-'), rootKind);
 
 					//var reachableMethods = await RunAnalysisAsync(machines, pathPrefix, solutionPath);
 					//string methods = String.Join("\n", reachableMethods);
@@ -185,11 +186,19 @@ namespace WebRole1
             }
         }
 
-		protected void ButtonQueryStatus_Click(object sender, EventArgs e)
+		protected async void ButtonQueryStatus_Click(object sender, EventArgs e)
 		{
 			try
 			{
-				var status = AnalysisClient.ExperimentStatus;
+				var result = Convert.ToString(AnalysisClient.ExperimentStatus);
+				if (AnalysisClient.ExperimentStatus != ExperimentStatus.None
+					&& AnalysisClient.ExperimentStatus != ExperimentStatus.Ready)
+				{
+					result += "\nMessage:" + await AnalysisClient.LastMessage + "\n" + AnalysisClient.ErrorMessage; // + await AnalysisClient.CurrentAnalyzedMethodsCount;
+				}
+
+				//var status = AnalysisClient.ExperimentStatus;
+				var status = result;
 				this.TextBox1.Text = string.Format("Analysis status={0}", status);
 			}
 			catch (Exception exc)
