@@ -39,13 +39,13 @@ param (
 #$solutionNames = @("LongTest1", "ResourceManager.ForRefactoringOnly")
 #$expIDs= @("test-1", "azure-powershell")
 
-$solutionPaths = @("LongTest1", "ShareX")
-$solutionNames = @("LongTest1", "ShareX")
-$expIDs= @("test-1", "ShareX")
+#$solutionPaths = @("LongTest1", "ShareX")
+#$solutionNames = @("LongTest1", "ShareX")
+#$expIDs= @("test-1", "ShareX")
 
-#$solutionPaths = @("LongTest1", "ILSpy")
-#$solutionNames = @("LongTest1", "ILSpy")
-#$expIDs= @("test-1", "ILSpy")
+$solutionPaths = @("LongTest1", "ILSpy")
+$solutionNames = @("LongTest1", "ILSpy")
+$expIDs= @("test-1", "ILSpy")
 
 #$solutionPaths = @("LongTest1", "EntityFramework")
 #$solutionNames = @("LongTest1", "EntityFramework")

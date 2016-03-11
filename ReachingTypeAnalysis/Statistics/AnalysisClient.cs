@@ -58,7 +58,9 @@ namespace ReachingTypeAnalysis.Statistics
 		private IManagementGrain systemManagement;
 		private CloudTable analysisTimes;
 		private CloudTable querytimes;
-		private CloudTable siloMetrics;
+        private CloudTable individualQuerytimes;
+
+        private CloudTable siloMetrics;
         private CloudTable updatesTable;
 
         private int machines;
@@ -595,6 +597,19 @@ namespace ReachingTypeAnalysis.Statistics
                         if (time > maxTime) maxTime = time;
                         if (time < minTime) minTime = time;
                         sumTime += time;
+                        var currentTime = DateTime.Now;
+                        var results = new QueriesDetailPerSubject()
+                        {
+                            ExpID = this.ExperimentID,
+                            Time = currentTime,
+                            Subject = this.subject,
+                            Machines = machines,
+                            QueryNumber = i-warmingUpQueries,
+                            QueryTime = time,
+                            PartitionKey = this.ExperimentID,
+                            RowKey = ExperimentID + "-"+ (i-warmingUpQueries) + "-" + currentTime
+                        };
+                        this.AddIndividualQueryResult(results);
                     }
                 }
             }
@@ -836,6 +851,16 @@ namespace ReachingTypeAnalysis.Statistics
 			// Execute the insert operation.
 			this.siloMetrics.Execute(insertOperation);
 		}
+        internal void AddIndividualQueryResult(QueriesDetailPerSubject results)
+        {
+            if (this.individualQuerytimes == null)
+            {
+                this.individualQuerytimes = CreateTable("IndividualQueryResults");
+            }
+            TableOperation insertOperation = TableOperation.Insert(results);
+            // Execute the insert operation.
+            this.individualQuerytimes.Execute(insertOperation);
+        }
 
         internal void AddQueryResults(QueriesPerSubject results)
         {

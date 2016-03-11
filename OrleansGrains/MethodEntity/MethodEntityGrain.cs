@@ -281,7 +281,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 					if (retryCount == 0)
 					{
-						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "ProcessEffects", "Exception {0}", exception);
+						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffectsAsync", "Exception on OnNextAsync {0}", exception);
 						throw exception;
 					}
 

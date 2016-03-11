@@ -84,6 +84,18 @@ namespace ReachingTypeAnalysis.Statistics
         public double StdDev { get; set; }
     }
 
+    public class QueriesDetailPerSubject : TableEntityCSV
+    {
+        public string ExpID { get; set; }
+        public DateTime Time { get; set; }
+        public int Machines { get; set; }
+        public string Subject { get; set; }
+        public int QueryNumber { get; set; }
+        public long QueryTime { get; set; }
+    }
+
+
+
     public class SiloRuntimeStats : TableEntityCSV
     {
         public string ExpID { get; set; }
