@@ -424,9 +424,12 @@ namespace ReachingTypeAnalysis.Analysis
         public static Task RegisterPropagationUpdates(int updates, int worklistSize, IGrainFactory grainFactory)
         {
 #if COMPUTE_STATS
+            /*
 			var statGrain = GetStatGrain(grainFactory);
 			return statGrain.AddUpdatesCounter(updates, worklistSize);
-            ;
+            */
+            return TaskDone.Done;
+
 #else
             return TaskDone.Done;
 #endif
