@@ -13,5 +13,6 @@ namespace OrleansInterfaces
 	{
 		Task Subscribe(IAnalysisObserver observer);
 		Task Unsubscribe(IAnalysisObserver observer);
+		Task ForceDeactivationAsync();
 	}
 }

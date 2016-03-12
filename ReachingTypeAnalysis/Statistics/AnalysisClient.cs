@@ -403,16 +403,35 @@ namespace ReachingTypeAnalysis.Statistics
             this.AddToUpdatesEntry(date, this.machines, seriesCount, updates.Item1,updates.Item2);
         }
 
-
 		public static async Task PerformDeactivation(IGrainFactory grainFactory, ISolutionGrain solutionGrain)
 		{
 			//var solutionGrain = this.SolutionManager as ISolutionGrain;
+			
+			await ForceDispatchersDeactivationAsync(grainFactory);
 			await solutionGrain.ForceDeactivationAsync();
 
 			//var systemManagement = grainFactory.GetGrain<IManagementGrain>(SYSTEM_MANAGEMENT_ID);
 			//await systemManagement.ForceActivationCollection(new System.TimeSpan(0,0,5));
 
 			// EmptyTable("OrleansGrainState");
+		}
+
+		public static async Task ForceDispatchersDeactivationAsync(IGrainFactory grainFactory)
+		{
+			var tasks = new List<Task>();
+
+			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
+			{
+				var dispatcherId = string.Format(AnalysisConstants.StreamGuidFormat, i);
+				var dispatcherGuid = Guid.Parse(dispatcherId);
+				var dispatcher = OrleansEffectsDispatcherManager.GetEffectsDispatcherGrain(grainFactory, dispatcherGuid);
+
+				var task = dispatcher.ForceDeactivationAsync();
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
 		}
 
         public static Task CancelExperimentAsync()
@@ -550,13 +569,13 @@ namespace ReachingTypeAnalysis.Statistics
 
         public async Task<Tuple<long, long, long>> ComputeRandomQueries(int repetitions, string expId = "DummyExperimentID")
         {
-            if (String.IsNullOrEmpty(this.ExperimentID))
+            if (string.IsNullOrEmpty(this.ExperimentID))
             {
                 this.ExperimentID = expId;
             }
 
             var solutionManager = this.SolutionManager;
-            Random random = new Random();
+            var random = new Random();
             long sumTime = 0;
             long maxTime = 0;
             long minTime = long.MaxValue;
@@ -609,10 +628,11 @@ namespace ReachingTypeAnalysis.Statistics
                             PartitionKey = this.ExperimentID,
                             RowKey = ExperimentID + "-"+ (i-warmingUpQueries) + "-" + currentTime
                         };
-                        this.AddIndividualQueryResult(results);
+                        //this.AddIndividualQueryResult(results);
                     }
                 }
             }
+
             if (repetitions > 0)
             {
                 var avgTime = sumTime / repetitions;
@@ -644,21 +664,19 @@ namespace ReachingTypeAnalysis.Statistics
 
                 return Tuple.Create<long, long, long>(avgTime, minTime, maxTime);
             }
+
             return Tuple.Create<long, long, long>(0, 0, 0);
-
         }
-
-
 
         private static CloudTable CreateTable(string name)
 		{
-			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+			var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 
 			// Create the table client.
-			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+			var tableClient = storageAccount.CreateCloudTableClient();
 
 			// Create the table if it doesn't exist.
-			CloudTable table = tableClient.GetTableReference(name);
+			var table = tableClient.GetTableReference(name);
 			table.CreateIfNotExists();
 			
 			return table;
@@ -666,17 +684,15 @@ namespace ReachingTypeAnalysis.Statistics
 
 		private static void SaveTable<T>(string name, string path="")  where T: TableEntityCSV, new()
 		{
-			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+			var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+			var query = new TableQuery<T>();
+			var tableClient = storageAccount.CreateCloudTableClient();
 
-			TableQuery<T> query = new TableQuery<T>()
-			{
-			};
-			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 			// Create the table if it doesn't exist.
-			CloudTable table = tableClient.GetTableReference(name);
-
+			var table = tableClient.GetTableReference(name);
 			var entities = table.ExecuteQuery<T>(query).ToList();
 			var outputFile = Path.Combine(path,name)+".csv";
+
 			using (var output = new StreamWriter(outputFile))
 			{
 				if (entities.Count > 0)
@@ -692,15 +708,12 @@ namespace ReachingTypeAnalysis.Statistics
 
         public static string TableToCvs<T>(string name) where T : TableEntityCSV, new()
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+            var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+			var query = new TableQuery<T>();
+            var tableClient = storageAccount.CreateCloudTableClient();
 
-            TableQuery<T> query = new TableQuery<T>()
-            {
-            };
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             // Create the table if it doesn't exist.
-            CloudTable table = tableClient.GetTableReference(name);
-
+            var table = tableClient.GetTableReference(name);
             var entities = table.ExecuteQuery<T>(query).ToList();
 
             var output = new StringBuilder();
@@ -714,23 +727,23 @@ namespace ReachingTypeAnalysis.Statistics
                     }
                 }
             }
+
             return output.ToString();
         }
 
         public static CloudTable EmptyTable(string name)
 		{
-			CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+			var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
 			// Create the table client.
-			CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+			var tableClient = storageAccount.CreateCloudTableClient();
 			// Create the table if it doesn't exist.
-			CloudTable table = tableClient.GetTableReference(name);
+			var table = tableClient.GetTableReference(name);
 			table.DeleteIfExists();
 
 			SafeCreateIfNotExists(table);
 			// table.CreateIfNotExists();
 			return table;
 		}
-
 
 		public static bool SafeCreateIfNotExists(CloudTable table, TableRequestOptions requestOptions = null, OperationContext operationContext = null)
 		{
@@ -750,18 +763,17 @@ namespace ReachingTypeAnalysis.Statistics
 			} while (true);
 		}
 
-
         internal void AddSubjetResults(SubjectExperimentResults results)
         {
             if (this.analysisTimes==null)
             {
                 this.analysisTimes = CreateTable("AnalysisResults");
             }
-            TableOperation insertOperation = TableOperation.Insert(results);
+
+            var insertOperation = TableOperation.Insert(results);
             // Execute the insert operation.
             this.analysisTimes.Execute(insertOperation);
         }
-
 
 		internal void AddSiloMetric(string siloAddr, SiloComputedStats siloComputedStat, DateTime time, int machines)
 		{
@@ -790,7 +802,8 @@ namespace ReachingTypeAnalysis.Statistics
 			{
 				this.siloMetrics = CreateTable("SiloMetrics");
 			}
-			TableOperation insertOperation = TableOperation.Insert(siloStat);
+
+			var insertOperation = TableOperation.Insert(siloStat);
 			// Execute the insert operation.
 			this.siloMetrics.Execute(insertOperation);
 		}
@@ -817,7 +830,6 @@ namespace ReachingTypeAnalysis.Statistics
             this.updatesTable.Execute(insertOperation);
 
         }
-
 
         internal void AddSiloMetricWithOrleans(/*SiloAddress*/ string siloAddr,  SiloRuntimeStatistics siloMetric, SiloComputedStats siloComputedStat, DateTime time, int machines)
 		{
@@ -847,17 +859,20 @@ namespace ReachingTypeAnalysis.Statistics
 			{
 				this.siloMetrics = CreateTable("SiloMetrics");
 			}
-			TableOperation insertOperation = TableOperation.Insert(siloStat);
+
+			var insertOperation = TableOperation.Insert(siloStat);
 			// Execute the insert operation.
 			this.siloMetrics.Execute(insertOperation);
 		}
+
         internal void AddIndividualQueryResult(QueriesDetailPerSubject results)
         {
             if (this.individualQuerytimes == null)
             {
                 this.individualQuerytimes = CreateTable("IndividualQueryResults");
             }
-            TableOperation insertOperation = TableOperation.Insert(results);
+
+            var insertOperation = TableOperation.Insert(results);
             // Execute the insert operation.
             this.individualQuerytimes.Execute(insertOperation);
         }
@@ -868,7 +883,8 @@ namespace ReachingTypeAnalysis.Statistics
             {
 				this.querytimes = CreateTable("QueryResults");
             }
-            TableOperation insertOperation = TableOperation.Insert(results);
+
+            var insertOperation = TableOperation.Insert(results);
             // Execute the insert operation.
             this.querytimes.Execute(insertOperation);
         }

@@ -69,6 +69,7 @@ namespace ReachingTypeAnalysis.Statistics
         public string MaxLatencyMsg { get; set; }
 
     }
+
     public class QueriesPerSubject : TableEntityCSV
     {
         public string ExpID { get; set; }
@@ -93,8 +94,6 @@ namespace ReachingTypeAnalysis.Statistics
         public int QueryNumber { get; set; }
         public long QueryTime { get; set; }
     }
-
-
 
     public class SiloRuntimeStats : TableEntityCSV
     {

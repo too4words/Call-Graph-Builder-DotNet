@@ -222,10 +222,10 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			effects.Kind = propKind;
-			await SplitAndEnqueueAsync(effects, 10);
+			await this.SplitAndEnqueueEffectsAsync(effects, 10);
 		}
 
-		private async Task SplitAndEnqueueAsync(PropagationEffects effects, int maxCount)
+		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCount)
 		{
 			var tasks = new List<Task>();
 			var messages = SplitEffects(effects, maxCount);
@@ -281,7 +281,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 					if (retryCount == 0)
 					{
-						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffectsAsync", "Exception on OnNextAsync {0}", exception);
+						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}", exception);
 						throw exception;
 					}
 
@@ -293,7 +293,7 @@ namespace ReachingTypeAnalysis.Analysis
 			if (splitEffects)
 			{
 				var newMaxCount = (maxCount / 2) + (maxCount % 2);
-				await SplitAndEnqueueAsync(effects, newMaxCount);
+				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
 			}
 		}
 
@@ -361,7 +361,7 @@ namespace ReachingTypeAnalysis.Analysis
 			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
 			var stream = streamProvider.GetStream<PropagationEffects>(streamGuid, AnalysisConstants.StreamNamespace);
 
-			Logger.LogForDebug(this.GetLogger(), "@@[MethodEntityGrain {0}] Enqueuing effects into stream {1}", this.methodEntity.MethodDescriptor, streamGuid);
+			Logger.LogInfoForDebug(this.GetLogger(), "@@[MethodEntityGrain {0}] Enqueuing effects into stream {1}", this.methodEntity.MethodDescriptor, streamGuid);
 
 			return stream;
 		}
