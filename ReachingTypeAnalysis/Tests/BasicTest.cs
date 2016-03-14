@@ -983,6 +983,51 @@ class Program
 				strategy);
 		}
 
+		public static void TestLambdaAsArgument(AnalysisStrategyKind strategy)
+		{
+			#region source code
+			var source = @"
+using System;
+
+class Assert
+{
+	public static void All(IEnumerable<Order> collection, Action<Order> action)
+	{
+		Console.WriteLine(collection);
+	}
+
+	public static void Null(object obj)
+	{
+		Console.WriteLine(obj);
+	}
+}
+
+class Order
+{
+	public object Customer { get; set; }
+}
+
+class Program
+{
+    public static void Main()
+	{
+		var orders = new List<Order>();
+		Assert.All(orders, o => Assert.Null(o.Customer));
+	}
+}";
+			#endregion
+
+			TestUtils.AnalyzeExample(source,
+				(s, callgraph) =>
+				{
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Program", "Main", true), callgraph));
+					// This should be reachable
+					Assert.IsTrue(s.IsReachable(new MethodDescriptor("Assert", "All", true), callgraph));
+					//Assert.IsTrue(s.IsReachable(new MethodDescriptor("Assert", "Null", true), callgraph));
+				},
+				strategy);
+		}
+
 		public static void TestExtensionMethodCall(AnalysisStrategyKind strategy)
 		{
 			#region source code

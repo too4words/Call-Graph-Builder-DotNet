@@ -100,7 +100,7 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterMsg("EffectsDispatcherGrain::DispatchEffects", this.GrainFactory);
 
-			Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Dequeuing effects", this.GetPrimaryKey());
+			Logger.LogInfoForDebug(this.GetLogger(), "@@[Dispatcher {0}] Dequeuing effects", this.GetPrimaryKey());
 
 			this.lastProcessingTime = DateTime.UtcNow;
 			this.isDispatchingEffects = true;
@@ -135,6 +135,43 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			Logger.LogWarning(this.GetLogger(), "EffectsDispatcherGrain", "OnError", "Exception: {0}", ex);
 			return TaskDone.Done;
+		}
+
+		public async Task ForceDeactivationAsync()
+		{
+			//await StatsHelper.RegisterMsg("EffectsDispatcherGrain::ForceDeactivation", this.GrainFactory);
+
+			Logger.LogVerbose(this.GetLogger(), "EffectsDispatcherGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKey());
+			//await this.ClearStateAsync();
+
+			// Clear all fields before calling WriteStateAsync
+			//await this.WriteStateAsync();
+
+			// Unsubscribe from client
+			this.subscriptionManager.Clear();
+
+			// Unsubscribe from stream
+			var streamProvider = this.GetStreamProvider(AnalysisConstants.StreamProvider);
+			var stream = streamProvider.GetStream<PropagationEffects>(this.GetPrimaryKey(), AnalysisConstants.StreamNamespace);
+
+			// Explicit subscription code
+			var subscriptionHandles = await stream.GetAllSubscriptionHandles();
+
+			if (subscriptionHandles != null && subscriptionHandles.Count > 0)
+			{
+				var tasks = new List<Task>();
+
+				foreach (var subscriptionHandle in subscriptionHandles)
+				{
+					var task = subscriptionHandle.UnsubscribeAsync();
+					//await task;
+					tasks.Add(task);
+				}
+
+				await Task.WhenAll(tasks);
+			}
+
+			this.DeactivateOnIdle();
 		}
 
 		private Task OnTimerTick(object state)

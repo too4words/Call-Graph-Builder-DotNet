@@ -114,6 +114,14 @@ namespace ReachingTypeAnalysis
 		[TestMethod]
 		[TestCategory("Soundness")]
 		[TestCategory("OnDemandAsync")]
+		public void TestLambdaAsArgumentOnDemandAsync()
+		{
+			BasicTests.TestLambdaAsArgument(AnalysisStrategyKind.ONDEMAND_ASYNC);
+		}
+
+		[TestMethod]
+		[TestCategory("Soundness")]
+		[TestCategory("OnDemandAsync")]
 		public void TestExtensionMethodCallOnDemandAsync()
 		{
 			BasicTests.TestExtensionMethodCall(AnalysisStrategyKind.ONDEMAND_ASYNC);

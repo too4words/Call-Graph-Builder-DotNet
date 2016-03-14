@@ -20,8 +20,8 @@ namespace ReachingTypeAnalysis.Analysis
 	internal class ProjectCodeProviderWithCache : IProjectCodeProvider
 	{
 		private IProjectCodeProvider codeProvider;
-		private static ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeReply = new ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>>();
-		private static ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> IsSubTypeNegativeReply = new ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>>();
+		private static ConcurrentDictionary<TypeDescriptor, ConcurrentDictionary<TypeDescriptor, bool>> IsSubTypeReply = new ConcurrentDictionary<TypeDescriptor, ConcurrentDictionary<TypeDescriptor, bool>>();
+		private static ConcurrentDictionary<TypeDescriptor, ConcurrentDictionary<TypeDescriptor, bool>> IsSubTypeNegativeReply = new ConcurrentDictionary<TypeDescriptor, ConcurrentDictionary<TypeDescriptor, bool>>();
 		private static ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor> FindMethodReply = new ConcurrentDictionary<Tuple<MethodDescriptor, TypeDescriptor>, MethodDescriptor>();
 
         internal ProjectCodeProviderWithCache(IProjectCodeProvider codeProvider)
@@ -32,10 +32,10 @@ namespace ReachingTypeAnalysis.Analysis
 		public async Task<bool> IsSubtypeAsync(TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
 		{
 			if (IsSubTypeReply.ContainsKey(typeDescriptor1)
-					&& IsSubTypeReply[typeDescriptor1].Contains(typeDescriptor2))
+					&& IsSubTypeReply[typeDescriptor1].ContainsKey(typeDescriptor2))
 				return true;
 			if (IsSubTypeNegativeReply.ContainsKey(typeDescriptor1)
-				&& IsSubTypeNegativeReply[typeDescriptor1].Contains(typeDescriptor2))
+				&& IsSubTypeNegativeReply[typeDescriptor1].ContainsKey(typeDescriptor2))
 				return false;
 
 			var isSubType = await codeProvider.IsSubtypeAsync(typeDescriptor1, typeDescriptor2);
@@ -51,18 +51,18 @@ namespace ReachingTypeAnalysis.Analysis
 			return isSubType;
 		}
 
-		private void AddToSubTypeCache(ConcurrentDictionary<TypeDescriptor, ISet<TypeDescriptor>> typeCache,
+		private void AddToSubTypeCache(ConcurrentDictionary<TypeDescriptor, ConcurrentDictionary<TypeDescriptor, bool>> typeCache,
 					TypeDescriptor typeDescriptor1, TypeDescriptor typeDescriptor2)
 		{
-			ISet<TypeDescriptor> subTypes;
+			ConcurrentDictionary<TypeDescriptor, bool> subTypes;
 			if (typeCache.TryGetValue(typeDescriptor1, out subTypes))
 			{
-				subTypes.Add(typeDescriptor2);
+				subTypes.TryAdd(typeDescriptor2, true);
 			}
 			else
 			{
-				subTypes = new HashSet<TypeDescriptor>();
-				subTypes.Add(typeDescriptor2);
+				subTypes = new ConcurrentDictionary<TypeDescriptor, bool>();
+				subTypes.TryAdd(typeDescriptor2, true);
 				typeCache.TryAdd(typeDescriptor1, subTypes);
 			}
 		}

@@ -99,6 +99,11 @@ namespace ReachingTypeAnalysis
 			orleansLog.Warn(0, format, arguments);
 		}
 
+		public static void LogInfoForDebug(Orleans.Runtime.Logger orleansLog, string format, params object[] arguments)
+		{
+			orleansLog.Info(0, format, arguments);
+		}
+
 		public static void LogS(string type, string method, string format, params object[] arguments)
         {
 			if (OrleansLogger != null)
