@@ -626,9 +626,9 @@ namespace ReachingTypeAnalysis.Statistics
                             QueryNumber = i-warmingUpQueries,
                             QueryTime = time,
                             PartitionKey = this.ExperimentID,
-                            RowKey = ExperimentID + "-"+ (i-warmingUpQueries) + "-" + currentTime
+                            RowKey = ExperimentID + "-"+ (i-warmingUpQueries) + "-" + currentTime.ToFileTime().ToString()
                         };
-                        //this.AddIndividualQueryResult(results);
+                        this.AddIndividualQueryResult(results);
                     }
                 }
             }
