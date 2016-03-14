@@ -417,7 +417,7 @@ namespace ReachingTypeAnalysis.Statistics
 
         public static Task CancelExperimentAsync()
         {
-            ExperimentStatus = ExperimentStatus.Cancelled;
+            AnalysisClient.ExperimentStatus = ExperimentStatus.Cancelled;
             return TaskDone.Done;
         }
 

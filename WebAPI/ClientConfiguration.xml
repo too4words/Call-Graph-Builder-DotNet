@@ -8,7 +8,7 @@
 	<Gateway Address="localhost" Port="30000"/>
 	-->
 	<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="C:\Temp\{0}-{1}.log" WriteMessagingTraces="false">
-    <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning"  TraceToFile="c:\Temp\{0}-{1}.log"/>
+    <TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="c:\Temp\{0}-{1}.log"/>
     <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Warning" TraceToFile="C:\Temp\{0}-{1}.log"/>
     <!--
 	<TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
@@ -17,5 +17,5 @@
   </Tracing>
   <!-- <Statistics MetricsTableWriteInterval="30s" PerfCounterWriteInterval="30s" LogWriteInterval="300s" WriteLogStatisticsToTable="true" StatisticsCollectionLevel="Critical"/> -->
   <Statistics WriteLogStatisticsToTable="false"/>
-  <Messaging ResponseTimeout="3600s"/>
+  <Messaging ResponseTimeout="7200s"/>
 </ClientConfiguration>
