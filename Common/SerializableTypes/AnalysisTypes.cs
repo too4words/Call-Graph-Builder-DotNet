@@ -27,20 +27,29 @@ namespace ReachingTypeAnalysis
 		public const string StreamNamespace = "EffectsStream";
 		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
-		public const int DispatcherIdleThreshold = 1 * 60 * 1000; // milliseconds
-		public const int DispatcherTimerPeriod = 30 * 1000; // milliseconds
-		public const int WaitForTerminationDelay = 30 * 1000; // milliseconds
+		public const int DispatcherIdleThreshold = 15 * 1000; // milliseconds
+		public const int DispatcherTimerPeriod = 4 * 1000; // milliseconds
+		public const int WaitForTerminationDelay = 1 * 1000; // milliseconds
 
-        public static readonly int InstanceCount;
-        public static readonly int StreamCount;
+        public static int InstanceCount { get; private set; }
+        public static int StreamCount { get; private set; }
 
 		static AnalysisConstants()
 		{
-			var instancesCount = Environment.GetEnvironmentVariable("MyInstancesCount");
+			var instanceCount = Environment.GetEnvironmentVariable("MyInstanceCount");
 
-			InstanceCount = int.Parse(instancesCount);
+			if (instanceCount != null)
+			{
+				var machines = int.Parse(instanceCount);
+				SetInstanceCount(machines);
+			}
+		}
+
+		public static void SetInstanceCount(int machines)
+		{
+			InstanceCount = machines;
 			// machines * cores per machine * threads per core
-			StreamCount = InstanceCount * 4 * 2;
+			StreamCount = InstanceCount * 4; // * 2
 		}
 	}
 

@@ -85,7 +85,8 @@ namespace ReachingTypeAnalysis.Statistics
 			this.machines = machines;
 			this.subject = subject;
 
-			Environment.SetEnvironmentVariable("MyInstancesCount", machines.ToString());
+			Environment.SetEnvironmentVariable("MyInstanceCount", machines.ToString());
+			AnalysisConstants.SetInstanceCount(machines);
 		}
 
         /// <summary>
@@ -102,8 +103,9 @@ namespace ReachingTypeAnalysis.Statistics
             this.machines = machines;
             this.subject = subject;
 
-            Environment.SetEnvironmentVariable("MyInstancesCount", machines.ToString());
-        }
+            Environment.SetEnvironmentVariable("MyInstanceCount", machines.ToString());
+			AnalysisConstants.SetInstanceCount(machines);
+		}
 
         public ISolutionGrain SolutionManager
 		{
