@@ -64,7 +64,7 @@ namespace ReachingTypeAnalysis.Analysis
         {
 			this.State = new MethodState();
 
-			this.currentStreamIndex = this.GetHashCode() % AnalysisConstants.StreamCount();
+			this.currentStreamIndex = this.GetHashCode() % AnalysisConstants.StreamCount;
 
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
@@ -243,7 +243,7 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCount)
 		{
 			var splitEffects = false;
-			var retryCount = AnalysisConstants.StreamCount(); // 3
+			var retryCount = AnalysisConstants.StreamCount; // 3
 			Exception exception = null;
 
 			do
@@ -354,7 +354,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private IAsyncStream<PropagationEffects> SelectStream()
 		{
-			this.currentStreamIndex = (this.currentStreamIndex + 1) % AnalysisConstants.StreamCount();
+			this.currentStreamIndex = (this.currentStreamIndex + 1) % AnalysisConstants.StreamCount;
 
 			var streamId = string.Format(AnalysisConstants.StreamGuidFormat, currentStreamIndex);
 			var streamGuid = Guid.Parse(streamId);

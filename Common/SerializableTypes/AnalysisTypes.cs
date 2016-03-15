@@ -31,32 +31,17 @@ namespace ReachingTypeAnalysis
 		public const int DispatcherTimerPeriod = 30 * 1000; // milliseconds
 		public const int WaitForTerminationDelay = 30 * 1000; // milliseconds
 
-        //public static readonly int InstanceCount;
-        //public static readonly int StreamCount;
+        public static readonly int InstanceCount;
+        public static readonly int StreamCount;
 
-         public static int InstanceCount()
-         {
-            var sInstancesCount = Environment.GetEnvironmentVariable("MyInstancesCount");
+		static AnalysisConstants()
+		{
+			var instancesCount = Environment.GetEnvironmentVariable("MyInstancesCount");
 
-            return int.Parse(sInstancesCount);
-         }
-         public static int StreamCount()
-        {
-            //var sInstancesCount = Environment.GetEnvironmentVariable("MyInstancesCount");
-
-            //var instanceCount = int.Parse(sInstancesCount);
-            // machines * cores per machine * threads per core
-            return InstanceCount() * 4 * 2;
-        }
-
-  //      static AnalysisConstants()
-		//{
-		//	var instancesCount = Environment.GetEnvironmentVariable("MyInstancesCount");
-
-		//	InstanceCount = int.Parse(instancesCount);
-		//	// machines * cores per machine * threads per core
-		//	StreamCount = InstanceCount * 4 * 2;
-		//}
+			InstanceCount = int.Parse(instancesCount);
+			// machines * cores per machine * threads per core
+			StreamCount = InstanceCount * 4 * 2;
+		}
 	}
 
 	[Serializable]

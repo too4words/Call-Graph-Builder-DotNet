@@ -236,7 +236,7 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
-			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Stream count {0} ({1} instances)", AnalysisConstants.StreamCount(), AnalysisConstants.InstanceCount());
+			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Stream count {0} ({1} instances)", AnalysisConstants.StreamCount, AnalysisConstants.InstanceCount);
 
 			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Starting analysis...");
 
@@ -265,7 +265,7 @@ namespace ReachingTypeAnalysis
 
 			this.dispatchersStatus.Clear();
 
-			for (var i = 0; i < AnalysisConstants.StreamCount(); ++i)
+			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
 			{
 				var dispatcherId = string.Format(AnalysisConstants.StreamGuidFormat, i);
 				var dispatcherGuid = Guid.Parse(dispatcherId);				
