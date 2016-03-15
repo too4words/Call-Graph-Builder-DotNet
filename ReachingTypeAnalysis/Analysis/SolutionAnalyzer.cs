@@ -236,6 +236,8 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
+			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Stream count {0} ({1} instances)", AnalysisConstants.StreamCount, AnalysisConstants.InstanceCount);
+
 			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Starting analysis...");
 
 			await this.SubscribeToAllDispatchersAsync();

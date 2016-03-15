@@ -47,9 +47,12 @@ namespace OrleansSilosInAzure
 				}
 
 				var ipAddr = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["OrleansSiloEndPoint"].IPEndpoint.Address.ToString();
-				Environment.SetEnvironmentVariable("MyIPAddr",ipAddr);
+				Environment.SetEnvironmentVariable("MyIPAddr", ipAddr);
 
-                this.instances = RoleEnvironment.CurrentRoleInstance.Role.Instances.Count;
+				var instancesCount = RoleEnvironment.CurrentRoleInstance.Role.Instances.Count;
+				Environment.SetEnvironmentVariable("MyInstancesCount", instancesCount.ToString());
+
+				this.instances = instancesCount;
 
 				// TODO: Delete Orleans Tables
 				// To avoid double delete, check for existence

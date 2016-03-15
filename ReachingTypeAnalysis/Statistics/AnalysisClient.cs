@@ -84,6 +84,8 @@ namespace ReachingTypeAnalysis.Statistics
             // this.solutionManager = analyzer.SolutionManager;
 			this.machines = machines;
 			this.subject = subject;
+
+			Environment.SetEnvironmentVariable("MyInstancesCount", machines.ToString());
 		}
 
         /// <summary>
