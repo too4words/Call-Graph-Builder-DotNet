@@ -101,6 +101,9 @@ namespace ReachingTypeAnalysis.Statistics
             this.solutionManager = solutionManager;
             this.machines = machines;
             this.subject = subject;
+
+            Environment.SetEnvironmentVariable("MyInstancesCount", machines.ToString());
+
         }
 
         public ISolutionGrain SolutionManager
@@ -422,7 +425,7 @@ namespace ReachingTypeAnalysis.Statistics
 		{
 			var tasks = new List<Task>();
 
-			for (var i = 0; i < AnalysisConstants.StreamCount; ++i)
+			for (var i = 0; i < AnalysisConstants.StreamCount(); ++i)
 			{
 				var dispatcherId = string.Format(AnalysisConstants.StreamGuidFormat, i);
 				var dispatcherGuid = Guid.Parse(dispatcherId);
