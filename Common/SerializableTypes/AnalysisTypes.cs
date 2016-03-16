@@ -22,13 +22,13 @@ namespace ReachingTypeAnalysis
 
 	public static class AnalysisConstants
 	{
-		public const string StreamProvider = "AzureQueueStreamProvider";
-		//public const string StreamProvider = "SimpleMessageStreamProvider";
+		//public const string StreamProvider = "AzureQueueStreamProvider";
+		public const string StreamProvider = "SimpleMessageStreamProvider";
 		public const string StreamNamespace = "EffectsStream";
 		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
-		public const int DispatcherIdleThreshold = 15 * 1000; // milliseconds
-		public const int DispatcherTimerPeriod = 4 * 1000; // milliseconds
+		public const int DispatcherIdleThreshold = 10 * 1000; // milliseconds
+		public const int DispatcherTimerPeriod = 3 * 1000; // milliseconds
 		public const int WaitForTerminationDelay = 1 * 1000; // milliseconds
 
         public static int InstanceCount { get; private set; }

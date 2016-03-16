@@ -211,6 +211,8 @@ namespace ReachingTypeAnalysis.Statistics
                 await this.analyzer.InitializeOnDemandOrleansAnalysis();
                 await this.analyzer.WaitForOnDemandOrleansAnalysisToBeReady();
 
+                var compilationElapsedTime = stopWatch.ElapsedMilliseconds;
+
                 if (AnalysisClient.ExperimentStatus == ExperimentStatus.Cancelled)
                 {
                     AnalysisClient.ErrorMessage = "Cancelled by user";
@@ -352,6 +354,7 @@ namespace ReachingTypeAnalysis.Statistics
                     Methods = methods,
                     Messages = totalMessages,
                     ClientMessages = clientMessages, // SolutionAnalyzer.MessageCounter,
+                    CompilationTime = compilationElapsedTime,
                     ElapsedTime = stopWatch.ElapsedMilliseconds,
                     Activations = totalAct,
                     Deactivations = totalDeact,

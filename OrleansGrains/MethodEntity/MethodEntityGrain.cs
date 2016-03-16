@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis.Analysis
     //[StorageProvider(ProviderName = "MemoryStore")]
 	//[StorageProvider(ProviderName = "AzureTableStore")]
     //[Reentrant]
-	[PreferLocalPlacement]
+	//[PreferLocalPlacement]
 	//public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
 	public class MethodEntityGrain : Grain, IMethodEntityGrain
 	{
