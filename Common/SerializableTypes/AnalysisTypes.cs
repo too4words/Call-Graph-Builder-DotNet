@@ -22,8 +22,8 @@ namespace ReachingTypeAnalysis
 
 	public static class AnalysisConstants
 	{
-		//public const string StreamProvider = "AzureQueueStreamProvider";
-		public const string StreamProvider = "SimpleMessageStreamProvider";
+		public const string StreamProvider = "AzureQueueStreamProvider";
+		//public const string StreamProvider = "SimpleMessageStreamProvider";
 		public const string StreamNamespace = "EffectsStream";
 		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
