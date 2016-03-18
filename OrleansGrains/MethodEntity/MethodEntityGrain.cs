@@ -16,6 +16,7 @@ using Orleans.Core;
 using Orleans.Concurrency;
 using Orleans.Streams;
 using System.Linq;
+using System.IO;
 
 namespace ReachingTypeAnalysis.Analysis
 {
@@ -222,7 +223,7 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			effects.Kind = propKind;
-			await this.SplitAndEnqueueEffectsAsync(effects, 10);
+			await this.SplitAndEnqueueEffectsAsync(effects, 8);
 		}
 
 		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCount)
@@ -244,7 +245,6 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var splitEffects = false;
 			var retryCount = AnalysisConstants.StreamCount; // 3
-			Exception exception = null;
 
 			do
 			{
@@ -255,37 +255,28 @@ namespace ReachingTypeAnalysis.Analysis
 					await stream.OnNextAsync(effects);
 					break;
 				}
-				catch (AggregateException ex)
+				catch (Exception ex)
 				{
-					Exception innerEx = ex;
+					var innerEx = ex;
 					while (innerEx is AggregateException) innerEx = innerEx.InnerException;
 
 					if (innerEx is ArgumentException && maxCount != 1)
 					{
+						// Messages cannot be larger than 65536 bytes
 						splitEffects = true;
 						break;
 					}
 					else
 					{
-						exception = ex;
+						retryCount--;
+
+						if (retryCount == 0)
+						{
+							var effectsInfo = this.SerializeEffects(effects);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}\n{1}", effectsInfo, ex);
+							throw ex;
+						}
 					}
-				}
-				catch (Exception ex)
-				{
-					exception = ex;
-				}
-
-				if (exception != null)
-				{
-					retryCount--;
-
-					if (retryCount == 0)
-					{
-						Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}", exception);
-						throw exception;
-					}
-
-					exception = null;
 				}
 			}
 			while (retryCount > 0);
@@ -295,6 +286,20 @@ namespace ReachingTypeAnalysis.Analysis
 				var newMaxCount = (maxCount / 2) + (maxCount % 2);
 				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
 			}
+		}
+
+		private string SerializeEffects(PropagationEffects effects)
+		{
+			var result = string.Empty;
+			var serializer = Newtonsoft.Json.JsonSerializer.CreateDefault();
+
+			using (var writer = new StringWriter())
+			{
+				serializer.Serialize(writer, effects);
+				result = writer.ToString();
+			}
+
+			return result;
 		}
 
 		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
