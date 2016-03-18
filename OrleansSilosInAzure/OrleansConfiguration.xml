@@ -16,7 +16,7 @@
 		</StorageProviders>
 		<StreamProviders>
 			<Provider Type="Orleans.Providers.Streams.SimpleMessageStream.SimpleMessageStreamProvider" Name="SimpleMessageStreamProvider"/>
-			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider" GetQueueMessagesTimerPeriod="00:00:00.0100000" DeploymentId="acee0a95f43a47068116fb7fac99c7f7" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstoragedg;AccountKey=0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==" />
+			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider" DeploymentId="acee0a95f43a47068116fb7fac99c7f7" DataConnectionString="DefaultEndpointsProtocol=https;AccountName=orleansstoragedg;AccountKey=0up2Sc/EYfYVeP0Hueim/bUSh63Jqdt/LCQTA0jPKX+KNtSNh1LnJdB0ODD3OnTVXMbqe+NQRZkE0mGuXpgi4Q==" />
 		</StreamProviders>
 		<Application>
 			<Defaults>
