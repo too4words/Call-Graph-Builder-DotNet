@@ -13,19 +13,19 @@ using Orleans.Concurrency;
 namespace ReachingTypeAnalysis.Analysis
 {
 	// TODO: Add instantiated types
-	//public interface ISolutionState : IGrainState
-    public class SolutionState : GrainState
-	{
-		public string SolutionPath { get; set; }
-		public string Source { get; set; }
-		public string TestName { get; set; }
+	public interface ISolutionState : IGrainState
+    //public class SolutionState
+    {
+		/*public*/ string SolutionPath { get; set; }
+		/*public*/ string Source { get; set; }
+		/*public*/ string TestName { get; set; }
 	}
 
     //[StorageProvider(ProviderName = "FileStore")]
     //[StorageProvider(ProviderName = "MemoryStore")]
 	[StorageProvider(ProviderName = "AzureTableStore")]
 	[Reentrant]
-	public class SolutionGrain : Grain<SolutionState>, ISolutionGrain, IEntityGrainObserverNotifications
+	public class SolutionGrain : Grain<ISolutionState>, ISolutionGrain, IEntityGrainObserverNotifications
 	//public class SolutionGrain : Grain, ISolutionGrain, IEntityGrainObserverNotifications
 	{
         [NonSerialized]
