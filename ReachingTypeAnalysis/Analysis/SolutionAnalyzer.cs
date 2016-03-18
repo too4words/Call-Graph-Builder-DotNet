@@ -337,7 +337,14 @@ namespace ReachingTypeAnalysis
 			var dispatcherGuid = sender.GetPrimaryKey();
 			this.dispatchersStatus[dispatcherGuid] = newStatus;
 
-			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
+			if (newStatus == EffectsDispatcherStatus.Busy)
+			{
+				Logger.LogForRelease(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
+			}
+			else
+			{
+				Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
+			}
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

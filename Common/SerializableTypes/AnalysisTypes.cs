@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
 		public const int DispatcherIdleThreshold = 10 * 1000; // milliseconds
 		public const int DispatcherTimerPeriod = 3 * 1000; // milliseconds
-		public const int WaitForTerminationDelay = 1 * 1000; // milliseconds
+		public const int WaitForTerminationDelay = 5 * 1000; // milliseconds
 
         public static int InstanceCount { get; private set; }
         public static int StreamCount { get; private set; }
