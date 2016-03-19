@@ -272,8 +272,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 						if (retryCount == 0)
 						{
-							var effectsInfo = this.SerializeEffects(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}\n{1}", effectsInfo, ex);
+							//var effectsInfo = this.SerializeEffects(effects);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}", ex);
 							throw ex;
 						}
 					}
@@ -284,23 +284,27 @@ namespace ReachingTypeAnalysis.Analysis
 			if (splitEffects)
 			{
 				var newMaxCount = (maxCount / 2) + (maxCount % 2);
+
+				Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Splitting effects of size {0} into parts of size {1}", maxCount, newMaxCount);
+
 				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
 			}
 		}
 
-		private string SerializeEffects(PropagationEffects effects)
-		{
-			var result = string.Empty;
-			var serializer = Newtonsoft.Json.JsonSerializer.CreateDefault();
+		// This doesn't work with circular references present in effects (MethodDescriptor.BaseDescriptor)
+		//private string SerializeEffects(PropagationEffects effects)
+		//{
+		//	var result = string.Empty;
+		//	var serializer = Newtonsoft.Json.JsonSerializer.CreateDefault();
 
-			using (var writer = new StringWriter())
-			{
-				serializer.Serialize(writer, effects);
-				result = writer.ToString();
-			}
+		//	using (var writer = new StringWriter())
+		//	{
+		//		serializer.Serialize(writer, effects);
+		//		result = writer.ToString();
+		//	}
 
-			return result;
-		}
+		//	return result;
+		//}
 
 		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
 		{

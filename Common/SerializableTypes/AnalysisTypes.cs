@@ -702,7 +702,9 @@ namespace ReachingTypeAnalysis
 		// TODO: Fix the equals, but we need to resolve the default values
 		public override bool Equals(object obj)
         {
-            var td = (TypeDescriptor)obj;
+            var td = obj as TypeDescriptor;
+			if (td == null) return false;
+
             var eqKind = td.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(td.Kind);
@@ -718,7 +720,9 @@ namespace ReachingTypeAnalysis
 
 		public bool EqualsIgnoringTypeArguments(object obj)
 		{
-			var td = (TypeDescriptor)obj;
+			var td = obj as TypeDescriptor;
+			if (td == null) return false;
+
 			var eqKind = this.Kind.Equals(SerializableTypeKind.Undefined) ||
 						  td.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(td.Kind);
