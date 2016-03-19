@@ -238,13 +238,13 @@ namespace ReachingTypeAnalysis
 		{
 			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Stream count {0} ({1} instances)", AnalysisConstants.StreamCount, AnalysisConstants.InstanceCount);
 
-			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Starting analysis...");
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Starting analysis...");
 
 			await this.SubscribeToAllDispatchersAsync();
 			await this.ProcessRootMethodsAsync();
 			await this.WaitForTerminationAsync();
 
-			Logger.LogForDebug(GrainClient.Logger, "@@[Client] Analysis end");
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Analysis end");
 
 			//var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
 			//Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);

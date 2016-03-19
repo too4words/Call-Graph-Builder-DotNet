@@ -389,6 +389,8 @@ namespace ReachingTypeAnalysis
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
+				{ "Configuration", "Debug" },
+				{ "Platform", "AnyCPU" },
 				//{ "DesignTimeBuild", "true" },
 				//{ "IntelliSenseBuild", "true" },
 				//{ "BuildingInsideVisualStudio", "true" }
@@ -431,6 +433,8 @@ namespace ReachingTypeAnalysis
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
+				{ "Configuration", "Debug" },
+				{ "Platform", "AnyCPU" },
 				//{ "DesignTimeBuild", "true" },
 				//{ "IntelliSenseBuild", "true" },
 				//{ "BuildingInsideVisualStudio", "true" }
