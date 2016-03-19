@@ -116,8 +116,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 			await this.effectsDispatcher.DispatchEffectsAsync(effects);
 
-			this.isDispatchingEffects = false;
-			this.lastProcessingTime = DateTime.UtcNow;
+            this.lastProcessingTime = DateTime.UtcNow;
+            this.isDispatchingEffects = false;
 		}
 
 		public Task OnNextAsync(PropagationEffects item, StreamSequenceToken token = null)
