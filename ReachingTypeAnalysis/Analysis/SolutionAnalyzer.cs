@@ -343,7 +343,7 @@ namespace ReachingTypeAnalysis
 			}
 			else
 			{
-				Logger.LogForDebug(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
+				Logger.LogForRelease(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
 			}
 		}
 
