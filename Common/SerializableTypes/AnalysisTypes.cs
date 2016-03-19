@@ -29,7 +29,7 @@ namespace ReachingTypeAnalysis
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
 		public const int DispatcherIdleThreshold = 10 * 1000; // milliseconds
 		public const int DispatcherTimerPeriod = 3 * 1000; // milliseconds
-		public const int WaitForTerminationDelay = 1 * 1000; // milliseconds
+		public const int WaitForTerminationDelay = 5 * 1000; // milliseconds
 
         public static int InstanceCount { get; private set; }
         public static int StreamCount { get; private set; }
@@ -702,7 +702,9 @@ namespace ReachingTypeAnalysis
 		// TODO: Fix the equals, but we need to resolve the default values
 		public override bool Equals(object obj)
         {
-            var td = (TypeDescriptor)obj;
+            var td = obj as TypeDescriptor;
+			if (td == null) return false;
+
             var eqKind = td.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(td.Kind);
@@ -718,7 +720,9 @@ namespace ReachingTypeAnalysis
 
 		public bool EqualsIgnoringTypeArguments(object obj)
 		{
-			var td = (TypeDescriptor)obj;
+			var td = obj as TypeDescriptor;
+			if (td == null) return false;
+
 			var eqKind = this.Kind.Equals(SerializableTypeKind.Undefined) ||
 						  td.Kind.Equals(SerializableTypeKind.Undefined) ||
                           this.Kind.Equals(td.Kind);

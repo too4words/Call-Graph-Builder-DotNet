@@ -44,6 +44,7 @@ namespace ReachingTypeAnalysis
 
         public static void LogVerbose(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
         {
+#if DEBUG
 			if (orleansLog.IsVerbose)
 			{
 				var message = string.Format(format, arguments);
@@ -55,12 +56,13 @@ namespace ReachingTypeAnalysis
 				//Console.WriteLine(message);
 				orleansLog.Verbose(0, message);
 			}
-        }
+#endif
+		}
 
         public static void LogWarning(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
         {
 #if DEBUG
-            var message = string.Format(format, arguments);
+			var message = string.Format(format, arguments);
             var threadId = Thread.CurrentThread.ManagedThreadId;
 
             message = string.Format("[{0}] {1}::{2}: {3}", threadId, type, method, message);
@@ -69,7 +71,7 @@ namespace ReachingTypeAnalysis
             Console.WriteLine(message);
             orleansLog.Warn(0, message);
 #endif
-        }
+		}
 
         public static void LogError(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
         {
@@ -86,8 +88,8 @@ namespace ReachingTypeAnalysis
         public static void LogInfo(Orleans.Runtime.Logger orleansLog, string type, string method, string format, params object[] arguments)
 		{
 #if DEBUG
-            var message = string.Format(format, arguments);
-            var threadId = Thread.CurrentThread.ManagedThreadId;
+			var message = string.Format(format, arguments);
+			var threadId = Thread.CurrentThread.ManagedThreadId;
 
 			message = string.Format("[{0}]{1}::{2}: {3}", threadId, type, method, message);
 
@@ -96,8 +98,13 @@ namespace ReachingTypeAnalysis
 			//Console.WriteLine(message);
 			orleansLog.Info(0, message);
 #endif
-        }
-		
+		}
+
+		public static void LogForRelease(Orleans.Runtime.Logger orleansLog, string format, params object[] arguments)
+		{
+			orleansLog.Warn(0, format, arguments);
+		}
+
 		public static void LogForDebug(Orleans.Runtime.Logger orleansLog, string format, params object[] arguments)
 		{
 #if DEBUG
@@ -152,15 +159,18 @@ namespace ReachingTypeAnalysis
 
 		public static void Log(string format, params object[] arguments)
 		{
+#if DEBUG
 			var message = string.Format(format, arguments);
 
 			//Trace.TraceInformation(message);
 			Debug.WriteLine(message);
 			//Console.WriteLine(message);
+#endif
 		}
 
 		public void Log(string type, string method, string format, params object[] arguments)
-		{            
+		{
+#if DEBUG
 			var message = string.Format(format, arguments);
 			var threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -168,7 +178,7 @@ namespace ReachingTypeAnalysis
 
 			//Debug.WriteLine(message);
 			//Console.WriteLine(message);
-            /*
+			/*
 			lock (syncObject)
             {
                 try
@@ -183,7 +193,8 @@ namespace ReachingTypeAnalysis
                     Debug.WriteLine("Error writing log");
                 }
 			}
-             */ 
+             */
+#endif
 		}
 
 		public void Log(string type, string method, object argument)

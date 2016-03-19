@@ -107,7 +107,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (this.status == EffectsDispatcherStatus.Idle)
 			{
-				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy", this.GetPrimaryKey());
+				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy", this.GetPrimaryKey());
 
 				// Notify that the dispatcher is busy
 				this.status = EffectsDispatcherStatus.Busy;
