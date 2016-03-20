@@ -190,6 +190,8 @@ namespace ReachingTypeAnalysis.Analysis
 
 				// Notify that this dispatcher was inactive for too long.
 				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
+				// This is to avoid notifying inactive status every time the timer ticks after the first notification.
+				this.lastProcessingTime = DateTime.UtcNow;
 			}
 
 			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Busy &&

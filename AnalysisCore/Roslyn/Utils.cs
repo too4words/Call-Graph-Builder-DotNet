@@ -670,7 +670,10 @@ namespace ReachingTypeAnalysis
 		{
 			var result = new HashSet<MethodDescriptor>();
 
-			var roots = await GetTestMethodsAsync(compilation);
+			var roots = await GetMainMethodsAsync(compilation);
+			result.UnionWith(roots);
+
+			roots = await GetTestMethodsAsync(compilation);
 			result.UnionWith(roots);
 
 			roots = await GetStaticConstructorsAsync(compilation);
