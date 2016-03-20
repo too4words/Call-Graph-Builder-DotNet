@@ -236,12 +236,15 @@ namespace ReachingTypeAnalysis
 
 		public async Task ContinueOnDemandOrleansAnalysis()
 		{
-			Logger.LogInfo(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Stream count {0} ({1} instances)", AnalysisConstants.StreamCount, AnalysisConstants.InstanceCount);
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Analysis start");
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Stream count {0} ({1} instances)", AnalysisConstants.StreamCount, AnalysisConstants.InstanceCount);
 
-			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Starting analysis...");
+			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
+
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Roots count {0} ({1})", roots.Count(), this.RootKind);
 
 			await this.SubscribeToAllDispatchersAsync();
-			await this.ProcessRootMethodsAsync();
+			await this.ProcessRootMethodsAsync(roots);
 			await this.WaitForTerminationAsync();
 
 			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Analysis end");
@@ -281,12 +284,9 @@ namespace ReachingTypeAnalysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task ProcessRootMethodsAsync()
+		private async Task ProcessRootMethodsAsync(IEnumerable<MethodDescriptor> roots)
 		{
 			var tasks = new List<Task>();
-			var roots = await this.SolutionManager.GetRootsAsync(this.RootKind);
-
-			Logger.LogWarning(GrainClient.Logger, "SolutionAnalyzer", "ContinueOnDemandOrleansAnalysis", "Roots count {0} ({1})", roots.Count(), this.RootKind);
 
 			foreach (var method in roots)
 			{
