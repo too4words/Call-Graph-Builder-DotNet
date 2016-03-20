@@ -273,7 +273,7 @@ namespace ReachingTypeAnalysis.Analysis
 						if (retryCount == 0)
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync {0}", ex);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0})\n{1}", maxCount, ex);
 							throw ex;
 						}
 					}
@@ -285,7 +285,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				var newMaxCount = (maxCount / 2) + (maxCount % 2);
 
-				Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Splitting effects of size {0} into parts of size {1}", maxCount, newMaxCount);
+				Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCount, newMaxCount);
 
 				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
 			}
