@@ -186,7 +186,7 @@ namespace ReachingTypeAnalysis.Analysis
 			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Inactive &&
 				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherInactiveThreshold)
 			{
-				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Was inactive for too long", this.GetPrimaryKey());
+				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Was inactive for too long", this.GetPrimaryKey());
 
 				// Notify that this dispatcher was inactive for too long.
 				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
@@ -195,7 +195,7 @@ namespace ReachingTypeAnalysis.Analysis
 			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Busy &&
 				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
 			{
-				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle (before was {1})", this.GetPrimaryKey(), this.status);
+				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle (before was {1})", this.GetPrimaryKey(), this.status);
 
 				// Notify that this dispatcher is idle.
 				this.status = EffectsDispatcherStatus.Idle;

@@ -3,9 +3,9 @@
 	This is a sample client configuration file. 
 -->
 <ClientConfiguration xmlns="urn:orleans">
-	<Tracing DefaultTraceLevel="Warning" TraceToConsole="true" TraceToFile="{0}-{1}.log" WriteMessagingTraces="false">
-    <TraceLevelOverride LogPrefix="Application" TraceLevel="Warning"  TraceToFile="{0}-{1}.log"/>
-    <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Warning" />
+	<Tracing DefaultTraceLevel="Info" TraceToConsole="true" TraceToFile="{0}-{1}.log" WriteMessagingTraces="false">
+    <TraceLevelOverride LogPrefix="Application" TraceLevel="Info"  TraceToFile="{0}-{1}.log"/>
+    <TraceLevelOverride LogPrefix="Runtime" TraceLevel="Info" />
     <!--		<TraceLevelOverride LogPrefix="Application" TraceLevel="Info" />
 		<TraceLevelOverride LogPrefix="AssemblyLoader" TraceLevel="Warning" />
     -->		
