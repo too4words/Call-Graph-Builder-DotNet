@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using CodeGraphModel;
+using Microsoft.WindowsAzure;
 
 namespace ReachingTypeAnalysis
 {
@@ -27,21 +28,40 @@ namespace ReachingTypeAnalysis
 		public const string StreamNamespace = "EffectsStream";
 		// {32B2336F-BDC9-4F75-AEBE-A97FE966E306}
 		public const string StreamGuidFormat = "32B2336F-BDC9-4F75-AEBE-A97FE966{0:X4}";
-		public const int DispatcherInactiveThreshold = 5 * 60 * 1000; // milliseconds
-		public const int DispatcherIdleThreshold = 10 * 1000; // milliseconds
-		public const int DispatcherTimerPeriod = 3 * 1000; // milliseconds
-		public const int WaitForTerminationDelay = 5 * 1000; // milliseconds
-
+		public static int DispatcherInactiveThreshold { get; private set; } // 5 * 60 * 1000; // milliseconds
+		public static int DispatcherIdleThreshold { get; private set; } // 10 * 1000; // milliseconds
+		public static int DispatcherTimerPeriod { get; private set; } // 3 * 1000; // milliseconds
+		public static int WaitForTerminationDelay { get; private set; } // 5 * 1000; // milliseconds
 		public static int InstanceCount { get; private set; }
-        public static int StreamCount { get; private set; }
+		public static int StreamsPerInstance { get; private set; } // 4 // * 2
+
+		public static int StreamCount
+		{
+			get { return InstanceCount * StreamsPerInstance; }
+		}
 
 		static AnalysisConstants()
 		{
-			var instanceCount = Environment.GetEnvironmentVariable("MyInstanceCount");
+			var value = CloudConfigurationManager.GetSetting("DispatcherInactiveThreshold");
+			DispatcherInactiveThreshold = int.Parse(value);
 
-			if (instanceCount != null)
+			value = CloudConfigurationManager.GetSetting("DispatcherIdleThreshold");
+			DispatcherIdleThreshold = int.Parse(value);
+
+			value = CloudConfigurationManager.GetSetting("DispatcherTimerPeriod");
+			DispatcherTimerPeriod = int.Parse(value);
+
+			value = CloudConfigurationManager.GetSetting("WaitForTerminationDelay");
+			WaitForTerminationDelay = int.Parse(value);
+
+			value = CloudConfigurationManager.GetSetting("StreamsPerInstance");
+			StreamsPerInstance = int.Parse(value);
+
+			value = Environment.GetEnvironmentVariable("MyInstanceCount");
+
+			if (value != null)
 			{
-				var machines = int.Parse(instanceCount);
+				var machines = int.Parse(value);
 				SetInstanceCount(machines);
 			}
 		}
@@ -49,8 +69,6 @@ namespace ReachingTypeAnalysis
 		public static void SetInstanceCount(int machines)
 		{
 			InstanceCount = machines;
-			// machines * cores per machine * threads per core
-			StreamCount = InstanceCount * 4; // * 2
 		}
 	}
 
