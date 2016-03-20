@@ -109,9 +109,14 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy (before was {1})", this.GetPrimaryKey(), this.status);
 
-				// Notify that the dispatcher is busy
+				var oldStatus = this.status;
 				this.status = EffectsDispatcherStatus.Busy;
-				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
+
+				if (oldStatus == EffectsDispatcherStatus.Idle)
+				{
+					// Notify that the dispatcher is busy
+					this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
+				}
 			}
 
 			await this.effectsDispatcher.DispatchEffectsAsync(effects);
