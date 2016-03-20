@@ -335,16 +335,10 @@ namespace ReachingTypeAnalysis
 		void IAnalysisObserver.OnEffectsDispatcherStatusChanged(IEffectsDispatcherGrain sender, EffectsDispatcherStatus newStatus)
 		{
 			var dispatcherGuid = sender.GetPrimaryKey();
+			var oldStatus = this.dispatchersStatus[dispatcherGuid];
 			this.dispatchersStatus[dispatcherGuid] = newStatus;
 
-			if (newStatus == EffectsDispatcherStatus.Busy)
-			{
-				Logger.LogForRelease(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
-			}
-			else
-			{
-				Logger.LogForRelease(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1}", dispatcherGuid, newStatus);
-			}
+			Logger.LogForRelease(GrainClient.Logger, "@@[Client] Dispatcher {0} is {1} (before was {2})", dispatcherGuid, newStatus, oldStatus);
 		}
 
 		public async Task<CallGraph<MethodDescriptor, LocationDescriptor>> GenerateCallGraphAsync()

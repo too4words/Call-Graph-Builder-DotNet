@@ -31,8 +31,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			await StatsHelper.RegisterActivation("EffectsDispatcherGrain", this.GrainFactory);
 
-			this.status = EffectsDispatcherStatus.Busy;
 			this.isDispatchingEffects = false;
+			this.status = EffectsDispatcherStatus.Inactive;			
 			this.lastProcessingTime = DateTime.UtcNow; // DateTime.MinValue; // DateTime.MaxValue;
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 			this.effectsDispatcher = new OrleansEffectsDispatcherManager(this.GrainFactory, this.solutionGrain);
@@ -105,9 +105,9 @@ namespace ReachingTypeAnalysis.Analysis
 			this.lastProcessingTime = DateTime.UtcNow;
 			this.isDispatchingEffects = true;
 
-			if (this.status == EffectsDispatcherStatus.Idle)
+			if (this.status != EffectsDispatcherStatus.Busy)
 			{
-				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy", this.GetPrimaryKey());
+				Logger.LogForRelease(this.GetLogger(), "@@[Dispatcher {0}] Becoming busy (before was {1})", this.GetPrimaryKey(), this.status);
 
 				// Notify that the dispatcher is busy
 				this.status = EffectsDispatcherStatus.Busy;
@@ -178,10 +178,19 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var idleTime = DateTime.UtcNow - lastProcessingTime;
 
+			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Inactive &&
+				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherInactiveThreshold)
+			{
+				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Was inactive for too long", this.GetPrimaryKey());
+
+				// Notify that this dispatcher was inactive for too long.
+				this.subscriptionManager.Notify(s => s.OnEffectsDispatcherStatusChanged(this, this.status));
+			}
+
 			if (!this.isDispatchingEffects && this.status == EffectsDispatcherStatus.Busy &&
 				idleTime.TotalMilliseconds > AnalysisConstants.DispatcherIdleThreshold)
 			{
-				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle", this.GetPrimaryKey());
+				Logger.LogForDebug(this.GetLogger(), "@@[Dispatcher {0}] Becoming idle (before was {1})", this.GetPrimaryKey(), this.status);
 
 				// Notify that this dispatcher is idle.
 				this.status = EffectsDispatcherStatus.Idle;
