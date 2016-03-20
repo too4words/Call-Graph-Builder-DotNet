@@ -273,7 +273,8 @@ namespace ReachingTypeAnalysis.Analysis
 						if (retryCount == 0)
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0})\n{1}", maxCount, ex);
+							var effectsInfo = this.GetEffectsInfo(effects);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCount, effectsInfo, ex);
 							throw ex;
 						}
 					}
@@ -289,6 +290,21 @@ namespace ReachingTypeAnalysis.Analysis
 
 				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
 			}
+		}
+
+		private string GetEffectsInfo(PropagationEffects effects)
+		{
+			var callees = 0;
+			var arguments = 0;
+
+			foreach (var calleeInfo in effects.CalleesInfo)
+			{
+				callees += calleeInfo.PossibleCallees.Count;
+				arguments += calleeInfo.ArgumentsPossibleTypes.Sum(ts => ts.Count);
+			}
+
+			var result = string.Format("callees = {0}, argument types = {1}", callees, arguments);
+			return result;
 		}
 
 		// This doesn't work with circular references present in effects (MethodDescriptor.BaseDescriptor)
