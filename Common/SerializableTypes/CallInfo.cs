@@ -17,9 +17,9 @@ namespace ReachingTypeAnalysis
 		public VariableNode LHS { get; set; }
 		//public ISet<TypeDescriptor> InstantiatedTypes { get; set; }
 		public AnalysisCallNode CallNode { get; set; }
-		public ISet<TypeDescriptor> ReceiverPossibleTypes { get; set; }
+		//public ISet<TypeDescriptor> ReceiverPossibleTypes { get; set; }
 		public IList<ISet<TypeDescriptor>> ArgumentsPossibleTypes { get; set; }
-		public ISet<MethodDescriptor> PossibleCallees { get; set; }
+		public ISet<ResolvedCallee> PossibleCallees { get; set; }
 
 		public CallInfo(MethodDescriptor caller, AnalysisCallNode callNode,
 			PropGraphNodeDescriptor receiver,
@@ -31,9 +31,9 @@ namespace ReachingTypeAnalysis
 			this.Receiver = receiver;
 			this.CallNode = callNode;
 			//this.InstantiatedTypes = new HashSet<TypeDescriptor>();
-			this.ReceiverPossibleTypes = new HashSet<TypeDescriptor>();
+			//this.ReceiverPossibleTypes = new HashSet<TypeDescriptor>();
 			this.ArgumentsPossibleTypes = new List<ISet<TypeDescriptor>>();
-			this.PossibleCallees = new HashSet<MethodDescriptor>();
+			this.PossibleCallees = new HashSet<ResolvedCallee>();
 		}
 
 		public bool IsStatic

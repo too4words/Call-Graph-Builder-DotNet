@@ -105,6 +105,24 @@ namespace ReachingTypeAnalysis
 	}
 
 	[Serializable]
+	public class ResolvedCallee
+	{
+		public TypeDescriptor ReceiverType { get; private set; }
+		public MethodDescriptor Method { get; private set; }
+
+		public ResolvedCallee(TypeDescriptor receiverType, MethodDescriptor method)
+		{
+			this.ReceiverType = receiverType;
+			this.Method = method;
+		}
+
+		public ResolvedCallee(MethodDescriptor method)
+		{
+			this.Method = method;
+		}
+	}
+
+	[Serializable]
 	public class MethodCalleesInfo
 	{
 		public ISet<MethodDescriptor> ResolvedCallees { get; private set; }

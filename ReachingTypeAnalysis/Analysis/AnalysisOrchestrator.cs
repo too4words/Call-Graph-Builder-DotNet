@@ -408,10 +408,10 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, MethodDescriptor callee, PropagationKind propKind)
+		private Task CreateAndSendCallMessageAsync(CallInfo callInfo, ResolvedCallee callee, PropagationKind propKind)
 		{
-			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee, callInfo.ReceiverPossibleTypes,
-				callInfo.ArgumentsPossibleTypes, /*callInfo.InstantiatedTypes,*/ callInfo.CallNode, callInfo.LHS, propKind);
+			var callMessageInfo = new CallMessageInfo(callInfo.Caller, callee.Method, callee.ReceiverType,
+				callInfo.ArgumentsPossibleTypes, callInfo.CallNode, callInfo.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(callInfo.Caller);
 			var callerMessage = new CallerMessage(source, callMessageInfo);
@@ -504,7 +504,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private Task CreateAndSendReturnMessageAsync(ReturnInfo returnInfo, PropagationKind propKind)
 		{
-			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes, /*returnInfo.InstantiatedTypes,*/
+			var returnMessageInfo = new ReturnMessageInfo(returnInfo.CallerContext.Caller, returnInfo.Callee, returnInfo.ResultPossibleTypes,
 				returnInfo.CallerContext.CallNode, returnInfo.CallerContext.LHS, propKind);
 
 			var source = new MethodEntityDescriptor(returnInfo.Callee);
@@ -606,7 +606,7 @@ namespace ReachingTypeAnalysis.Analysis
 			{
 				foreach (var callee in calleeInfo.PossibleCallees)
 				{
-					var calleeEntity = await this.solutionManager.GetMethodEntityAsync(callee);
+					var calleeEntity = await this.solutionManager.GetMethodEntityAsync(callee.Method);
 					var callContext = new CallContext(calleeInfo.Caller, calleeInfo.LHS, calleeInfo.CallNode);
 					var task = calleeEntity.UnregisterCallerAsync(callContext);
 					//await task;

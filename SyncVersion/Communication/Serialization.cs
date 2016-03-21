@@ -11,6 +11,11 @@ namespace ReachingTypeAnalysis.Communication
 	/// </summary>
 	internal static class Demarshaler
 	{
+		internal static IEnumerable<TypeDescriptor> Demarshal(IEnumerable<TypeDescriptor> typeDescriptors)
+		{
+			return typeDescriptors;
+			//throw new NotImplementedException();
+		}
 
 		internal static ISet<TypeDescriptor> Demarshal(ISet<TypeDescriptor> typeDescriptors)
 		{

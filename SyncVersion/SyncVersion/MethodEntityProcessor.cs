@@ -309,27 +309,27 @@ namespace ReachingTypeAnalysis.Analysis
         }
 
         private CallMessageInfo CreateCallMessage(CallInfo callInfo,
-                                                            MethodDescriptor actuallCallee,
-                                                            TypeDescriptor computedReceiverType,
-                                                            PropagationKind propKind)
+													MethodDescriptor actuallCallee,
+													TypeDescriptor computedReceiverType,
+													PropagationKind propKind)
         {
-            var calleType = computedReceiverType;
-            ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
+            //var calleType = computedReceiverType;
+            //ISet<TypeDescriptor> potentialReceivers = new HashSet<TypeDescriptor>();
 
-            if (callInfo.Receiver != null)
-            {
-                // BUG!!!! I should use simply computedReceiverType
-                // Instead of copying all types with use the type we use to compute the callee
-                foreach (var type in GetTypes(callInfo.Receiver, propKind))
-                {
-                    var isSubType = codeProvider.IsSubtypeAsync(type, calleType).Result;
+            //if (callInfo.Receiver != null)
+            //{
+            //    // BUG!!!! I should use simply computedReceiverType
+            //    // Instead of copying all types we use to compute the callee
+            //    foreach (var type in GetTypes(callInfo.Receiver, propKind))
+            //    {
+            //        var isSubType = codeProvider.IsSubtypeAsync(type, calleType).Result;
 
-                    if(isSubType)
-                    {
-                        potentialReceivers.Add(type);
-                    }
-                }
-            }
+            //        if (isSubType)
+            //        {
+            //            potentialReceivers.Add(type);
+            //        }
+            //    }
+            //}
 
             var argumentValues = callInfo.Arguments
                 .Select(a => a != null ?
@@ -338,8 +338,8 @@ namespace ReachingTypeAnalysis.Analysis
 
             Contract.Assert(argumentValues.Count() == callInfo.Arguments.Count());
 
-            return new CallMessageInfo(callInfo.Caller, actuallCallee, potentialReceivers,
-				new List<ISet<TypeDescriptor>>(argumentValues), /*callInfo.InstantiatedTypes,*/
+            return new CallMessageInfo(callInfo.Caller, actuallCallee, computedReceiverType,
+				new List<ISet<TypeDescriptor>>(argumentValues),
 				callInfo.CallNode, callInfo.LHS, propKind);
         }
 
@@ -352,7 +352,6 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.SendMessage(destination, callerMessage);
 		}
-
 
         /// <summary>
         /// When the method returns I should inform the computed return value to all its caller
@@ -411,7 +410,6 @@ namespace ReachingTypeAnalysis.Analysis
 				context.Caller,
 				this.MethodEntity.MethodDescriptor,
 				types,
-				/*this.MethodEntity.InstantiatedTypes,*/
 				context.CallNode, lhs,
 				propKind);
 			var returnMessage = new CalleeMessage(this.MethodEntity.EntityDescriptor, retMessageInfo);
@@ -460,7 +458,8 @@ namespace ReachingTypeAnalysis.Analysis
                 //PropGraph.Add(thisRef, receivers);
                 if (this.MethodEntity.ThisRef != null)
                 {
-                    this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(callMessage.ReceiverPossibleTypes), this.MethodEntity.ThisRef, callMessage.PropagationKind);
+					var receiverPossibleTypes = new TypeDescriptor[] { callMessage.ReceiverType };
+					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(receiverPossibleTypes), this.MethodEntity.ThisRef, callMessage.PropagationKind);
                 }
 
                 var pairEnumerable = new PairIterator<PropGraphNodeDescriptor, ISet<TypeDescriptor>>(

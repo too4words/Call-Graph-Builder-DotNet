@@ -148,22 +148,22 @@ namespace ReachingTypeAnalysis.Analysis
             foreach (var calleeInfo in calleesInfo)
             {
                 //  Add instanciated types! 
-                /// Diego: Ben. This may not work well in parallel... 
-                /// We need a different way to update this info
+                // Diego: Ben. This may not work well in parallel... 
+                // We need a different way to update this info
                 //calleeInfo.InstantiatedTypes = this.methodEntity.InstantiatedTypes;
 
                 // TODO: This is because of the refactor
                 if (calleeInfo is MethodCallInfo)
                 {
                     var methodCallInfo = calleeInfo as MethodCallInfo;
-                    methodCallInfo.ReceiverPossibleTypes = GetTypes(methodCallInfo.Receiver);
-                    methodCallInfo.PossibleCallees = await GetPossibleCalleesForMethodCallAsync(methodCallInfo, codeProvider);
+					//methodCallInfo.ReceiverPossibleTypes = GetTypes(methodCallInfo.Receiver);;
+					methodCallInfo.PossibleCallees = await this.GetPossibleCalleesForMethodCallAsync(methodCallInfo.Receiver, methodCallInfo.Method, codeProvider);
                 }
                 else if (calleeInfo is DelegateCallInfo)
                 {
                     var delegateCalleeInfo = calleeInfo as DelegateCallInfo;
-                    delegateCalleeInfo.ReceiverPossibleTypes = GetTypes(delegateCalleeInfo.Delegate);
-                    delegateCalleeInfo.PossibleCallees = await GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo, codeProvider);
+					//delegateCalleeInfo.ReceiverPossibleTypes = GetTypes(delegateCalleeInfo.Delegate);
+					delegateCalleeInfo.PossibleCallees = await this.GetPossibleCalleesForDelegateCallAsync(delegateCalleeInfo.Delegate, codeProvider);
                 }
 
 				calleeInfo.ArgumentsPossibleTypes.Clear();
@@ -203,7 +203,8 @@ namespace ReachingTypeAnalysis.Analysis
 			
             if (this.methodEntity.ThisRef != null)
             {
-                await this.methodEntity.PropGraph.DiffPropAsync(callMessageInfo.ReceiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
+				var receiverPossibleTypes = new TypeDescriptor[] { callMessageInfo.ReceiverType };
+                await this.methodEntity.PropGraph.DiffPropAsync(receiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
             }
 
 		    for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
@@ -298,9 +299,9 @@ namespace ReachingTypeAnalysis.Analysis
             return Task.FromResult(methodEntity.PropGraph.CallNodes.Count());
         }
 
-        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForMethodCallAsync(MethodCallInfo methodCallInfo, IProjectCodeProvider codeProvider)
+        private async Task<ISet<ResolvedCallee>> GetPossibleCalleesForMethodCallAsync(PropGraphNodeDescriptor receiver, MethodDescriptor method, IProjectCodeProvider codeProvider)
         {
-            var possibleCallees = new HashSet<MethodDescriptor>();
+            var possibleCallees = new HashSet<ResolvedCallee>();
 
 			// TODO: This is not good: one reason is that loads like b = this.f are not working
 			// in a method m after call r.m() because only the value of r is passed and not all its structure (fields)
@@ -308,50 +309,59 @@ namespace ReachingTypeAnalysis.Analysis
 			//if (methodCallInfo.IsConstructor || methodCallInfo.Method.IsStatic)
 			//if (methodCallInfo.Method.IsStatic)
 			//if (methodCallInfo.Method.IsStatic || !methodCallInfo.Method.IsVirtual)
-			if (methodCallInfo.Method.IsStatic)
+			if (method.IsStatic)
 			{
-                // Static method call
-                possibleCallees.Add(methodCallInfo.Method);
+				// Static method call
+				var resolvedCallee = new ResolvedCallee(method);
+
+				possibleCallees.Add(resolvedCallee);
             }
-			else if (!methodCallInfo.Method.IsVirtual)
+			else if (!method.IsVirtual)
 			{
 				// Non-virtual method call
-				possibleCallees.Add(methodCallInfo.Method);
+				var receiverType = receiver.Type;
+				var resolvedCallee = new ResolvedCallee(receiverType, method);
+
+				possibleCallees.Add(resolvedCallee);
 			}
 			else
             {
-                // Instance method call
+				// Instance method call
 
-                //// I need to compute all the callees
-                //// In case of a deletion we can discard the deleted callee
+				//// I need to compute all the callees
+				//// In case of a deletion we can discard the deleted callee
 
-                //// If callInfo.ReceiverPossibleTypes == {} it means that some info in missing => we should be conservative and use the instantiated types (RTA) 
-                //// TODO: I make this False for testing what happens if we remove this
+				//// If callInfo.ReceiverPossibleTypes == {} it means that some info in missing => we should be conservative and use the instantiated types (RTA) 
+				//// TODO: I make this False for testing what happens if we remove this
 
-                //if (conservativeWithTypes && methodCallInfo.ReceiverPossibleTypes.Count == 0)
-                //{
-                //	// TO-DO: Should I fix the node in the receiver to show that is not loaded. Ideally I should use the declared type. 
-                //	// Here I will use the already instantiated types
+				//if (conservativeWithTypes && methodCallInfo.ReceiverPossibleTypes.Count == 0)
+				//{
+				//	// TO-DO: Should I fix the node in the receiver to show that is not loaded. Ideally I should use the declared type. 
+				//	// Here I will use the already instantiated types
 
-                //	foreach (var candidateTypeDescriptor in methodCallInfo.InstantiatedTypes)
-                //	{
-                //		var isSubtype = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, methodCallInfo.Receiver.Type);
+				//	foreach (var candidateTypeDescriptor in methodCallInfo.InstantiatedTypes)
+				//	{
+				//		var isSubtype = await codeProvider.IsSubtypeAsync(candidateTypeDescriptor, methodCallInfo.Receiver.Type);
 
-                //		if (isSubtype)
-                //		{
-                //			methodCallInfo.ReceiverPossibleTypes.Add(candidateTypeDescriptor);
-                //		}
-                //	}
-                //}
+				//		if (isSubtype)
+				//		{
+				//			methodCallInfo.ReceiverPossibleTypes.Add(candidateTypeDescriptor);
+				//		}
+				//	}
+				//}
 
-                if (methodCallInfo.ReceiverPossibleTypes.Count > 0)
+				var receiverPossibleTypes = this.GetTypes(receiver);
+
+				if (receiverPossibleTypes.Count > 0)
                 {
-                    foreach (var receiverType in methodCallInfo.ReceiverPossibleTypes)
+                    foreach (var receiverType in receiverPossibleTypes)
                     {
                         // Given a method m and T find the most accurate implementation wrt to T
                         // it can be T.m or the first super class implementing m
-                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(methodCallInfo.Method, receiverType);
-                        possibleCallees.Add(methodDescriptor);
+                        var methodDescriptor = await codeProvider.FindMethodImplementationAsync(method, receiverType);
+						var resolvedCallee = new ResolvedCallee(receiverType, methodDescriptor);
+
+                        possibleCallees.Add(resolvedCallee);
                     }
                 }
                 //else
@@ -366,41 +376,49 @@ namespace ReachingTypeAnalysis.Analysis
             return possibleCallees;
         }
 
-        private async Task<ISet<MethodDescriptor>> GetPossibleCalleesForDelegateCallAsync(DelegateCallInfo delegateCallInfo, IProjectCodeProvider codeProvider)
+        private async Task<ISet<ResolvedCallee>> GetPossibleCalleesForDelegateCallAsync(DelegateVariableNode @delegate, IProjectCodeProvider codeProvider)
         {
-            var possibleCallees = new HashSet<MethodDescriptor>();
-            var possibleDelegateMethods = this.GetPossibleMethodsForDelegate(delegateCallInfo.Delegate);
+            var possibleCallees = new HashSet<ResolvedCallee>();
+            var possibleDelegateMethods = this.GetPossibleMethodsForDelegate(@delegate);
 
             foreach (var method in possibleDelegateMethods)
             {
                 if (method.IsStatic)
                 {
-                    // Static method call
-                    possibleCallees.Add(method);
-                }
+					// Static method call
+					var resolvedCallee = new ResolvedCallee(method);
+
+					possibleCallees.Add(resolvedCallee);
+				}
                 else
                 {
                     // Instance method call
+					var receiverPossibleTypes = this.GetTypes(@delegate);
 
-                    if (delegateCallInfo.ReceiverPossibleTypes.Count > 0)
+					if (receiverPossibleTypes.Count > 0)
                     {
-                        foreach (var receiverType in delegateCallInfo.ReceiverPossibleTypes)
+                        foreach (var receiverType in receiverPossibleTypes)
                         {
                             //var aMethod = delegateInstance.FindMethodImplementation(t);
                             // Diego: Should I use : codeProvider.FindImplementation(delegateInstance, t);
                             var callee = await codeProvider.FindMethodImplementationAsync(method, receiverType);
-                            possibleCallees.Add(callee);
+							var resolvedCallee = new ResolvedCallee(receiverType, callee);
+
+							possibleCallees.Add(resolvedCallee);
                         }
                     }
                     else
                     {
-                        // We don't have any possibleType for the receiver,
-                        // so we just use the receiver's declared type to
-                        // identify the calle method implementation
+						// We don't have any possibleType for the receiver,
+						// so we just use the receiver's declared type to
+						// identify the calle method implementation
 
-                        // if Count is 0, it is a delegate that do not came form an instance variable
-                        possibleCallees.Add(method);
-                    }
+						// if Count is 0, it is a delegate that do not came form an instance variable
+						var receiverType = @delegate.Type;
+						var resolvedCallee = new ResolvedCallee(receiverType, method);
+
+						possibleCallees.Add(resolvedCallee);
+					}
                 }
             }
 
