@@ -319,10 +319,17 @@ namespace ReachingTypeAnalysis.Analysis
 			else if (!method.IsVirtual)
 			{
 				// Non-virtual method call
-				var receiverType = receiver.Type;
-				var resolvedCallee = new ResolvedCallee(receiverType, method);
+				var receiverPossibleTypes = this.GetTypes(receiver);
 
-				possibleCallees.Add(resolvedCallee);
+				if (receiverPossibleTypes.Count > 0)
+				{
+					foreach (var receiverType in receiverPossibleTypes)
+					{
+						var resolvedCallee = new ResolvedCallee(receiverType, method);
+
+						possibleCallees.Add(resolvedCallee);
+					}
+				}
 			}
 			else
             {
