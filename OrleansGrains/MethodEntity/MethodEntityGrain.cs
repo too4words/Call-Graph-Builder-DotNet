@@ -325,7 +325,8 @@ namespace ReachingTypeAnalysis.Analysis
 		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
 		{
 			var result = new List<PropagationEffects>();
-			var calleesInfo = effects.CalleesInfo.ToList();
+			//var calleesInfo = effects.CalleesInfo.ToList();
+			var calleesInfo = SplitCalleesInfo(effects.CalleesInfo, maxCount);
 			var count = calleesInfo.Count;
 			var index = 0;
 
@@ -369,6 +370,39 @@ namespace ReachingTypeAnalysis.Analysis
 				{
 					var callers = callersInfo.GetRange(index, count);
 					var message = new PropagationEffects(callers);
+
+					result.Add(message);
+				}
+			}
+
+			return result;
+		}
+
+		private static List<CallInfo> SplitCalleesInfo(IEnumerable<CallInfo> calleesInfo, int maxCount)
+		{
+			var result = new List<CallInfo>();
+
+			foreach (var calleeInfo in calleesInfo)
+			{
+				var possibleCallees = calleeInfo.PossibleCallees.ToList();
+				var count = possibleCallees.Count;
+				var index = 0;
+
+				while (count > maxCount)
+				{
+					var callees = possibleCallees.GetRange(index, maxCount);
+					var message = calleeInfo.Clone(callees);
+
+					result.Add(message);
+
+					count -= maxCount;
+					index += maxCount;
+				}
+
+				if (count > 0)
+				{
+					var callees = possibleCallees.GetRange(index, count);
+					var message = calleeInfo.Clone(callees);
 
 					result.Add(message);
 				}
