@@ -16,6 +16,7 @@ using System.IO;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Text;
 
 namespace OrleansSilosInAzure
 {
@@ -72,13 +73,15 @@ namespace OrleansSilosInAzure
 				// It is IMPORTANT to start the silo not in OnStart but in Run.
 				// Azure may not have the firewalls open yet (on the remote silos) at the OnStart phase.
 				orleansAzureSilo = new AzureSilo();
-				bool ok = orleansAzureSilo.Start(config);
+				var ok = orleansAzureSilo.Start(config);
 				if (ok)
 				{
 					Trace.TraceInformation("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
                     Trace.TraceInformation("OrleansSilosInAzure is running");
 
-                    orleansAzureSilo.Run(); // Call will block until silo is shutdown
+					LogAnalysisVariables();
+
+					orleansAzureSilo.Run(); // Call will block until silo is shutdown
 
                     Trace.TraceInformation("OrleansSilosInAzure stop running");
                     WriteToTempFile("OrleansSilosInAzure stop running");
@@ -112,23 +115,38 @@ namespace OrleansSilosInAzure
             //}
         }
 
+		private void LogAnalysisVariables()
+		{
+			var message = new StringBuilder();
+
+			message.AppendFormat("DispatcherInactiveThreshold = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherInactiveThreshold);
+			message.AppendFormat("DispatcherIdleThreshold = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherIdleThreshold);
+			message.AppendFormat("DispatcherTimerPeriod = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherTimerPeriod);
+			message.AppendFormat("WaitForTerminationDelay = {0}\n", ReachingTypeAnalysis.AnalysisConstants.WaitForTerminationDelay);
+			message.AppendFormat("StreamsPerInstance = {0}\n", ReachingTypeAnalysis.AnalysisConstants.StreamsPerInstance);
+			message.AppendFormat("InstanceCount = {0}\n", ReachingTypeAnalysis.AnalysisConstants.InstanceCount);
+			message.AppendFormat("StreamCount = {0}\n", ReachingTypeAnalysis.AnalysisConstants.StreamCount);
+
+			WriteToTempFile(message.ToString());
+		}
+
         private void SaveErrorToBlob(string excString)
         {
             WriteToTempFile(excString);
 
             var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
+            var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("DataConnectionString"));
             // Create the blob client.
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            var blobClient = storageAccount.CreateCloudBlobClient();
 
             // Retrieve reference to a previously created container.
-            CloudBlobContainer container = blobClient.GetContainerReference("errors");
+            var container = blobClient.GetContainerReference("errors");
 
             // Retrieve reference to a blob named "myblob".
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(errorFile);
+            var blockBlob = container.GetBlockBlobReference(errorFile);
 
-            using (Stream s = GenerateStreamFromString(excString))
+            using (var s = GenerateStreamFromString(excString))
             {
                 blockBlob.UploadFromStream(s);
 
@@ -139,7 +157,7 @@ namespace OrleansSilosInAzure
         {
             var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
 
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Temp\"+errorFile+".txt"))
+            using (var file = new StreamWriter(@"C:\Temp\"+errorFile+".txt"))
             {
                 file.WriteLine("Logging:" + excString);
             }
@@ -147,8 +165,8 @@ namespace OrleansSilosInAzure
 
         private Stream GenerateStreamFromString(string s)
         {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
             writer.Write(s);
             writer.Flush();
             stream.Position = 0;
@@ -157,8 +175,6 @@ namespace OrleansSilosInAzure
 
         public override bool OnStart()
         {
-			
-
 			if (!RoleEnvironment.IsEmulated)
 			{
 				

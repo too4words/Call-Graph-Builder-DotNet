@@ -5,6 +5,8 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 
 namespace WebRole1
 {
@@ -33,9 +35,12 @@ namespace WebRole1
         public override void Run()
         {
             Trace.WriteLine("OrleansAzureWeb-Run");
+
             try
             {
-                base.Run();
+				LogAnalysisVariables();
+
+				base.Run();
             }
             catch (Exception exc)
             {
@@ -57,5 +62,30 @@ namespace WebRole1
             //    e.Cancel = true;
             //}
         }
-    }
+
+		private void LogAnalysisVariables()
+		{
+			var message = new StringBuilder();
+
+			message.AppendFormat("DispatcherInactiveThreshold = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherInactiveThreshold);
+			message.AppendFormat("DispatcherIdleThreshold = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherIdleThreshold);
+			message.AppendFormat("DispatcherTimerPeriod = {0}\n", ReachingTypeAnalysis.AnalysisConstants.DispatcherTimerPeriod);
+			message.AppendFormat("WaitForTerminationDelay = {0}\n", ReachingTypeAnalysis.AnalysisConstants.WaitForTerminationDelay);
+			message.AppendFormat("StreamsPerInstance = {0}\n", ReachingTypeAnalysis.AnalysisConstants.StreamsPerInstance);
+			message.AppendFormat("InstanceCount = {0}\n", ReachingTypeAnalysis.AnalysisConstants.InstanceCount);
+			message.AppendFormat("StreamCount = {0}\n", ReachingTypeAnalysis.AnalysisConstants.StreamCount);
+
+			WriteToTempFile(message.ToString());
+		}
+
+		private static void WriteToTempFile(string excString)
+		{
+			var errorFile = string.Format("error-{0}-{1}", RoleEnvironment.CurrentRoleInstance.Id, DateTime.UtcNow.Ticks);
+
+			using (StreamWriter file = new StreamWriter(@"C:\Temp\" + errorFile + ".txt"))
+			{
+				file.WriteLine("Logging:" + excString);
+			}
+		}
+	}
 }

@@ -41,22 +41,22 @@ namespace ReachingTypeAnalysis
 
 		public static IList<Project> FilterProjects(Solution solution)
 		{
-			// For Roslyn.sln only
-			// They are portable versions of other projects
-			var projectsToExclude = new string[]
-			{
-				"ResultProvider.Portable",
-				"CSharpResultProvider.Portable",
-				"MSBuildTask",
-				"CscCore",
-				"VbcCore",
-				"CsiCore",
-			};
+			//// For Roslyn.sln only
+			//// They are portable versions of other projects
+			//var projectsToExclude = new string[]
+			//{
+			//	"ResultProvider.Portable",
+			//	"CSharpResultProvider.Portable",
+			//	"MSBuildTask",
+			//	"CscCore",
+			//	"VbcCore",
+			//	"CsiCore",
+			//};
 
 			var filteredProjects = from project in solution.Projects
 								   where project.Language == LanguageNames.CSharp
 								   //where !project.Name.Contains("Portable")
-								   where !projectsToExclude.Contains(project.Name)
+								   //where !projectsToExclude.Contains(project.Name)
 								   select project;
 
 			return new List<Project>(filteredProjects);
@@ -389,12 +389,18 @@ namespace ReachingTypeAnalysis
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
-				{ "Configuration", "Debug" },
-				{ "Platform", "AnyCPU" },
+				//{ "Configuration", "Debug" },
+				//{ "Platform", "AnyCPU" },
 				//{ "DesignTimeBuild", "true" },
 				//{ "IntelliSenseBuild", "true" },
 				//{ "BuildingInsideVisualStudio", "true" }
 			};
+
+			if (projectPath.Contains("azure-powershell"))
+			{
+				props.Add("Configuration", "Debug");
+				props.Add("Platform", "AnyCPU");
+			}
 
 			var ws = MSBuildWorkspace.Create(props);
 			var project = await ws.OpenProjectAsync(projectPath);
@@ -433,12 +439,18 @@ namespace ReachingTypeAnalysis
 			var props = new Dictionary<string, string>()
 			{
 				{ "CheckForSystemRuntimeDependency", "true" },
-				{ "Configuration", "Debug" },
-				{ "Platform", "AnyCPU" },
+				//{ "Configuration", "Debug" },
+				//{ "Platform", "AnyCPU" },
 				//{ "DesignTimeBuild", "true" },
 				//{ "IntelliSenseBuild", "true" },
 				//{ "BuildingInsideVisualStudio", "true" }
 			};
+
+			if (solutionPath.Contains("azure-powershell"))
+			{
+				props.Add("Configuration", "Debug");
+				props.Add("Platform", "AnyCPU");
+			}
 
 			var ws = MSBuildWorkspace.Create(props);
 			return ws.OpenSolutionAsync(solutionPath);
