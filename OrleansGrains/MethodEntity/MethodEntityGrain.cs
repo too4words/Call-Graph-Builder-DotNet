@@ -223,25 +223,40 @@ namespace ReachingTypeAnalysis.Analysis
         private async Task ProcessEffectsAsync(PropagationEffects effects, PropagationKind propKind = PropagationKind.ADD_TYPES)
 		{
 			effects.Kind = propKind;
-			await this.SplitAndEnqueueEffectsAsync(effects, 8);
+			var maxCalleesInfoCount = Math.Min(effects.CalleesInfo.Count, 8);
+
+			await this.SplitAndEnqueueEffectsAsync(effects, maxCalleesInfoCount, 8 * 2);
 		}
 
-		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCount)
+		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCalleesInfoCount, int maxPossibleCalleesCount)
 		{
 			var tasks = new List<Task>();
-			var messages = SplitEffects(effects, maxCount);
+			IEnumerable<PropagationEffects> messages;
+
+			if (maxCalleesInfoCount > 1)
+			{
+				messages = SplitCalleesInfo(effects, maxCalleesInfoCount);
+			}
+			else if (maxPossibleCalleesCount > 1)
+			{
+				messages = SplitPossibleCallees(effects, maxCalleesInfoCount);
+			}
+			else
+			{
+				messages = new PropagationEffects[] { effects };
+			}
 
 			foreach (var message in messages)
 			{
-				var task = this.EnqueueEffectsAsync(message, maxCount);
+				var task = this.EnqueueEffectsAsync(message, maxCalleesInfoCount, maxPossibleCalleesCount);
 				//await task;
 				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
 		}
-
-		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCount)
+		
+		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCalleesInfoCount, int maxPossibleCalleesCount)
 		{
 			var splitEffects = false;
 			var retryCount = AnalysisConstants.StreamCount; // 3
@@ -260,7 +275,7 @@ namespace ReachingTypeAnalysis.Analysis
 					var innerEx = ex;
 					while (innerEx is AggregateException) innerEx = innerEx.InnerException;
 
-					if (innerEx is ArgumentException && maxCount != 1)
+					if (innerEx is ArgumentException && (maxCalleesInfoCount > 1 || maxPossibleCalleesCount > 1))
 					{
 						// Messages cannot be larger than 65536 bytes
 						splitEffects = true;
@@ -274,7 +289,7 @@ namespace ReachingTypeAnalysis.Analysis
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
 							var effectsInfo = this.GetEffectsInfo(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCount, effectsInfo, ex);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCalleesInfoCount, effectsInfo, ex);
 							throw ex;
 						}
 					}
@@ -284,11 +299,24 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (splitEffects)
 			{
-				var newMaxCount = (maxCount / 2) + (maxCount % 2);
+				if (maxCalleesInfoCount > 1)
+				{
+					var newMaxCalleesInfoCount = (maxCalleesInfoCount / 2) + (maxCalleesInfoCount % 2);
 
-				Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCount, newMaxCount);
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (calleesInfo) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCalleesInfoCount, newMaxCalleesInfoCount);
 
-				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
+					await this.SplitAndEnqueueEffectsAsync(effects, newMaxCalleesInfoCount, maxPossibleCalleesCount);
+				}
+				else if (maxPossibleCalleesCount > 1)
+				{
+					var possibleCalleesCount = effects.CalleesInfo.Max(x => x.PossibleCallees.Count);
+					maxPossibleCalleesCount = Math.Min(possibleCalleesCount, maxPossibleCalleesCount);
+					var newMaxPossibleCalleesCount = (maxPossibleCalleesCount / 2) + (maxPossibleCalleesCount % 2);
+
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (possibleCallees) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxPossibleCalleesCount, newMaxPossibleCalleesCount);
+
+					await this.SplitAndEnqueueEffectsAsync(effects, maxCalleesInfoCount, newMaxPossibleCalleesCount);
+				}
 			}
 		}
 
@@ -322,11 +350,10 @@ namespace ReachingTypeAnalysis.Analysis
 		//	return result;
 		//}
 
-		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
+		private static IEnumerable<PropagationEffects> SplitCalleesInfo(PropagationEffects effects, int maxCount)
 		{
 			var result = new List<PropagationEffects>();
-			//var calleesInfo = effects.CalleesInfo.ToList();
-			var calleesInfo = SplitCalleesInfo(effects.CalleesInfo, maxCount);
+			var calleesInfo = effects.CalleesInfo.ToList();
 			var count = calleesInfo.Count;
 			var index = 0;
 
@@ -378,34 +405,42 @@ namespace ReachingTypeAnalysis.Analysis
 			return result;
 		}
 
-		private static List<CallInfo> SplitCalleesInfo(IEnumerable<CallInfo> calleesInfo, int maxCount)
+		private static IEnumerable<PropagationEffects> SplitPossibleCallees(PropagationEffects effects, int maxCount)
 		{
-			var result = new List<CallInfo>();
+			var result = new List<PropagationEffects>();
+			var calleeInfo = effects.CalleesInfo.Single();
+			var possibleCallees = calleeInfo.PossibleCallees.ToList();
+			var count = possibleCallees.Count;
+			var index = 0;
 
-			foreach (var calleeInfo in calleesInfo)
+			while (count > maxCount)
 			{
-				var possibleCallees = calleeInfo.PossibleCallees.ToList();
-				var count = possibleCallees.Count;
-				var index = 0;
+				var callees = possibleCallees.GetRange(index, maxCount);
+				var newCalleeInfo = calleeInfo.Clone(callees);
+				var calleesInfo = new CallInfo[] { newCalleeInfo };
+				var message = new PropagationEffects(calleesInfo, false);
 
-				while (count > maxCount)
-				{
-					var callees = possibleCallees.GetRange(index, maxCount);
-					var message = calleeInfo.Clone(callees);
+				result.Add(message);
 
-					result.Add(message);
+				count -= maxCount;
+				index += maxCount;
+			}
 
-					count -= maxCount;
-					index += maxCount;
-				}
+			if (count > 0)
+			{
+				var callees = possibleCallees.GetRange(index, count);
+				var newCalleeInfo = calleeInfo.Clone(callees);
+				var calleesInfo = new CallInfo[] { newCalleeInfo };
+				var message = new PropagationEffects(calleesInfo, false);
 
-				if (count > 0)
-				{
-					var callees = possibleCallees.GetRange(index, count);
-					var message = calleeInfo.Clone(callees);
+				result.Add(message);
+			}
 
-					result.Add(message);
-				}
+			if (effects.ResultChanged)
+			{
+				var message = new PropagationEffects(effects.CallersInfo);
+
+				result.Add(message);
 			}
 
 			return result;
