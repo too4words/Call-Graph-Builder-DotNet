@@ -200,12 +200,12 @@ namespace ReachingTypeAnalysis.Analysis
 				var calleesInfo = new HashSet<CallInfo>();
                 return new PropagationEffects(calleesInfo, false);
 			}
-			
-            if (this.methodEntity.ThisRef != null)
-            {
+
+			if (this.methodEntity.ThisRef != null && callMessageInfo.ReceiverType != null)
+			{
 				var receiverPossibleTypes = new TypeDescriptor[] { callMessageInfo.ReceiverType };
-                await this.methodEntity.PropGraph.DiffPropAsync(receiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
-            }
+				await this.methodEntity.PropGraph.DiffPropAsync(receiverPossibleTypes, this.methodEntity.ThisRef, callMessageInfo.PropagationKind);
+			}
 
 		    for (var i = 0; i < this.methodEntity.ParameterNodes.Count; i++)
             {

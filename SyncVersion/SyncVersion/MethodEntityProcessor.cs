@@ -456,7 +456,7 @@ namespace ReachingTypeAnalysis.Analysis
 
                 // Propagate type info in method 
                 //PropGraph.Add(thisRef, receivers);
-                if (this.MethodEntity.ThisRef != null)
+                if (this.MethodEntity.ThisRef != null && callMessage.ReceiverType != null)
                 {
 					var receiverPossibleTypes = new TypeDescriptor[] { callMessage.ReceiverType };
 					this.MethodEntity.PropGraph.DiffProp(Demarshaler.Demarshal(receiverPossibleTypes), this.MethodEntity.ThisRef, callMessage.PropagationKind);
