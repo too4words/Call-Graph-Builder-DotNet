@@ -38,7 +38,7 @@ namespace CallGraphGeneration
 			{
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandAsync"
 				//@"..\..\..\ConsoleApplication1\ConsoleApplication1.sln", "OnDemandOrleans"
-				@"..\..\..\TestsSolutions\LongTest2\LongTest2.sln", "OnDemandOrleans"
+				//@"..\..\..\TestsSolutions\LongTest2\LongTest2.sln", "OnDemandAsync"
                 //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000\test.sln", "OnDemandOrleans"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\TestsSolutions\synthetic-1000\test.sln", "OnDemandOrleans"
                 //@"C:\Users\diegog\Temp\newSynthetic\synthetic-1000000\test.sln", "OnDemandOrleans"
@@ -57,6 +57,7 @@ namespace CallGraphGeneration
                 //@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\codeformatter\src\CodeFormatter.sln", "OnDemandAsync"
 				//@"C:\Users\Edgar\Projects\Call-Graph-Builder\RealSolutions\ShareX\ShareX.sln", "OnDemandOrleans"
 				//@"C:\Users\Edgar\Projects\Test projects\ShareX\ShareX.sln", "OnDemandOrleans"
+				@"C:\Users\Edgar\Projects\Test projects\ILSpy\ILSpy.sln", "OnDemandAsync"
 			};
 
 			//// This is to compute solution statistics
@@ -94,10 +95,11 @@ namespace CallGraphGeneration
 
 			this.Initialize();
 			var analyzer = SolutionAnalyzer.CreateFromSolution(solutionPath);
-            analyzer.AnalyzeAsync(strategyKind).Wait();
+			analyzer.RootKind = AnalysisRootKind.RootMethods;
+			analyzer.AnalyzeAsync(strategyKind).Wait();
 
 			var rootMethods = analyzer.SolutionManager.GetRootsAsync().Result;
-			Console.WriteLine("Root methods={0} ({1})", rootMethods.Count(), AnalysisRootKind.Default);
+			Console.WriteLine("Root methods={0} ({1})", rootMethods.Count(), analyzer.RootKind);
 
 			var reachableMethods = analyzer.SolutionManager.GetReachableMethodsAsync().Result;
 			Console.WriteLine("Reachable methods={0}", reachableMethods.Count());

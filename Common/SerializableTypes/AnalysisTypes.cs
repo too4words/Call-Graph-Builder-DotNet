@@ -43,27 +43,29 @@ namespace ReachingTypeAnalysis
 		static AnalysisConstants()
 		{
 			var value = CloudConfigurationManager.GetSetting("DispatcherInactiveThreshold");
+			if (value == null) value = "300000";
 			DispatcherInactiveThreshold = int.Parse(value);
 
 			value = CloudConfigurationManager.GetSetting("DispatcherIdleThreshold");
+			if (value == null) value = "10000";
 			DispatcherIdleThreshold = int.Parse(value);
 
 			value = CloudConfigurationManager.GetSetting("DispatcherTimerPeriod");
+			if (value == null) value = "3000";
 			DispatcherTimerPeriod = int.Parse(value);
 
 			value = CloudConfigurationManager.GetSetting("WaitForTerminationDelay");
+			if (value == null) value = "5000";
 			WaitForTerminationDelay = int.Parse(value);
 
 			value = CloudConfigurationManager.GetSetting("StreamsPerInstance");
+			if (value == null) value = "4";
 			StreamsPerInstance = int.Parse(value);
 
 			value = Environment.GetEnvironmentVariable("MyInstanceCount");
-
-			if (value != null)
-			{
-				var machines = int.Parse(value);
-				SetInstanceCount(machines);
-			}
+			if (value == null) value = "1";
+			var machines = int.Parse(value);
+			SetInstanceCount(machines);
 		}
 
 		public static void SetInstanceCount(int machines)

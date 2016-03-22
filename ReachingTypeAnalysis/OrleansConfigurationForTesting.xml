@@ -9,7 +9,7 @@
 		</StorageProviders>
 		<StreamProviders>
 			<Provider Type="Orleans.Providers.Streams.SimpleMessageStream.SimpleMessageStreamProvider" Name="SimpleMessageStreamProvider"/>
-			<Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider"/>
+			<!--Provider Type="Orleans.Providers.Streams.AzureQueue.AzureQueueStreamProvider" Name="AzureQueueStreamProvider"/-->
 		</StreamProviders>
 		<SeedNode Address="localhost" Port="22222"/>
 		<Messaging ResponseTimeout="3600s"/>
