@@ -79,7 +79,7 @@ namespace OrleansSilosInAzure
 					Trace.TraceInformation("OrleansAzureSilos-OnStart Orleans silo started ok=" + ok, "Information");
                     Trace.TraceInformation("OrleansSilosInAzure is running");
 
-					//LogAnalysisVariables();
+					LogAnalysisVariables();
 
 					orleansAzureSilo.Run(); // Call will block until silo is shutdown
 

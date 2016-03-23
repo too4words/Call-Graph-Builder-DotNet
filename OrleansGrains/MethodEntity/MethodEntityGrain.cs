@@ -224,18 +224,23 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			effects.Kind = propKind;
 
-			var maxCount = Math.Min(effects.CalleesInfo.Count, 8);
-			await this.SplitAndEnqueueEffectsAsync(effects, maxCount);
+			var maxCalleesCount = Math.Min(effects.CalleesInfo.Count, 8);
+			var maxCallersCount = Math.Min(effects.CallersInfo.Count, 8);
+
+			// This is an optimization, it is not really needed
+			if (maxCalleesCount == 0 && maxCallersCount == 0) return;
+			
+			await this.SplitAndEnqueueEffectsAsync(effects, maxCalleesCount, maxCallersCount);
 		}
 
-		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCount)
+		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
 		{
 			var tasks = new List<Task>();
-			var messages = SplitEffects(effects, maxCount);
+			var messages = SplitEffects(effects, maxCalleesCount, maxCallersCount);
 
 			foreach (var message in messages)
 			{
-				var task = this.EnqueueEffectsAsync(message, maxCount);
+				var task = this.EnqueueEffectsAsync(message, maxCalleesCount, maxCallersCount);
 				//await task;
 				tasks.Add(task);
 			}
@@ -243,7 +248,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCount)
+		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
 		{
 			var splitEffects = false;
 			var retryCount = AnalysisConstants.StreamCount; // 3
@@ -262,7 +267,7 @@ namespace ReachingTypeAnalysis.Analysis
 					var innerEx = ex;
 					while (innerEx is AggregateException) innerEx = innerEx.InnerException;
 
-					if (innerEx is ArgumentException && maxCount != 1)
+					if (innerEx is ArgumentException && (maxCalleesCount > 1 || maxCallersCount > 1))
 					{
 						// Messages cannot be larger than 65536 bytes
 						splitEffects = true;
@@ -276,7 +281,7 @@ namespace ReachingTypeAnalysis.Analysis
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
 							var effectsInfo = this.GetEffectsInfo(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCount, effectsInfo, ex);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCalleesCount, effectsInfo, ex);
 							throw ex;
 						}
 					}
@@ -286,11 +291,23 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (splitEffects)
 			{
-				var newMaxCount = (maxCount / 2) + (maxCount % 2);
+				var newMaxCalleesCount = maxCalleesCount;
+				var newMaxCallersCount = maxCallersCount;
 
-				Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCount, newMaxCount);
+				if (maxCalleesCount > 1)
+				{
+					newMaxCalleesCount = (maxCalleesCount / 2) + (maxCalleesCount % 2);
 
-				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCount);
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callees) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCalleesCount, newMaxCalleesCount);
+				}
+				else if (maxCalleesCount > 1)
+				{
+					newMaxCallersCount = (maxCallersCount / 2) + (maxCallersCount % 2);
+
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callers) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallersCount, newMaxCallersCount);
+				}
+
+				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCalleesCount, maxCallersCount);
 			}
 		}
 
@@ -298,6 +315,8 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var callees = 0;
 			var arguments = 0;
+			var invocations = effects.CalleesInfo.Count;
+			var callers = effects.CallersInfo.Count;
 
 			foreach (var calleeInfo in effects.CalleesInfo)
 			{
@@ -305,7 +324,7 @@ namespace ReachingTypeAnalysis.Analysis
 				arguments += calleeInfo.ArgumentsPossibleTypes.Sum(ts => ts.Count);
 			}
 
-			var result = string.Format("callees = {0}, argument types = {1}", callees, arguments);
+			var result = string.Format("invocations = {0}, callees = {1}, argument types = {2}, callers = {3}", invocations, callees, arguments, callers);
 			return result;
 		}
 
@@ -324,7 +343,7 @@ namespace ReachingTypeAnalysis.Analysis
 		//	return result;
 		//}
 
-		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCount)
+		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
 		{
 			var result = new List<PropagationEffects>();
 			var calleesInfo = effects.CalleesInfo.ToList();
@@ -332,15 +351,15 @@ namespace ReachingTypeAnalysis.Analysis
 			var count = calleesInfo.Count;
 			var index = 0;
 
-			while (count > maxCount)
+			while (count > maxCalleesCount)
 			{
-				var callees = calleesInfo.GetRange(index, maxCount);
+				var callees = calleesInfo.GetRange(index, maxCalleesCount);
 				var message = new PropagationEffects(callees, false);
 
 				result.Add(message);
 
-				count -= maxCount;
-				index += maxCount;
+				count -= maxCalleesCount;
+				index += maxCalleesCount;
 			}
 
 			if (count > 0)
@@ -357,15 +376,15 @@ namespace ReachingTypeAnalysis.Analysis
 				count = callersInfo.Count;
 				index = 0;
 
-				while (count > maxCount)
+				while (count > maxCallersCount)
 				{
-					var callers = callersInfo.GetRange(index, maxCount);
+					var callers = callersInfo.GetRange(index, maxCallersCount);
 					var message = new PropagationEffects(callers);
 
 					result.Add(message);
 
-					count -= maxCount;
-					index += maxCount;
+					count -= maxCallersCount;
+					index += maxCallersCount;
 				}
 
 				if (count > 0)

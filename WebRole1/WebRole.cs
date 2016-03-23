@@ -38,7 +38,7 @@ namespace WebRole1
 
             try
             {
-				//LogAnalysisVariables();
+				LogAnalysisVariables();
 
 				base.Run();
             }
