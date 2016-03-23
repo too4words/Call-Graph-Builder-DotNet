@@ -313,8 +313,8 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 				else if (maxCalleesInfoCount == 1 && maxPossibleCalleesCount > 1)
 				{
-					// TODO: Bug here in max: sequence contains no elements!
-					var possibleCalleesCount = effects.CalleesInfo.Max(x => x.PossibleCallees.Count);
+					// TODO: Bug here in Single: sequence contains no elements!
+					var possibleCalleesCount = effects.CalleesInfo.Single().PossibleCallees.Count;
 					maxPossibleCalleesCount = Math.Min(possibleCalleesCount, maxPossibleCalleesCount);
 					var newMaxPossibleCalleesCount = (maxPossibleCalleesCount / 2) + (maxPossibleCalleesCount % 2);
 
