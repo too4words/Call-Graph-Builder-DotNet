@@ -26,10 +26,10 @@ namespace ReachingTypeAnalysis.Analysis
 		public MethodDescriptor MethodDescriptor { get; set; }
     }
 
-    //[StorageProvider(ProviderName = "FileStore")]
-    //[StorageProvider(ProviderName = "MemoryStore")]
+	//[StorageProvider(ProviderName = "FileStore")]
+	//[StorageProvider(ProviderName = "MemoryStore")]
 	//[StorageProvider(ProviderName = "AzureTableStore")]
-    //[Reentrant]
+	//[Reentrant]
 	//[PreferLocalPlacement]
 	//public class MethodEntityGrain : Grain<IMethodState>, IMethodEntityGrain
 	public class MethodEntityGrain : Grain, IMethodEntityGrain
@@ -37,11 +37,11 @@ namespace ReachingTypeAnalysis.Analysis
 		//private const int WAIT_TIME = 200;
 
 		[NonSerialized]
-        private IMethodEntityWithPropagator methodEntityPropagator;
-        [NonSerialized]
-        private MethodEntity methodEntity;
-        [NonSerialized]
-        private IProjectCodeProvider codeProvider;
+		private IMethodEntityWithPropagator methodEntityPropagator;
+		[NonSerialized]
+		private MethodEntity methodEntity;
+		[NonSerialized]
+		private IProjectCodeProvider codeProvider;
 		[NonSerialized]
 		private ISolutionGrain solutionGrain;
 		[NonSerialized]
@@ -62,7 +62,7 @@ namespace ReachingTypeAnalysis.Analysis
 		}
 
 		public override async Task OnActivateAsync()
-        {
+		{
 			this.State = new MethodState();
 
 			this.currentStreamIndex = this.GetHashCode() % AnalysisConstants.StreamCount;
@@ -70,7 +70,7 @@ namespace ReachingTypeAnalysis.Analysis
 			await StatsHelper.RegisterActivation("MethodEntityGrain", this.GrainFactory);
 
 			Logger.OrleansLogger = this.GetLogger();
-            Logger.LogVerbose(this.GetLogger(),"MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
+			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "OnActivate", "Activation for {0} ", this.GetPrimaryKeyString());
 
 			var methodDescriptor = MethodDescriptor.DeMarsall(this.GetPrimaryKeyString());
 
@@ -82,32 +82,32 @@ namespace ReachingTypeAnalysis.Analysis
 			//Task.Run(async () =>
 			//await Task.Factory.StartNew(async () =>
 			//{
-				try
-				{
-					//this.status = EntityGrainStatus.Busy;
+			try
+			{
+				//this.status = EntityGrainStatus.Busy;
 
-					await this.CreateMethodEntityAsync(methodDescriptor);
+				await this.CreateMethodEntityAsync(methodDescriptor);
 
-					//this.status = EntityGrainStatus.Ready;
-				}
-				catch (Exception ex)
-				{
-					var inner = ex;
-					while (inner is AggregateException) inner = inner.InnerException;
+				//this.status = EntityGrainStatus.Ready;
+			}
+			catch (Exception ex)
+			{
+				var inner = ex;
+				while (inner is AggregateException) inner = inner.InnerException;
 
-					Logger.LogError(this.GetLogger(), "MethodEntityGrain", "OnActivate", "Error:\n{0}\nInner:\n{1}", ex, inner);
-					throw ex;
-				}
+				Logger.LogError(this.GetLogger(), "MethodEntityGrain", "OnActivate", "Error:\n{0}\nInner:\n{1}", ex, inner);
+				throw ex;
+			}
 			//});
-        }
+		}
 
 		public async Task ForceDeactivationAsync()
 		{
 			//await StatsHelper.RegisterMsg("MethodEntityGrain::ForceDeactivation", this.GrainFactory);
 
 			Logger.LogVerbose(this.GetLogger(), "MethodEntityGrain", "ForceDeactivation", "force for {0} ", this.GetPrimaryKeyString());
-            await this.ClearStateAsync();
-        
+			await this.ClearStateAsync();
+
 			//this.State.MethodDescriptor = null;
 			//await this.WriteStateAsync();
 
@@ -131,11 +131,11 @@ namespace ReachingTypeAnalysis.Analysis
 
 			this.solutionGrain = OrleansSolutionManager.GetSolutionGrain(this.GrainFactory);
 
-            this.State.MethodDescriptor = methodDescriptor;
-            var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
+			this.State.MethodDescriptor = methodDescriptor;
+			var methodDescriptorToSearch = methodDescriptor.BaseDescriptor;
 
 			var codeProviderGrain = await solutionGrain.GetProjectCodeProviderAsync(methodDescriptorToSearch);
-            
+
 			// This wrapper caches some of the queries to codeProvider
 			this.codeProvider = new ProjectCodeProviderWithCache(codeProviderGrain);
 
@@ -145,16 +145,16 @@ namespace ReachingTypeAnalysis.Analysis
 			var sw = new Stopwatch();
 			sw.Start();
 
-            this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
+			this.methodEntity = (MethodEntity)await codeProvider.CreateMethodEntityAsync(methodDescriptorToSearch);
 
-            sw.Stop();
+			sw.Stop();
 
-            Logger.LogInfo(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds,sw.ElapsedTicks);
+			Logger.LogInfo(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "{0};call to provider;{1};ms;{2};ticks", methodDescriptor, sw.ElapsedMilliseconds, sw.ElapsedTicks);
 
-            if (methodDescriptor.IsAnonymousDescriptor)
-            {
-                this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor) methodDescriptor);
-            }
+			if (methodDescriptor.IsAnonymousDescriptor)
+			{
+				this.methodEntity = this.methodEntity.GetAnonymousMethodEntity((AnonymousMethodDescriptor)methodDescriptor);
+			}
 
 			//// this is for RTA analysis
 			//await solutionGrain.AddInstantiatedTypesAsync(this.methodEntity.InstantiatedTypes);
@@ -162,45 +162,45 @@ namespace ReachingTypeAnalysis.Analysis
 			// This take cares of doing the progation of types
 			this.methodEntityPropagator = new MethodEntityWithPropagator(methodEntity, codeProvider);
 
-            await this.WriteStateAsync();
+			await this.WriteStateAsync();
 
 			//Logger.LogWarning(this.GetLogger(), "MethodEntityGrain", "CreateMethodEntity", "Exit {0}", methodDescriptor);
 		}
 
-        public async Task<ISet<MethodDescriptor>> GetCalleesAsync()
-        {
+		public async Task<ISet<MethodDescriptor>> GetCalleesAsync()
+		{
 			await StatsHelper.RegisterMsg("MethodEntityGrain::GetCallees", this.GrainFactory);
 
 			var result = await this.methodEntityPropagator.GetCalleesAsync();
 			return result;
-        }
+		}
 
-        public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
-        {
+		public async Task<IDictionary<AnalysisCallNode, ISet<MethodDescriptor>>> GetCalleesInfoAsync()
+		{
 			await StatsHelper.RegisterMsg("MethodEntityGrain::GetCalleesInfo", this.GrainFactory);
 
 			var result = await this.methodEntityPropagator.GetCalleesInfoAsync();
 			return result;
-        }
+		}
 
-        public async Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
-        {
-            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
-            var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
-            await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+		public async Task PropagateAndProcessAsync(PropagationKind propKind, IEnumerable<PropGraphNodeDescriptor> reWorkSet)
+		{
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+			var effects = await this.methodEntityPropagator.PropagateAsync(propKind, reWorkSet); // await this.PropagateAsync(propKind, reWorkSet);
+			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-            await ProcessEffectsAsync(effects);
-        }
+			await ProcessEffectsAsync(effects);
+		}
 
-        public async Task PropagateAndProcessAsync(PropagationKind propKind)
-        {
-            await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
-            var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
-            await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
+		public async Task PropagateAndProcessAsync(PropagationKind propKind)
+		{
+			await StatsHelper.RegisterMsg("MethodEntityGrain::PropagateAndProcess", this.GrainFactory);
+			var effects = await this.methodEntityPropagator.PropagateAsync(propKind);
+			await StatsHelper.RegisterPropagationUpdates(effects.NumberOfUpdates, effects.WorkListInitialSize, this.GrainFactory);
 
-            // await this.PropagateAsync(propKind);
-            await ProcessEffectsAsync(effects);
-        }
+			// await this.PropagateAsync(propKind);
+			await ProcessEffectsAsync(effects);
+		}
 
 		public async Task PropagateAndProcessAsync(CallMessageInfo callMessageInfo)
 		{
@@ -224,23 +224,23 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			effects.Kind = propKind;
 
-			var maxCalleesCount = Math.Min(effects.CalleesInfo.Count, 8);
+			var maxCallSitesCount = Math.Min(effects.CalleesInfo.Count, 8);
 			var maxCallersCount = Math.Min(effects.CallersInfo.Count, 8);
 
 			// This is an optimization, it is not really needed
-			if (maxCalleesCount == 0 && maxCallersCount == 0) return;
-			
-			await this.SplitAndEnqueueEffectsAsync(effects, maxCalleesCount, maxCallersCount);
+			if (maxCallSitesCount == 0 && maxCallersCount == 0) return;
+
+			await this.SplitAndEnqueueEffectsAsync(effects, maxCallSitesCount, maxCallersCount, int.MaxValue);
 		}
 
-		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
+		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCallSitesCount, int maxCallersCount, int maxCalleesCount)
 		{
 			var tasks = new List<Task>();
-			var messages = SplitEffects(effects, maxCalleesCount, maxCallersCount);
+			var messages = SplitEffects(effects, maxCallSitesCount, maxCallersCount);
 
 			foreach (var message in messages)
 			{
-				var task = this.EnqueueEffectsAsync(message, maxCalleesCount, maxCallersCount);
+				var task = this.EnqueueEffectsAsync(message, maxCallSitesCount, maxCallersCount, maxCalleesCount);
 				//await task;
 				tasks.Add(task);
 			}
@@ -248,9 +248,30 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
+		private async Task SplitAndEnqueueCalleeEffectsAsync(PropagationEffects effects, int maxCallSitesCount, int maxCallersCount, int maxCalleesCount)
+		{
+			var tasks = new List<Task>();
+
+			var messages = SplitCallSite(effects, maxCalleesCount);
+
+			foreach (var message in messages)
+			{
+				// maxCallSitesCount should be 1 and maxCallersCount shoud be 0 or 1
+				var task = this.EnqueueEffectsAsync(message, maxCallSitesCount, maxCallersCount, maxCalleesCount);
+				//await task;
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+		}
+
+
+		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCallSitesCount, int maxCallersCount, int maxCalleesCount)
 		{
 			var splitEffects = false;
+			var splitCallees = false;
+
+
 			var retryCount = AnalysisConstants.StreamCount; // 3
 
 			do
@@ -267,11 +288,21 @@ namespace ReachingTypeAnalysis.Analysis
 					var innerEx = ex;
 					while (innerEx is AggregateException) innerEx = innerEx.InnerException;
 
-					if (innerEx is ArgumentException && (maxCalleesCount > 1 || maxCallersCount > 1))
+					if (innerEx is ArgumentException) 
 					{
-						// Messages cannot be larger than 65536 bytes
-						splitEffects = true;
-						break;
+						if(maxCallSitesCount > 1 || maxCallersCount > 1) {
+							// Messages cannot be larger than 65536 bytes
+							splitEffects = true;
+							break;
+						}
+						else 
+						{
+							if (maxCalleesCount > 1)
+							{
+								splitCallees = true;
+								break;
+							}
+						}
 					}
 					else
 					{
@@ -281,7 +312,7 @@ namespace ReachingTypeAnalysis.Analysis
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
 							var effectsInfo = this.GetEffectsInfo(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCalleesCount, effectsInfo, ex);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCallSitesCount, effectsInfo, ex);
 							throw ex;
 						}
 					}
@@ -291,23 +322,35 @@ namespace ReachingTypeAnalysis.Analysis
 
 			if (splitEffects)
 			{
-				var newMaxCalleesCount = maxCalleesCount;
+				var newMaxCallSitesCount = maxCallSitesCount;
 				var newMaxCallersCount = maxCallersCount;
 
-				if (maxCalleesCount > 1)
+				if (maxCallSitesCount > 1)
 				{
-					newMaxCalleesCount = (maxCalleesCount / 2) + (maxCalleesCount % 2);
+					newMaxCallSitesCount = (maxCallSitesCount / 2) + (maxCallSitesCount % 2);
 
-					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callees) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCalleesCount, newMaxCalleesCount);
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (call sites) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallSitesCount, newMaxCallSitesCount);
 				}
-				else if (maxCalleesCount > 1)
+				else if (maxCallSitesCount > 1)
 				{
 					newMaxCallersCount = (maxCallersCount / 2) + (maxCallersCount % 2);
 
 					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callers) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallersCount, newMaxCallersCount);
 				}
 
-				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCalleesCount, maxCallersCount);
+				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCallSitesCount, maxCallersCount, maxCalleesCount);
+			}
+			if(splitCallees)
+			{
+				if (effects.CalleesInfo.First().PossibleCallees != null)
+				{
+					maxCalleesCount = Math.Min(effects.CalleesInfo.First().PossibleCallees.Count, maxCalleesCount);
+					var newMaxCalleesCount = (maxCalleesCount / 2) + (maxCalleesCount % 2);
+
+					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callees of) {1} call site into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallSitesCount, newMaxCalleesCount);
+
+					await this.SplitAndEnqueueCalleeEffectsAsync(effects, maxCallSitesCount, maxCallersCount, newMaxCalleesCount);
+				}
 			}
 		}
 
@@ -343,7 +386,7 @@ namespace ReachingTypeAnalysis.Analysis
 		//	return result;
 		//}
 
-		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCalleesCount, int maxCallersCount)
+		private static IEnumerable<PropagationEffects> SplitEffects(PropagationEffects effects, int maxCallSiteCount, int maxCallersCount)
 		{
 			var result = new List<PropagationEffects>();
 			var calleesInfo = effects.CalleesInfo.ToList();
@@ -351,15 +394,15 @@ namespace ReachingTypeAnalysis.Analysis
 			var count = calleesInfo.Count;
 			var index = 0;
 
-			while (count > maxCalleesCount)
+			while (count > maxCallSiteCount)
 			{
-				var callees = calleesInfo.GetRange(index, maxCalleesCount);
+				var callees = calleesInfo.GetRange(index, maxCallSiteCount);
 				var message = new PropagationEffects(callees, false);
 
 				result.Add(message);
 
-				count -= maxCalleesCount;
-				index += maxCalleesCount;
+				count -= maxCallSiteCount;
+				index += maxCallSiteCount;
 			}
 
 			if (count > 0)
@@ -396,6 +439,34 @@ namespace ReachingTypeAnalysis.Analysis
 				}
 			}
 
+			return result;
+		}
+
+		private static List<PropagationEffects> SplitCallSite(PropagationEffects effects, int maxCallees)
+		{
+			var result = new List<PropagationEffects>();
+			var calleesInfo = SplitCalleesInfo(effects.CalleesInfo, maxCallees);
+			var count = calleesInfo.Count;
+			var index = 0;
+
+			while (count > maxCallees)
+			{
+				var callees = calleesInfo.GetRange(index, maxCallees);
+				var message = new PropagationEffects(callees, false);
+
+				result.Add(message);
+
+				count -= maxCallees;
+				index += maxCallees;
+			}
+
+			if (count > 0)
+			{
+				var callees = calleesInfo.GetRange(index, count);
+				var message = new PropagationEffects(callees, false);
+
+				result.Add(message);
+			}
 			return result;
 		}
 
