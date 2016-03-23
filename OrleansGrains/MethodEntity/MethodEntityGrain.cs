@@ -230,30 +230,34 @@ namespace ReachingTypeAnalysis.Analysis
 
 		private async Task SplitAndEnqueueEffectsAsync(PropagationEffects effects, int maxCalleesInfoCount, int maxPossibleCalleesCount)
 		{
-			var tasks = new List<Task>();
-			IEnumerable<PropagationEffects> messages;
+			IEnumerable<PropagationEffects> messages = null;
 
 			if (maxCalleesInfoCount > 1)
 			{
 				messages = SplitCalleesInfo(effects, maxCalleesInfoCount);
 			}
-			else if (maxPossibleCalleesCount > 1)
+			else if (maxCalleesInfoCount == 1 && maxPossibleCalleesCount > 1)
 			{
-				messages = SplitPossibleCallees(effects, maxCalleesInfoCount);
+				messages = SplitPossibleCallees(effects, maxPossibleCalleesCount);
 			}
-			else
+			else if(maxCalleesInfoCount == 1 && maxPossibleCalleesCount == 1)
 			{
 				messages = new PropagationEffects[] { effects };
 			}
 
-			foreach (var message in messages)
+			if (messages != null)
 			{
-				var task = this.EnqueueEffectsAsync(message, maxCalleesInfoCount, maxPossibleCalleesCount);
-				//await task;
-				tasks.Add(task);
-			}
+				var tasks = new List<Task>();
 
-			await Task.WhenAll(tasks);
+				foreach (var message in messages)
+				{
+					var task = this.EnqueueEffectsAsync(message, maxCalleesInfoCount, maxPossibleCalleesCount);
+					//await task;
+					tasks.Add(task);
+				}
+
+				await Task.WhenAll(tasks);
+			}
 		}
 		
 		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCalleesInfoCount, int maxPossibleCalleesCount)
@@ -307,8 +311,9 @@ namespace ReachingTypeAnalysis.Analysis
 
 					await this.SplitAndEnqueueEffectsAsync(effects, newMaxCalleesInfoCount, maxPossibleCalleesCount);
 				}
-				else if (maxPossibleCalleesCount > 1)
+				else if (maxCalleesInfoCount == 1 && maxPossibleCalleesCount > 1)
 				{
+					// TODO: Bug here in max: sequence contains no elements!
 					var possibleCalleesCount = effects.CalleesInfo.Max(x => x.PossibleCallees.Count);
 					maxPossibleCalleesCount = Math.Min(possibleCalleesCount, maxPossibleCalleesCount);
 					var newMaxPossibleCalleesCount = (maxPossibleCalleesCount / 2) + (maxPossibleCalleesCount % 2);
