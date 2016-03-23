@@ -43,7 +43,7 @@ namespace WebAPI
 
             try
             {
-				LogAnalysisVariables();
+				//LogAnalysisVariables();
 
 				base.Run();
             }
