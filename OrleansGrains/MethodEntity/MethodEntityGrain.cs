@@ -302,7 +302,14 @@ namespace ReachingTypeAnalysis.Analysis
 								splitCallees = true;
 								break;
 							}
-						}
+                            else
+                            {
+                                retryCount--;
+                                var effectsInfo = this.GetEffectsInfo(effects);
+                                Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync [no more callees] (maxCalleesCount = {0}, {1})\n{2}", maxCalleesCount, effectsInfo, ex);
+                                throw ex;
+                            }
+                        }
 					}
 					else
 					{
@@ -312,7 +319,7 @@ namespace ReachingTypeAnalysis.Analysis
 						{
 							//var effectsInfo = this.SerializeEffects(effects);
 							var effectsInfo = this.GetEffectsInfo(effects);
-							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCount = {0}, {1})\n{2}", maxCallSitesCount, effectsInfo, ex);
+							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCallSiteCount = {0}, {1})\n{2}", maxCallSitesCount, effectsInfo, ex);
 							throw ex;
 						}
 					}
