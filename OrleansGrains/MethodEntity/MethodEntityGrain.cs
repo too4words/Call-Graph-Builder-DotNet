@@ -307,7 +307,7 @@ namespace ReachingTypeAnalysis.Analysis
                                 retryCount--;
                                 var effectsInfo = this.GetEffectsInfo(effects);
                                 Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync [no more callees] (maxCalleesCount = {0}, {1})\n{2}", maxCalleesCount, effectsInfo, ex);
-                                throw ex;
+                                //throw ex;
                             }
                         }
 					}
@@ -320,7 +320,7 @@ namespace ReachingTypeAnalysis.Analysis
 							//var effectsInfo = this.SerializeEffects(effects);
 							var effectsInfo = this.GetEffectsInfo(effects);
 							Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCallSiteCount = {0}, {1})\n{2}", maxCallSitesCount, effectsInfo, ex);
-							throw ex;
+							//throw ex;
 						}
 					}
 				}
@@ -338,7 +338,7 @@ namespace ReachingTypeAnalysis.Analysis
 
 					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (call sites) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallSitesCount, newMaxCallSitesCount);
 				}
-				else if (maxCallSitesCount > 1)
+				else if (maxCallersCount > 1)
 				{
 					newMaxCallersCount = (maxCallersCount / 2) + (maxCallersCount % 2);
 
