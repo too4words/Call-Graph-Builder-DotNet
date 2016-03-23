@@ -251,7 +251,6 @@ namespace ReachingTypeAnalysis.Analysis
 		private async Task SplitAndEnqueueCalleeEffectsAsync(PropagationEffects effects, int maxCallSitesCount, int maxCallersCount, int maxCalleesCount)
 		{
 			var tasks = new List<Task>();
-
 			var messages = SplitCallSite(effects, maxCalleesCount);
 
 			foreach (var message in messages)
@@ -265,13 +264,10 @@ namespace ReachingTypeAnalysis.Analysis
 			await Task.WhenAll(tasks);
 		}
 
-
 		private async Task EnqueueEffectsAsync(PropagationEffects effects, int maxCallSitesCount, int maxCallersCount, int maxCalleesCount)
 		{
 			var splitEffects = false;
 			var splitCallees = false;
-
-
 			var retryCount = AnalysisConstants.StreamCount; // 3
 
 			do
@@ -290,26 +286,28 @@ namespace ReachingTypeAnalysis.Analysis
 
 					if (innerEx is ArgumentException) 
 					{
-						if(maxCallSitesCount > 1 || maxCallersCount > 1) {
+						if (maxCallSitesCount > 1 || maxCallersCount > 1) {
 							// Messages cannot be larger than 65536 bytes
 							splitEffects = true;
 							break;
 						}
-						else 
+						else if (maxCalleesCount > 1)
 						{
-							if (maxCalleesCount > 1)
+							splitCallees = true;
+							break;
+						}
+						else
+						{
+							retryCount--;
+
+							if (retryCount == 0)
 							{
-								splitCallees = true;
-								break;
+								//var effectsInfo = this.SerializeEffects(effects);
+								var effectsInfo = this.GetEffectsInfo(effects);
+								Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync (maxCallSiteCount = {0}, {1})\n{2}", maxCallSitesCount, effectsInfo, ex);
+								//throw ex;
 							}
-                            else
-                            {
-                                retryCount--;
-                                var effectsInfo = this.GetEffectsInfo(effects);
-                                Logger.LogError(this.GetLogger(), "MethodEntityGrain", "EnqueueEffects", "Exception on OnNextAsync [no more callees] (maxCalleesCount = {0}, {1})\n{2}", maxCalleesCount, effectsInfo, ex);
-                                //throw ex;
-                            }
-                        }
+						}
 					}
 					else
 					{
@@ -345,13 +343,16 @@ namespace ReachingTypeAnalysis.Analysis
 					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callers) of size {1} into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallersCount, newMaxCallersCount);
 				}
 
-				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCallSitesCount, maxCallersCount, maxCalleesCount);
+				await this.SplitAndEnqueueEffectsAsync(effects, newMaxCallSitesCount, newMaxCallersCount, maxCalleesCount);
 			}
-			if(splitCallees)
+
+			if (splitCallees)
 			{
-				if (effects.CalleesInfo.First().PossibleCallees != null)
+				var calleeInfo = effects.CalleesInfo.Single();
+
+				if (calleeInfo.PossibleCallees != null)
 				{
-					maxCalleesCount = Math.Min(effects.CalleesInfo.First().PossibleCallees.Count, maxCalleesCount);
+					maxCalleesCount = Math.Min(calleeInfo.PossibleCallees.Count, maxCalleesCount);
 					var newMaxCalleesCount = (maxCalleesCount / 2) + (maxCalleesCount % 2);
 
 					Logger.LogForRelease(this.GetLogger(), "@@[MethodEntityGrain {0}] Splitting effects (callees of) {1} call site into parts of size {2}", this.methodEntity.MethodDescriptor, maxCallSitesCount, newMaxCalleesCount);
@@ -453,27 +454,15 @@ namespace ReachingTypeAnalysis.Analysis
 		{
 			var result = new List<PropagationEffects>();
 			var calleesInfo = SplitCalleesInfo(effects.CalleesInfo, maxCallees);
-			var count = calleesInfo.Count;
-			var index = 0;
-
-			while (count > maxCallees)
+			
+			foreach (var callInfo in calleesInfo)
 			{
-				var callees = calleesInfo.GetRange(index, maxCallees);
-				var message = new PropagationEffects(callees, false);
-
-				result.Add(message);
-
-				count -= maxCallees;
-				index += maxCallees;
-			}
-
-			if (count > 0)
-			{
-				var callees = calleesInfo.GetRange(index, count);
+				var callees = new CallInfo[] { callInfo };
 				var message = new PropagationEffects(callees, false);
 
 				result.Add(message);
 			}
+
 			return result;
 		}
 
