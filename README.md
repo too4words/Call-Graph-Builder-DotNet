@@ -16,30 +16,23 @@ We have evaluated our analysis with the following projects taken directly from G
 
 * [ShareX](https://github.com/ShareX/ShareX)
 
-Repository: https://github.com/ShareX/ShareX.git
-
-Branch: master
-
-Commit: 0697738ec89363f092a49b1c6021dc8d6324ee1d
+  Repository: https://github.com/ShareX/ShareX.git
+  Branch: master
+  Commit: 0697738ec89363f092a49b1c6021dc8d6324ee1d
 
 * [ILSpy](https://github.com/icsharpcode/ILSpy)
 
-Repository: https://github.com/icsharpcode/ILSpy.git
-
-Branch: master
-
-Commit: 2726336b3a56d343457b453d9be76b793ea2ebc0
+  Repository: https://github.com/icsharpcode/ILSpy.git
+  Branch: master
+  Commit: 2726336b3a56d343457b453d9be76b793ea2ebc0
 
 * [Azure-PowerShell](https://github.com/Azure/azure-powershell)
 
-Repository: https://github.com/Azure/azure-powershell.git
-
-Branch: dev
-
-Commit: 4485b9b42df290edc19351d134b92e75abb04329
+  Repository: https://github.com/Azure/azure-powershell.git
+  Branch: dev
+  Commit: 4485b9b42df290edc19351d134b92e75abb04329
 
 ## How to build the tool
 
 Please make sure you are using the [StreamPool](https://github.com/too4words/Call-Graph-Builder-DotNet/tree/StreamPool) branch.
-
 Open ReachingTypeAnalysis.sln and build with Visual Studio. Using Visual Studio 2013 or above is recommended. 
