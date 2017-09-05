@@ -35,4 +35,11 @@ We have evaluated our analysis with the following projects taken directly from G
 ## How to build the tool
 
 Please make sure you are using the [StreamPool](https://github.com/too4words/Call-Graph-Builder-DotNet/tree/StreamPool) branch.  
-Open ReachingTypeAnalysis.sln and build with Visual Studio. Using Visual Studio 2013 or above is recommended. 
+Open ReachingTypeAnalysis.sln and build with Visual Studio. Using Visual Studio 2013 or above is recommended.
+
+### Prerequisites
+
+Install [Visual Studio 2017](https://www.visualstudio.com/downloads/) with the following workloads:
+
+* ASP.NET and web development
+* Azure development
